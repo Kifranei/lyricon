@@ -4,7 +4,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-@file:Suppress("KotlinConstantConditions", "MemberVisibilityCanBePrivate")
+@file:Suppress("KotlinConstantConditions", "MemberVisibilityCanBePrivate", "DEPRECATION")
 
 package io.github.proify.lyricon.lyric.style
 
@@ -24,7 +24,9 @@ data class TextStyle(
     var paddings: RectF = Defaults.PADDINGS,
     var repeatOutput: Boolean = Defaults.REPEAT_OUTPUT,
 
+    @Deprecated("未支持")
     var fadingEdgeEnabled: Boolean = Defaults.FADING_EDGE_ENABLED,
+    @Deprecated("未支持")
     var fadingEdgeLength: Int = Defaults.FADING_EDGE_LENGTH,
 
     var enableCustomTextColor: Boolean = Defaults.ENABLE_CUSTOM_TEXT_COLOR,
@@ -39,7 +41,6 @@ data class TextStyle(
     var marqueeSpeed: Float = Defaults.MARQUEE_SPEED,
     var marqueeGhostSpacing: Float = Defaults.MARQUEE_GHOST_SPACING,
     var marqueeLoopDelay: Int = Defaults.MARQUEE_LOOP_DELAY,
-    //var marqueeDelayEnable: Boolean = Defaults.MARQUEE_DELAY_ENABLE,
     var marqueeRepeatCount: Int = Defaults.MARQUEE_REPEAT_COUNT,
     var marqueeStopAtEnd: Boolean = Defaults.MARQUEE_STOP_AT_END,
     var marqueeInitialDelay: Int = Defaults.MARQUEE_INITIAL_DELAY,
@@ -47,10 +48,12 @@ data class TextStyle(
     var gradientProgressStyle: Boolean = Defaults.ENABLE_GRADIENT_PROGRESS_STYLE,
 
     var relativeProgress: Boolean = Defaults.RELATIVE_PROGRESS,
-    var relativeProgressHighlight: Boolean = Defaults.RELATIVE_PROGRESS_HIGHLIGHT
+    var relativeProgressHighlight: Boolean = Defaults.RELATIVE_PROGRESS_HIGHLIGHT,
+    var textSizeRatioInMultiLineMode: Float = Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE_MODE,
 ) : AbstractStyle(), Parcelable {
 
     object Defaults {
+        const val TEXT_SIZE_RATIO_IN_MULTI_LINE_MODE: Float = 1f
         const val RELATIVE_PROGRESS: Boolean = true
         const val RELATIVE_PROGRESS_HIGHLIGHT: Boolean = false
 
@@ -75,7 +78,6 @@ data class TextStyle(
         const val MARQUEE_GHOST_SPACING: Float = 50f
         const val MARQUEE_LOOP_DELAY: Int = 300
 
-        //const val MARQUEE_DELAY_ENABLE: Boolean = false
         const val MARQUEE_REPEAT_COUNT: Int = -1
         const val MARQUEE_STOP_AT_END: Boolean = false
         const val MARQUEE_INITIAL_DELAY: Int = 300
@@ -129,10 +131,6 @@ data class TextStyle(
             "lyric_style_text_marquee_initial_delay",
             Defaults.MARQUEE_INITIAL_DELAY
         )
-//        marqueeDelayEnable = preferences.getBoolean(
-//            "lyric_style_text_marquee_enable_delay",
-//            Defaults.MARQUEE_DELAY_ENABLE
-//        )
         marqueeRepeatCount = preferences.getInt(
             "lyric_style_text_marquee_repeat_count",
             Defaults.MARQUEE_REPEAT_COUNT
@@ -157,6 +155,10 @@ data class TextStyle(
         relativeProgressHighlight = preferences.getBoolean(
             "lyric_style_text_relative_progress_highlight",
             Defaults.RELATIVE_PROGRESS_HIGHLIGHT
+        )
+        textSizeRatioInMultiLineMode = preferences.getFloat(
+            "lyric_style_text_size_ratio_in_multi_line_mode",
+            Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE_MODE
         )
     }
 
@@ -183,7 +185,6 @@ data class TextStyle(
         editor.putFloat("lyric_style_text_marquee_space", marqueeGhostSpacing)
         editor.putInt("lyric_style_text_marquee_loop_delay", marqueeLoopDelay)
         editor.putInt("lyric_style_text_marquee_initial_delay", marqueeInitialDelay)
-        //editor.putBoolean("lyric_style_text_marquee_enable_delay", marqueeDelayEnable)
         editor.putInt("lyric_style_text_marquee_repeat_count", marqueeRepeatCount)
         editor.putBoolean("lyric_style_text_marquee_stop_at_end", marqueeStopAtEnd)
         editor.putBoolean("lyric_style_text_marquee_repeat_unlimited", marqueeRepeatUnlimited)
@@ -194,6 +195,10 @@ data class TextStyle(
         editor.putBoolean(
             "lyric_style_text_relative_progress_highlight",
             relativeProgressHighlight
+        )
+        editor.putFloat(
+            "lyric_style_text_size_ratio_in_multi_line_mode",
+            textSizeRatioInMultiLineMode
         )
     }
 }

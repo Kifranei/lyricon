@@ -133,46 +133,150 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
         return view
     }
 
+//    internal fun updateViewsVisibility() {
+//        val childCount = childCount
+//        if (childCount == 0) return
+//
+//        val first = getChildAt(0) as? RichLyricLineView ?: return
+//
+//        for (i in 0 until childCount) {
+//            val view = getChildAt(i) as? RichLyricLineView ?: continue
+//
+//            view.visibility = VISIBLE
+//            view.main.setTextSize(config.primary.textSize)
+//            view.secondary.setTextSize(config.secondary.textSize)
+//
+//            when (i) {
+//                0 -> {
+//                    if (view.secondary.isVisible
+//                        && view.main.syllable.isPlayFinished()
+//                        && childCount > 1
+//                    ) {
+//                        view.main.visibilityIfChanged = GONE
+//                    }
+//                }
+//
+//                1 -> {
+//                    if (first.main.isVisible && first.secondary.isVisible) {
+//                        view.visibilityIfChanged = GONE
+//                    } else {
+//                        if (first.isVisible && first.main.isVisible) {
+//                            view.main.setTextSize(config.secondary.textSize)
+//                            view.secondary.setTextSize(config.primary.textSize)
+//                        }
+//                    }
+//                }
+//
+//                else -> {
+//                    view.visibilityIfChanged = GONE
+//                }
+//            }
+//        }
+//    }
+
+
+    /**
+     * 更新歌词行视图的可见性及字体大小。
+     * 采用状态预计算逻辑，确保字号缩放基于全局可见组件总数。
+     */
     internal fun updateViewsVisibility() {
-        val childCount = childCount
-        if (childCount == 0) return
+        val totalChildCount = childCount
+        if (totalChildCount == 0) return
 
-        val first = getChildAt(0) as? RichLyricLineView ?: return
+        // --- 1. 预计算阶段：判定各行的显示组件数量 ---
 
-        for (i in 0 until childCount) {
+        // 第一行 (V0) 状态
+        val v0 = getChildAt(0) as? RichLyricLineView ?: return
+        val v0HasSecondary = v0.secondary.isVisible
+
+        // 规则：若有副歌词、主歌词播完且有后继行，则隐藏主歌词为下一行留白
+        val v0HideMain = v0HasSecondary && v0.main.isPlayFinished() && totalChildCount > 1
+        val v0MainVisible = if (v0HideMain) GONE else VISIBLE
+        val v0Count = (if (v0HideMain) 0 else 1) + (if (v0HasSecondary) 1 else 0)
+
+        // 第二行 (V1) 状态
+        var v1Visible = false
+        var v1Count = 0
+        if (totalChildCount > 1) {
+            val v1 = getChildAt(1) as? RichLyricLineView
+            // 只有当第一行空间占用较小（仅 1 个组件）时，第二行才允许显示
+            if (v1 != null && v0Count <= 1) {
+                v1Visible = true
+                v1Count = 1 + (if (v1.secondary.isVisible) 1 else 0)
+            }
+        }
+
+        // --- 2. 样式计算阶段：计算全局缩放 ---
+
+        // 全局可见组件总数用于判断是否应用“多行模式”缩放比
+        val totalVisibleComponents = v0Count + v1Count
+        val needsScale = totalVisibleComponents > 1
+        val scale = if (needsScale) config.textSizeRatioInMultiLineMode.coerceIn(0.1f, 2f) else 1f
+
+        // --- 3. 应用阶段：同步 UI 状态 ---
+
+        for (i in 0 until totalChildCount) {
             val view = getChildAt(i) as? RichLyricLineView ?: continue
-
-            view.visibility = VISIBLE
-            view.main.setTextSize(config.primary.textSize)
-            view.secondary.setTextSize(config.secondary.textSize)
 
             when (i) {
                 0 -> {
-                    if (view.secondary.isVisible
-                        && view.main.syllable.isPlayFinished()
-                        && childCount > 1
-                    ) {
-                        view.main.visibilityIfChanged = GONE
-                    }
+                    view.visibilityIfChanged = VISIBLE
+                    applyLineStyle(
+                        view = view,
+                        mainVisible = v0MainVisible,
+                        mainSize = config.primary.textSize * scale,
+                        secondarySize = config.secondary.textSize * scale
+                    )
                 }
-
                 1 -> {
-                    if (first.main.isVisible && first.secondary.isVisible) {
-                        view.visibilityIfChanged = GONE
+                    if (v1Visible) {
+                        view.visibilityIfChanged = VISIBLE
+                        // 若第一行主歌词仍在，则第二行反转字号作为“预告行”
+                        val isV0Active = v0MainVisible == VISIBLE
+                        val pSize = if (isV0Active) config.secondary.textSize else config.primary.textSize
+                        val sSize = if (isV0Active) config.primary.textSize else config.secondary.textSize
+
+                        applyLineStyle(
+                            view = view,
+                            mainVisible = VISIBLE,
+                            mainSize = pSize * scale,
+                            secondarySize = sSize * scale
+                        )
                     } else {
-                        if (first.isVisible && first.main.isVisible) {
-                            view.main.setTextSize(config.secondary.textSize)
-                            view.secondary.setTextSize(config.primary.textSize)
-                        }
+                        view.visibilityIfChanged = GONE
                     }
                 }
-
                 else -> {
+                    // 第三行及以后强制隐藏
                     view.visibilityIfChanged = GONE
                 }
             }
         }
+
+        invalidate()
+        requestLayout()
     }
+
+    /**
+     * 应用具体的可见性和字号，仅在数值变化时触发系统调用。
+     */
+    private fun applyLineStyle(
+        view: RichLyricLineView,
+        mainVisible: Int,
+        mainSize: Float,
+        secondarySize: Float
+    ) {
+        view.main.visibilityIfChanged = mainVisible
+
+        // 检查 textSize 避免无效的 requestLayout()
+        if (view.main.textSize != mainSize) {
+            view.main.setTextSize(mainSize)
+        }
+        if (view.secondary.textSize != secondarySize) {
+            view.secondary.setTextSize(secondarySize)
+        }
+    }
+
 
     fun setDisplayTranslation(displayTranslation: Boolean) {
         isDisplayTranslation = displayTranslation
@@ -336,6 +440,29 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
             setLayoutTransition(myLayoutTransition)
         }
         addView(view, reusableLayoutParams)
+    }
+
+    fun updateColor(primaryColor: Int, backgroundColor: Int, highlightColor: Int) {
+        this.config.apply {
+            primary.apply {
+                textColor = primaryColor
+            }
+            secondary.apply {
+                textColor = primaryColor
+            }
+            syllable.apply {
+                this.backgroundColor = highlightColor
+                this.backgroundColor = backgroundColor
+            }
+        }
+
+        this.forEach { view ->
+            if (view is RichLyricLineView) view.updateColor(
+                primaryColor,
+                backgroundColor,
+                highlightColor
+            )
+        }
     }
 
     fun setStyle(config: RichLyricLineConfig): LyricPlayerView = apply {

@@ -62,12 +62,13 @@ class MainActivity : AppCompatActivity() {
     private val json = Json { ignoreUnknownKeys = true }
 
     /** LyriconProvider 帮助类，用于歌词同步和状态管理 */
-    internal val provider =
+    internal val provider by lazy {
         LyriconProvider(
             context = this,
             providerPackageName = packageName,
             logo = ProviderLogo.fromDrawable(this, R.drawable.play_arrow_24px)
         )
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,6 +76,10 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
+
+        binding.transitionManager.setOnClickListener {
+            startActivity(Intent(this, TransitionManagerActivity::class.java))
+        }
 
         // 初始化播放器
         player = ExoPlayer.Builder(this).build()

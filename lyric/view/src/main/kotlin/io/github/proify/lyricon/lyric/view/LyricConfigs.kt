@@ -24,6 +24,7 @@ data class RichLyricLineConfig(
     var marquee: MarqueeConfig = DefaultMarqueeConfig(),
     var syllable: SyllableConfig = DefaultSyllableConfig(),
     var gradientProgressStyle: Boolean = true,
+    var textSizeRatioInMultiLineMode: Float = 1f,
 )
 
 interface TextConfig {
@@ -53,7 +54,7 @@ open class DefaultMarqueeConfig(
 interface SyllableConfig {
     var backgroundColor: Int
     var highlightColor: Int
-    var disableHighlight: Boolean
+   // var disableHighlight: Boolean
 }
 
 data class MainTextConfig(
@@ -67,7 +68,7 @@ data class MainTextConfig(
 class DefaultSyllableConfig(
     override var highlightColor: Int = Color.BLACK,
     override var backgroundColor: Int = Color.GRAY,
-    override var disableHighlight: Boolean = false,
+   // override var disableHighlight: Boolean = false,
 ) : SyllableConfig
 
 class SecondaryTextConfig(

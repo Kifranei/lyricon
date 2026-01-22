@@ -4,7 +4,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-@file:Suppress("MemberVisibilityCanBePrivate")
+@file:Suppress("MemberVisibilityCanBePrivate", "unused")
 
 package io.github.proify.lyricon.lyric.view.line
 
@@ -58,6 +58,8 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         invalidate()
     }
 
+    val textSize: Float get() = textPaint.textSize
+
     fun setTextSize(size: Float) {
         val needUpdate = textPaint.textSize != size
                 || syllable.inactivePaint.textSize != size
@@ -70,6 +72,24 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         syllable.inactivePaint.textSize = size
         syllable.activePaint.textSize = size
         refreshModelSizes()
+        invalidate()
+    }
+
+    fun updateColor(
+        textColor: Int,
+        backgroundColor: Int,
+        highlightColor: Int
+    ) {
+        textPaint.apply {
+            color = textColor
+        }
+        syllable.inactivePaint.apply {
+            color = backgroundColor
+        }
+        syllable.activePaint.apply {
+            color = highlightColor
+        }
+        invalidate()
     }
 
     fun setStyle(configs: LyricLineConfig) {
@@ -77,25 +97,25 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         val marqueeConfig = configs.marquee
         val syllableConfig = configs.syllable
 
-        textPaint.run {
+        textPaint.apply {
             textSize = textConfig.textSize
             typeface = textConfig.typeface
             color = textConfig.textColor
         }
 
-        syllable.inactivePaint.run {
+        syllable.inactivePaint.apply {
             textSize = textConfig.textSize
             typeface = textConfig.typeface
             color = syllableConfig.backgroundColor
         }
-        syllable.activePaint.run {
+        syllable.activePaint.apply {
             textSize = textConfig.textSize
             typeface = textConfig.typeface
             color = syllableConfig.highlightColor
         }
         syllable.enableGradient = configs.gradientProgressStyle
 
-        marquee.run {
+        marquee.apply {
             ghostSpacing = marqueeConfig.ghostSpacing
             scrollSpeed = marqueeConfig.scrollSpeed
             initialDelayMs = marqueeConfig.initialDelay
@@ -235,6 +255,10 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         super.onDetachedFromWindow()
         reset()
     }
+
+    fun isPlayStarted(): Boolean = if (isMarqueeMode()) true else syllable.isPlayStarted()
+    fun isPlaying(): Boolean = if (isMarqueeMode()) true else syllable.isPlaying()
+    fun isPlayFinished(): Boolean = if (isMarqueeMode()) false else syllable.isPlayFinished()
 
     /**
      * ------------------------

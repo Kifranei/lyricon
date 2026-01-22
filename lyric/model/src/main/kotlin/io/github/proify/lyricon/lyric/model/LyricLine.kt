@@ -7,7 +7,6 @@
 package io.github.proify.lyricon.lyric.model
 
 import android.os.Parcelable
-import io.github.proify.lyricon.lyric.model.LyricLine.Companion.TYPE_TRANSLATION
 import io.github.proify.lyricon.lyric.model.extensions.deepCopy
 import io.github.proify.lyricon.lyric.model.extensions.normalize
 import io.github.proify.lyricon.lyric.model.interfaces.DeepCopyable
@@ -26,7 +25,6 @@ import kotlinx.serialization.Serializable
  * @property metadata 元数据
  * @property text 文本
  * @property words 文本单词列表
- * @property type 行类型，可枚举为[TYPE_TRANSLATION]
  */
 @Serializable
 @Parcelize
@@ -38,7 +36,6 @@ data class LyricLine(
     override var metadata: LyricMetadata? = null,
     override var text: String? = null,
     override var words: List<LyricWord>? = null,
-    var type: String? = null,
 ) : ILyricLine, Parcelable, DeepCopyable<LyricLine>, Normalize<LyricLine> {
 
     override fun deepCopy(): LyricLine = copy(
@@ -52,9 +49,4 @@ data class LyricLine(
             ?.joinToString("") { it.text.orEmpty() }
             ?: text
     }
-
-    companion object {
-        const val TYPE_TRANSLATION: String = "translation"
-    }
-
 }

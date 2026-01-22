@@ -28,6 +28,7 @@ import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.preference.InputPreference
 import io.github.proify.lyricon.app.compose.preference.InputType
 import io.github.proify.lyricon.app.compose.preference.RectInputPreference
+import io.github.proify.lyricon.app.compose.preference.SwitchPreference
 import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.app.util.editCommit
@@ -167,6 +168,15 @@ class BasicLyricStyleActivity : BaseLyricActivity() {
                 leftAction = {
                     IconActions(painterResource(R.drawable.ic_padding))
                 },
+            )
+            SwitchPreference(
+                preferences,
+                "lyric_style_base_hide_on_lock_screen",
+                defaultValue = BasicStyle.Defaults.HIDE_ON_LOCK_SCREEN,
+                leftAction = {
+                    IconActions(painterResource(R.drawable.ic_visibility_off))
+                },
+                title = stringResource(R.string.item_base_hide_on_lock_screen),
             )
         }
 

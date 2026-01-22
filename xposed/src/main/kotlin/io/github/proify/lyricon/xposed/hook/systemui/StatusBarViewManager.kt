@@ -19,6 +19,7 @@ import androidx.core.view.isVisible
 import com.highcapable.yukihookapi.hook.log.YLog
 import io.github.proify.android.extensions.dp
 import io.github.proify.lyricon.common.util.ResourceMapper
+import io.github.proify.lyricon.common.util.ScreenStateMonitor
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.xposed.lyricview.LyricView
@@ -28,7 +29,7 @@ import io.github.proify.lyricon.xposed.util.ViewVisibilityController
 class StatusBarViewManager(
     val statusBarView: ViewGroup,
     private var lyricStyle: LyricStyle
-) {
+) : ScreenStateMonitor.ScreenStateListener {
     private var lastAnchor = ""
     private var lastInsertionOrder = -1
 
@@ -192,6 +193,20 @@ class StatusBarViewManager(
 
     private fun createLyricView(style: LyricStyle) =
         LyricView(context, style, getClockView() as? TextView)
+
+    override fun onScreenOn() {
+        lyricView.sleepMode = false
+        lyricView.updateVisibility(true)
+    }
+
+    override fun onScreenOff() {
+        lyricView.sleepMode = true
+        lyricView.updateVisibility()
+    }
+
+    override fun onScreenUnlocked() {
+        lyricView.updateVisibility(true)
+    }
 
     private class StatusBarViewAttachStateChangeListener : View.OnAttachStateChangeListener {
         override fun onViewAttachedToWindow(v: View) {

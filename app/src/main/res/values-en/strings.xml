@@ -140,6 +140,9 @@
     <string name="item_logo_color_dark">Dark Mode Color</string>
     <string name="item_logo_size">Size</string>
     <string name="option_logo_color_follow_text">Follow Text Color</string>
+    <string name="item_logo_insertion_order">Insertion Order</string>
+    <string name="item_logo_insertion_before">Before</string>
+    <string name="item_logo_insertion_after">After</string>
 
     <!-- Basic Lyric Style -->
     <string name="item_base_anchor">Anchor</string>
@@ -165,5 +168,6 @@
     <string name="module_tag_syllable">Dynamic Lyrics</string>
     <string name="module_tag_translation">Translation</string>
     <string name="no_provider_available">No lyric providers available</string>
+    <string name="item_base_hide_on_lock_screen">Hide on the lock screen</string>
 
 </resources>

@@ -35,10 +35,10 @@ class MarqueeTestActivity : AppCompatActivity() {
                 }
                 marquee.apply {
                     ghostSpacing = 0.dp.toFloat()
-                    scrollSpeed = 50f
+                    scrollSpeed = 80f
                     loopDelay = 500
-                    //repeatCount = 1
-                    stopAtEnd = true
+                    repeatCount = 9999
+                    stopAtEnd = false
                 }
             })
 

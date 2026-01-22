@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -35,8 +37,11 @@ import io.github.proify.lyricon.app.compose.preference.RectInputPreference
 import io.github.proify.lyricon.app.compose.preference.SwitchPreference
 import io.github.proify.lyricon.app.compose.preference.rememberIntPreference
 import io.github.proify.lyricon.app.util.editCommit
+import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LogoStyle
 import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.extra.SpinnerEntry
+import top.yukonga.miuix.kmp.extra.SuperSpinner
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Composable
@@ -92,6 +97,7 @@ fun LogoPage(
                         IconActions(painterResource(R.drawable.ic_margin))
                     },
                 )
+                LogoGravity(sharedPreferences)
             }
         }
 
@@ -229,4 +235,48 @@ fun LogoPage(
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
+}
+
+@Composable
+private fun LogoGravity(sharedPreferences: SharedPreferences) {
+    val insertionOrder = sharedPreferences.getInt(
+        "lyric_style_logo_gravity",
+        LogoStyle.Defaults.GRAVITY
+    )
+
+    val selectedIndex = remember { mutableIntStateOf(0) }
+
+    val optionKeys = listOf(
+        BasicStyle.INSERTION_ORDER_BEFORE,
+        BasicStyle.INSERTION_ORDER_AFTER
+    )
+
+    val options = listOf(
+        SpinnerEntry(title = stringResource(R.string.item_logo_insertion_before)),
+        SpinnerEntry(title = stringResource(R.string.item_logo_insertion_after)),
+    )
+
+    optionKeys.forEachIndexed { index, key ->
+        if (insertionOrder == key) {
+            selectedIndex.intValue = index
+        }
+    }
+
+    SuperSpinner(
+        leftAction = {
+            IconActions(painterResource(R.drawable.ic_stack))
+        },
+        title = stringResource(R.string.item_logo_insertion_order),
+        items = options,
+        selectedIndex = selectedIndex.intValue,
+        onSelectedIndexChange = {
+            selectedIndex.intValue = it
+            sharedPreferences.editCommit {
+                putInt(
+                    "lyric_style_logo_gravity",
+                    optionKeys[it]
+                )
+            }
+        }
+    )
 }

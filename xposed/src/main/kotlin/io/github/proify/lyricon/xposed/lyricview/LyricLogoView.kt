@@ -23,7 +23,6 @@ import android.widget.ImageView
 import android.widget.LinearLayout.LayoutParams
 import android.widget.TextView
 import io.github.proify.android.extensions.dp
-import io.github.proify.android.extensions.md5
 import io.github.proify.android.extensions.toBitmap
 import io.github.proify.android.extensions.visibilityIfChanged
 import io.github.proify.lyricon.common.util.SVGHelper
@@ -34,15 +33,21 @@ import io.github.proify.lyricon.lyric.view.util.Interpolates
 import io.github.proify.lyricon.provider.ProviderLogo
 import io.github.proify.lyricon.xposed.hook.systemui.LyricViewController
 import io.github.proify.lyricon.xposed.util.NotificationCoverHelper
+import io.github.proify.lyricon.xposed.util.OplusCapsuleHooker
+import io.github.proify.lyricon.xposed.util.OplusCapsuleHooker.CapsuleStateChangeListener
 import io.github.proify.lyricon.xposed.util.StatusBarColorMonitor
 import io.github.proify.lyricon.xposed.util.StatusColor
 import java.io.File
 import java.util.WeakHashMap
 import kotlin.math.roundToInt
 
+/**
+ * 用于显示歌词来源图标、APP图标或专辑封面的视图组件。
+ * 负责处理图标样式的动态切换、进度绘制以及状态栏颜色适配。
+ */
 class LyricLogoView(context: Context) : ImageView(context),
     StatusBarColorMonitor.OnColorChangeListener,
-    NotificationCoverHelper.OnCoverUpdateListener {
+    NotificationCoverHelper.OnCoverUpdateListener, CapsuleStateChangeListener {
 
     var linkedTextView: TextView? = null
 
@@ -52,22 +57,21 @@ class LyricLogoView(context: Context) : ImageView(context),
         set(value) {
             if (field !== value) {
                 field = value
-                // 当 provider 变化时，释放策略内缓存并重新评估
-                (strategy as? ProviderStrategy)?.onProviderChanged()
+                // 提供者变更时，若当前策略为 ProviderStrategy，需通知其重置缓存
+                (strategy as? ProviderStrategy)?.invalidateCache()
                 reassessStrategy()
             }
         }
 
     private var currentStatusColor: StatusColor = StatusColor(Color.BLACK, false)
-
     private var lyricStyle: LyricStyle? = null
 
-    // --- 进度条相关 ---
-    private var progress: Float = 0f // 0.0f ~ 1.0f
+    // --- 进度条绘制属性 ---
+    private var progress: Float = 0f
     private val progressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
-        alpha = 255 * 1f.roundToInt()
+        alpha = 255
     }
     private val progressRect = android.graphics.RectF()
     private var progressAnimator: ValueAnimator? = null
@@ -82,9 +86,11 @@ class LyricLogoView(context: Context) : ImageView(context),
 
     init {
         this.tag = VIEW_TAG
-        this.clipToOutline = true
     }
 
+    /**
+     * 重置进度条状态并取消相关动画。
+     */
     fun clearProgress() {
         progressAnimator?.cancel()
         progressAnimator = null
@@ -92,13 +98,15 @@ class LyricLogoView(context: Context) : ImageView(context),
         invalidate()
     }
 
+    /**
+     * 同步当前播放进度，并在封面模式下启动进度条补间动画。
+     */
     fun syncProgress(current: Long, duration: Long) {
         progressAnimator?.cancel()
         if (duration <= 0) return
 
-        if (strategy !is CoverStrategy
-            || (strategy as CoverStrategy).style != LogoStyle.STYLE_COVER_CIRCLE
-        ) {
+        // 仅在圆形封面模式下显示进度条
+        if (strategy !is CoverStrategy || (strategy as CoverStrategy).style != LogoStyle.STYLE_COVER_CIRCLE) {
             return
         }
 
@@ -121,7 +129,7 @@ class LyricLogoView(context: Context) : ImageView(context),
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-
+        // 仅在进度有效且不为 0 或 1 时绘制，避免视觉干扰
         if (strategy is CoverStrategy && progress > 0f && progress < 1f) {
             drawProgress(canvas)
         }
@@ -135,26 +143,20 @@ class LyricLogoView(context: Context) : ImageView(context),
         progressPaint.color = currentStatusColor.color
 
         progressRect.set(padding, padding, width - padding, height - padding)
-
-        val currentStyle = lyricStyle?.packageStyle?.logo?.style
-
-        if (currentStyle == LogoStyle.STYLE_COVER_CIRCLE) {
-            canvas.drawArc(progressRect, -90f, 360f * progress, false, progressPaint)
-        } else if (currentStyle == LogoStyle.STYLE_COVER_SQUIRCLE) {
-            // 简化绘制为圆弧以保持统一外观
-            canvas.drawArc(progressRect, -90f, 360f * progress, false, progressPaint)
-        }
+        canvas.drawArc(progressRect, -90f, 360f * progress, false, progressPaint)
     }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         NotificationCoverHelper.registerListener(this)
+        // 恢复策略状态（如重新开始动画）
         strategy?.onAttach()
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         NotificationCoverHelper.unregisterListener(this)
+        // 暂停策略活动（如停止动画、释放临时资源）
         strategy?.onDetach()
     }
 
@@ -163,6 +165,7 @@ class LyricLogoView(context: Context) : ImageView(context),
         if (strategy?.isEffective == true) {
             strategy?.onColorUpdate()
         }
+        // 无论策略是否有效，进度条颜色可能需要更新
         invalidate()
     }
 
@@ -172,26 +175,30 @@ class LyricLogoView(context: Context) : ImageView(context),
         }
     }
 
-    /**
-     * 视图可见性变化：单独处理可见/隐藏事件（不同于 attach/detach）
-     */
     override fun onVisibilityChanged(changedView: View, visibility: Int) {
         super.onVisibilityChanged(changedView, visibility)
-        val visible = visibility == VISIBLE && isShown
-        strategy?.onVisibilityChanged(visible)
+        handleVisibilityChange(visibility)
     }
 
-    /**
-     * 当窗口可见性变化（例如系统锁屏、窗口隐藏）时也要通知策略
-     */
     override fun onWindowVisibilityChanged(visibility: Int) {
         super.onWindowVisibilityChanged(visibility)
+        handleVisibilityChange(visibility)
+    }
+
+    private fun handleVisibilityChange(visibility: Int) {
         val visible = visibility == VISIBLE && isShown
         strategy?.onVisibilityChanged(visible)
+
+        if (!visible) {
+            progressAnimator?.cancel()
+        }
     }
 
     // region Public API
 
+    /**
+     * 应用新的样式配置，触发布局参数更新及策略重新评估。
+     */
     fun applyStyle(style: LyricStyle) {
         this.lyricStyle = style
         val logoConfig = style.packageStyle.logo
@@ -201,6 +208,18 @@ class LyricLogoView(context: Context) : ImageView(context),
     }
 
     // region Internal Logic
+
+    /**
+     * 清除 View 上由先前策略设置的特定属性，防止样式残留。
+     * 包括：旋转角度、OutlineProvider、ColorFilter (Tint)。
+     */
+    private fun resetViewAttributes() {
+        this.rotation = 0f
+        this.outlineProvider = null
+        this.clipToOutline = false
+        this.imageTintList = null
+        this.scaleType = ScaleType.FIT_CENTER // 默认缩放模式
+    }
 
     private fun reassessStrategy() {
         val logoConfig = lyricStyle?.packageStyle?.logo ?: return
@@ -215,12 +234,22 @@ class LyricLogoView(context: Context) : ImageView(context),
             else -> AppLogoStrategy()
         }
 
+        // 如果策略类型发生变化，执行完整的切换流程
         if (strategy?.javaClass != newStrategy.javaClass) {
-            strategy?.onDetach()
+            strategy?.onDetach() // 让旧策略清理资源
+            resetViewAttributes() // 彻底重置 View 属性
+
             strategy = newStrategy
-            newStrategy.render()
+
+            // 如果 View 已经 attach，立即触发新策略的 attach
+            if (isAttachedToWindow) {
+                newStrategy.onAttach()
+            }
+            // 初始渲染
+            newStrategy.updateContent()
         } else {
-            strategy?.render()
+            // 策略未变，仅更新内容
+            strategy?.updateContent()
         }
 
         updateVisibilityState()
@@ -230,8 +259,11 @@ class LyricLogoView(context: Context) : ImageView(context),
         val logoConfig = lyricStyle?.packageStyle?.logo
         val isEnabled = logoConfig?.enable == true
         val isEffective = strategy?.isEffective == true
+        val isHideInCapsule =
+            logoConfig?.hideInColorOSCapsuleMode == true && OplusCapsuleHooker.isShowing
 
-        this.visibilityIfChanged = if (isEnabled && isEffective) VISIBLE else GONE
+        this.visibilityIfChanged =
+            if (!isHideInCapsule && isEnabled && isEffective) VISIBLE else GONE
     }
 
     private fun updateLayoutParams(style: LyricStyle, logoStyle: LogoStyle) {
@@ -261,50 +293,78 @@ class LyricLogoView(context: Context) : ImageView(context),
             linkedTextView != null -> {
                 (linkedTextView!!.textSize * TEXT_SIZE_MULTIPLIER).roundToInt()
             }
-
             else -> DEFAULT_TEXT_SIZE_DP.dp
         }
     }
 
+    override fun onCapsuleVisibilityChanged(isShowing: Boolean) {
+        updateVisibilityState()
+    }
+
     // region Strategies
 
+    /**
+     * Logo 显示策略接口。
+     * 定义了不同内容源（App图标、Provider图标、封面）的渲染和生命周期行为。
+     */
     private interface ILogoStrategy {
         val isEffective: Boolean
-        fun render()
+
+        /**
+         * 加载或更新显示内容。
+         * 在策略初始化、内容源变更或系统封面更新时调用。
+         */
         fun updateContent()
+
+        /**
+         * 响应状态栏颜色变化。
+         */
         fun onColorUpdate()
+
+        /**
+         * 当 View 附加到窗口时调用。
+         * 用于恢复动画、注册特定监听器等。
+         */
         fun onAttach()
+
+        /**
+         * 当 View 从窗口移除时调用。
+         * 用于停止动画、清理重型资源。
+         */
         fun onDetach()
 
         /**
-         * 可见性变化回调（true 表示可见），默认空实现。
-         * 将可见性与 attach/detach 区分开有助于减少不必要的工作量（例如：在 detach 时已释放资源）。
+         * 当 View 的可见性发生变化时调用。
          */
-        fun onVisibilityChanged(visible: Boolean) {}
+        fun onVisibilityChanged(visible: Boolean)
     }
 
+    /**
+     * 策略：显示歌词提供方（Provider）的 Logo。
+     * 通常为单色 SVG 或 Bitmap，需要适配状态栏颜色。
+     */
     private inner class ProviderStrategy : ILogoStrategy {
         override var isEffective: Boolean = false
             private set
 
-        // 缓存上一次生成的 bitmap（避免重复解析 SVG）
         private var cachedBitmap: Bitmap? = null
         private var lastProviderSignature: String? = null
 
-        override fun render() {
-            // provider 图标通常使用 tint
-            outlineProvider = null
+        fun invalidateCache() {
+            cachedBitmap = null
+            lastProviderSignature = null
+        }
+
+        override fun updateContent() {
+            // 提供者 Logo 通常无需裁剪 Outline
+            if (outlineProvider != null) outlineProvider = null
 
             val bitmap = loadProviderBitmap()
             setImageBitmap(bitmap)
             isEffective = bitmap != null
 
-            onColorUpdate()
+            onColorUpdate() // 内容更新后立即应用颜色
             updateVisibilityState()
-        }
-
-        override fun updateContent() {
-            if (!isEffective) render() else onColorUpdate()
         }
 
         override fun onColorUpdate() {
@@ -315,39 +375,29 @@ class LyricLogoView(context: Context) : ImageView(context),
         }
 
         override fun onAttach() {
-            // attach 时无需特殊处理；如果之前处于隐藏状态，render 会在可见时触发
-        }
-
-        override fun onDetach() {
-            // 释放缓存引用，避免持有大对象
-            cachedBitmap = null
-            lastProviderSignature = null
-            // 确保 image 源移除，帮助 GC
-            setImageBitmap(null)
-        }
-
-        override fun onVisibilityChanged(visible: Boolean) {
-            if (!visible) {
-                // 隐藏时停止任何进度动画（若存在）并降低占用
-                progressAnimator?.cancel()
-                progressAnimator = null
-            } else {
-                // 可见时尝试渲染（避免在不可见时做昂贵操作）
-                if (!isEffective) render()
+            // 如果在 detach 期间清理了 Bitmap，这里可以尝试重新加载
+            if (drawable == null && isEffective) {
+                updateContent()
             }
         }
 
-        fun onProviderChanged() {
-            // provider 变更时强制刷新并清缓存
+        override fun onDetach() {
+            // 释放 Bitmap 引用以减轻内存压力
             cachedBitmap = null
             lastProviderSignature = null
+            setImageDrawable(null)
         }
 
-        lateinit var v: View
+        override fun onVisibilityChanged(visible: Boolean) {
+            if (visible && drawable == null) {
+                updateContent()
+            }
+        }
 
         private fun loadProviderBitmap(): Bitmap? {
             val logo = providerLogo ?: return null
             val signature = "${logo.hashCode()}_${width}_${height}_${logo.type}"
+
             if (signature == lastProviderSignature && cachedBitmap != null) {
                 return cachedBitmap
             }
@@ -359,11 +409,9 @@ class LyricLogoView(context: Context) : ImageView(context),
                     if (svgString.isNullOrBlank()) null
                     else SVGHelper.create(svgString)?.createBitmap(width, height)
                 }
-
                 else -> null
             }
 
-            // 更新缓存（仅保存对 bitmap 的引用，不主动 recycle，交给系统 GC）
             cachedBitmap = bmp
             lastProviderSignature = signature
             return bmp
@@ -392,7 +440,6 @@ class LyricLogoView(context: Context) : ImageView(context),
             if (textStyle?.enableCustomTextColor != true) {
                 return currentStatusColor.color
             }
-
             val textColorConfig = textStyle.color(currentStatusColor.lightMode)
             return if (textColorConfig != null && textColorConfig.normal != 0) {
                 textColorConfig.normal
@@ -402,82 +449,73 @@ class LyricLogoView(context: Context) : ImageView(context),
         }
     }
 
+    /**
+     * 策略：显示专辑封面。
+     * 支持圆形旋转（唱片模式）和圆角矩形，不跟随状态栏颜色。
+     */
     private inner class CoverStrategy : ILogoStrategy {
         private var rotationAnimator: ObjectAnimator? = null
         private var lastFileSignature: String? = null
+
         override var isEffective: Boolean = false
             private set
 
-        var style: Int = 0
-
-        override fun render() {
-            imageTintList = null
-            loadAndApplyCover()
-        }
+        var style: Int = LogoStyle.STYLE_COVER_CIRCLE
 
         override fun updateContent() {
+            // 封面模式清除 Tint
+            if (imageTintList != null) imageTintList = null
+
             val coverFile = NotificationCoverHelper.getCoverFile(LyricViewController.activePackage)
-            val currentSignature = coverFile.md5()
-            if (currentSignature == lastFileSignature) return
-            loadAndApplyCover()
+            val signature = coverFile.lastModified().toString()
+
+            // 只有文件变动或未初始化时才重新加载
+            if (signature != lastFileSignature || drawable == null) {
+                val bitmap: Bitmap? = coverFile.toBitmap(width, height)
+                setImageBitmap(bitmap)
+                lastFileSignature = signature
+                isEffective = bitmap != null
+            }
+
+            // 始终应用 Outline 和 动画状态检查，以防 Style 变更
+            applyStyleAndAnimation()
+            updateVisibilityState()
         }
 
+        private fun applyStyleAndAnimation() {
+            val currentStyle = lyricStyle?.packageStyle?.logo?.style ?: LogoStyle.STYLE_COVER_CIRCLE
+            val oldStyle = this.style
+            this.style = currentStyle
+
+            // 设置裁剪轮廓
+            applyOutlineProvider(currentStyle)
+
+            // 如果从圆形切换到其他样式，必须强制重置旋转角度
+            if (oldStyle == LogoStyle.STYLE_COVER_CIRCLE && currentStyle != LogoStyle.STYLE_COVER_CIRCLE) {
+                this@LyricLogoView.rotation = 0f
+            }
+
+            // 检查动画状态
+            checkAnimationState()
+        }
         override fun onColorUpdate() {
-            // 封面模式通常不跟随颜色变化
+            // 封面保持原色，不应用 Tint
         }
 
         override fun onAttach() {
-            // 附着时检查动画（但仅在可见时启动）
+            // 恢复视图状态
+            updateContent()
             checkAnimationState()
         }
 
         override fun onDetach() {
             stopAnimation()
-            // 释放 image 引用，避免长时间持有
-            setImageBitmap(null)
-            lastFileSignature = null
-            isEffective = false
-
-            outlineProvider = null
-            clipToOutline = false
+            // 可以在此释放图片，下次 onAttach 时会通过 updateContent 重新加载
+            // setImageDrawable(null)
         }
 
         override fun onVisibilityChanged(visible: Boolean) {
-            // 可见性变化控制动画
-            if (visible) {
-                checkAnimationState()
-            } else {
-                stopAnimation()
-            }
-
-            // 隐藏时取消进度动画
-            if (!visible) {
-                progressAnimator?.cancel()
-                progressAnimator = null
-                progress = 0f
-            }
-        }
-
-        private fun loadAndApplyCover() {
-            // 尽量避免在不可见/未附着时进行昂贵操作，但 render 时仍允许加载（render 通常在策略变更后调用）
-            val coverFile = NotificationCoverHelper.getCoverFile(LyricViewController.activePackage)
-            val bitmap: Bitmap? = coverFile.toBitmap(width, height)
-
-            setImageBitmap(bitmap)
-
-            lastFileSignature = coverFile.lastModified().toString()
-            isEffective = bitmap != null
-
-            val currentStyle = lyricStyle?.packageStyle?.logo?.style ?: LogoStyle.STYLE_COVER_CIRCLE
-            this.style = currentStyle
-
-            // 确保宽高已准备好再设置 outline，以免出现 0 宽高导致裁剪失效
-            post {
-                applyOutlineProvider(currentStyle)
-            }
-
-            checkAnimationState()
-            updateVisibilityState()
+            if (visible) checkAnimationState() else stopAnimation()
         }
 
         private fun applyOutlineProvider(style: Int) {
@@ -487,33 +525,19 @@ class LyricLogoView(context: Context) : ImageView(context),
                         outline.setOval(0, 0, view.width, view.height)
                     }
                 }
-
                 LogoStyle.STYLE_COVER_SQUIRCLE -> object : ViewOutlineProvider() {
                     override fun getOutline(view: View, outline: Outline) {
-                        outline.setRoundRect(
-                            0,
-                            0,
-                            view.width,
-                            view.height,
-                            SQUIRCLE_CORNER_RADIUS_DP.dp.toFloat()
-                        )
+                        outline.setRoundRect(0, 0, view.width, view.height, SQUIRCLE_CORNER_RADIUS_DP.dp.toFloat())
                     }
                 }
-
                 else -> null
             }
-
             outlineProvider = provider
             clipToOutline = provider != null
         }
 
         private fun checkAnimationState() {
-            // 动画仅在：已附着 && 视图实际显示 && 内容有效 时启动
-            if (isAttachedToWindow
-                && isShown
-                && isEffective
-                && style == LogoStyle.STYLE_COVER_CIRCLE
-            ) {
+            if (isAttachedToWindow && isShown && isEffective && style == LogoStyle.STYLE_COVER_CIRCLE) {
                 startAnimation()
             } else {
                 stopAnimation()
@@ -521,58 +545,74 @@ class LyricLogoView(context: Context) : ImageView(context),
         }
 
         private fun startAnimation() {
-            rotationAnimator?.let { if (it.isRunning) return }
+            if (rotationAnimator?.isRunning == true) return
 
-            // 保证动画只在可见时运行
-            rotationAnimator =
-                ObjectAnimator.ofFloat(this@LyricLogoView, "rotation", 0f, 360f).apply {
-                    duration = DEFAULT_ROTATION_DURATION_MS
-                    repeatCount = ValueAnimator.INFINITE
-                    repeatMode = ValueAnimator.RESTART
-                    interpolator = LinearInterpolator()
-                    start()
-                }
+            rotationAnimator = ObjectAnimator.ofFloat(this@LyricLogoView, "rotation", rotation, rotation + 360f).apply {
+                duration = DEFAULT_ROTATION_DURATION_MS
+                repeatCount = ValueAnimator.INFINITE
+                repeatMode = ValueAnimator.RESTART
+                interpolator = LinearInterpolator()
+                start()
+            }
         }
 
         private fun stopAnimation() {
             rotationAnimator?.cancel()
             rotationAnimator = null
-            this@LyricLogoView.rotation = 0f
+            // 注意：这里不重置 rotation 为 0，以便暂停后恢复时视觉连贯。
+            // 彻底重置由 LyricLogoView.resetViewAttributes() 在切换策略时处理。
         }
     }
 
+    /**
+     * 策略：显示当前活跃 App 的图标。
+     * 作为兜底策略，不应用特殊颜色或动画。
+     */
     private inner class AppLogoStrategy : ILogoStrategy {
+        // 使用弱引用缓存防止 Context 泄漏
         private val cacheIcons = WeakHashMap<String, Drawable>()
 
         override var isEffective: Boolean = false
+            private set
 
-        override fun render() {
-            imageTintList = null
+        override fun updateContent() {
+            if (imageTintList != null) imageTintList = null
+            if (outlineProvider != null) outlineProvider = null
+
             val activePackage = LyricViewController.activePackage
             val icon = getIcon(activePackage)
+
             setImageDrawable(icon)
             isEffective = icon != null
+            updateVisibilityState()
         }
 
         private fun getIcon(packageName: String): Drawable? {
-            if (packageName.isBlank()) {
-                return null
-            }
-            cacheIcons[packageName]?.let { return it }
-            val packageManager = context.packageManager
-            val icon = packageManager.getApplicationIcon(packageName)
-            cacheIcons[packageName] = icon
-            return icon
-        }
+            if (packageName.isBlank()) return null
 
-        override fun updateContent() {}
+            cacheIcons[packageName]?.let { return it }
+
+            return try {
+                val icon = context.packageManager.getApplicationIcon(packageName)
+                cacheIcons[packageName] = icon
+                icon
+            } catch (_: Exception) {
+                null
+            }
+        }
 
         override fun onColorUpdate() {
-            imageTintList = null
+            // App 图标保持原色
         }
 
-        override fun onAttach() {}
+        override fun onAttach() {
+            if (drawable == null) updateContent()
+        }
 
-        override fun onDetach() {}
+        override fun onDetach() {
+            // App 图标通常较小且由系统缓存管理，可不主动清理，或根据内存策略清理
+        }
+
+        override fun onVisibilityChanged(visible: Boolean) {}
     }
 }

@@ -80,6 +80,18 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     defaultValue = TextStyle.Defaults.PADDINGS,
                     leftAction = { IconActions(painterResource(R.drawable.ic_padding)) },
                 )
+
+                InputPreference(
+                    sharedPreferences = sharedPreferences,
+                    key = "lyric_style_text_size_ratio_in_multi_line_mode",
+                    inputType = InputType.DOUBLE,
+                    defaultValue = TextStyle.Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE_MODE.toString(),
+                    minValue = 0.1,
+                    maxValue = 2.0,
+                    title = stringResource(R.string.item_text_size_ratio_in_multi_line_mode),
+                    leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
+                )
+
             }
         }
         item(key = "color") {

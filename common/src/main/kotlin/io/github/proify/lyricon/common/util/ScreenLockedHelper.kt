@@ -14,11 +14,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.util.Log
 import androidx.core.content.ContextCompat
+import java.util.concurrent.CopyOnWriteArraySet
 
 object ScreenStateMonitor {
     private const val TAG = "ScreenStateMonitor"
 
-    private val listeners = mutableSetOf<ScreenStateListener>()
+    private val listeners = CopyOnWriteArraySet<ScreenStateListener>()
     private var appContext: Context? = null
     private var receiver: BroadcastReceiver? = null
 
@@ -43,8 +44,6 @@ object ScreenStateMonitor {
         appContext = context.applicationContext
         registerReceiver()
     }
-
-    fun isInitialized(): Boolean = appContext != null
 
     fun addListener(listener: ScreenStateListener) {
         listeners += listener

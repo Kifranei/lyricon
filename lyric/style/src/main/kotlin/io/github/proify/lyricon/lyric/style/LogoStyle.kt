@@ -4,7 +4,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-@file:Suppress("KotlinConstantConditions")
+@file:Suppress("KotlinConstantConditions", "unused")
 
 package io.github.proify.lyricon.lyric.style
 
@@ -30,7 +30,8 @@ data class LogoStyle(
     var hideInColorOSCapsuleMode: Boolean = Defaults.HIDE_IN_COLOROS_CAPSULE_MODE,
 
     var width: Float = Defaults.WIDTH,
-    var height: Float = Defaults.HEIGHT
+    var height: Float = Defaults.HEIGHT,
+    var gravity: Int = Defaults.GRAVITY
 ) : AbstractStyle(), Parcelable {
 
     override fun onLoad(preferences: SharedPreferences) {
@@ -61,6 +62,8 @@ data class LogoStyle(
 
         width = preferences.getFloat("lyric_style_logo_width", Defaults.WIDTH)
         height = preferences.getFloat("lyric_style_logo_height", Defaults.HEIGHT)
+
+        gravity = preferences.getInt("lyric_style_logo_gravity", Defaults.GRAVITY)
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -76,6 +79,8 @@ data class LogoStyle(
 
         editor.putFloat("lyric_style_logo_width", width)
         editor.putFloat("lyric_style_logo_height", height)
+
+        editor.putInt("lyric_style_logo_gravity", gravity)
     }
 
     fun color(lightMode: Boolean): LogoColor = if (lightMode) lightModeColor else darkModeColor
@@ -93,9 +98,13 @@ data class LogoStyle(
 
         const val WIDTH: Float = 0f
         const val HEIGHT: Float = 0f
+        const val GRAVITY: Int = GRAVITY_START
     }
 
     companion object {
+        const val GRAVITY_START: Int = 0
+        const val GRAVITY_END: Int = 1
+
         const val STYLE_PROVIDER_LOGO: Int = 0
         const val STYLE_COVER_SQUIRCLE: Int = 1
         const val STYLE_COVER_CIRCLE: Int = 2

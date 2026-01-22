@@ -38,11 +38,15 @@ object LyricViewController : ActivePlayerListener,
     @SuppressLint("StaticFieldLeak")
     var statusBarViewManager: StatusBarViewManager? = null
 
+   var providerInfo: ProviderInfo? = null
+    private  set
+
     init {
         StatusBarColorMonitor.register(this)
     }
 
     override fun onActiveProviderChanged(providerInfo: ProviderInfo?) {
+        this.providerInfo = providerInfo
         if (DEBUG) YLog.debug("activeProviderChanged: $providerInfo")
 
         val packageName = providerInfo?.playerPackageName

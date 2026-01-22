@@ -86,6 +86,7 @@ class LyricPlayerView(context: Context) : LyricPlayerView(context),
             this.syllable = buildSyllableConfig(textStyle)
 
             this.gradientProgressStyle = textStyle.gradientProgressStyle
+            textSizeRatioInMultiLineMode = textStyle.textSizeRatioInMultiLineMode
         }
 
         setStyle(config)
@@ -102,12 +103,11 @@ class LyricPlayerView(context: Context) : LyricPlayerView(context),
         val primaryColor = resolvePrimaryColor(textStyle)
         val syllableConfig = buildSyllableConfig(textStyle)
 
-        setStyle(getStyle().apply {
-            primary.textColor = primaryColor
-            secondary.textColor = primaryColor
-            this.syllable = syllableConfig
-        })
-        invalidate()
+        updateColor(
+            primaryColor,
+            syllableConfig.backgroundColor,
+            syllableConfig.highlightColor
+        )
     }
 
     private fun updateViewLayout(textStyle: TextStyle) {
@@ -199,5 +199,4 @@ class LyricPlayerView(context: Context) : LyricPlayerView(context),
             Typeface.create(baseTypeface, style)
         }
     }
-
 }

@@ -21,10 +21,12 @@ import io.github.proify.android.extensions.safeEncode
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.central.BridgeCentral
 import io.github.proify.lyricon.central.provider.player.ActivePlayerDispatcher
+import io.github.proify.lyricon.common.util.ScreenStateMonitor
 import io.github.proify.lyricon.common.util.ViewHierarchyParser
 import io.github.proify.lyricon.xposed.util.CrashDetector
 import io.github.proify.lyricon.xposed.util.LyricPrefs
 import io.github.proify.lyricon.xposed.util.NotificationCoverHelper
+import io.github.proify.lyricon.xposed.util.OplusCapsuleHooker
 import io.github.proify.lyricon.xposed.util.ViewVisibilityTracker
 
 object SystemUIHooker : YukiBaseHooker() {
@@ -92,6 +94,10 @@ object SystemUIHooker : YukiBaseHooker() {
         YLog.info("onInit")
         val context = appContext ?: return
 
+        ScreenStateMonitor.initialize(context)
+
+        OplusCapsuleHooker.initialize(appClassLoader ?: return)
+
         BridgeCentral.initialize(context)
         ActivePlayerDispatcher.addActivePlayerListener(LyricViewController)
 
@@ -127,11 +133,15 @@ object SystemUIHooker : YukiBaseHooker() {
 
     private fun setupStatusBarView(view: ViewGroup) {
         YLog.info("setupStatusBarView $view")
-        statusBarViewManager = StatusBarViewManager(
+        val statusBarViewManager = StatusBarViewManager(
             view,
             LyricPrefs.getLyricStyle()
         )
+        this.statusBarViewManager = statusBarViewManager
+
         LyricViewController.statusBarViewManager = statusBarViewManager
+        ScreenStateMonitor.addListener(statusBarViewManager)
+
         BridgeCentral.sendBootCompleted()
 
         if (testCrash) view.postDelayed({ error("test crash") }, 3000)

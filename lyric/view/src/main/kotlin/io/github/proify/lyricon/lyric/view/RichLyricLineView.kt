@@ -14,6 +14,7 @@ import io.github.proify.lyricon.lyric.model.LyricLine
 import io.github.proify.lyricon.lyric.model.LyricWord
 import io.github.proify.lyricon.lyric.model.interfaces.ILyricTiming
 import io.github.proify.lyricon.lyric.model.interfaces.IRichLyricLine
+import io.github.proify.lyricon.lyric.model.lyricMetadataOf
 import io.github.proify.lyricon.lyric.view.line.LyricLineView
 import io.github.proify.lyricon.lyric.view.util.LayoutTransitionX
 import io.github.proify.lyricon.lyric.view.util.visible
@@ -140,6 +141,7 @@ class RichLyricLineView(
             return
         }
 
+        var isGenerated = false
         val line = LyricLine().apply {
             begin = source.begin
             end = source.end
@@ -153,6 +155,7 @@ class RichLyricLineView(
                         source.secondary,
                         source.secondaryWords
                     )
+                    isGenerated = this.words !== source.secondaryWords
                 }
 
                 displayTranslation && (!source.translation.isNullOrBlank() || !source.translationWords.isNullOrEmpty()) -> {
@@ -162,14 +165,22 @@ class RichLyricLineView(
                         source.translation,
                         source.translationWords
                     )
-                    type = LyricLine.TYPE_TRANSLATION
+                    metadata = lyricMetadataOf("translation" to "true")
+                    isGenerated = this.words !== source.translationWords
                 }
             }
         }
 
+        secondary.visible = when {
+            line.words?.isEmpty() == true -> true //MarqueeMode
+            line.metadata?.getBoolean("translation") == true -> true
+            else -> false
+        } && (line.text?.isNotEmpty() == true || line.words?.isNotEmpty() == true)
+
         secondary.setLyric(line)
-        secondary.visible = line.type == LyricLine.TYPE_TRANSLATION
-                && (!line.text.isNullOrBlank() || !line.words.isNullOrEmpty())
+
+        secondary.syllable.onlyScrollMode =
+            isGenerated && !enableRelativeProgressHighlight
     }
 
     fun seekTo(position: Long) {
@@ -180,6 +191,15 @@ class RichLyricLineView(
     fun setPosition(position: Long) {
         main.setPosition(position)
         secondary.setPosition(position)
+    }
+
+    fun updateColor(
+        textColor: Int,
+        backgroundColor: Int,
+        highlightColor: Int
+    ) {
+        main.updateColor(textColor, backgroundColor, highlightColor)
+        secondary.updateColor(textColor, backgroundColor, highlightColor)
     }
 
     fun setStyle(config: RichLyricLineConfig) {

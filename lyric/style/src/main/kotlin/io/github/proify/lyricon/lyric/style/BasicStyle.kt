@@ -23,7 +23,8 @@ data class BasicStyle(
     var widthInColorOSCapsuleMode: Float = Defaults.WIDTH_IN_COLOROS_CAPSULE_MODE,
     var margins: RectF = Defaults.MARGINS,
     var paddings: RectF = Defaults.PADDINGS,
-    var visibilityRules: List<VisibilityRule> = Defaults.VISIBILITY_RULES
+    var visibilityRules: List<VisibilityRule> = Defaults.VISIBILITY_RULES,
+    var hideOnLockScreen: Boolean = Defaults.HIDE_ON_LOCK_SCREEN,
 ) : AbstractStyle(), Parcelable {
 
     override fun onLoad(preferences: SharedPreferences) {
@@ -49,6 +50,10 @@ data class BasicStyle(
             preferences.getString("lyric_style_base_visibility_rules", null),
             Defaults.VISIBILITY_RULES.toMutableList()
         )
+        hideOnLockScreen = preferences.getBoolean(
+            "lyric_style_base_hide_on_lock_screen",
+            Defaults.HIDE_ON_LOCK_SCREEN
+        )
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -59,9 +64,11 @@ data class BasicStyle(
         editor.putString("lyric_style_base_margins", margins.toJson())
         editor.putString("lyric_style_base_paddings", paddings.toJson())
         editor.putString("lyric_style_base_visibility_rules", visibilityRules.toJson())
+        editor.putBoolean("lyric_style_base_hide_on_lock_screen", hideOnLockScreen)
     }
 
     object Defaults {
+        const val HIDE_ON_LOCK_SCREEN: Boolean = true
         const val ANCHOR: String = "clock"
         const val INSERTION_ORDER: Int = INSERTION_ORDER_BEFORE
         const val WIDTH: Float = 100f

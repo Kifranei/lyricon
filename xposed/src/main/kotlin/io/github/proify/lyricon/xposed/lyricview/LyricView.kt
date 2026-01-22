@@ -8,7 +8,9 @@
 
 package io.github.proify.lyricon.xposed.lyricview
 
+import android.animation.LayoutTransition
 import android.annotation.SuppressLint
+import android.app.KeyguardManager
 import android.content.Context
 import android.graphics.Color
 import android.view.Gravity
@@ -16,21 +18,29 @@ import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.children
+import androidx.core.view.contains
 import androidx.core.view.isNotEmpty
+import androidx.core.view.updatePadding
 import io.github.proify.android.extensions.dp
-import io.github.proify.android.extensions.visibilityIfChanged
 import io.github.proify.lyricon.lyric.model.Song
+import io.github.proify.lyricon.lyric.style.BasicStyle
+import io.github.proify.lyricon.lyric.style.LogoStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.lyric.view.util.LayoutTransitionX
+import io.github.proify.lyricon.xposed.util.OplusCapsuleHooker
+import io.github.proify.lyricon.xposed.util.OplusCapsuleHooker.CapsuleStateChangeListener
 import io.github.proify.lyricon.xposed.util.StatusBarColorMonitor
 import io.github.proify.lyricon.xposed.util.StatusColor
 
+/**
+ * 歌词视图
+ */
 @SuppressLint("ViewConstructor")
 class LyricView(
     context: Context,
     initialStyle: LyricStyle,
     linkedTextView: TextView?
-) : LinearLayout(context), StatusBarColorMonitor.OnColorChangeListener {
+) : LinearLayout(context), StatusBarColorMonitor.OnColorChangeListener, CapsuleStateChangeListener {
 
     companion object {
         const val VIEW_TAG: String = "lyricon:lyric_view"
@@ -57,7 +67,6 @@ class LyricView(
         private set
 
     private var currentStatusColor: StatusColor = StatusColor(Color.BLACK, false)
-
     private var isPlaying: Boolean = false
 
     private val textViewOnHierarchyChangeListener = object : OnHierarchyChangeListener {
@@ -70,36 +79,78 @@ class LyricView(
         }
     }
 
-    private val myLayoutTransition = LayoutTransitionX()
+    override fun onCapsuleVisibilityChanged(isShowing: Boolean) {
+        updateWidth(currentStyle)
+        logoView.onCapsuleVisibilityChanged(isShowing)
+    }
+
+    val myLayoutTransition: LayoutTransition = LayoutTransitionX().apply {
+        // enableTransitionType(LayoutTransition.CHANGING)
+    }
+
+    var sleepMode: Boolean = false
+        set(value) {
+            //YLog.debug("休眠模式：$value")
+            field = value
+            if (value) {
+                dataDuringSleepMode = DataDuringSleepMode()
+            } else {
+                dataDuringSleepMode?.let { updatePosition(it.position) }
+                dataDuringSleepMode = null
+            }
+        }
+    private var dataDuringSleepMode: DataDuringSleepMode? = null
+
+    private class DataDuringSleepMode(
+        var position: Long = 0,
+    )
 
     init {
         tag = VIEW_TAG
         gravity = Gravity.CENTER_VERTICAL
+        addView(
+            textView,
+            LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+                weight = 1f
+            })
+        updateLogoLocation()
+        visibility = GONE
         layoutTransition = myLayoutTransition
 
-        addView(logoView)
-        addView(textView)
-
         applyStyle(initialStyle)
-        visibility = GONE
-    }
-
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
         textView.setOnHierarchyChangeListener(textViewOnHierarchyChangeListener)
+        OplusCapsuleHooker.addListener(this)
     }
 
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        textView.setOnHierarchyChangeListener(null)
+    private var lastLogoGravity: Int = -114
+    private fun updateLogoLocation() {
+        val logoStyle = currentStyle.packageStyle.logo
+        val logoGravity = logoStyle.gravity
+        if (logoGravity == lastLogoGravity) return
+        lastLogoGravity = logoGravity
+
+      //  logoView.providerLogo = null
+
+        if (contains(logoView)) removeView(logoView)
+        val textIndex = indexOfChild(textView).coerceAtLeast(0)
+
+        when (logoGravity) {
+            LogoStyle.GRAVITY_START -> addView(logoView, textIndex)
+            LogoStyle.GRAVITY_END -> addView(logoView, textIndex + 1)
+            else -> addView(logoView, textIndex)
+        }
+
+       // logoView.providerLogo = LyricViewController.providerInfo?.logo
     }
 
     fun updateStyle(style: LyricStyle) {
         currentStyle = style
+
         logoView.applyStyle(style)
+        updateLogoLocation()
+
         textView.applyStyle(style)
         updateLayoutParams(style)
-
         invalidate()
         requestLayout()
     }
@@ -111,30 +162,48 @@ class LyricView(
         updateLayoutParams(style)
     }
 
+    private fun updateWidth(style: LyricStyle) {
+        getMarginLayoutParams().apply {
+            width = getWidth(style.basicStyle).dp
+        }
+        requestLayout()
+    }
+
+    private fun getMarginLayoutParams(): MarginLayoutParams {
+        var lp = (layoutParams as? MarginLayoutParams)
+        if (lp == null) {
+            lp = MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
+            layoutParams = lp
+        }
+        return lp
+    }
+
+    private fun getWidth(basicStyle: BasicStyle) =
+        if (OplusCapsuleHooker.isShowing) basicStyle.widthInColorOSCapsuleMode else basicStyle.width
+
     private fun updateLayoutParams(style: LyricStyle) {
         val basicStyle = style.basicStyle
         val margins = basicStyle.margins
         val paddings = basicStyle.paddings
 
-        val params = (layoutParams as? MarginLayoutParams)
-            ?: MarginLayoutParams(basicStyle.width.dp, LayoutParams.MATCH_PARENT)
+        val params = getMarginLayoutParams()
 
         params.apply {
-            width = basicStyle.width.dp
+            width = getWidth(basicStyle).dp
             leftMargin = margins.left.dp
             topMargin = margins.top.dp
             rightMargin = margins.right.dp
             bottomMargin = margins.bottom.dp
         }
 
-        layoutParams = params
-
-        setPadding(
+        updatePadding(
             paddings.left.dp,
             paddings.top.dp,
             paddings.right.dp,
             paddings.bottom.dp
         )
+
+        requestLayout()
     }
 
     override fun onColorChange(color: StatusColor) {
@@ -149,14 +218,17 @@ class LyricView(
         updateVisibility()
     }
 
-    /**
-     * 高频用法
-     */
-    fun updateVisibility() {
-        visibilityIfChanged = if (isPlaying && textView.isNotEmpty()) {
-            VISIBLE
-        } else {
-            GONE
+    fun updateVisibility(temporarilyProhibitTransitions: Boolean = false) {
+        val hideOnLockScreen = currentStyle.basicStyle.hideOnLockScreen && isKeyguardLocked()
+
+        val curVisibility = visibility
+        val newVisibility =
+            if (isPlaying && !hideOnLockScreen && textView.isNotEmpty()) VISIBLE else GONE
+
+        if (curVisibility != newVisibility) {
+            if (temporarilyProhibitTransitions) layoutTransition = null
+            visibility = newVisibility
+            post { if (layoutTransition == null) layoutTransition = myLayoutTransition }
         }
     }
 
@@ -165,6 +237,10 @@ class LyricView(
     }
 
     fun updatePosition(position: Long) {
+        if (sleepMode) {
+            dataDuringSleepMode?.position = position
+            return
+        }
         textView.setPosition(position)
     }
 
@@ -180,4 +256,6 @@ class LyricView(
         textView.setDisplayTranslation(isDisplayTranslation)
     }
 
+    private val keyguardManager by lazy { context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager }
+    private fun isKeyguardLocked() = keyguardManager.isKeyguardLocked
 }
