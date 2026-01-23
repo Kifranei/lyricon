@@ -9,7 +9,7 @@
 在模块的 `build.gradle.kts` 中添加依赖：
 
 ```kotlin
-implementation("io.github.proify.lyricon:provider:0.1.6")
+implementation("io.github.proify.lyricon:provider:0.1.63")
 ```
 
 ## 二、配置 `AndroidManifest.xml`
