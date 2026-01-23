@@ -40,8 +40,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.lifecycleScope
 import io.github.proify.android.extensions.getDefaultSharedPreferences
 import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.LyriconApp
@@ -66,6 +68,8 @@ import io.github.proify.lyricon.app.util.Utils
 import io.github.proify.lyricon.app.util.collectEvent
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.app.util.restartApp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopup
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
@@ -88,6 +92,16 @@ class MainActivity : BaseActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val sharedPreferences = getDefaultSharedPreferences()
+        val savedVersionCode = sharedPreferences.getLong(PREF_KEY_LAST_VERSION, 0)
+        if (savedVersionCode <= 0) {
+            sharedPreferences.edit {
+                putLong(PREF_KEY_LAST_VERSION, BuildConfig.VERSION_CODE.toLong())
+            }
+        } else if (savedVersionCode < BuildConfig.VERSION_CODE) {
+            viewModel.setWaitingForReboot(true)
+        }
 
         setContent {
             MainContent(
@@ -126,7 +140,10 @@ class MainActivity : BaseActivity() {
     private fun restartSystemUI() {
         if (viewModel.isWaitingForReboot.value) {
             saveCurrentVersionCode()
-            viewModel.setWaitingForReboot(false)
+            lifecycleScope.launch {
+                delay(666)
+                viewModel.setWaitingForReboot(false)
+            }
         }
         Utils.killSystemUI()
     }
@@ -247,7 +264,6 @@ class MainActivity : BaseActivity() {
         onRestartSystemUI: () -> Unit
     ): CardStatus {
         val inspectionMode = LocalInspectionMode.current
-        val context = LocalContext.current
         val summary = stringResource(R.string.module_status_summary, BuildConfig.VERSION_NAME)
 
         if (inspectionMode) {
@@ -268,13 +284,7 @@ class MainActivity : BaseActivity() {
         }
 
         if (AppBridge.isModuleActive()) {
-            val preferences = context.getDefaultSharedPreferences()
-            val currentVersion = LyriconApp.versionCode
-            val savedVersion = preferences.getLong(PREF_KEY_LAST_VERSION, -1L)
-
-            if (savedVersion <= 0L) {
-                preferences.editCommit { putLong(PREF_KEY_LAST_VERSION, currentVersion) }
-            } else if (currentVersion > savedVersion || isWaitingForReboot) {
+            if (isWaitingForReboot) {
                 return StatusCard(
                     colors = CardColors(MaterialPalette.Orange.Primary, White),
                     icon = ImageVector.vectorResource(id = R.drawable.ic_info_fill),
