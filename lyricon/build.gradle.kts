@@ -22,13 +22,28 @@ configure<ApplicationExtension> {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(System.getenv("RELEASE_STORE_FILE"))
+            storePassword = System.getenv("RELEASE_STORE_PASSWORD")
+            keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+            keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
+        debug {
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
+        }
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro",
+                "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
@@ -39,15 +54,6 @@ configure<ApplicationExtension> {
 
     buildFeatures {
         buildConfig = true
-    }
-
-    splits {
-        abi {
-            isEnable = true
-            reset()
-            include("armeabi-v7a", "arm64-v8a")
-            isUniversalApk = true
-        }
     }
 }
 

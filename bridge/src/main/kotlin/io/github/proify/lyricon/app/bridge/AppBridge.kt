@@ -16,6 +16,7 @@ import java.io.File
 
 object AppBridge {
 
+    @Keep
     fun isModuleActive(): Boolean =
         runCatching {
             YukiHookAPI.Status.isXposedModuleActive
@@ -28,11 +29,9 @@ object AppBridge {
         const val DEFAULT_PACKAGE_NAME: String = Constants.APP_PACKAGE_NAME
         const val PREF_NAME_BASE_STYLE: String = "baseLyricStyle"
         const val PREF_PACKAGE_STYLE_MANAGER: String = "packageStyleManager"
-
         const val KEY_ENABLED_PACKAGES: String = "enables"
 
         fun getPackageStylePreferenceName(packageName: String): String =
             "package_style_${packageName.replace(".", "_")}"
-
     }
 }

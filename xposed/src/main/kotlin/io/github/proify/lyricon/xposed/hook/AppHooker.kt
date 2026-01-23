@@ -26,6 +26,11 @@ object AppHooker : YukiBaseHooker() {
                 }.hook {
                     replaceTo(preferenceDirectory)
                 }
+                firstMethod {
+                    name = "isModuleActive"
+                }.hook {
+                    replaceTo(true)
+                }
             }
     }
 }

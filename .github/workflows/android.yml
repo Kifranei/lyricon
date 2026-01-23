@@ -11,15 +11,10 @@ on:
         options:
           - debug
           - release
-          - both
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        build_type: ${{ github.event.inputs.build_type == 'both' && fromJSON('["debug", "release"]') || fromJSON(format('["{0}"]', github.event.inputs.build_type)) }}
 
     steps:
       - name: 检出代码
@@ -31,12 +26,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
-
-      - name: 安装 NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r25c
-          add-to-path: true
 
       - name: 授予 Gradle 执行权限
         run: chmod +x gradlew
@@ -51,55 +40,37 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: 构建 ${{ matrix.build_type }} APK
+      - name: 解码签名密钥
+        if: github.event.inputs.build_type == 'release'
         run: |
-          if [ "${{ matrix.build_type }}" == "debug" ]; then
-            ./gradlew assembleDebug
-          else
-            ./gradlew assembleRelease
-          fi
+          echo "${{ secrets.SIGNING_KEY }}" | base64 -d > release.jks
+          echo "密钥已保存到 release.jks"
 
-      - name: 列出生成的 APK 文件
+      - name: 构建 ${{ github.event.inputs.build_type }} APK
         run: |
-          echo "================================"
-          echo "生成的 ${{ matrix.build_type }} APK 文件列表"
-          echo "================================"
-          BUILD_TYPE="${{ matrix.build_type }}"
-          APK_DIR="lyricon/build/outputs/apk/${BUILD_TYPE}"
-          
-          if [ -d "$APK_DIR" ]; then
-            ls -lh ${APK_DIR}/*.apk 2>/dev/null || echo "未找到 APK 文件"
-            echo ""
-            echo "文件大小统计:"
-            du -h ${APK_DIR}/*.apk 2>/dev/null | sort -h
-            echo ""
+          if [ "${{ github.event.inputs.build_type }}" == "debug" ]; then
+            ./gradlew :lyricon:assembleDebug
           else
-            echo "APK 目录不存在: $APK_DIR"
+            ./gradlew :lyricon:assembleRelease
           fi
+        env:
+          RELEASE_STORE_FILE: release.jks
+          RELEASE_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: 上传 arm64-v8a APK 文件
+      - name: 上传 APK 文件
         uses: actions/upload-artifact@v4
         with:
-          name: lyricon-arm64-v8a-${{ matrix.build_type }}.apk
-          path: lyricon/build/outputs/apk/${{ matrix.build_type }}/lyricon-arm64-v8a-debug.apk
+          name: lyricon-${{ github.event.inputs.build_type }}-apk
+          path: lyricon/build/outputs/apk/${{ github.event.inputs.build_type }}/lyricon-${{ github.event.inputs.build_type }}.apk
           if-no-files-found: warn
-          retention-days: 30
 
-      - name: 上传 armeabi-v7a APK 文件
-        uses: actions/upload-artifact@v4
-        with:
-          name: lyricon-armeabi-v7a-${{ matrix.build_type }}.apk
-          path: lyricon/build/outputs/apk/${{ matrix.build_type }}/lyricon-armeabi-v7a-debug.apk
-          if-no-files-found: warn
-          retention-days: 30
-
-      - name: 上传 universal APK 文件
-        uses: actions/upload-artifact@v4
-        with:
-          name: lyricon-universal-${{ matrix.build_type }}.apk
-          path: lyricon/build/outputs/apk/${{ matrix.build_type }}/lyricon-universal-debug.apk
-          if-no-files-found: warn
-          retention-days: 30
+      - name: 清理敏感文件
+        if: github.event.inputs.build_type == 'release'
+        run: |
+          rm -f release.jks
+          echo "已清理敏感文件"
 
   summary:
     runs-on: ubuntu-latest
