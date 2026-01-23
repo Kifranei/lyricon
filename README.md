@@ -38,6 +38,10 @@
 ### 开发插件
 [查看插件开发指南](https://github.com/proify/lyricon/blob/master/lyric/bridge/provider/README.md)
 
+## 🤖 联系
+
+- [QQ群](https://qm.qq.com/q/IXif8Zi0Iq)
+
 ## 🤝 参与贡献
 
 欢迎提交 Issue 和 Pull Request 来帮助改进项目！
