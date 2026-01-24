@@ -48,9 +48,9 @@ object SystemUIHooker : YukiBaseHooker() {
 
     private fun onPreAppCreate() {
         YLog.info("onPreAppCreate")
-        val appContext = appContext ?: return
+        val context = appContext ?: return
 
-        val detector = CrashDetector.getInstance(appContext)
+        val detector = CrashDetector.getInstance(context)
         detector.record()
         if (detector.isContinuousCrash()) {
             safeMode = true
@@ -61,6 +61,7 @@ object SystemUIHooker : YukiBaseHooker() {
                 YLog.error(it)
             }
         }
+
         if (safeMode) {
             detector.reset()
             return
@@ -93,19 +94,14 @@ object SystemUIHooker : YukiBaseHooker() {
     private fun initialize() {
         YLog.info("onInit")
         val context = appContext ?: return
-
         ScreenStateMonitor.initialize(context)
-
-        OplusCapsuleHooker.initialize(appClassLoader ?: return)
-
+        OplusCapsuleHooker.initialize(context.classLoader)
         BridgeCentral.initialize(context)
-        ActivePlayerDispatcher.addActivePlayerListener(LyricViewController)
-
         Constants.initResourceIds(context)
-        initDataChannel()
-
-        NotificationCoverHelper.hook(context.classLoader)
+        NotificationCoverHelper.initialize(context.classLoader)
         ViewVisibilityTracker.initialize(context.classLoader)
+        initDataChannel()
+        ActivePlayerDispatcher.addActivePlayerListener(LyricViewController)
     }
 
     private fun initDataChannel() {

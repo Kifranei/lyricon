@@ -1,8 +1,9 @@
 # 词幕 - 状态栏歌词扩展工具
 
+![Android](https://img.shields.io/badge/Android-brightgreen?logo=android&logoColor=white)
 ![版本](https://img.shields.io/github/v/release/proify/lyricon?style=flat)
 ![下载量](https://img.shields.io/github/downloads/proify/lyricon/total?style=flat)
-![构建状态](https://github.com/proify/lyricon/actions/workflows/android.yml/badge.svg)
+![GitHub last commit](https://img.shields.io/github/last-commit/proify/lyricon)
 
 <img src="resources/logo.svg" width="60" alt="应用图标"/>
 
@@ -28,14 +29,17 @@
 ## 📦 安装使用
 
 ### 下载安装
+
 [前往 Releases 页面下载最新版本](https://github.com/proify/lyricon/releases)
 
 ## 🧩 插件生态
 
 ### 获取插件
+
 [访问插件发布页面](https://github.com/proify/LyricProvider)
 
 ### 开发插件
+
 [查看插件开发指南](https://github.com/proify/lyricon/blob/master/lyric/bridge/provider/README.md)
 
 ## 🤖 联系
@@ -45,3 +49,13 @@
 ## 🤝 参与贡献
 
 欢迎提交 Issue 和 Pull Request 来帮助改进项目！
+---
+
+## ✨ 贡献者
+[![Contributors](https://contrib.rocks/image?repo=proify/lyricon)](https://github.com/proify/lyricon/graphs/contributors)
+---
+## 📊 访问统计
+![Visitors](https://count.getloli.com/get/@proify_lyricon?theme=minecraft)
+---
+## ⭐  star 历史
+[![Star History Chart](https://api.star-history.com/svg?repos=proify/lyricon&type=Date)](https://star-history.com/#proify/lyricon&Date)

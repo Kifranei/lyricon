@@ -15,11 +15,11 @@ object Constants {
     var clockId: Int = 0
 
     @SuppressLint("DiscouragedApi")
-    fun initResourceIds(appContext: Context) {
-        val resources = appContext.resources
+    fun initResourceIds(context: Context) {
+        val resources = context.resources
         statusBarLayoutId =
-            resources.getIdentifier("status_bar", "layout", appContext.packageName)
+            resources.getIdentifier("status_bar", "layout", context.packageName)
         clockId =
-            resources.getIdentifier("clock", "id", appContext.packageName)
+            resources.getIdentifier("clock", "id", context.packageName)
     }
 }

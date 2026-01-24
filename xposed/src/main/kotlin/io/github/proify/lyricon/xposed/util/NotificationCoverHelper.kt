@@ -22,6 +22,7 @@ import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
 object NotificationCoverHelper {
+    private var unhooks: MutableSet<XC_MethodHook.Unhook>? = null
     private val listeners = CopyOnWriteArrayList<OnCoverUpdateListener>()
     private const val COVER_FILE_NAME = "cover.png"
 
@@ -49,7 +50,8 @@ object NotificationCoverHelper {
         return null
     }
 
-    fun hook(classLoader: ClassLoader) {
+    fun initialize(classLoader: ClassLoader) {
+        unhooks?.forEach { it.unhook() }
 
         val listenerClass = findNotificationListenerClass(classLoader)
         if (listenerClass == null) {
@@ -58,7 +60,7 @@ object NotificationCoverHelper {
         }
 
         try {
-            XposedBridge.hookAllMethods(
+            unhooks = XposedBridge.hookAllMethods(
                 listenerClass,
                 "onNotificationPosted",
                 NotificationPostedHook()

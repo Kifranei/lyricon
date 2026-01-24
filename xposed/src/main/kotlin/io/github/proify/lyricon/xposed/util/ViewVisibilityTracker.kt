@@ -39,6 +39,7 @@ object ViewVisibilityTracker {
      * 初始化 Hook
      */
     fun initialize(classLoader: ClassLoader) {
+        hookResult?.remove()
         hookResult = View::class.resolve()
             .firstMethod {
                 name = "setFlags"

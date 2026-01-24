@@ -109,12 +109,14 @@ class StatusBarViewManager(
         val basicStyle = lyricStyle.basicStyle
 
         val needUpdateLocation =
-            lastAnchor != basicStyle.anchor || lastInsertionOrder != basicStyle.insertionOrder
+            lastAnchor != basicStyle.anchor
+                    || lastInsertionOrder != basicStyle.insertionOrder
+                    || lyricView.isAttachedToWindow.not()
 
         if (needUpdateLocation) {
             updateLocation(basicStyle)
         } else {
-            YLog.info("Lyric location not updated")
+            YLog.info("Lyric location not updated: $lastAnchor")
         }
         lyricView.updateStyle(lyricStyle)
     }
