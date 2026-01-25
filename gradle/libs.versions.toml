@@ -29,6 +29,8 @@ yukihookapi = "1.3.1"
 kavaref = "1.0.2"
 androidsvg = "1.4"
 remoteCreationCore = "1.0.0-alpha02"
+activity = "1.12.2"
+constraintlayout = "2.2.1"
 
 [libraries]
 # ===== AndroidX =====
@@ -85,6 +87,8 @@ kavaref-extension = { module = "com.highcapable.kavaref:kavaref-extension", vers
 # ===== 图形 =====
 androidsvg = { module = "com.caverock:androidsvg-aar", version.ref = "androidsvg" }
 androidx-compose-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 
 [plugins]
 # ===== Android =====

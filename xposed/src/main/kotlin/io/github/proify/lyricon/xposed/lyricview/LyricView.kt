@@ -157,8 +157,6 @@ class LyricView(
         if (logoGravity == lastLogoGravity) return
         lastLogoGravity = logoGravity
 
-        //  logoView.providerLogo = null
-
         if (contains(logoView)) removeView(logoView)
         val textIndex = indexOfChild(textView).coerceAtLeast(0)
 
@@ -167,8 +165,6 @@ class LyricView(
             LogoStyle.GRAVITY_END -> addView(logoView, textIndex + 1)
             else -> addView(logoView, textIndex)
         }
-
-        // logoView.providerLogo = LyricViewController.providerInfo?.logo
     }
 
     fun updateStyle(style: LyricStyle) {

@@ -1,0 +1,4393 @@
+{
+  "id": "1552791427",
+  "name": "Love Story (Taylor’s Version)",
+  "artist": "Taylor Swift",
+  "duration": 235767,
+  "lyrics": [
+    {
+      "begin": 16150,
+      "end": 19978,
+      "text": "We were both young when I first saw you",
+      "words": [
+        {
+          "begin": 16150,
+          "end": 16476,
+          "text": "We"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 16476,
+          "end": 16743,
+          "text": "were"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 16743,
+          "end": 17243,
+          "text": "both"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 17243,
+          "end": 18009,
+          "text": "young"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 18009,
+          "end": 18209,
+          "text": "when"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 18209,
+          "end": 18462,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 18462,
+          "end": 18978,
+          "text": "first"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 18978,
+          "end": 19509,
+          "text": "saw"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 19509,
+          "end": 19978,
+          "text": "you"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "第一次见面时 我们都很年少"
+    },
+    {
+      "begin": 19983,
+      "end": 23561,
+      "text": "I close my eyes and the flashback starts",
+      "words": [
+        {
+          "begin": 19983,
+          "end": 20285,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 20285,
+          "end": 20567,
+          "text": "close"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 20567,
+          "end": 20999,
+          "text": "my"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 20999,
+          "end": 21769,
+          "text": "eyes"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 21769,
+          "end": 22036,
+          "text": "and"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 22036,
+          "end": 22268,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 22268,
+          "end": 22567,
+          "text": "flash"
+        },
+        {
+          "begin": 22567,
+          "end": 22985,
+          "text": "back"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 22985,
+          "end": 23561,
+          "text": "starts"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我闭上双眼 回忆开始浮现"
+    },
+    {
+      "begin": 23561,
+      "end": 25335,
+      "text": "I'm standing there",
+      "words": [
+        {
+          "begin": 23561,
+          "end": 23800,
+          "text": "I'm"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 23800,
+          "end": 24050,
+          "text": "stan"
+        },
+        {
+          "begin": 24050,
+          "end": 24351,
+          "text": "ding"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 24351,
+          "end": 25335,
+          "text": "there"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我站在那里"
+    },
+    {
+      "begin": 26785,
+      "end": 30254,
+      "text": "On a balcony in summer air",
+      "words": [
+        {
+          "begin": 26785,
+          "end": 27067,
+          "text": "On"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 27067,
+          "end": 27337,
+          "text": "a"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 27337,
+          "end": 27569,
+          "text": "bal"
+        },
+        {
+          "begin": 27569,
+          "end": 27836,
+          "text": "co"
+        },
+        {
+          "begin": 27836,
+          "end": 28068,
+          "text": "ny"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 28068,
+          "end": 28318,
+          "text": "in"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 28318,
+          "end": 28585,
+          "text": "sum"
+        },
+        {
+          "begin": 28585,
+          "end": 28837,
+          "text": "mer"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 28837,
+          "end": 30254,
+          "text": "air"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "在阳台上 沐浴着夏日微风"
+    },
+    {
+      "begin": 32265,
+      "end": 36198,
+      "text": "See the lights, see the party, the ball gowns",
+      "words": [
+        {
+          "begin": 32265,
+          "end": 32654,
+          "text": "See"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 32654,
+          "end": 33154,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 33154,
+          "end": 33871,
+          "text": "lights,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 33871,
+          "end": 34138,
+          "text": "see"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 34138,
+          "end": 34405,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 34405,
+          "end": 34655,
+          "text": "par"
+        },
+        {
+          "begin": 34655,
+          "end": 34939,
+          "text": "ty,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 34939,
+          "end": 35171,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 35171,
+          "end": 35624,
+          "text": "ball"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 35624,
+          "end": 36198,
+          "text": "gowns"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我看见灯光 看见派对和舞会礼服"
+    },
+    {
+      "begin": 36327,
+      "end": 41395,
+      "text": "See you make your way through the crowd and say, \"Hello\"",
+      "words": [
+        {
+          "begin": 36327,
+          "end": 36661,
+          "text": "See"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 36661,
+          "end": 37160,
+          "text": "you"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 37160,
+          "end": 37662,
+          "text": "make"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 37662,
+          "end": 37929,
+          "text": "your"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 37929,
+          "end": 38428,
+          "text": "way"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 38428,
+          "end": 38695,
+          "text": "through"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 38695,
+          "end": 39113,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 39113,
+          "end": 39645,
+          "text": "crowd"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 39645,
+          "end": 39929,
+          "text": "and"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 39929,
+          "end": 40161,
+          "text": "say,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 40161,
+          "end": 40446,
+          "text": "\"Hel"
+        },
+        {
+          "begin": 40446,
+          "end": 41395,
+          "text": "lo\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我看见你穿过人群 向我走来 然后说 “你好”"
+    },
+    {
+      "begin": 43343,
+      "end": 46463,
+      "text": "Little did I know",
+      "words": [
+        {
+          "begin": 43343,
+          "end": 43677,
+          "text": "Lit"
+        },
+        {
+          "begin": 43677,
+          "end": 43961,
+          "text": "tle"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 43961,
+          "end": 44228,
+          "text": "did"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 44228,
+          "end": 44945,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 44945,
+          "end": 46463,
+          "text": "know"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "当时的我还不知道"
+    },
+    {
+      "begin": 48158,
+      "end": 52019,
+      "text": "That you were Romeo, you were throwing pebbles",
+      "words": [
+        {
+          "begin": 48158,
+          "end": 48492,
+          "text": "That"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 48492,
+          "end": 48745,
+          "text": "you"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 48745,
+          "end": 48995,
+          "text": "were"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 48995,
+          "end": 49262,
+          "text": "Ro"
+        },
+        {
+          "begin": 49262,
+          "end": 49494,
+          "text": "me"
+        },
+        {
+          "begin": 49494,
+          "end": 50010,
+          "text": "o,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 50010,
+          "end": 50228,
+          "text": "you"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 50228,
+          "end": 50495,
+          "text": "were"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 50495,
+          "end": 50745,
+          "text": "throw"
+        },
+        {
+          "begin": 50745,
+          "end": 51227,
+          "text": "ing"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 51227,
+          "end": 51743,
+          "text": "peb"
+        },
+        {
+          "begin": 51743,
+          "end": 52019,
+          "text": "bles"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "你就是罗密欧 那个扔石子的人"
+    },
+    {
+      "begin": 52019,
+      "end": 55729,
+      "text": "And my daddy said, \"Stay away from Juliet\"",
+      "words": [
+        {
+          "begin": 52019,
+          "end": 52246,
+          "text": "And"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 52246,
+          "end": 52510,
+          "text": "my"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 52510,
+          "end": 52763,
+          "text": "dad"
+        },
+        {
+          "begin": 52763,
+          "end": 53030,
+          "text": "dy"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 53030,
+          "end": 53497,
+          "text": "said,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 53497,
+          "end": 53744,
+          "text": "\"Stay"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 53744,
+          "end": 53979,
+          "text": "a"
+        },
+        {
+          "begin": 53979,
+          "end": 54228,
+          "text": "way"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 54228,
+          "end": 54527,
+          "text": "from"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 54527,
+          "end": 54762,
+          "text": "Ju"
+        },
+        {
+          "begin": 54762,
+          "end": 55279,
+          "text": "li"
+        },
+        {
+          "begin": 55279,
+          "end": 55729,
+          "text": "et\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "而我的父亲说 “离朱丽叶远点”"
+    },
+    {
+      "begin": 55768,
+      "end": 62638,
+      "text": "And I was crying on the staircase, begging you, \"Please, don't go\"",
+      "words": [
+        {
+          "begin": 55768,
+          "end": 56066,
+          "text": "And"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 56066,
+          "end": 56333,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 56333,
+          "end": 56586,
+          "text": "was"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 56586,
+          "end": 56818,
+          "text": "cry"
+        },
+        {
+          "begin": 56818,
+          "end": 57068,
+          "text": "ing"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 57068,
+          "end": 57317,
+          "text": "on"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 57317,
+          "end": 57584,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 57584,
+          "end": 58084,
+          "text": "stair"
+        },
+        {
+          "begin": 58084,
+          "end": 58489,
+          "text": "case,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 58600,
+          "end": 58853,
+          "text": "beg"
+        },
+        {
+          "begin": 58853,
+          "end": 59102,
+          "text": "ging"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 59102,
+          "end": 59352,
+          "text": "you,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 59352,
+          "end": 59819,
+          "text": "\"Please,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 59819,
+          "end": 60319,
+          "text": "don't"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 60319,
+          "end": 62638,
+          "text": "go\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我在楼梯上哭泣 乞求着你 “拜托 不要走”"
+    },
+    {
+      "begin": 63046,
+      "end": 68689,
+      "text": "And I said, \"Romeo, take me somewhere we can be alone",
+      "words": [
+        {
+          "begin": 63046,
+          "end": 63342,
+          "text": "And"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 63342,
+          "end": 63858,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 63858,
+          "end": 64560,
+          "text": "said,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 64645,
+          "end": 64895,
+          "text": "\"Ro"
+        },
+        {
+          "begin": 64895,
+          "end": 65162,
+          "text": "me"
+        },
+        {
+          "begin": 65162,
+          "end": 65629,
+          "text": "o,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 65629,
+          "end": 66177,
+          "text": "take"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 66177,
+          "end": 66677,
+          "text": "me"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 66677,
+          "end": 66912,
+          "text": "some"
+        },
+        {
+          "begin": 66912,
+          "end": 67161,
+          "text": "where"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 67161,
+          "end": 67411,
+          "text": "we"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 67411,
+          "end": 67646,
+          "text": "can"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 67646,
+          "end": 67913,
+          "text": "be"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 67913,
+          "end": 68195,
+          "text": "a"
+        },
+        {
+          "begin": 68195,
+          "end": 68689,
+          "text": "lone"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "然后我说 “罗密欧 带我去一个不会被打扰的地方"
+    },
+    {
+      "begin": 68689,
+      "end": 72641,
+      "text": "I'll be waiting, all there's left to do is run\"",
+      "words": [
+        {
+          "begin": 68689,
+          "end": 69207,
+          "text": "I'll"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 69207,
+          "end": 69724,
+          "text": "be"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 69724,
+          "end": 70223,
+          "text": "wait"
+        },
+        {
+          "begin": 70223,
+          "end": 70524,
+          "text": "ing,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 70725,
+          "end": 70957,
+          "text": "all"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 70957,
+          "end": 71207,
+          "text": "there's"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 71207,
+          "end": 71457,
+          "text": "left"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 71457,
+          "end": 71706,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 71706,
+          "end": 71959,
+          "text": "do"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 71959,
+          "end": 72223,
+          "text": "is"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 72223,
+          "end": 72641,
+          "text": "run\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我会等你 我们只能逃跑”"
+    },
+    {
+      "begin": 72641,
+      "end": 76691,
+      "text": "You'll be the prince and I'll be the princess",
+      "words": [
+        {
+          "begin": 72641,
+          "end": 73219,
+          "text": "You'll"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 73219,
+          "end": 73454,
+          "text": "be"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 73454,
+          "end": 73721,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 73721,
+          "end": 74150,
+          "text": "prince"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 74220,
+          "end": 74591,
+          "text": "and"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 74769,
+          "end": 75271,
+          "text": "I'll"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 75271,
+          "end": 75503,
+          "text": "be"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 75503,
+          "end": 75770,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 75770,
+          "end": 76237,
+          "text": "prin"
+        },
+        {
+          "begin": 76237,
+          "end": 76691,
+          "text": "cess"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "你来当王子 我来当公主"
+    },
+    {
+      "begin": 76691,
+      "end": 81260,
+      "text": "It's a love story, baby, just say, \"Yes\"",
+      "words": [
+        {
+          "begin": 76691,
+          "end": 76976,
+          "text": "It's"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 76976,
+          "end": 77222,
+          "text": "a"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 77222,
+          "end": 77742,
+          "text": "love"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 77742,
+          "end": 78258,
+          "text": "sto"
+        },
+        {
+          "begin": 78258,
+          "end": 78775,
+          "text": "ry,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 78775,
+          "end": 79007,
+          "text": "ba"
+        },
+        {
+          "begin": 79007,
+          "end": 79257,
+          "text": "by,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 79257,
+          "end": 79756,
+          "text": "just"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 79756,
+          "end": 80208,
+          "text": "say,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 80290,
+          "end": 81260,
+          "text": "\"Yes\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "这是一个爱情故事 宝贝 你只需要说 “我愿意”"
+    },
+    {
+      "begin": 84449,
+      "end": 88574,
+      "text": "So I sneak out to the garden to see you",
+      "words": [
+        {
+          "begin": 84449,
+          "end": 84812,
+          "text": "So"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 84812,
+          "end": 85045,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 85045,
+          "end": 85512,
+          "text": "sneak"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 85512,
+          "end": 86296,
+          "text": "out"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 86296,
+          "end": 86548,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 86548,
+          "end": 86812,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 86812,
+          "end": 87079,
+          "text": "gar"
+        },
+        {
+          "begin": 87079,
+          "end": 87346,
+          "text": "den"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 87346,
+          "end": 87596,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 87596,
+          "end": 88081,
+          "text": "see"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 88081,
+          "end": 88574,
+          "text": "you"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我偷偷溜了出去 与你在花园见面"
+    },
+    {
+      "begin": 88759,
+      "end": 92042,
+      "text": "We keep quiet 'cause we're dead if they knew",
+      "words": [
+        {
+          "begin": 88759,
+          "end": 89098,
+          "text": "We"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 89098,
+          "end": 89583,
+          "text": "keep"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 89583,
+          "end": 90050,
+          "text": "qui"
+        },
+        {
+          "begin": 90050,
+          "end": 90332,
+          "text": "et"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 90332,
+          "end": 90599,
+          "text": "'cause"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 90599,
+          "end": 90848,
+          "text": "we're"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 90848,
+          "end": 91098,
+          "text": "dead"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 91098,
+          "end": 91365,
+          "text": "if"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 91365,
+          "end": 91600,
+          "text": "they"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 91600,
+          "end": 92042,
+          "text": "knew"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我们不敢闹出动静 因为如果被发现 我们就完蛋了"
+    },
+    {
+      "begin": 92042,
+      "end": 94161,
+      "text": "So close your eyes",
+      "words": [
+        {
+          "begin": 92042,
+          "end": 92344,
+          "text": "So"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 92344,
+          "end": 92611,
+          "text": "close"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 92611,
+          "end": 92878,
+          "text": "your"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 92878,
+          "end": 94161,
+          "text": "eyes"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "所以闭上你的眼睛"
+    },
+    {
+      "begin": 95037,
+      "end": 99531,
+      "text": "Escape this town for a little while",
+      "words": [
+        {
+          "begin": 95037,
+          "end": 95395,
+          "text": "Es"
+        },
+        {
+          "begin": 95395,
+          "end": 95644,
+          "text": "cape"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 95644,
+          "end": 95894,
+          "text": "this"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 95894,
+          "end": 96414,
+          "text": "town"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 96414,
+          "end": 96663,
+          "text": "for"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 96663,
+          "end": 96895,
+          "text": "a"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 96895,
+          "end": 97145,
+          "text": "lit"
+        },
+        {
+          "begin": 97145,
+          "end": 97412,
+          "text": "tle"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 97412,
+          "end": 98604,
+          "text": "whi"
+        },
+        {
+          "begin": 98681,
+          "end": 99531,
+          "text": "le"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "暂时逃离这个小镇"
+    },
+    {
+      "begin": 99619,
+      "end": 104442,
+      "text": "Oh-oh, 'cause you were Romeo, I was a scarlet letter",
+      "words": [
+        {
+          "begin": 99619,
+          "end": 99981,
+          "text": "Oh-"
+        },
+        {
+          "begin": 100197,
+          "end": 100696,
+          "text": "oh,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 100696,
+          "end": 100931,
+          "text": "'cause"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 100931,
+          "end": 101198,
+          "text": "you"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 101198,
+          "end": 101448,
+          "text": "were"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 101448,
+          "end": 101698,
+          "text": "Ro"
+        },
+        {
+          "begin": 101698,
+          "end": 101965,
+          "text": "me"
+        },
+        {
+          "begin": 101965,
+          "end": 102201,
+          "text": "o,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 102232,
+          "end": 102464,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 102464,
+          "end": 102699,
+          "text": "was"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 102699,
+          "end": 102963,
+          "text": "a"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 102963,
+          "end": 103198,
+          "text": "scar"
+        },
+        {
+          "begin": 103198,
+          "end": 103623,
+          "text": "let"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 103715,
+          "end": 104200,
+          "text": "let"
+        },
+        {
+          "begin": 104200,
+          "end": 104442,
+          "text": "ter"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "哦哦 因为你是罗密欧 而我背负着条条框框"
+    },
+    {
+      "begin": 104442,
+      "end": 108186,
+      "text": "And my daddy said, \"Stay away from Juliet\"",
+      "words": [
+        {
+          "begin": 104442,
+          "end": 104716,
+          "text": "And"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 104716,
+          "end": 104969,
+          "text": "my"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 104969,
+          "end": 105218,
+          "text": "dad"
+        },
+        {
+          "begin": 105218,
+          "end": 105485,
+          "text": "dy"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 105485,
+          "end": 105984,
+          "text": "said,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 105984,
+          "end": 106234,
+          "text": "\"Stay"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 106234,
+          "end": 106501,
+          "text": "a"
+        },
+        {
+          "begin": 106501,
+          "end": 106751,
+          "text": "way"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 106751,
+          "end": 107000,
+          "text": "from"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 107000,
+          "end": 107218,
+          "text": "Ju"
+        },
+        {
+          "begin": 107218,
+          "end": 107752,
+          "text": "li"
+        },
+        {
+          "begin": 107752,
+          "end": 108186,
+          "text": "et\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "而我的父亲说 “离朱丽叶远点”"
+    },
+    {
+      "begin": 108186,
+      "end": 115053,
+      "text": "But you were everything to me, I was begging you, \"Please, don't go\"",
+      "words": [
+        {
+          "begin": 108186,
+          "end": 108520,
+          "text": "But"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 108520,
+          "end": 108773,
+          "text": "you"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 108773,
+          "end": 109023,
+          "text": "were"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 109023,
+          "end": 109287,
+          "text": "ev"
+        },
+        {
+          "begin": 109287,
+          "end": 109539,
+          "text": "ery"
+        },
+        {
+          "begin": 109539,
+          "end": 109803,
+          "text": "thing"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 109803,
+          "end": 110038,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 110038,
+          "end": 110506,
+          "text": "me,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 110506,
+          "end": 110773,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 110773,
+          "end": 111040,
+          "text": "was"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 111040,
+          "end": 111272,
+          "text": "beg"
+        },
+        {
+          "begin": 111272,
+          "end": 111539,
+          "text": "ging"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 111539,
+          "end": 111789,
+          "text": "you,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 111789,
+          "end": 112291,
+          "text": "\"Please,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 112291,
+          "end": 112681,
+          "text": "don't"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 112790,
+          "end": 115053,
+          "text": "go\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "但对我而言 你就是全部 我乞求着你 “拜托 不要走”"
+    },
+    {
+      "begin": 115463,
+      "end": 121061,
+      "text": "And I said, \"Romeo, take me somewhere we can be alone",
+      "words": [
+        {
+          "begin": 115463,
+          "end": 115780,
+          "text": "And"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 115780,
+          "end": 116265,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 116265,
+          "end": 117045,
+          "text": "said,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 117045,
+          "end": 117315,
+          "text": "\"Ro"
+        },
+        {
+          "begin": 117315,
+          "end": 117579,
+          "text": "me"
+        },
+        {
+          "begin": 117579,
+          "end": 118082,
+          "text": "o,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 118082,
+          "end": 118581,
+          "text": "take"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 118581,
+          "end": 119132,
+          "text": "me"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 119132,
+          "end": 119347,
+          "text": "some"
+        },
+        {
+          "begin": 119347,
+          "end": 119597,
+          "text": "where"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 119597,
+          "end": 119832,
+          "text": "we"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 119832,
+          "end": 120099,
+          "text": "can"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 120099,
+          "end": 120348,
+          "text": "be"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 120348,
+          "end": 120615,
+          "text": "a"
+        },
+        {
+          "begin": 120615,
+          "end": 121061,
+          "text": "lone"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "然后我说 “罗密欧 带我去一个不会被打扰的地方"
+    },
+    {
+      "begin": 121061,
+      "end": 125097,
+      "text": "I'll be waiting, all there's left to do is run\"",
+      "words": [
+        {
+          "begin": 121061,
+          "end": 121621,
+          "text": "I'll"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 121621,
+          "end": 122121,
+          "text": "be"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 122121,
+          "end": 122637,
+          "text": "wait"
+        },
+        {
+          "begin": 122637,
+          "end": 123072,
+          "text": "ing,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 123189,
+          "end": 123406,
+          "text": "all"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 123406,
+          "end": 123639,
+          "text": "there's"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 123639,
+          "end": 123874,
+          "text": "left"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 123874,
+          "end": 124123,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 124123,
+          "end": 124373,
+          "text": "do"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 124373,
+          "end": 124640,
+          "text": "is"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 124640,
+          "end": 125097,
+          "text": "run\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我会等你 我们只能逃跑”"
+    },
+    {
+      "begin": 125097,
+      "end": 129133,
+      "text": "You'll be the prince and I'll be the princess",
+      "words": [
+        {
+          "begin": 125097,
+          "end": 125657,
+          "text": "You'll"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 125657,
+          "end": 125892,
+          "text": "be"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 125892,
+          "end": 126176,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 126176,
+          "end": 126563,
+          "text": "prince"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 126675,
+          "end": 127043,
+          "text": "and"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 127192,
+          "end": 127726,
+          "text": "I'll"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 127726,
+          "end": 127958,
+          "text": "be"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 127958,
+          "end": 128208,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 128208,
+          "end": 128693,
+          "text": "prin"
+        },
+        {
+          "begin": 128693,
+          "end": 129133,
+          "text": "cess"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "你来当王子 我来当公主"
+    },
+    {
+      "begin": 129136,
+      "end": 133064,
+      "text": "It's a love story, baby, just say, \"Yes\"",
+      "words": [
+        {
+          "begin": 129136,
+          "end": 129427,
+          "text": "It's"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 129427,
+          "end": 129677,
+          "text": "a"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 129677,
+          "end": 130193,
+          "text": "love"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 130193,
+          "end": 130710,
+          "text": "sto"
+        },
+        {
+          "begin": 130710,
+          "end": 131209,
+          "text": "ry,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 131209,
+          "end": 131441,
+          "text": "ba"
+        },
+        {
+          "begin": 131441,
+          "end": 131694,
+          "text": "by,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 131694,
+          "end": 132176,
+          "text": "just"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 132176,
+          "end": 132710,
+          "text": "say,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 132710,
+          "end": 133064,
+          "text": "\"Yes\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "这是一个爱情故事 宝贝 你只需要说 “我愿意”"
+    },
+    {
+      "begin": 133108,
+      "end": 137267,
+      "text": "\"Romeo, save me, they're trying to tell me how to feel",
+      "words": [
+        {
+          "begin": 133108,
+          "end": 133482,
+          "text": "\"Ro"
+        },
+        {
+          "begin": 133482,
+          "end": 133731,
+          "text": "me"
+        },
+        {
+          "begin": 133731,
+          "end": 134199,
+          "text": "o,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 134199,
+          "end": 134750,
+          "text": "save"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 134750,
+          "end": 135000,
+          "text": "me,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 135000,
+          "end": 135249,
+          "text": "they're"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 135249,
+          "end": 135484,
+          "text": "trying"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 135484,
+          "end": 135734,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 135734,
+          "end": 136001,
+          "text": "tell"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 136001,
+          "end": 136265,
+          "text": "me"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 136265,
+          "end": 136518,
+          "text": "how"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 136518,
+          "end": 136785,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 136785,
+          "end": 137267,
+          "text": "feel"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "“罗密欧 救救我吧 他们在试图左右我的感情"
+    },
+    {
+      "begin": 137422,
+      "end": 141195,
+      "text": "This love is difficult, but it's real",
+      "words": [
+        {
+          "begin": 137422,
+          "end": 137755,
+          "text": "This"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 137755,
+          "end": 138005,
+          "text": "love"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 138005,
+          "end": 138258,
+          "text": "is"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 138258,
+          "end": 138507,
+          "text": "dif"
+        },
+        {
+          "begin": 138507,
+          "end": 138771,
+          "text": "fi"
+        },
+        {
+          "begin": 138771,
+          "end": 139369,
+          "text": "cult,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 139523,
+          "end": 139773,
+          "text": "but"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 139773,
+          "end": 140257,
+          "text": "it's"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 140257,
+          "end": 141195,
+          "text": "real"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "这段感情虽然艰难 但它无比真实"
+    },
+    {
+      "begin": 141195,
+      "end": 145281,
+      "text": "Don't be afraid, we'll make it out of this mess\"",
+      "words": [
+        {
+          "begin": 141195,
+          "end": 141770,
+          "text": "Don't"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 141770,
+          "end": 142020,
+          "text": "be"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 142020,
+          "end": 142269,
+          "text": "af"
+        },
+        {
+          "begin": 142269,
+          "end": 142768,
+          "text": "raid,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 142768,
+          "end": 143302,
+          "text": "we'll"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 143302,
+          "end": 143538,
+          "text": "make"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 143538,
+          "end": 143787,
+          "text": "it"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 143787,
+          "end": 144054,
+          "text": "out"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 144054,
+          "end": 144336,
+          "text": "of"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 144336,
+          "end": 144803,
+          "text": "this"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 144803,
+          "end": 145281,
+          "text": "mess\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "别害怕 我们一定会度过这道难关”"
+    },
+    {
+      "begin": 145281,
+      "end": 150094,
+      "text": "It's a love story, baby, just say, \"Yes\"",
+      "words": [
+        {
+          "begin": 145281,
+          "end": 145543,
+          "text": "It's"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 145543,
+          "end": 145810,
+          "text": "a"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 145810,
+          "end": 146309,
+          "text": "love"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 146309,
+          "end": 146811,
+          "text": "sto"
+        },
+        {
+          "begin": 146811,
+          "end": 147328,
+          "text": "ry,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 147328,
+          "end": 147560,
+          "text": "ba"
+        },
+        {
+          "begin": 147560,
+          "end": 147810,
+          "text": "by,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 147810,
+          "end": 148326,
+          "text": "just"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 148326,
+          "end": 148826,
+          "text": "say,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 148826,
+          "end": 150094,
+          "text": "\"Yes\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "这是一个爱情故事 宝贝 你只需要说 “我愿意”"
+    },
+    {
+      "begin": 152553,
+      "end": 154861,
+      "text": "Oh-oh",
+      "words": [
+        {
+          "begin": 152553,
+          "end": 153110,
+          "text": "Oh-"
+        },
+        {
+          "begin": 153110,
+          "end": 154861,
+          "text": "oh"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "哦哦"
+    },
+    {
+      "begin": 164155,
+      "end": 167664,
+      "text": "But I got tired of waiting",
+      "words": [
+        {
+          "begin": 164155,
+          "end": 164471,
+          "text": "But"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 164471,
+          "end": 164721,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 164721,
+          "end": 164971,
+          "text": "got"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 164971,
+          "end": 165220,
+          "text": "tired"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 165220,
+          "end": 165487,
+          "text": "of"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 165487,
+          "end": 166214,
+          "text": "wai"
+        },
+        {
+          "begin": 166214,
+          "end": 167664,
+          "text": "ting"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "但我厌倦了等待"
+    },
+    {
+      "begin": 168444,
+      "end": 172026,
+      "text": "Wondering if you were ever coming around",
+      "words": [
+        {
+          "begin": 168444,
+          "end": 168760,
+          "text": "Won"
+        },
+        {
+          "begin": 168760,
+          "end": 169010,
+          "text": "der"
+        },
+        {
+          "begin": 169010,
+          "end": 169277,
+          "text": "ing"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 169277,
+          "end": 169509,
+          "text": "if"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 169509,
+          "end": 169759,
+          "text": "you"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 169759,
+          "end": 170008,
+          "text": "were"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 170008,
+          "end": 170261,
+          "text": "ev"
+        },
+        {
+          "begin": 170261,
+          "end": 170542,
+          "text": "er"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 170542,
+          "end": 170792,
+          "text": "com"
+        },
+        {
+          "begin": 170792,
+          "end": 171045,
+          "text": "ing"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 171045,
+          "end": 171294,
+          "text": "a"
+        },
+        {
+          "begin": 171294,
+          "end": 172026,
+          "text": "round"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "不知道你是否会来到我身边"
+    },
+    {
+      "begin": 172218,
+      "end": 176693,
+      "text": "My faith in you was fading",
+      "words": [
+        {
+          "begin": 172218,
+          "end": 172494,
+          "text": "My"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 172494,
+          "end": 172764,
+          "text": "faith"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 172764,
+          "end": 173045,
+          "text": "in"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 173045,
+          "end": 173312,
+          "text": "you"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 173312,
+          "end": 174007,
+          "text": "was"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 174311,
+          "end": 175330,
+          "text": "fa"
+        },
+        {
+          "begin": 175330,
+          "end": 176693,
+          "text": "ding"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我渐渐失去对你的信任"
+    },
+    {
+      "begin": 177013,
+      "end": 180309,
+      "text": "When I met you on the outskirts of town",
+      "words": [
+        {
+          "begin": 177013,
+          "end": 177326,
+          "text": "When"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 177326,
+          "end": 177607,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 177607,
+          "end": 177843,
+          "text": "met"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 177843,
+          "end": 178092,
+          "text": "you"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 178092,
+          "end": 178342,
+          "text": "on"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 178342,
+          "end": 178591,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 178591,
+          "end": 178943,
+          "text": "out"
+        },
+        {
+          "begin": 178943,
+          "end": 179326,
+          "text": "skirts"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 179326,
+          "end": 179593,
+          "text": "of"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 179593,
+          "end": 180309,
+          "text": "town"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "当我在小镇的郊外遇到你时"
+    },
+    {
+      "begin": 180309,
+      "end": 185630,
+      "text": "And I said, \"Romeo, save me, I've been feeling so alone",
+      "words": [
+        {
+          "begin": 180309,
+          "end": 180581,
+          "text": "And"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 180581,
+          "end": 180932,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 180932,
+          "end": 181578,
+          "text": "said,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 181671,
+          "end": 181871,
+          "text": "\"Ro"
+        },
+        {
+          "begin": 181871,
+          "end": 182103,
+          "text": "me"
+        },
+        {
+          "begin": 182103,
+          "end": 182588,
+          "text": "o,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 182588,
+          "end": 183104,
+          "text": "save"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 183104,
+          "end": 183638,
+          "text": "me,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 183638,
+          "end": 183853,
+          "text": "I've"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 183853,
+          "end": 184106,
+          "text": "been"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 184106,
+          "end": 184373,
+          "text": "feel"
+        },
+        {
+          "begin": 184373,
+          "end": 184622,
+          "text": "ing"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 184622,
+          "end": 184889,
+          "text": "so"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 184889,
+          "end": 185139,
+          "text": "a"
+        },
+        {
+          "begin": 185139,
+          "end": 185630,
+          "text": "lone"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我说 “罗密欧 救救我吧 我感觉好孤独"
+    },
+    {
+      "begin": 185630,
+      "end": 189416,
+      "text": "I keep waiting for you, but you never come",
+      "words": [
+        {
+          "begin": 185630,
+          "end": 186170,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 186170,
+          "end": 186540,
+          "text": "keep"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 186704,
+          "end": 187186,
+          "text": "wai"
+        },
+        {
+          "begin": 187186,
+          "end": 187688,
+          "text": "ting"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 187688,
+          "end": 187920,
+          "text": "for"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 187920,
+          "end": 188187,
+          "text": "you,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 188187,
+          "end": 188437,
+          "text": "but"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 188437,
+          "end": 188689,
+          "text": "you"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 188689,
+          "end": 188936,
+          "text": "ne"
+        },
+        {
+          "begin": 188936,
+          "end": 189189,
+          "text": "ver"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 189189,
+          "end": 189416,
+          "text": "come"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我一直在等你 但你从未出现"
+    },
+    {
+      "begin": 189416,
+      "end": 193033,
+      "text": "Is this in my head? I don't know what to think\"",
+      "words": [
+        {
+          "begin": 189416,
+          "end": 189669,
+          "text": "Is"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 189669,
+          "end": 190075,
+          "text": "this"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 190242,
+          "end": 190459,
+          "text": "in"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 190459,
+          "end": 190726,
+          "text": "my"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 190726,
+          "end": 191219,
+          "text": "head?"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 191219,
+          "end": 191468,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 191468,
+          "end": 191721,
+          "text": "don't"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 191721,
+          "end": 192112,
+          "text": "know"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 192227,
+          "end": 192476,
+          "text": "what"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 192476,
+          "end": 192711,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 192711,
+          "end": 193033,
+          "text": "think\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "一切只是我的幻想吗 我不知道该怎么想”"
+    },
+    {
+      "begin": 193116,
+      "end": 197637,
+      "text": "He knelt to the ground and pulled out a ring, and said",
+      "words": [
+        {
+          "begin": 193116,
+          "end": 193720,
+          "text": "He"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 193720,
+          "end": 194219,
+          "text": "knelt"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 194219,
+          "end": 194451,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 194451,
+          "end": 194718,
+          "text": "the"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 194718,
+          "end": 195221,
+          "text": "ground"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 195221,
+          "end": 195628,
+          "text": "and"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 195737,
+          "end": 196236,
+          "text": "pulled"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 196236,
+          "end": 196486,
+          "text": "out"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 196486,
+          "end": 196736,
+          "text": "a"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 196736,
+          "end": 196971,
+          "text": "ring,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 196971,
+          "end": 197252,
+          "text": "and"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 197252,
+          "end": 197637,
+          "text": "said"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "他跪在地上 掏出一枚戒指 说"
+    },
+    {
+      "begin": 197637,
+      "end": 201748,
+      "text": "\"Marry me, Juliet, you'll never have to be alone",
+      "words": [
+        {
+          "begin": 197637,
+          "end": 197977,
+          "text": "\"Mar"
+        },
+        {
+          "begin": 197977,
+          "end": 198226,
+          "text": "ry"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 198226,
+          "end": 198725,
+          "text": "me,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 198725,
+          "end": 198978,
+          "text": "Jul"
+        },
+        {
+          "begin": 198978,
+          "end": 199242,
+          "text": "i"
+        },
+        {
+          "begin": 199242,
+          "end": 199512,
+          "text": "et,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 199512,
+          "end": 199762,
+          "text": "you'll"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 199762,
+          "end": 200011,
+          "text": "ne"
+        },
+        {
+          "begin": 200011,
+          "end": 200261,
+          "text": "ver"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 200261,
+          "end": 200511,
+          "text": "have"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 200511,
+          "end": 200778,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 200778,
+          "end": 201013,
+          "text": "be"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 201013,
+          "end": 201277,
+          "text": "a"
+        },
+        {
+          "begin": 201277,
+          "end": 201748,
+          "text": "lone"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "“嫁给我吧 朱丽叶 你再也不会孤独了"
+    },
+    {
+      "begin": 201748,
+      "end": 205523,
+      "text": "I love you and that's all I really know",
+      "words": [
+        {
+          "begin": 201748,
+          "end": 202320,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 202320,
+          "end": 202689,
+          "text": "love"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 202837,
+          "end": 203336,
+          "text": "you"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 203336,
+          "end": 203718,
+          "text": "and"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 203821,
+          "end": 204303,
+          "text": "that's"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 204303,
+          "end": 204555,
+          "text": "all"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 204555,
+          "end": 204805,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 204805,
+          "end": 205037,
+          "text": "real"
+        },
+        {
+          "begin": 205037,
+          "end": 205290,
+          "text": "ly"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 205290,
+          "end": 205523,
+          "text": "know"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我爱你 这是我无比确信的事"
+    },
+    {
+      "begin": 205523,
+      "end": 209802,
+      "text": "I talked to your dad, go pick out a white dress",
+      "words": [
+        {
+          "begin": 205523,
+          "end": 205817,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 205817,
+          "end": 206264,
+          "text": "talked"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 206368,
+          "end": 206583,
+          "text": "to"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 206583,
+          "end": 206850,
+          "text": "your"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 206850,
+          "end": 207349,
+          "text": "dad,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 207349,
+          "end": 207852,
+          "text": "go"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 207852,
+          "end": 208386,
+          "text": "pick"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 208386,
+          "end": 208618,
+          "text": "out"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 208618,
+          "end": 208867,
+          "text": "a"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 208867,
+          "end": 209352,
+          "text": "white"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 209352,
+          "end": 209802,
+          "text": "dress"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "我和你爸爸谈过了 快去挑一件白色婚纱吧"
+    },
+    {
+      "begin": 209802,
+      "end": 216211,
+      "text": "It's a love story, baby, just say, 'yes'\"",
+      "words": [
+        {
+          "begin": 209802,
+          "end": 210110,
+          "text": "It's"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 210110,
+          "end": 210377,
+          "text": "a"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 210377,
+          "end": 210894,
+          "text": "love"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 210894,
+          "end": 211410,
+          "text": "sto"
+        },
+        {
+          "begin": 211410,
+          "end": 211892,
+          "text": "ry,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 211892,
+          "end": 212110,
+          "text": "ba"
+        },
+        {
+          "begin": 212110,
+          "end": 212377,
+          "text": "by,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 212377,
+          "end": 212876,
+          "text": "just"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 212876,
+          "end": 213992,
+          "text": "say,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 214110,
+          "end": 216211,
+          "text": "'yes'\""
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "这是一个爱情故事 宝贝 你只需要说 ‘我愿意’”"
+    },
+    {
+      "begin": 216574,
+      "end": 219573,
+      "text": "Oh-oh-oh",
+      "words": [
+        {
+          "begin": 216574,
+          "end": 217044,
+          "text": "Oh-"
+        },
+        {
+          "begin": 217172,
+          "end": 217539,
+          "text": "oh-"
+        },
+        {
+          "begin": 217674,
+          "end": 219573,
+          "text": "oh"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "哦哦哦"
+    },
+    {
+      "begin": 220617,
+      "end": 224205,
+      "text": "Oh-oh-oh, oh",
+      "words": [
+        {
+          "begin": 220617,
+          "end": 221050,
+          "text": "Oh-"
+        },
+        {
+          "begin": 221185,
+          "end": 221567,
+          "text": "oh-"
+        },
+        {
+          "begin": 221732,
+          "end": 222485,
+          "text": "oh,"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 222485,
+          "end": 224205,
+          "text": "oh"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "哦哦哦 哦"
+    },
+    {
+      "begin": 225653,
+      "end": 231404,
+      "text": "'Cause we were both young when I first saw you",
+      "words": [
+        {
+          "begin": 225653,
+          "end": 225944,
+          "text": "'Cause"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 225944,
+          "end": 226208,
+          "text": "we"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 226208,
+          "end": 226475,
+          "text": "were"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 226475,
+          "end": 226991,
+          "text": "both"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 226991,
+          "end": 227601,
+          "text": "young"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 227708,
+          "end": 227975,
+          "text": "when"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 227975,
+          "end": 228228,
+          "text": "I"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 228228,
+          "end": 228692,
+          "text": "first"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 228692,
+          "end": 229947,
+          "text": "saw"
+        },
+        {
+          "begin": -1,
+          "end": -1,
+          "text": " "
+        },
+        {
+          "begin": 230010,
+          "end": 231404,
+          "text": "you"
+        }
+      ],
+      "secondary": "",
+      "secondaryWords": [],
+      "translation": "因为第一次见面时 我们都很年少"
+    }
+  ]
+}

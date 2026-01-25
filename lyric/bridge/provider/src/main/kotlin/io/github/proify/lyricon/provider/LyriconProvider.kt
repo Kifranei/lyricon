@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @property logo 播放器 Logo，可为空
  * @property metadata 提供者元数据，可为空
  * @property providerService 本地服务实例，可为空
+ * @property centralPackageNames 中心服务包名列表
  */
 class LyriconProvider(
     context: Context,
@@ -49,7 +50,8 @@ class LyriconProvider(
     playerPackageName: String = providerPackageName,
     logo: ProviderLogo? = null,
     metadata: ProviderMetadata? = null,
-    providerService: ProviderService? = null
+    providerService: ProviderService? = null,
+    var centralPackageNames: List<String> = listOf(ProviderConstants.SYSTEM_UI_PACKAGE_NAME)
 ) {
 
     private companion object {
@@ -189,16 +191,18 @@ class LyriconProvider(
 
         binder.addRegistrationCallback(registrationCallback)
 
-        val bundle = Bundle().apply {
-            putBinder(ProviderConstants.EXTRA_BINDER, binder)
-        }
+        centralPackageNames.forEach { centralPackageName ->
+            val bundle = Bundle().apply {
+                putBinder(ProviderConstants.EXTRA_BINDER, binder)
+            }
 
-        val intent = Intent(ProviderConstants.ACTION_REGISTER_PROVIDER).apply {
-            setPackage(ProviderConstants.CENTRAL_PACKAGE_NAME)
-            putExtra(ProviderConstants.EXTRA_BUNDLE, bundle)
-        }
+            val intent = Intent(ProviderConstants.ACTION_REGISTER_PROVIDER).apply {
+                setPackage(centralPackageName)
+                putExtra(ProviderConstants.EXTRA_BUNDLE, bundle)
+            }
 
-        appContext.sendBroadcast(intent)
+            appContext.sendBroadcast(intent)
+        }
     }
 
     /**

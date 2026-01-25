@@ -65,7 +65,6 @@ data class WordModel(
     /** 各字符结束绘制位置数组 */
     val charEndPositions: FloatArray = FloatArray(text.length)
 
-
     /**
      * 更新单词及其字符的尺寸和位置信息
      *

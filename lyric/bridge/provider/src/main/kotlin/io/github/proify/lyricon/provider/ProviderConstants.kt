@@ -26,6 +26,5 @@ object ProviderConstants {
     internal const val EXTRA_BUNDLE: String = "bundle"
     internal const val EXTRA_BINDER: String = "binder"
 
-    /** 中心服务包名 */
-    const val CENTRAL_PACKAGE_NAME: String = "com.android.systemui"
+    const val SYSTEM_UI_PACKAGE_NAME: String = "com.android.systemui"
 }

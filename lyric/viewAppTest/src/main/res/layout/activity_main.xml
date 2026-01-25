@@ -27,15 +27,29 @@
 
     </com.google.android.material.card.MaterialCardView>
 
-    <Button
-        android:id="@+id/testMarquee"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <!--    <Button-->
+    <!--        android:id="@+id/testMarquee"-->
+    <!--        android:layout_width="wrap_content"-->
+    <!--        android:layout_height="wrap_content" />-->
 
-    <Button
-        android:id="@+id/sendText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/sendText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="sendText" />
+
+        <Button
+            android:id="@+id/toggletran"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="切换翻译显示"
+            android:layout_marginLeft="16dp"/>
+    </LinearLayout>
+
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollView"

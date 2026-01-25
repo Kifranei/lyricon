@@ -9,6 +9,7 @@ pluginManagement {
         maven { url = uri("https://api.xposed.info/") }
     }
 }
+
 plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
@@ -34,6 +35,7 @@ include(
 
 include(":lyric:bridge:central")
 include(":lyric:bridge:provider")
+include(":lyric:bridge:localcentralapp")
 
 include(":lyric:model")
 include(":lyric:view")

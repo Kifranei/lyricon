@@ -227,6 +227,7 @@ class Syllable(private val ownerView: LyricLineView) {
             view.scrollXOffset = 0f; view.isScrollFinished = false
         }
 
+        @Suppress("unused")
         fun update(currentX: Float, view: LyricLineView, smooth: Boolean) {
             if (!view.isOverflow()) {
                 view.scrollXOffset = 0f

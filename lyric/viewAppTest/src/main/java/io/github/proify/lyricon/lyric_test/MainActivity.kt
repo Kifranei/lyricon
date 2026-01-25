@@ -7,12 +7,10 @@
 package io.github.proify.lyricon.lyric_test
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
-import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.ThemeUtils
@@ -34,9 +32,6 @@ import kotlinx.serialization.json.Json
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-/**
- * 主界面 Activity，负责播放音乐、显示歌词及操作 UI 控件。
- */
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -68,9 +63,11 @@ class MainActivity : AppCompatActivity() {
         LyriconProvider(
             context = this,
             providerPackageName = packageName,
-            logo = ProviderLogo.fromDrawable(this, R.drawable.play_arrow_24px)
+            logo = ProviderLogo.fromDrawable(this, R.drawable.play_arrow_24px),
+            centralPackageNames = listOf("io.github.lyricon.localcentralapp")
         )
     }
+    private var showtranslation = false
 
     @OptIn(ExperimentalUuidApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,9 +77,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
 
-        binding.sendText.setOnClickListener {
-            provider.player.sendText(Uuid.random().toString())
-        }
 
         // 初始化播放器
         player = ExoPlayer.Builder(this).build()
@@ -93,10 +87,8 @@ class MainActivity : AppCompatActivity() {
 
         // 延迟注册 LyriconProvider
         lifecycleScope.launch {
-            delay(5000)
+            delay(0)
             provider.register()
-            Toast.makeText(this@MainActivity, "LyriconProvider registered", Toast.LENGTH_SHORT)
-                .show()
         }
 
         // 生命周期安全的进度更新协程
@@ -106,7 +98,7 @@ class MainActivity : AppCompatActivity() {
                 if (!startTrackingTouch) {
                     val max = binding.slider.valueTo
                     binding.slider.value = pos.toFloat().coerceAtMost(max)
-                  //  provider.player.setPosition(pos)
+                    provider.player.setPosition(pos)
                 }
                 binding.lyric.setPosition(pos)
                 delay(16L)
@@ -117,6 +109,17 @@ class MainActivity : AppCompatActivity() {
         songNames = assets.list("songs") ?: arrayOf()
         if (songNames.isNotEmpty()) loadSongFromAssets(0)
         play()
+
+
+        binding.sendText.setOnClickListener {
+            provider.player.sendText(Uuid.random().toString())
+        }
+        binding.toggletran.setOnClickListener {
+            showtranslation = !showtranslation
+            provider.player.setDisplayTranslation(showtranslation)
+
+            binding.lyric.setDisplayTranslation(showtranslation)
+        }
     }
 
     /**
@@ -150,10 +153,9 @@ class MainActivity : AppCompatActivity() {
             loadSongFromAssets(p)
         }
 
-        // 跳转测试跑马灯界面
-        binding.testMarquee.setOnClickListener {
-            startActivity(Intent(this, MarqueeTestActivity::class.java))
-        }
+//        binding.testMarquee.setOnClickListener {
+//            startActivity(Intent(this, MarqueeTestActivity::class.java))
+//        }
 
         // 初始化滑动条
         binding.slider.valueFrom = 0f
@@ -231,7 +233,7 @@ class MainActivity : AppCompatActivity() {
         binding.toolbar.subtitle = song.name
 
         // 设置歌词右对齐
-        song.lyrics?.forEach { it.isAlignedRight = true }
+        // song.lyrics?.forEach { it.isAlignedRight = true }
         binding.lyric.song = song
         binding.lyric.setPosition(0)
 

@@ -1,6 +1,12 @@
 # Lyricon 插件开发指南
 
-本文档面向具备 Android 开发基础的读者，说明如何开发并接入 Lyricon Provider 插件。
+本文档面向具备 Android 开发基础的读者，说明如何开发并接入 Lyricon Provider Api。
+
+## 前言
+
+软件一般是通过安装Lsposed，激活词幕激活服务，然后测试的，如果你无法使用Xposed，你可以安装
+`LocalCentralService`来测试，这个app实现了词幕服务的一些功能，方便在没有Lsposed的环境下测试。
+安装打开之后，服务已激活。授予悬浮窗权限即刻根据下面文档开始测试。
 
 ## 一、添加依赖
 
@@ -9,12 +15,12 @@
 在模块的 `build.gradle.kts` 中添加依赖：
 
 ```kotlin
-implementation("io.github.proify.lyricon:provider:0.1.63")
+implementation("io.github.proify.lyricon:provider:0.1.64")
 ```
 
 ## 二、配置 `AndroidManifest.xml`
 
-在 `application` 节点下声明插件的基础元信息：
+在 `application` 节点下声明元数据：
 
 ```xml
 
@@ -56,7 +62,9 @@ implementation("io.github.proify.lyricon:provider:0.1.63")
 ```kotlin
 val provider = LyriconProvider(
     context
-    // logo = ProviderLogo.fromDrawable(context, R.drawable.logo)
+    //logo = ProviderLogo.fromDrawable(context, R.drawable.logo)
+    //设置本地服务实现方，方便在没有Lsposed环境下测试
+    //centralPackageNames = listOf("io.github.lyricon.localcentralapp")
 )
 ```
 
