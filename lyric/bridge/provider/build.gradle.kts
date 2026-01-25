@@ -8,7 +8,7 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
-val version: String = "0.1.63"
+val version: String = "0.1.64"
 
 configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.provider"

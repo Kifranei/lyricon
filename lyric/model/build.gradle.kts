@@ -48,7 +48,7 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 }
 
-val version: String = "0.1.63"
+val version: String = "0.1.64"
 
 mavenPublishing {
     coordinates(
