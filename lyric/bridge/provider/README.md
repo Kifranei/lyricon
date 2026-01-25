@@ -7,7 +7,7 @@
 软件一般是通过安装Lsposed，激活词幕激活服务，然后测试的，如果你无法使用Xposed，你可以安装
 [LocalCentralService](https://github.com/proify/lyricon/releases/tag/localcentral)
 来测试，这个app实现了词幕服务的一些功能，方便在没有Lsposed的环境下测试。
-安装打开之后，服务激活。授予悬浮窗权限即刻根据下面文档开始测试。
+安装打开之后，服务激活。授予悬浮窗权限即可根据下面文档开始测试。
 
 ## 一、添加依赖
 
