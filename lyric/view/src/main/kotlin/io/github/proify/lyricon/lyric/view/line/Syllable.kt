@@ -377,7 +377,7 @@ class Syllable(private val view: LyricLineView) {
     }
 
     /**
-     * 渲染逻辑核心类 - 修复描边/重影优化版
+     * 渲染逻辑核心类
      */
     private class SharedLineRenderer {
         private val fontMetrics = Paint.FontMetrics()
@@ -385,14 +385,16 @@ class Syllable(private val view: LyricLineView) {
 
         private val shaderMatrix = Matrix()
         private val gradColors = intArrayOf(0, 0, Color.TRANSPARENT)
-        private val gradPositions = floatArrayOf(0f, 0.9f, 1f)
+        private val gradPositions = floatArrayOf(0f, 0.9f, 1f) // 0~90%为纯色，90%~100%为渐变消隐
         private var cachedShader: LinearGradient? = null
 
         private var lastColor = 0
         private var isStandardRatio = true
 
+        /** 更新字体度量信息并计算垂直居中基线偏移量 */
         fun updateFontMetrics(paint: TextPaint) {
             paint.getFontMetrics(fontMetrics)
+            // 基线 = Y中心点 + (-(descent + ascent) / 2)
             baselineOffset = -(fontMetrics.descent + fontMetrics.ascent) / 2f
         }
 
@@ -400,6 +402,7 @@ class Syllable(private val view: LyricLineView) {
             cachedShader = null
         }
 
+        /** 执行具体绘制指令 */
         fun executeDraw(
             canvas: Canvas, model: LyricModel, viewW: Int, viewH: Int,
             scrollX: Float, isOverflow: Boolean, highlightW: Float,
@@ -407,66 +410,59 @@ class Syllable(private val view: LyricLineView) {
             inactiveP: TextPaint, activeP: TextPaint, normalP: TextPaint
         ) {
             val baseline = (viewH / 2f) + baselineOffset
-            val textW = model.width
 
             canvas.withSave {
-                // 处理平移
+                // 处理文本对齐与滚动位移
                 val tx =
-                    if (isOverflow) scrollX else if (model.isAlignedRight) viewW - textW else 0f
+                    if (isOverflow) scrollX else if (model.isAlignedRight) viewW - model.width else 0f
                 translate(tx, 0f)
 
                 if (onlyScroll) {
                     canvas.drawText(model.wordText, 0f, baseline, normalP)
                 } else {
-                    // --- 核心修复：双重裁剪逻辑 ---
+                    // 1. 绘制底色文本
+                    canvas.drawText(model.wordText, 0f, baseline, inactiveP)
 
-                    // 1. 绘制【底色文本】(未完成部分)
-                    // 裁剪掉左侧已高亮的区域，只保留右侧
-                    canvas.withSave {
-                        if (highlightW > 0f) {
-                            // 注意：这里裁剪的是右侧剩余区域
-                            // 使用 Float.MAX_VALUE 确保覆盖所有可能的文本长度
-                            canvas.clipRect(highlightW, 0f, Float.MAX_VALUE, viewH.toFloat())
-                        }
-                        canvas.drawText(model.wordText, 0f, baseline, inactiveP)
-                    }
-
-                    // 2. 绘制【高亮文本】(已完成部分)
+                    // 2. 根据进度裁剪区域绘制高亮色文本
                     if (highlightW > 0f) {
-                        canvas.withSave {
-                            // 裁剪左侧高亮区域
-                            canvas.clipRect(0f, 0f, highlightW, viewH.toFloat())
-
-                            if (enableGrad) {
-                                applyGradient(activeP, highlightW, textW)
-                            } else {
-                                activeP.shader = null
-                            }
-                            canvas.drawText(model.wordText, 0f, baseline, activeP)
+                        canvas.clipRect(0f, 0f, highlightW, viewH.toFloat())
+                        if (enableGrad) {
+                            applyGradient(activeP, highlightW, model.width)
+                        } else {
+                            activeP.shader = null
                         }
+                        canvas.drawText(model.wordText, 0f, baseline, activeP)
                     }
                 }
             }
         }
 
+        /** 应用优化的渐变 Shader */
         private fun applyGradient(paint: Paint, highlightW: Float, textW: Float) {
             if (textW <= 0f) return
             val ratio = (highlightW / textW).coerceIn(0f, 1f)
+
+            // 优化：只有在词末尾(>90%)渐变边缘才会动态收缩，其余时间比例固定
             val isStandard = ratio <= 0.90f
             val edge = if (isStandard) 0.90f else ratio
 
+            // 检查缓存有效性：颜色变化、比例阶段切换、或词尾精细变动时才重建 Shader
             if (cachedShader == null || lastColor != paint.color || isStandardRatio != isStandard
                 || (!isStandard && abs(gradPositions[1] - edge) > 0.01f)
             ) {
+
                 gradColors[0] = paint.color
                 gradColors[1] = paint.color
                 gradPositions[1] = edge
+
+                // 创建基准宽度为 1px 的 Shader
                 cachedShader =
                     LinearGradient(0f, 0f, 1f, 0f, gradColors, gradPositions, Shader.TileMode.CLAMP)
                 lastColor = paint.color
                 isStandardRatio = isStandard
             }
 
+            // 通过 Matrix 直接改变 Shader 覆盖范围，不会触发新对象分配
             shaderMatrix.setScale(highlightW, 1f)
             cachedShader?.setLocalMatrix(shaderMatrix)
             paint.shader = cachedShader
