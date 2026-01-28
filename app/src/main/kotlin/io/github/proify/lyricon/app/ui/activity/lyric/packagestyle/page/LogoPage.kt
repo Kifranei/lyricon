@@ -22,9 +22,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import io.github.proify.android.extensions.rom.ColorOS
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
@@ -49,6 +51,9 @@ fun LogoPage(
     scrollBehavior: ScrollBehavior,
     sharedPreferences: SharedPreferences
 ) {
+    val context = LocalContext.current
+    val isSupportCapsule = ColorOS.isSupportCapsule(context.classLoader)
+
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -101,31 +106,32 @@ fun LogoPage(
             }
         }
 
-        item(key = "coloros") {
-            SmallTitle(
-                text = stringResource(R.string.item_logo_section_coloros),
-                insideMargin = PaddingValues(
-                    start = 26.dp,
-                    top = 16.dp,
-                    end = 26.dp,
-                    bottom = 10.dp
+        if (isSupportCapsule) {
+            item(key = "coloros") {
+                SmallTitle(
+                    text = stringResource(R.string.item_logo_section_coloros),
+                    insideMargin = PaddingValues(
+                        start = 26.dp,
+                        top = 16.dp,
+                        end = 26.dp,
+                        bottom = 10.dp
+                    )
                 )
-            )
-
-            Card(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxWidth()
-            ) {
-                SwitchPreference(
-                    sharedPreferences,
-                    "lyric_style_logo_hide_in_coloros_capsule_mode",
-                    defaultValue = LogoStyle.Defaults.HIDE_IN_COLOROS_CAPSULE_MODE,
-                    leftAction = {
-                        IconActions(painterResource(R.drawable.ic_visibility_off))
-                    },
-                    title = stringResource(R.string.item_logo_hide_in_coloros_capsule_mode),
-                )
+                Card(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                ) {
+                    SwitchPreference(
+                        sharedPreferences,
+                        "lyric_style_logo_hide_in_coloros_capsule_mode",
+                        defaultValue = LogoStyle.Defaults.HIDE_IN_COLOROS_CAPSULE_MODE,
+                        leftAction = {
+                            IconActions(painterResource(R.drawable.ic_visibility_off))
+                        },
+                        title = stringResource(R.string.item_logo_hide_in_coloros_capsule_mode),
+                    )
+                }
             }
         }
 

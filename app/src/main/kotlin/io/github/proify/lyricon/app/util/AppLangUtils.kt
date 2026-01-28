@@ -41,6 +41,7 @@ object AppLangUtils {
         }.getOrDefault(DEFAULT_LOCALE)
     }
 
+    @SuppressLint("AppBundleLocaleChanges")
     private fun wrapContext(context: Context, language: String): Context {
         val locale = forLanguageTag(language)
 

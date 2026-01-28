@@ -4,6 +4,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+@file:Suppress("SameReturnValue", "SameReturnValue")
+
 package io.github.proify.lyricon.central
 
 internal object Constants {

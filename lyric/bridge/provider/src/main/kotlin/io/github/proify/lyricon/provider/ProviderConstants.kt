@@ -13,7 +13,7 @@ object ProviderConstants {
     /** 默认歌词更新间隔 */
     const val DEFAULT_POSITION_UPDATE_INTERVAL: Long = 1000L / 24
 
-    internal fun isDebug(): Boolean = false
+    internal const val DEBUG: Boolean = false
 
     /** 注册提供者广播动作 */
     internal const val ACTION_REGISTER_PROVIDER: String =

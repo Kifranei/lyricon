@@ -11,11 +11,12 @@ package io.github.proify.lyricon.lyric.view.util
 import android.content.res.Resources
 import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
 import androidx.core.view.isVisible
 import kotlin.math.roundToInt
 
-fun Char.isChinese(): Boolean =
-    Character.UnicodeScript.of(code) == Character.UnicodeScript.HAN
+fun ViewGroup.getChildAtOrNull(index: Int): View? =
+    if (childCount > index) getChildAt(index) else null
 
 var View.visibilityIfChanged: Int
     get() = visibility

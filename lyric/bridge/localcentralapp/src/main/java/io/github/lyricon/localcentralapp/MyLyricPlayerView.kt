@@ -9,5 +9,4 @@ package io.github.lyricon.localcentralapp
 import android.content.Context
 import io.github.proify.lyricon.lyric.view.LyricPlayerView
 
-class MyLyricPlayerView(context: Context) : LyricPlayerView(context) {
-}
+class MyLyricPlayerView(context: Context) : LyricPlayerView(context)

@@ -15,6 +15,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.Choreographer
 import android.view.View
+import android.view.ViewTreeObserver
 import io.github.proify.lyricon.lyric.model.LyricLine
 import io.github.proify.lyricon.lyric.view.LyricLineConfig
 import io.github.proify.lyricon.lyric.view.UpdatableColor
@@ -35,7 +36,7 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
     init {
         isHorizontalFadingEdgeEnabled = true
-        setFadingEdgeLength(14.dp)
+        setFadingEdgeLength(10.dp)
     }
 
     val textPaint: TextPaint = TextPaintX().apply {
@@ -78,6 +79,35 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
         refreshModelSizes()
         invalidate()
+    }
+
+    override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
+        super.onLayout(changed, left, top, right, bottom)
+        if (changed) {
+            syllable.reLayout()
+        }
+    }
+
+    fun reLayout() {
+        if (isSyllableMode()) {
+            syllable.reLayout()
+        }
+    }
+
+    //监听动画导致的频繁位移
+    private val layoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+        reLayout()
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        viewTreeObserver.addOnGlobalLayoutListener(layoutListener)
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        viewTreeObserver.removeOnGlobalLayoutListener(layoutListener)
+        reset()
     }
 
     override fun updateColor(
@@ -126,19 +156,19 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         invalidate()
     }
 
-    fun isSyllableMode(): Boolean = lyricModel.isPlainText.not()
+    fun isSyllableMode(): Boolean = !isMarqueeMode()
 
     fun seekTo(position: Long) {
         if (isSyllableMode()) {
             syllable.seek(position)
-            animationDriver.startIfNoRuning()
+            animationDriver.startIfNoRunning()
         }
     }
 
     fun setPosition(position: Long) {
         if (isSyllableMode()) {
             syllable.updateProgress(position)
-            animationDriver.startIfNoRuning()
+            animationDriver.startIfNoRunning()
         }
     }
 
@@ -218,7 +248,6 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         lyricModel = line?.normalize()?.createModel() ?: emptyLyricModel()
 
         refreshModelSizes()
-        requestLayout()
         invalidate()
     }
 
@@ -226,31 +255,20 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         if (isMarqueeMode()) {
             scrollXOffset = 0f
             marquee.start()
-            animationDriver.startIfNoRuning()
+            animationDriver.startIfNoRunning()
         }
     }
 
     @Suppress("unused")
     fun pauseMarquee() {
-        if (isMarqueeMode()) {
-            marquee.pause()
-        }
+        if (isMarqueeMode()) marquee.pause()
     }
 
     fun isMarqueeMode(): Boolean = lyricModel.isPlainText
     fun isOverflow(): Boolean = lyricWidth > measuredWidth
 
     override fun onDraw(canvas: Canvas) {
-        if (isMarqueeMode()) {
-            marquee.draw(canvas)
-        } else {
-            syllable.draw(canvas)
-        }
-    }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        reset()
+        if (isMarqueeMode()) marquee.draw(canvas) else syllable.draw(canvas)
     }
 
     fun isPlayStarted(): Boolean = if (isMarqueeMode()) true else syllable.isStarted
@@ -266,7 +284,7 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         private var running = false
         private var lastFrameNanos = 0L
 
-        fun startIfNoRuning() {
+        fun startIfNoRunning() {
             if (!running) {
                 running = true
                 lastFrameNanos = System.nanoTime()

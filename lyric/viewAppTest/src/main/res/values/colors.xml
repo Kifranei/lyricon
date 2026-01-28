@@ -4,7 +4,4 @@
   ~ http://www.apache.org/licenses/LICENSE-2.0
   -->
 
-<resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-</resources>
+<resources />

@@ -83,9 +83,34 @@ class Syllable(private val view: LyricLineView) {
         if (backgroundPaint.textSize != size) {
             backgroundPaint.textSize = size
             highlightPaint.textSize = size
-            textRenderer.updateMetrics(backgroundPaint)
-            renderDelegate.invalidate()
+            reLayout()
         }
+    }
+
+    /**
+     * 重新计算布局、度量和滚动偏移
+     * 解决因尺寸变化导致的显示异常
+     */
+    fun reLayout() {
+        // 1. 更新字体度量
+        textRenderer.updateMetrics(backgroundPaint)
+
+        // 2. 如果播放已经结束，强制进度对齐到新的总宽度
+        // 否则 progressAnimator 记录的依然是旧字号下的旧宽度
+        if (isFinished) {
+            progressAnimator.jumpTo(view.lyricWidth)
+        }
+
+        // 3. 重新计算渲染节点的布局边界
+        renderDelegate.onLayout(view.measuredWidth, view.measuredHeight, view.isOverflow())
+
+        // 4. 强制 ScrollController 修正当前的滚动偏移
+        // 这步最关键：它会根据新宽度计算正确的 scrollXOffset，消除空白
+        scrollController.update(progressAnimator.currentWidth, view)
+
+        // 5. 触发重绘
+        renderDelegate.invalidate()
+        view.invalidate()
     }
 
     fun setTypeface(typeface: Typeface?) {
@@ -237,15 +262,28 @@ class Syllable(private val view: LyricLineView) {
             v.isScrollFinished = false
         }
 
+        // 在 Syllable.ScrollController.update 中
         fun update(currentX: Float, v: LyricLineView) {
-            if (!v.isOverflow()) {
+            val lyricW = v.lyricWidth
+            val viewW = v.measuredWidth.toFloat()
+
+            if (lyricW <= viewW) {
                 v.scrollXOffset = 0f
                 return
             }
-            val halfWidth = v.measuredWidth / 2f
+
+            val minScroll = -(lyricW - viewW)
+
+            // 强制补丁：如果已经唱完了，不管 currentX 是多少，偏移量必须是 minScroll
+            if (v.isPlayFinished()) {
+                v.scrollXOffset = minScroll
+                v.isScrollFinished = true
+                return
+            }
+
+            val halfWidth = viewW / 2f
             if (currentX > halfWidth) {
-                val minScroll = -v.lyricWidth + v.measuredWidth
-                v.scrollXOffset = max(halfWidth - currentX, minScroll)
+                v.scrollXOffset = (halfWidth - currentX).coerceIn(minScroll, 0f)
                 v.isScrollFinished = v.scrollXOffset <= minScroll
             } else {
                 v.scrollXOffset = 0f

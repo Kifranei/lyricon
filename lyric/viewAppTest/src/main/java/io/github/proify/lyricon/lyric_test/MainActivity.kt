@@ -22,7 +22,7 @@ import com.google.android.material.slider.Slider
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.view.RichLyricLineConfig
 import io.github.proify.lyricon.lyric_test.databinding.ActivityMainBinding
-import io.github.proify.lyricon.provider.LyriconProvider
+import io.github.proify.lyricon.provider.LyriconFactory
 import io.github.proify.lyricon.provider.ProviderLogo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -60,11 +60,11 @@ class MainActivity : AppCompatActivity() {
 
     /** LyriconProvider 帮助类，用于歌词同步和状态管理 */
     internal val provider by lazy {
-        LyriconProvider(
+        LyriconFactory.createProvider(
             context = this,
             providerPackageName = packageName,
             logo = ProviderLogo.fromDrawable(this, R.drawable.play_arrow_24px),
-            centralPackageNames = listOf("io.github.lyricon.localcentralapp")
+            centralPackageName = "io.github.lyricon.localcentralapp"
         )
     }
     private var showtranslation = false
@@ -114,7 +114,7 @@ class MainActivity : AppCompatActivity() {
         binding.sendText.setOnClickListener {
             provider.player.sendText(Uuid.random().toString())
         }
-        binding.toggletran.setOnClickListener {
+        binding.toggleTran.setOnClickListener {
             showtranslation = !showtranslation
             provider.player.setDisplayTranslation(showtranslation)
 

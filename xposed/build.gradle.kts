@@ -47,7 +47,6 @@ configure<LibraryExtension> {
 
 dependencies {
     implementation(libs.kotlinx.serialization.json)
-
     implementation(libs.androidx.core.ktx)
 
     implementation(libs.yukihookapi.api)
@@ -61,11 +60,10 @@ dependencies {
 
     implementation(project(":lyric:view"))
     implementation(project(":lyric:model"))
-
     implementation(project(":lyric:bridge:central"))
     implementation(project(":lyric:bridge:provider"))
-
     implementation(project(":lyric:style"))
+    implementation(project(":lyric:statusbarlyric"))
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

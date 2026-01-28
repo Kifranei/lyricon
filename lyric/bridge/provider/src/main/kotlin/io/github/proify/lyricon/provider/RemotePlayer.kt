@@ -7,23 +7,15 @@
 package io.github.proify.lyricon.provider
 
 import androidx.annotation.IntRange
+import io.github.proify.lyricon.lyric.model.RichLyricLine
 import io.github.proify.lyricon.lyric.model.Song
 
-/**
- * 远程播放器接口。
- *
- * 定义与远程播放器服务交互的基本操作，包括：
- * - 歌曲控制
- * - 播放状态控制
- * - 播放位置同步
- * - 文本信息发送
- */
 interface RemotePlayer {
 
     /**
      * 检查远程播放器连接是否仍然有效。
      */
-    val isActivated: Boolean
+    val isActive: Boolean
 
     /**
      * 设置远程播放器当前播放的歌曲信息。
@@ -36,10 +28,10 @@ interface RemotePlayer {
     /**
      * 设置远程播放器的播放状态。
      *
-     * @param isPlaying true 表示播放中，false 表示暂停
+     * @param playing true 表示播放中，false 表示暂停
      * @return 命令是否成功发送
      */
-    fun setPlaybackState(isPlaying: Boolean): Boolean
+    fun setPlaybackState(playing: Boolean): Boolean
 
     /**
      * 立即跳转到指定播放位置。
@@ -60,7 +52,7 @@ interface RemotePlayer {
     fun setPosition(@IntRange(from = 0) position: Long): Boolean
 
     /**
-     * 设置播放位置读取间隔
+     * 设置播放位置读取间隔，一般不用修改
      *
      * @param interval 间隔毫秒数
      * @return 操作是否成功
@@ -80,9 +72,9 @@ interface RemotePlayer {
     /**
      * 设置显示翻译。
      *
-     * 如果[io.github.proify.lyricon.lyric.model.RichLyricLine] 中有翻译信息，则显示翻译。
+     * 如果[RichLyricLine] 中有翻译信息，则显示翻译。
      *
-     * @param isDisplayTranslation 是否显示翻译
+     * @param displayTranslation 是否显示翻译
      */
-    fun setDisplayTranslation(isDisplayTranslation: Boolean): Boolean
+    fun setDisplayTranslation(displayTranslation: Boolean): Boolean
 }

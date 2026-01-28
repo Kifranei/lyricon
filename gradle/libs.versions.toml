@@ -1,6 +1,6 @@
 [versions]
 agp = "9.0.0"
-backdrop = "1.0.4"
+backdrop = "1.0.5"
 capsuleAndroid = "2.1.1-patch2"
 kotlin = "2.3.0"
 ksp = "2.3.4"
@@ -18,7 +18,7 @@ material = "1.13.0"
 accompanistDrawablePainter = "0.37.3"
 lottieCompose = "6.7.1"
 haze = "1.7.1"
-kotlinxSerializationJson = "1.9.0"
+kotlinxSerializationJson = "1.10.0"
 junit4 = "4.13.2"
 androidxJunit = "1.3.0"
 espresso = "3.7.0"
@@ -35,6 +35,7 @@ constraintlayout = "2.2.1"
 [libraries]
 # ===== AndroidX =====
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-appcompat-resources = { module = "androidx.appcompat:appcompat-resources", version.ref = "appcompat" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
 androidx-interpolator = { group = "androidx.interpolator", name = "interpolator", version.ref = "interpolator" }

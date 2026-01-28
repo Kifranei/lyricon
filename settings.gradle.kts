@@ -1,5 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":lyric:statusbarlyric")
+
+
 pluginManagement {
     repositories {
         mavenLocal()

@@ -20,6 +20,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.proify.android.extensions.rom.ColorOS
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
@@ -36,7 +37,7 @@ import io.github.proify.lyricon.lyric.style.BasicStyle
 import top.yukonga.miuix.kmp.extra.SpinnerEntry
 import top.yukonga.miuix.kmp.extra.SuperSpinner
 
-class BasicLyricStyleActivity : BaseLyricActivity() {
+class BasicLyricStyleActivity : AbstractLyricActivity() {
     private val preferences by lazy { LyricPrefs.basicStylePrefs }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,6 +66,8 @@ class BasicLyricStyleActivity : BaseLyricActivity() {
     @Composable
     private fun MainContent() {
         val context = LocalContext.current
+        val isSupportCapsule = ColorOS.isSupportCapsule(context.classLoader)
+
         Card(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -141,16 +144,18 @@ class BasicLyricStyleActivity : BaseLyricActivity() {
                 title = stringResource(R.string.item_base_width),
             )
 
-            InputPreference(
-                sharedPreferences = preferences,
-                key = "lyric_style_base_width_in_coloros_capsule_mode",
-                leftAction = {
-                    IconActions(painterResource(R.drawable.ic_width_normal))
-                },
-                inputType = InputType.DOUBLE,
-                maxValue = 1000.0,
-                title = stringResource(R.string.item_base_width_color_os_capsule),
-            )
+            if (isSupportCapsule) {
+                InputPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_style_base_width_in_coloros_capsule_mode",
+                    leftAction = {
+                        IconActions(painterResource(R.drawable.ic_width_normal))
+                    },
+                    inputType = InputType.DOUBLE,
+                    maxValue = 1000.0,
+                    title = stringResource(R.string.item_base_width_color_os_capsule),
+                )
+            }
 
             RectInputPreference(
                 preferences,

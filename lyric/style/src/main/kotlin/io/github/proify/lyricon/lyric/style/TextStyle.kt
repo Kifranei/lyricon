@@ -76,7 +76,7 @@ data class TextStyle(
 
         const val MARQUEE_SPEED: Float = 40f
         const val MARQUEE_GHOST_SPACING: Float = 50f
-        const val MARQUEE_LOOP_DELAY: Int = 300
+        const val MARQUEE_LOOP_DELAY: Int = 0
 
         const val MARQUEE_REPEAT_COUNT: Int = -1
         const val MARQUEE_STOP_AT_END: Boolean = false

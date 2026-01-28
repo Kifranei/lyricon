@@ -83,7 +83,7 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-abstract class ViewTreeActivity : BaseLyricActivity() {
+abstract class ViewTreeActivity : AbstractLyricActivity() {
 
     data class ViewTreeUiState(
         val isLoading: Boolean = true,
@@ -275,7 +275,6 @@ abstract class ViewTreeActivity : BaseLyricActivity() {
                     uiState.viewTreeData != null -> {
                         ViewTreeList(
                             viewTree = uiState.viewTreeData,
-                            nodeColors = uiState.nodeColors,
                             hazeState = hazeState,
                             scrollBehavior = scrollBehavior,
                             paddingValues = paddingValues
@@ -333,7 +332,6 @@ abstract class ViewTreeActivity : BaseLyricActivity() {
     @Composable
     private fun ViewTreeList(
         viewTree: ViewTreeNode,
-        nodeColors: Map<String, Color>,
         hazeState: HazeState,
         scrollBehavior: ScrollBehavior,
         paddingValues: PaddingValues

@@ -4,6 +4,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+@file:Suppress("unused", "unused")
+
 package io.github.proify.lyricon.app.compose.custom.bonsai.core
 
 import androidx.compose.foundation.horizontalScroll

@@ -18,6 +18,7 @@
             <option value="$PROJECT_DIR$/lyric/bridge/localcentralapp" />
             <option value="$PROJECT_DIR$/lyric/bridge/provider" />
             <option value="$PROJECT_DIR$/lyric/model" />
+            <option value="$PROJECT_DIR$/lyric/statusbarlyric" />
             <option value="$PROJECT_DIR$/lyric/style" />
             <option value="$PROJECT_DIR$/lyric/view" />
             <option value="$PROJECT_DIR$/lyric/viewAppTest" />

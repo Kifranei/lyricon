@@ -19,7 +19,7 @@ configure<LibraryExtension> {
     }
 
     defaultConfig {
-        minSdk = 18
+        minSdk = 21
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -49,6 +49,7 @@ configure<LibraryExtension> {
 dependencies {
     api(project(":lyric:model"))
     api(libs.androidx.core.ktx)
+    api(libs.androidx.appcompat.resources)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

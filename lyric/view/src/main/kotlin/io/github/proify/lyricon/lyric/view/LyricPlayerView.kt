@@ -8,6 +8,7 @@ package io.github.proify.lyricon.lyric.view
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.Gravity
 import android.widget.LinearLayout
 import androidx.annotation.CallSuper
 import androidx.core.view.contains
@@ -24,6 +25,7 @@ import io.github.proify.lyricon.lyric.view.LyricPlayerView.Companion.KEY_SONG_TI
 import io.github.proify.lyricon.lyric.view.line.LyricLineView
 import io.github.proify.lyricon.lyric.view.model.RichLyricLineModel
 import io.github.proify.lyricon.lyric.view.util.LayoutTransitionX
+import io.github.proify.lyricon.lyric.view.util.getChildAtOrNull
 import io.github.proify.lyricon.lyric.view.util.visibilityIfChanged
 import io.github.proify.lyricon.lyric.view.util.visible
 
@@ -31,9 +33,8 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
     LinearLayout(context, attrs), UpdatableColor {
 
     companion object {
-        private const val TAG = "LyricPlayerView"
         internal const val KEY_SONG_TITLE_LINE: String = "TitleLine"
-        private const val MIN_GAP_DURATION: Long = 6 * 1000
+        private const val MIN_GAP_DURATION: Long = 8 * 1000
     }
 
     private var textMode = false
@@ -111,7 +112,35 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
     private var enableRelativeProgress = false
     private var enableRelativeProgressHighlight = false
 
-    private val myLayoutTransition = LayoutTransitionX()
+    private val myLayoutTransition = LayoutTransitionX().apply {
+        setAnimateParentHierarchy(false)
+//        addTransitionListener(object : LayoutTransition.TransitionListener {
+//            override fun endTransition(
+//                p0: LayoutTransition?,
+//                p1: ViewGroup?,
+//                p2: View?,
+//                p3: Int
+//            ) {
+//                forEach { view ->
+//                    if (view is RichLyricLineView) {
+//                        view.reLayout()
+//                    } else if (view is LyricLineView) {
+//                        view.reLayout()
+//                    }
+//                }
+//            }
+//
+//            override fun startTransition(
+//                p0: LayoutTransition?,
+//                p1: ViewGroup?,
+//                p2: View?,
+//                p3: Int
+//            ) {
+//            }
+//
+//        })
+    }
+
     private val tempViewsToRemove = mutableListOf<RichLyricLineView>()
     private val tempViewsToAdd = mutableListOf<IRichLyricLine>()
 
@@ -127,6 +156,8 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
         override fun onPlayEnded(view: LyricLineView) {
             updateViewsVisibility()
         }
+
+        override fun onPlayProgress(view: LyricLineView, total: Float, progress: Float) {}
     }
 
     private val secondaryLyricPlayListener = object : LyricPlayListener {
@@ -138,6 +169,8 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
         override fun onPlayEnded(view: LyricLineView) {
             updateViewsVisibility()
         }
+
+        override fun onPlayProgress(view: LyricLineView, total: Float, progress: Float) {}
     }
 
     private var timingNavigator: TimingNavigator<RichLyricLineModel> = emptyTimingNavigator()
@@ -146,6 +179,7 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
     init {
         orientation = VERTICAL
         layoutTransition = myLayoutTransition
+        gravity = Gravity.CENTER_VERTICAL
     }
 
     override fun onDetachedFromWindow() {
@@ -191,7 +225,7 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
         // --- 1. 预计算阶段：判定各行的显示组件数量 ---
 
         // 第一行 (V0) 状态
-        val v0 = getChildAt(0) as? RichLyricLineView ?: return
+        val v0 = getChildAtOrNull(0) as? RichLyricLineView ?: return
         val v0HasSecondary = v0.secondary.isVisible
 
         // 规则：若有副歌词、主歌词播完且有后继行，则隐藏主歌词为下一行留白
@@ -203,7 +237,7 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
         var v1Visible = false
         var v1Count = 0
         if (totalChildCount > 1) {
-            val v1 = getChildAt(1) as? RichLyricLineView
+            val v1 = getChildAtOrNull(1) as? RichLyricLineView
             // 只有当第一行空间占用较小（仅 1 个组件）时，第二行才允许显示
             if (v1 != null && v0Count <= 1) {
                 v1Visible = true
@@ -221,7 +255,7 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
         // --- 3. 应用阶段：同步 UI 状态 ---
 
         for (i in 0 until totalChildCount) {
-            val view = getChildAt(i) as? RichLyricLineView ?: continue
+            val view = getChildAtOrNull(i) as? RichLyricLineView ?: continue
 
             when (i) {
                 0 -> {
@@ -262,7 +296,8 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
             }
         }
 
-        postInvalidateOnAnimation()
+        requestLayout()
+        invalidate()
     }
 
     /**
@@ -387,7 +422,7 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
         // 找出需要移除的视图
         val currentSize = childCount
         for (i in 0 until currentSize) {
-            val view = getChildAt(i) as? RichLyricLineView ?: continue
+            val view = getChildAtOrNull(i) as? RichLyricLineView ?: continue
             val line = view.line
             if (line != null && line !in matches) {
                 tempViewsToRemove.add(view)
@@ -413,7 +448,7 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
 
         if (isSingleViewSwap) {
             run {
-                val recycleView = getChildAt(0) as? RichLyricLineView ?: return@run
+                val recycleView = getChildAtOrNull(0) as? RichLyricLineView ?: return@run
                 val newLine = tempViewsToAdd[0]
 
                 newLine.let { activeLines[0] = it }
@@ -552,10 +587,6 @@ open class LyricPlayerView(context: Context, attrs: AttributeSet? = null) :
             hasName -> song.name
             else -> null
         }
-    }
-
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
     }
 
     private fun emptyTimingNavigator() = TimingNavigator<RichLyricLineModel>(emptyArray())

@@ -13,11 +13,6 @@ import io.github.proify.lyricon.provider.RemotePlayer
 
 /**
  * 远程服务接口，定义与中心服务的交互。
- *
- * 主要职责：
- * - 提供播放器控制接口 [player]；
- * - 暴露激活状态和连接状态；
- * - 注册和移除连接状态监听器。
  */
 interface RemoteService {
 
@@ -25,7 +20,7 @@ interface RemoteService {
     val player: RemotePlayer
 
     /** 当前服务是否激活 */
-    val isActivated: Boolean
+    val isActive: Boolean
 
     /** 当前连接状态 */
     val connectionStatus: ConnectionStatus

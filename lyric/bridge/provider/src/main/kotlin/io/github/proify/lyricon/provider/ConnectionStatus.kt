@@ -4,6 +4,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+@file:Suppress("unused")
+
 package io.github.proify.lyricon.provider
 
 enum class ConnectionStatus {
@@ -22,3 +24,15 @@ enum class ConnectionStatus {
     /** 已连接 */
     CONNECTED,
 }
+
+fun ConnectionStatus.isDisconnected(): Boolean =
+    this == ConnectionStatus.DISCONNECTED
+            || isDisconnectedByRemote()
+            || isDisconnectedByUser()
+
+fun ConnectionStatus.isDisconnectedByUser(): Boolean = this == ConnectionStatus.DISCONNECTED_USER
+fun ConnectionStatus.isDisconnectedByRemote(): Boolean =
+    this == ConnectionStatus.DISCONNECTED_REMOTE
+
+fun ConnectionStatus.isConnected(): Boolean = this == ConnectionStatus.CONNECTED
+fun ConnectionStatus.isConnecting(): Boolean = this == ConnectionStatus.CONNECTING

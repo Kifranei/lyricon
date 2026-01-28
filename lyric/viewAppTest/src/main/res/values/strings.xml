@@ -6,4 +6,6 @@
 
 <resources>
     <string name="app_name">LyricView</string>
+    <string name="send_text">sendText</string>
+    <string name="toggle_trans">切换翻译显示</string>
 </resources>

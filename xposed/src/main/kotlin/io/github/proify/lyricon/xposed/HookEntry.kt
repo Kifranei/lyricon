@@ -10,9 +10,8 @@ import com.highcapable.yukihookapi.YukiHookAPI
 import com.highcapable.yukihookapi.annotation.xposed.InjectYukiHookWithXposed
 import com.highcapable.yukihookapi.hook.xposed.proxy.IYukiHookXposedInit
 import io.github.proify.lyricon.common.PackageNames
-import io.github.proify.lyricon.xposed.hook.AppHooker
-import io.github.proify.lyricon.xposed.hook.systemui.SystemUIHooker
-import io.github.proify.lyricon.xposed.util.Utils
+import io.github.proify.lyricon.xposed.systemui.Directory
+import io.github.proify.lyricon.xposed.systemui.SystemUIHooker
 
 @InjectYukiHookWithXposed(modulePackageName = PackageNames.APPLICATION)
 open class HookEntry : IYukiHookXposedInit {
@@ -21,8 +20,7 @@ open class HookEntry : IYukiHookXposedInit {
         YukiHookAPI.encase {
             onAppLifecycle {
                 onCreate {
-                    Dirs.initialize(applicationContext)
-                    Utils.appContext = this.applicationContext
+                    Directory.initialize(applicationContext)
                 }
             }
             loadApp(PackageNames.APPLICATION, AppHooker)

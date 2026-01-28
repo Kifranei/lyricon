@@ -19,6 +19,7 @@ import io.github.proify.lyricon.provider.IRemotePlayer
 import io.github.proify.lyricon.provider.ProviderConstants
 import io.github.proify.lyricon.provider.ProviderInfo
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
@@ -38,18 +39,25 @@ internal class RemotePlayer(
     companion object {
         private val DEBUG = Constants.isDebug()
         private const val TAG = "RemotePlayer"
+        private const val MIN_INTERVAL_MS = 16L
     }
 
     private val recorder = PlayerRecorder(info)
+
     private var positionSharedMemory: SharedMemory? = null
 
     @Volatile
     private var positionReadBuffer: ByteBuffer? = null
-    private val scope = CoroutineScope(SupervisorJob() + kotlinx.coroutines.Dispatchers.Default)
+
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    @Volatile
     private var positionProducerJob: Job? = null
 
     @Volatile
-    private var positionUpdateInterval: Long = ProviderConstants.DEFAULT_POSITION_UPDATE_INTERVAL
+    private var positionUpdateInterval: Long =
+        ProviderConstants.DEFAULT_POSITION_UPDATE_INTERVAL
+
     private val released = AtomicBoolean(false)
 
     init {
@@ -57,8 +65,7 @@ internal class RemotePlayer(
     }
 
     fun destroy() {
-        if (released.get()) return
-        released.set(true)
+        if (!released.compareAndSet(false, true)) return
 
         stopPositionUpdate()
 
@@ -73,47 +80,67 @@ internal class RemotePlayer(
 
     private fun initSharedMemory() {
         try {
-            val hashCode = "${info.providerPackageName}/${info.playerPackageName}"
-                .hashCode().toHexString()
+            val hash = ("${info.providerPackageName}/${info.playerPackageName}").hashCode()
+            val hashHex = Integer.toHexString(hash)
+
             positionSharedMemory = SharedMemory.create(
-                "lyricon_music_position_${hashCode}_${Os.getpid()}",
+                "lyricon_music_position_${hashHex}_${Os.getpid()}",
                 Long.SIZE_BYTES
             ).apply {
                 setProtect(OsConstants.PROT_READ or OsConstants.PROT_WRITE)
                 positionReadBuffer = mapReadOnly()
             }
-            Log.i(TAG, "SharedMemory initialized")
+
+            if (DEBUG) Log.i(TAG, "SharedMemory initialized")
         } catch (t: Throwable) {
             Log.e(TAG, "Failed to init SharedMemory", t)
         }
     }
 
+    /**
+     * 直接读取 shared memory 的 long 值（热路径，尽量保持轻量）
+     */
     private fun readPosition(): Long {
-        val buffer = positionReadBuffer ?: return 0
+        val buffer = positionReadBuffer ?: return 0L
         return try {
-            synchronized(buffer) {
-                buffer.getLong(0).coerceAtLeast(0)
-            }
+            buffer.getLong(0).coerceAtLeast(0L)
         } catch (_: Throwable) {
-            0
+            0L
         }
     }
 
+    /**
+     * 启动位置刷新的协程。使用基于 nanoTime 的节拍减少调度抖动。
+     * start/stop 的并发控制以简单的 null 检查为主（已在外面用 volatile 标记）。
+     */
     private fun startPositionUpdate() {
-        if (positionProducerJob != null) return
+        if (positionProducerJob != null || released.get()) return
 
-        if (DEBUG) Log.d(TAG, "Start position updater ,interval $positionUpdateInterval ms")
+        val interval = positionUpdateInterval.coerceAtLeast(MIN_INTERVAL_MS)
+
+        if (DEBUG) Log.d(TAG, "Start position updater, interval=$interval ms")
 
         positionProducerJob = scope.launch {
+            var nextTick = System.nanoTime()
             while (isActive) {
                 val position = readPosition()
                 recorder.lastPosition = position
-                try {
-                    playerListener.onPositionChanged(recorder, position)
-                } catch (t: Throwable) {
-                    Log.e(TAG, "Error notifying position listener", t)
+
+                playerListener.safeNotify {
+                    onPositionChanged(recorder, position)
                 }
-                delay(positionUpdateInterval)
+
+                // 以期望时间点为基准，减少累积漂移
+                nextTick += interval * 1_000_000L
+                val sleepNs = nextTick - System.nanoTime()
+                if (sleepNs > 0) {
+                    delay(sleepNs / 1_000_000L)
+                } else {
+                    // 若已超时，则立即执行下一轮（避免负 delay）
+                    // 但为避免忙等仍交出线程一下
+                    delay(0)
+                    nextTick = System.nanoTime()
+                }
             }
         }
     }
@@ -122,26 +149,19 @@ internal class RemotePlayer(
     private fun stopPositionUpdate() {
         positionProducerJob?.cancel()
         positionProducerJob = null
-        Log.d(TAG, "Stop position updater")
+        if (DEBUG) Log.d(TAG, "Stop position updater")
     }
 
     override fun setPositionUpdateInterval(interval: Int) {
         if (released.get()) return
 
-        positionUpdateInterval = interval.coerceAtLeast(16).toLong()
+        positionUpdateInterval = interval.toLong().coerceAtLeast(MIN_INTERVAL_MS)
+
         if (DEBUG) Log.d(TAG, "Update interval = $positionUpdateInterval ms")
 
         if (positionProducerJob != null) {
             stopPositionUpdate()
             startPositionUpdate()
-        }
-    }
-
-    private inline fun runCall(crossinline block: PlayerListener.() -> Unit) {
-        try {
-            playerListener.block()
-        } catch (t: Throwable) {
-            Log.e(TAG, "Error notifying listener", t)
         }
     }
 
@@ -152,11 +172,8 @@ internal class RemotePlayer(
         val song = bytes?.let {
             try {
                 val start = System.currentTimeMillis()
-                val decompressedBytes = bytes.inflate()
-                val parsed = json.decodeFromStream(
-                    Song.serializer(),
-                    decompressedBytes.inputStream()
-                )
+                val decompressed = it.inflate()
+                val parsed = json.decodeFromStream(Song.serializer(), decompressed.inputStream())
                 if (DEBUG) Log.d(TAG, "Song parsed in ${System.currentTimeMillis() - start} ms")
                 parsed
             } catch (t: Throwable) {
@@ -167,51 +184,69 @@ internal class RemotePlayer(
 
         val normalized = song?.normalize()
         recorder.lastSong = normalized
-        recorder.lastText = null
 
-        Log.i(TAG, "Song changed")
-        runCall { onSongChanged(recorder, normalized) }
+        if (DEBUG) Log.i(TAG, "Song changed")
+        playerListener.safeNotify {
+            onSongChanged(recorder, normalized)
+        }
     }
 
     override fun setPlaybackState(isPlaying: Boolean) {
         if (released.get()) return
 
         recorder.lastIsPlaying = isPlaying
-        runCall { onPlaybackStateChanged(recorder, isPlaying) }
+
+        playerListener.safeNotify {
+            onPlaybackStateChanged(recorder, isPlaying)
+        }
 
         if (DEBUG) Log.i(TAG, "Playback state = $isPlaying")
 
-        if (isPlaying) {
-            startPositionUpdate()
-        } else {
-            stopPositionUpdate()
-        }
+        if (isPlaying) startPositionUpdate() else stopPositionUpdate()
     }
 
     override fun seekTo(position: Long) {
         if (released.get()) return
+        if (DEBUG) Log.i(TAG, "Seek to: $position")
 
-        val safe = position.coerceAtLeast(0)
+        val safe = position.coerceAtLeast(0L)
         recorder.lastPosition = safe
 
-        runCall { onSeekTo(recorder, safe) }
+        playerListener.safeNotify {
+            onSeekTo(recorder, safe)
+        }
     }
 
     override fun sendText(text: String?) {
         if (released.get()) return
+        if (DEBUG) Log.i(TAG, "Send text: $text")
 
-        recorder.lastSong = null
         recorder.lastText = text
-
-        runCall { onSendText(recorder, text) }
+        playerListener.safeNotify {
+            onSendText(recorder, text)
+        }
     }
 
     override fun setDisplayTranslation(isDisplayTranslation: Boolean) {
         if (released.get()) return
+        if (DEBUG) Log.i(TAG, "Display translation: $isDisplayTranslation")
 
         recorder.lastIsDisplayTranslation = isDisplayTranslation
-        runCall { onDisplayTranslationChanged(recorder, isDisplayTranslation) }
+        playerListener.safeNotify {
+            onDisplayTranslationChanged(recorder, isDisplayTranslation)
+        }
     }
 
     override fun getPositionMemory(): SharedMemory? = positionSharedMemory
+
+    /**
+     * 统一的 listener 回调保护：捕获异常，避免单个 listener 破坏整个分发流程。
+     */
+    private inline fun PlayerListener.safeNotify(crossinline block: PlayerListener.() -> Unit) {
+        try {
+            block()
+        } catch (t: Throwable) {
+            Log.e(TAG, "Error notifying listener", t)
+        }
+    }
 }

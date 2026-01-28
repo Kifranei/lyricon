@@ -19,7 +19,8 @@ import java.util.concurrent.CopyOnWriteArraySet
 internal object CentralServiceReceiver {
 
     @Volatile
-    private var isInitialized = false
+    var isInitialized = false
+        private set
 
     private val listeners = CopyOnWriteArraySet<ServiceListener>()
 

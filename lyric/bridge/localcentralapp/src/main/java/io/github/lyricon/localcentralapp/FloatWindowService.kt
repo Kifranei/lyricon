@@ -10,7 +10,6 @@ import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
@@ -47,6 +46,7 @@ class FloatWindowService : Service() {
                 if (helper?.isShowing == true) {
                     moveToForeground()
                 } else {
+                    @Suppress("DEPRECATION")
                     stopForeground(true)
                 }
             }
@@ -68,7 +68,7 @@ class FloatWindowService : Service() {
         val channelId = "float_window_channel"
         val channel =
             NotificationChannel(channelId, "歌词悬浮窗服务", NotificationManager.IMPORTANCE_LOW)
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         manager.createNotificationChannel(channel)
 
         val notification = NotificationCompat.Builder(this, channelId)

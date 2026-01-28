@@ -2,18 +2,22 @@
 
 本文档面向具备 Android 开发基础的读者，说明如何开发并接入 Lyricon Provider Api。
 
-## 前言
-
-软件一般是通过安装Lsposed，激活词幕激活服务，然后测试的，如果你无法使用Xposed，你可以安装
-[LocalCentralService](https://github.com/proify/lyricon/releases/tag/localcentral)
-来测试，这个app实现了词幕服务的一些功能，方便在没有Lsposed的环境下测试。
-安装打开之后，服务激活。授予悬浮窗权限即可根据下面文档开始测试。
+> [!TIP]
+> 无Xposed环境测试
+>
+> 软件一般是通过安装Lsposed，激活词幕激活服务，然后测试的，如果你无法使用
+> ，你可以安装[LocalCentralService](https://github.com/proify/lyricon/releases/tag/localcentral)
+> 来测试，这个app实现了词幕服务的一些功能，方便在没有Lsposed的环境下测试。
+> 安装打开之后，服务激活。授予悬浮窗权限即可根据下面文档开始测试。
 
 ## 一、添加依赖
 
 ![version](https://img.shields.io/maven-central/v/io.github.proify.lyricon/provider)
 
 在模块的 `build.gradle.kts` 中添加依赖：
+
+> [!WARNING]
+> 最低支持Android 8.1(27)，你可以继续添加，调用时判断系统版本即可。
 
 ```kotlin
 implementation("io.github.proify.lyricon:provider:0.1.64")
@@ -63,12 +67,12 @@ implementation("io.github.proify.lyricon:provider:0.1.64")
 ```kotlin
 val provider = LyriconProvider(
     context,
-    
+
     //建议使用纯色图标
     //logo = ProviderLogo.fromDrawable(context, R.drawable.logo),
-    
+
     //设置本地服务实现方，方便在没有Lsposed环境下测试，仅测试时使用，正式发布时请删除
-    //centralPackageNames = listOf("io.github.lyricon.localcentralapp")
+    //centralPackageName = "io.github.lyricon.localcentralapp"
 )
 ```
 

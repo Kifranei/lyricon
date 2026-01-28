@@ -19,33 +19,21 @@ internal val json: Json = Json {
 }
 
 /**
- * 使用 ZLIB 压缩字节数组
- *
- * @param level 压缩等级
- * @param bufferSize 缓冲区大小，默认为 4KB
- * @return 压缩后的字节数组
+ * ZLIB压缩字节数组
  */
-internal fun ByteArray.deflate(
-    level: Int = Deflater.DEFAULT_COMPRESSION,
-    bufferSize: Int = 4096
-): ByteArray {
+internal fun ByteArray.deflate(): ByteArray {
     if (isEmpty()) return byteArrayOf()
 
-    val deflater = Deflater(level)
-    // 预估输出大小为原大小的一半，减少 ByteArrayOutputStream 的扩容频率
-    val outputStream = ByteArrayOutputStream(size / 2)
+    return Deflater().run {
+        setInput(this@deflate)
+        finish()
 
-    return try {
-        deflater.setInput(this)
-        deflater.finish()
-
-        val buffer = ByteArray(bufferSize)
-        while (!deflater.finished()) {
-            val count = deflater.deflate(buffer)
-            outputStream.write(buffer, 0, count)
-        }
-        outputStream.toByteArray()
-    } finally {
-        deflater.end()
+        ByteArrayOutputStream().use { output ->
+            val buffer = ByteArray(4096)
+            while (!finished()) {
+                output.write(buffer, 0, deflate(buffer))
+            }
+            output.toByteArray()
+        }.also { end() }
     }
 }

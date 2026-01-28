@@ -9,10 +9,8 @@ package io.github.proify.lyricon.provider
 import android.content.Intent
 import android.os.Bundle
 
-internal class LocalProviderService(var listener: ProviderService? = null) :
+internal class LocalProviderService(var callback: ProviderService? = null) :
     IProviderService.Stub() {
 
-    override fun onRunCommand(intent: Intent?): Bundle? {
-        return listener?.onRunCommand(intent)
-    }
+    override fun onRunCommand(intent: Intent?): Bundle? = callback?.onRunCommand(intent)
 }

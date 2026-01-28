@@ -47,11 +47,11 @@ configure<ApplicationExtension> {
 
 dependencies {
     //noinspection UseTomlInstead
-    implementation("androidx.media3:media3-exoplayer:1.9.0")
-    implementation("androidx.media3:media3-exoplayer-dash:1.9.0")
-    implementation("androidx.media3:media3-ui:1.9.0")
+    implementation("androidx.media3:media3-exoplayer:1.9.1")
+    implementation("androidx.media3:media3-exoplayer-dash:1.9.1")
+    implementation("androidx.media3:media3-ui:1.9.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 
     implementation(project(":lyric:view"))
     implementation(project(":lyric:bridge:provider"))

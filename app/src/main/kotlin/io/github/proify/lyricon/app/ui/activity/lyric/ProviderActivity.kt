@@ -4,6 +4,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+@file:Suppress("unused", "unused", "unused", "unused")
+
 package io.github.proify.lyricon.app.ui.activity.lyric
 
 import android.content.pm.ApplicationInfo
@@ -84,6 +86,7 @@ import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 
+@Suppress("unused")
 class LyricProviderActivity : BaseActivity() {
 
     private val viewModel: ProviderViewModel by viewModels()
@@ -182,7 +185,7 @@ class LyricProviderActivity : BaseActivity() {
                         val batchResults = batch.mapNotNull { packageInfo ->
                             try {
                                 processPackageInfo(packageInfo)
-                            } catch (e: Exception) {
+                            } catch (_: Exception) {
                                 null
                             }
                         }
@@ -220,14 +223,14 @@ class LyricProviderActivity : BaseActivity() {
                 *CERTIFIED_SIGNATURE
             )
 
-            val tags = extractTags(packageInfo, applicationInfo, metaData)
+            val tags = extractTags(applicationInfo, metaData)
 
             if (AppCache.getCachedIcon(packageInfo.packageName) == null) {
                 try {
                     applicationInfo.loadIcon(packageManager)?.let { icon ->
                         AppCache.cacheIcon(packageInfo.packageName, icon)
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                 }
             }
 
@@ -244,7 +247,6 @@ class LyricProviderActivity : BaseActivity() {
         }
 
         private fun extractTags(
-            packageInfo: PackageInfo,
             applicationInfo: ApplicationInfo,
             metaData: Bundle
         ): List<Tag> {
@@ -255,7 +257,7 @@ class LyricProviderActivity : BaseActivity() {
                     try {
                         val resources = packageManager.getResourcesForApplication(applicationInfo)
                         resources.getStringArray(tagsID).toList()
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         emptyList()
                     }
                 }
