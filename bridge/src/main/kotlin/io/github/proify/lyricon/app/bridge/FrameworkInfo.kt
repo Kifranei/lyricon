@@ -4,8 +4,9 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-package io.github.proify.lyricon.lyric.view.line
+package io.github.proify.lyricon.app.bridge
 
-import android.text.TextPaint
-
-internal class TextPaintX : TextPaint(ANTI_ALIAS_FLAG)
+data class FrameworkInfo(
+    val versionName: String,
+    val versionCode: Long
+)

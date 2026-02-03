@@ -9,17 +9,16 @@ package io.github.proify.lyricon.xposed
 import com.highcapable.kavaref.KavaRef.Companion.resolve
 import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
 import io.github.proify.lyricon.app.bridge.AppBridge
+import io.github.proify.lyricon.app.bridge.FrameworkInfo
 import io.github.proify.lyricon.xposed.systemui.Directory
 
 object AppHooker : YukiBaseHooker() {
 
     override fun onHook() {
-        replaceGetPreferenceDirectory()
-    }
+        val preferenceDirectory = Directory.preferenceDirectory
+        val frameworkInfo = resolveFrameworkInfo()
 
-    private fun replaceGetPreferenceDirectory() {
-        val preferenceDirectory = Directory.preferenceDirectory ?: return
-        AppBridge::class.java.name.toClass(appClassLoader)
+        AppBridge::class.java.name.toClass()
             .resolve().apply {
                 firstMethod {
                     name = "getPreferenceDirectory"
@@ -27,10 +26,12 @@ object AppHooker : YukiBaseHooker() {
                     replaceTo(preferenceDirectory)
                 }
                 firstMethod {
-                    name = "isModuleActive"
+                    name = "getFrameworkInfo"
                 }.hook {
-                    replaceTo(true)
+                    replaceTo(frameworkInfo)
                 }
             }
     }
+
+    private fun resolveFrameworkInfo(): FrameworkInfo? = null
 }

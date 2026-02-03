@@ -9,7 +9,9 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageInfo
+import android.util.Log
 import androidx.core.content.pm.PackageInfoCompat
+import com.highcapable.yukihookapi.YukiHookAPI.Status.Executor
 import com.highcapable.yukihookapi.hook.factory.dataChannel
 import com.highcapable.yukihookapi.hook.xposed.application.ModuleApplication
 import com.highcapable.yukihookapi.hook.xposed.channel.YukiHookDataChannel
@@ -26,6 +28,18 @@ class LyriconApp : ModuleApplication() {
     override fun attachBaseContext(base: Context) {
         AppLangUtils.setDefaultLocale(base)
         super.attachBaseContext(AppLangUtils.wrapContext(base))
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        Log.d(
+            "Lyricon",
+            "name: ${Executor.name}" +
+                    ", type: ${Executor.type}" +
+                    ", apiLevel: ${Executor.apiLevel}" +
+                    ", versionName: ${Executor.versionName}" +
+                    ", versionCode: ${Executor.versionCode}"
+        )
     }
 
     override fun getSharedPreferences(name: String?, mode: Int): SharedPreferences =

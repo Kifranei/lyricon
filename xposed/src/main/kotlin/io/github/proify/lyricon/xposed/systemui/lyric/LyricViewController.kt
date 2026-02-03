@@ -156,13 +156,10 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
                     activePackage = providerInfo?.playerPackageName.orEmpty()
                     LyricPrefs.activePackageName = activePackage
 
-                    if (provider == null) {
-                        view.setSong(null)
-                        view.setPlaying(false)
-                    } else {
-                        controller.updateLyricStyle(LyricPrefs.getLyricStyle())
-                        view.updateVisibility()
-                    }
+                    view.setSong(null)
+                    view.setPlaying(false)
+                    controller.updateLyricStyle(LyricPrefs.getLyricStyle())
+                    view.updateVisibility()
 
                     view.logoView.apply {
                         val activePackage = this@LyricViewController.activePackage

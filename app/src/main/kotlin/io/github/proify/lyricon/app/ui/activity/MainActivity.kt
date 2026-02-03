@@ -132,7 +132,6 @@ class MainActivity : BaseActivity() {
         }
     }
 
-
     private fun requestSafeModeCheck() {
         systemUIChannel.put(key = AppBridgeConstants.REQUEST_CHECK_SAFE_MODE)
     }
@@ -227,7 +226,7 @@ class MainActivity : BaseActivity() {
                 summaryColor = BasicComponentColors(
                     color = Color(color = 0xAFFFFFFF),
                     disabledColor = White,
-                ),
+                )
             )
         }
     }
@@ -396,6 +395,7 @@ class MainActivity : BaseActivity() {
     @Composable
     private fun OtherSettingsCard() {
         val context = LocalContext.current
+
         Card(
             modifier = Modifier
                 .padding(start = 16.dp, top = 16.dp, end = 16.dp)
@@ -411,6 +411,7 @@ class MainActivity : BaseActivity() {
                     context.startActivity(Intent(context, SettingsActivity::class.java))
                 }
             )
+
             SuperArrow(
                 leftAction = {
                     ColoredIconBox(MaterialPalette.Green.Primary, R.drawable.ic_info_fill)

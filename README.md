@@ -37,7 +37,7 @@
 
 ### 1. 环境准备
 
-- Android 8.1 及以上版本
+- Android 9 及以上版本
 - 设备已获取 **Root** 权限并安装激活 **LSPosed**
 
 > [!IMPORTANT]

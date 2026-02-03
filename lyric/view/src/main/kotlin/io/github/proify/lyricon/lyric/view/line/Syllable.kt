@@ -52,7 +52,7 @@ class Syllable(private val view: LyricLineView) {
             renderDelegate.invalidate()
         }
 
-    var isOnlyScrollMode: Boolean = false
+    var isScrollOnly: Boolean = false
         set(value) {
             field = value
             renderDelegate.isOnlyScrollMode = value
@@ -89,7 +89,6 @@ class Syllable(private val view: LyricLineView) {
 
     /**
      * 重新计算布局、度量和滚动偏移
-     * 解决因尺寸变化导致的显示异常
      */
     fun reLayout() {
         // 1. 更新字体度量
@@ -273,7 +272,7 @@ class Syllable(private val view: LyricLineView) {
 
             val minScroll = -(lyricW - viewW)
 
-            // 强制补丁：如果已经唱完了，不管 currentX 是多少，偏移量必须是 minScroll
+            // 如果已经唱完了，不管 currentX 是多少，偏移量必须是 minScroll
             if (v.isPlayFinished()) {
                 v.scrollXOffset = minScroll
                 v.isScrollFinished = true

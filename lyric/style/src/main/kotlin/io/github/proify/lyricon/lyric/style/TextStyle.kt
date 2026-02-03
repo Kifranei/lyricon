@@ -81,7 +81,7 @@ data class TextStyle(
         const val TYPE_FACE_ITALIC: Boolean = false
         const val FONT_WEIGHT: Int = -1
 
-        const val MARQUEE_SPEED: Float = 40f
+        const val MARQUEE_SPEED: Float = 35f
         const val MARQUEE_GHOST_SPACING: Float = 50f
         const val MARQUEE_LOOP_DELAY: Int = 0
 

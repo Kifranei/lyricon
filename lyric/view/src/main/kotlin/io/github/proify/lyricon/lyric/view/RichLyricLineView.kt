@@ -183,7 +183,7 @@ class RichLyricLineView(
         )
 
         // 如果是生成的 Word，根据配置决定是否显示逐字高亮效果
-        main.syllable.isOnlyScrollMode = isGenerated && !enableRelativeProgressHighlight
+        main.syllable.isScrollOnly = isGenerated && !enableRelativeProgressHighlight
     }
 
     private fun setSecondaryLine(source: IRichLyricLine?) {
@@ -235,7 +235,7 @@ class RichLyricLineView(
                 || newLine.metadata?.getBoolean("roma") == true)
 
         secondary.setLyric(newLine)
-        secondary.syllable.isOnlyScrollMode = isGenerated && !enableRelativeProgressHighlight
+        secondary.syllable.isScrollOnly = isGenerated && !enableRelativeProgressHighlight
     }
 
     /**

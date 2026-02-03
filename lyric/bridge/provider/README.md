@@ -20,7 +20,7 @@
 > 最低支持Android 8.1(27)，你可以继续添加，调用时判断系统版本即可。
 
 ```kotlin
-implementation("io.github.proify.lyricon:provider:0.1.64")
+implementation("io.github.proify.lyricon:provider:0.1.66")
 ```
 
 ## 二、配置 `AndroidManifest.xml`

@@ -34,7 +34,6 @@ class StatusBarViewController(
     var currentLyricStyle: LyricStyle
 ) : ScreenStateMonitor.ScreenStateListener {
 
-    // --- 成员变量 ---
     val context: Context = statusBarView.context.applicationContext
     val visibilityController = ViewVisibilityController(statusBarView)
     val lyricView: StatusBarLyric by lazy { createLyricView(currentLyricStyle) }
@@ -53,6 +52,7 @@ class StatusBarViewController(
         ScreenStateMonitor.addListener(this)
 
         statusBarView.doOnAttach { checkLyricViewExists() }
+        YLog.info("Lyric view created for $statusBarView")
     }
 
     fun onDestroy() {
@@ -60,6 +60,7 @@ class StatusBarViewController(
         statusBarView.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
         lyricView.removeOnAttachStateChangeListener(lyricAttachListener)
         ScreenStateMonitor.removeListener(this)
+        YLog.info("Lyric view destroyed for $statusBarView")
     }
 
     // --- 核心业务逻辑 ---
@@ -76,6 +77,7 @@ class StatusBarViewController(
                 || !lyricView.isAttachedToWindow
 
         if (needUpdateLocation) {
+            YLog.info("Lyric location changed: ${basicStyle.anchor}, order ${basicStyle.insertionOrder}")
             updateLocation(basicStyle)
         } else {
             //YLog.info("Lyric location unchanged: $lastAnchor")
@@ -93,10 +95,13 @@ class StatusBarViewController(
             YLog.error("Lyric anchor view $anchor not found")
         }
 
-        val anchorParent = anchorView.parent as? ViewGroup ?: return
+        val anchorParent = anchorView.parent as? ViewGroup ?: return run {
+            YLog.error("Lyric anchor parent not found")
+        }
 
         // 标记内部移除，避免触发冗余的 detach 逻辑
         internalRemoveLyricViewFlag = true
+
         (lyricView.parent as? ViewGroup)?.removeView(lyricView)
 
         val anchorIndex = anchorParent.indexOfChild(anchorView)
@@ -171,7 +176,11 @@ class StatusBarViewController(
 
         override fun onViewDetachedFromWindow(v: View) {
             YLog.info("LyricView detached")
-            if (!internalRemoveLyricViewFlag) checkLyricViewExists()
+            if (!internalRemoveLyricViewFlag) {
+                checkLyricViewExists()
+            } else {
+                YLog.info("LyricView detached by internal flag")
+            }
         }
     }
 

@@ -154,7 +154,10 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         }
 
         refreshModelSizes()
-        invalidate()
+
+        animationDriver.stop()
+        animationDriver.startIfNoRunning()
+        postInvalidateOnAnimation()
     }
 
     fun isSyllableMode(): Boolean = !isMarqueeMode()
@@ -169,7 +172,10 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
     fun setPosition(position: Long) {
         if (isSyllableMode()) {
             syllable.updateProgress(position)
-            animationDriver.startIfNoRunning()
+
+            if (syllable.isPlaying && !syllable.isFinished) {
+                animationDriver.startIfNoRunning()
+            }
         }
     }
 
@@ -287,33 +293,31 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
     fun isPlaying(): Boolean = if (isMarqueeMode()) true else syllable.isPlaying
     fun isPlayFinished(): Boolean = if (isMarqueeMode()) false else syllable.isFinished
 
-    /**
-     * ------------------------
-     *  统一动画驱动器（Choreographer）
-     * ------------------------
-     */
     internal inner class AnimationDriver : Choreographer.FrameCallback {
         private var running = false
         private var lastFrameNanos = 0L
 
         fun startIfNoRunning() {
-            if (!running) {
+            if (!running && isAttachedToWindow) {
                 running = true
-                lastFrameNanos = System.nanoTime()
+                lastFrameNanos = 0L
                 Choreographer.getInstance().postFrameCallback(this)
             }
         }
 
         fun stop() {
-            if (!running) return
             running = false
             Choreographer.getInstance().removeFrameCallback(this)
+            lastFrameNanos = 0L
         }
 
         override fun doFrame(frameTimeNanos: Long) {
-            if (!running) return
+            if (!running || !isAttachedToWindow) {
+                running = false
+                return
+            }
 
-            val deltaNanos = if (lastFrameNanos == 0L) 0L else (frameTimeNanos - lastFrameNanos)
+            val deltaNanos = if (lastFrameNanos == 0L) 0L else frameTimeNanos - lastFrameNanos
             lastFrameNanos = frameTimeNanos
 
             val isMarqueeMode = isMarqueeMode()
@@ -344,12 +348,11 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
                 hasChanged = syllable.onFrameUpdate(frameTimeNanos)
             }
 
-            if (changed) postInvalidateOnAnimation()
+            if (hasChanged) postInvalidateOnAnimation()
 
-            when {
-                isMarqueeMode() && isOverflow().not() -> stop()
-                isSyllableMode() && isPlayFinished() -> stop()
-                running -> Choreographer.getInstance().postFrameCallback(this)
+            if (running) {
+                Choreographer.getInstance().postFrameCallback(this)
+                Log.d("LyricLineView", "AnimationDriver.doFrame: $frameTimeNanos")
             }
         }
     }

@@ -27,7 +27,7 @@ object StatusBarViewManager {
         controller.onDestroy()
     }
 
-    inline fun forEach(block: (StatusBarViewController) -> Unit) {
+    inline fun forEach(crossinline block: (StatusBarViewController) -> Unit) {
         controllers.forEach(block)
     }
 }

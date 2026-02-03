@@ -16,11 +16,13 @@ import java.io.File
 
 object AppBridge {
 
-    @Keep
     fun isModuleActive(): Boolean =
         runCatching {
             YukiHookAPI.Status.isXposedModuleActive
         }.getOrDefault(false)
+
+    @Keep
+    fun getFrameworkInfo(): FrameworkInfo? = null
 
     @Keep
     fun getPreferenceDirectory(context: Context): File = File(context.filesDir, "preferences")

@@ -7,7 +7,6 @@
 package io.github.proify.lyricon.lyric.view
 
 import android.content.Context
-import android.util.AttributeSet
 import android.util.Log
 import android.view.Gravity
 import android.widget.LinearLayout
@@ -29,10 +28,9 @@ import io.github.proify.lyricon.lyric.view.util.getChildAtOrNull
 import io.github.proify.lyricon.lyric.view.util.visibilityIfChanged
 import io.github.proify.lyricon.lyric.view.util.visible
 
-open class LyricPlayerView @JvmOverloads constructor(
+open class LyricPlayerView(
     context: Context,
-    attrs: AttributeSet? = null
-) : LinearLayout(context, attrs), UpdatableColor {
+) : LinearLayout(context), UpdatableColor {
 
     companion object {
         internal const val KEY_SONG_TITLE_LINE: String = "TitleLine"
@@ -244,7 +242,7 @@ open class LyricPlayerView @JvmOverloads constructor(
 
         if (tempViewsToRemove.isEmpty() && tempViewsToAdd.isEmpty()) return
 
-        // 3. 优化：单行直接复用 View，避免动画抖动
+        // 3. 单行变化直接复用 View
         if (activeLines.size == 1 && tempViewsToRemove.size == 1 && tempViewsToAdd.size == 1) {
             val recycleView = getChildAtOrNull(0) as? RichLyricLineView
             val newLine = tempViewsToAdd[0]
