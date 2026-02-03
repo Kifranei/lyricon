@@ -171,6 +171,9 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
     fun setPosition(position: Long) {
         if (isSyllableMode()) {
+            if (syllable.isScrollOnly && !isOverflow()) {
+                return
+            }
             syllable.updateProgress(position)
 
             if (syllable.isPlaying && !syllable.isFinished) {
@@ -325,7 +328,7 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
             val isSyllableMode = isSyllableMode()
 
             if (isMarqueeMode) {
-                if (!isOverflow) {
+                if (!isOverflow || marquee.isAnimationFinished()) {
                     marquee.step(deltaNanos)
                     postInvalidateOnAnimation()
                     return
@@ -352,7 +355,7 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
             if (running) {
                 Choreographer.getInstance().postFrameCallback(this)
-                Log.d("LyricLineView", "AnimationDriver.doFrame: $frameTimeNanos")
+                //Log.d("LyricLineView", "AnimationDriver.doFrame: $frameTimeNanos")
             }
         }
     }

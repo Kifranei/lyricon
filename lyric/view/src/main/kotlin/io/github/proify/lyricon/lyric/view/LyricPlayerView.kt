@@ -7,6 +7,7 @@
 package io.github.proify.lyricon.lyric.view
 
 import android.content.Context
+import android.util.AttributeSet
 import android.util.Log
 import android.view.Gravity
 import android.widget.LinearLayout
@@ -30,7 +31,8 @@ import io.github.proify.lyricon.lyric.view.util.visible
 
 open class LyricPlayerView(
     context: Context,
-) : LinearLayout(context), UpdatableColor {
+    attributes: AttributeSet? = null,
+) : LinearLayout(context, attributes), UpdatableColor {
 
     companion object {
         internal const val KEY_SONG_TITLE_LINE: String = "TitleLine"

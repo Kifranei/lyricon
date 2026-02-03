@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0
  */
-@file:Suppress("MemberVisibilityCanBePrivate")
+@file:Suppress("MemberVisibilityCanBePrivate", "unused", "ConvertTwoComparisonsToRangeCheck")
 
 package io.github.proify.lyricon.lyric.view.line
 
@@ -38,22 +38,48 @@ class Marquee(private val viewRef: WeakReference<LyricLineView>) {
         private set
 
     var isRunning: Boolean = false
+        private set
+
     var isPendingDelay: Boolean = false
+        private set
+
+    // 新增：明确的结束状态标记
+    private var _isFinished: Boolean = false
+
     private var delayRemainingNanos = 0L
 
     /**
-     * 当前滚动的进度位移 (0f . unit)
+     * 当前滚动的进度位移 (0f .. unit)
      * unit = lyricWidth + ghostSpacing
      */
     var currentUnitOffset: Float = 0f
+        private set
 
     private fun calculateSpeed(dpPerSec: Float): Float {
         // 转换为 px/ms
         return (dpPerSec * Resources.getSystem().displayMetrics.density) / 1000f
     }
 
+    /**
+     * 判断播放是否彻底结束
+     * 返回 true 的情况：
+     * 1. 文本短于视图宽度（不需要滚动，视为立即结束）
+     * 2. 达到了重复次数限制，并且不在暂停状态
+     */
+    fun isAnimationFinished(): Boolean {
+        // 检查 View 是否存活以及内容宽度
+        val view = viewRef.get() ?: return true
+        if (view.lyricWidth <= view.width) return true
+
+        return _isFinished
+    }
+
     fun start() {
-        if (repeatCount == 0) return
+        // 如果重复次数为0，直接标记为结束
+        if (repeatCount == 0) {
+            markFinished()
+            return
+        }
         reset()
         scheduleDelay(initialDelayMs.toLong())
     }
@@ -61,11 +87,13 @@ class Marquee(private val viewRef: WeakReference<LyricLineView>) {
     fun pause() {
         isRunning = false
         isPendingDelay = false
+        // 注意：暂停不等于结束，所以不设置 _isFinished
     }
 
     fun reset() {
         isRunning = false
         isPendingDelay = false
+        _isFinished = false
         currentRepeat = 0
         currentUnitOffset = 0f
         delayRemainingNanos = 0L
@@ -83,21 +111,19 @@ class Marquee(private val viewRef: WeakReference<LyricLineView>) {
         }
     }
 
-    /**
-     * 每一帧调用的核心逻辑
-     */
     fun step(deltaNanos: Long) {
+        if (_isFinished) return
+
         val view = viewRef.get() ?: return
         val lyricWidth = view.lyricWidth
         val viewWidth = view.width.toFloat()
 
-        // 如果文本没超过视图宽度，不需要跑马灯
         if (lyricWidth <= viewWidth) {
             updateViewOffset(0f, true)
+            markFinished()
             return
         }
 
-        // 处理延迟逻辑（初始延迟或循环间延迟）
         if (isPendingDelay) {
             delayRemainingNanos -= deltaNanos
             if (delayRemainingNanos <= 0) {
@@ -113,34 +139,50 @@ class Marquee(private val viewRef: WeakReference<LyricLineView>) {
         val deltaPx = scrollSpeed * (deltaNanos / 1_000_000f)
         currentUnitOffset += deltaPx
 
-        // 检查是否完成了一个 Unit 周期
+        // --- 核心修复：处理 stopAtEnd 的提前终点 ---
+        // 判断是否是最后一次播放循环
+        val isLastRepeat = repeatCount > 0 && (currentRepeat + 1) >= repeatCount
+
+        if (stopAtEnd && isLastRepeat) {
+            // 在 stopAtEnd 模式下，最后一遍的终点是：文字右侧与 View 右侧对齐
+            val targetStopOffset = lyricWidth - viewWidth
+            if (currentUnitOffset >= targetStopOffset) {
+                currentUnitOffset = targetStopOffset // 锁定在终点
+                val finalX = -targetStopOffset       // 转换为 ScrollX (负数)
+                updateViewOffset(finalX, true)
+                markFinished()
+                return
+            }
+        }
+
+        // --- 处理正常循环跳转 ---
         if (currentUnitOffset >= unit) {
             currentUnitOffset -= unit
             currentRepeat++
 
-            // 检查重复次数
-            @Suppress("EmptyRange")
-            if (repeatCount in 1..currentRepeat) {
-                if (stopAtEnd) {
-                    // 停在最后位置：即文本右侧与视图右侧对齐
-                    val finalOffset = viewWidth - lyricWidth
-                    updateViewOffset(finalOffset, true)
-                    pause()
-                    return
-                } else {
-                    reset()
-                    return
-                }
-            } else {
-                // 进入下一轮前的延迟
+            // 无限循环或还没到次数
+            if (repeatCount < 0 || currentRepeat < repeatCount) {
                 scheduleDelay(loopDelayMs.toLong())
+                updateViewOffset(0f, false)
+            } else {
+                // 如果没有设置 stopAtEnd 但次数到了，直接回到起点结束
+                updateViewOffset(0f, true)
+                markFinished()
             }
+            return
         }
 
-        // 应用插值器并更新 View
+        // 正常平滑滚动更新
         val progress = (currentUnitOffset / unit).coerceIn(0f, 1f)
         val easedOffset = -interpolator.getInterpolation(progress) * unit
         updateViewOffset(easedOffset, false)
+    }
+
+    private fun markFinished() {
+        isRunning = false
+        isPendingDelay = false
+        _isFinished = true
+        viewRef.get()?.isScrollFinished = true
     }
 
     private fun updateViewOffset(offset: Float, finished: Boolean) {
@@ -151,7 +193,8 @@ class Marquee(private val viewRef: WeakReference<LyricLineView>) {
     }
 
     /**
-     * 干净的绘制逻辑：不修改数据，只根据 offset 做平移
+     * 绘制逻辑
+     * 优化点：根据 offset 位置决定绘制，而不是根据 isRunning 状态
      */
     fun draw(canvas: Canvas) {
         val view = viewRef.get() ?: return
@@ -160,22 +203,35 @@ class Marquee(private val viewRef: WeakReference<LyricLineView>) {
         val text = model.text
         val lyricWidth = model.width
         val viewWidth = view.width.toFloat()
+
+        // 这里的 offset 是由 step() 计算并赋值给 view.scrollXOffset 的
         val offset = view.scrollXOffset
 
-        val baseline = ((view.height - (paint.descent() - paint.ascent())) / 2f) - paint.ascent()
+        // 计算基线，垂直居中
+        val fontMetrics = paint.fontMetrics
+        val fontHeight = fontMetrics.descent - fontMetrics.ascent
+        val baseline = (view.height - fontHeight) / 2f - fontMetrics.ascent
 
         // 1. 绘制主体文本
-        canvas.withTranslation(x = offset) {
-            drawText(text, 0f, baseline, paint)
+        // 只要主体还在屏幕内（或者部分在屏幕内），就绘制
+        if (offset < viewWidth && offset + lyricWidth > 0) {
+            canvas.withTranslation(x = offset) {
+                drawText(text, 0f, baseline, paint)
+            }
         }
 
-        // 2. 只有在需要循环且没结束时，绘制“鬼影”副本
-        // 判定条件：主体文本的右边界已经进入屏幕
-        if (isRunning || (isPendingDelay && currentRepeat > 0)) {
-            if (offset + lyricWidth < viewWidth) {
-                val ghostOffset = offset + lyricWidth + ghostSpacing
-                canvas.withTranslation(x = ghostOffset) {
-                    drawText(text, 0f, baseline, paint)
+        // 2. 绘制“鬼影”副本 (循环滚动的连接部分)
+        // 触发条件：主体文本的尾部已经进入屏幕 (offset + lyricWidth < viewWidth)
+        // 且文本确实比视图长 (lyricWidth > viewWidth)
+        if (lyricWidth > viewWidth) {
+            val rightEdgeOfMainText = offset + lyricWidth
+            if (rightEdgeOfMainText < viewWidth) {
+                val ghostOffset = rightEdgeOfMainText + ghostSpacing
+                // 只有鬼影在屏幕内才绘制
+                if (ghostOffset < viewWidth) {
+                    canvas.withTranslation(x = ghostOffset) {
+                        drawText(text, 0f, baseline, paint)
+                    }
                 }
             }
         }

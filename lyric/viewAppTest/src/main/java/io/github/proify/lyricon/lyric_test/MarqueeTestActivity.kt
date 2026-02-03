@@ -19,10 +19,10 @@ import io.github.proify.lyricon.lyric_test.databinding.MarqueeBinding
 class MarqueeTestActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val b = MarqueeBinding.inflate(layoutInflater)
-        setContentView(b.root)
+        val binding = MarqueeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        b.line.setStyle(
+        binding.line.setStyle(
             LyricLineConfig(
                 text = MainTextConfig(),
                 marquee = DefaultMarqueeConfig(),
@@ -37,13 +37,15 @@ class MarqueeTestActivity : AppCompatActivity() {
                 marquee.apply {
                     ghostSpacing = 10.dp.toFloat()
                     scrollSpeed = 120f
-                    loopDelay = 500
-                    repeatCount = 9999
+                    loopDelay = 0
+                    repeatCount = 2
                     stopAtEnd = false
                 }
             })
 
-        b.line.setLyric(LyricLine(text = "哈基米叮咚鸡胖宝宝踩踩背搞核酸"))
-        b.line.startMarquee()
+        binding.line.setLyric(LyricLine(text = "哈基米叮咚鸡胖宝宝踩踩背搞核酸"))
+        binding.line.post {
+            binding.line.startMarquee()
+        }
     }
 }
