@@ -3,6 +3,7 @@ agp = "9.0.0"
 backdrop = "1.0.5"
 capsuleAndroid = "2.1.1-patch2"
 kotlin = "2.3.0"
+jetbrainsKotlinJvm = "2.3.0"
 ksp = "2.3.4"
 coreKtx = "1.17.0"
 appcompat = "1.7.1"
@@ -98,6 +99,7 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 
 # ===== Kotlin =====
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 
 # ===== KSP =====
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

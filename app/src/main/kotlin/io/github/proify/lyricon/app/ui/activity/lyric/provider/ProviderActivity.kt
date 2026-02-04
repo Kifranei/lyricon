@@ -47,7 +47,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
-import io.github.proify.android.extensions.getDefaultSharedPreferences
+import io.github.proify.android.extensions.defaultSharedPreferences
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.GoogleRainbowText
@@ -213,7 +213,7 @@ class LyricProviderActivity : BaseActivity() {
     @Composable
     private fun DisplayOptionsAction() {
         val context = LocalContext.current
-        val sharedPreferences = remember { context.getDefaultSharedPreferences() }
+        val sharedPreferences = remember { context.defaultSharedPreferences }
 
         var listStylePref by rememberIntPreference(
             sharedPreferences,

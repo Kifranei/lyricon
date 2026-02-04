@@ -9,7 +9,7 @@ package io.github.proify.lyricon.app.util
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.ContextWrapper
-import io.github.proify.android.extensions.getDefaultSharedPreferences
+import io.github.proify.android.extensions.defaultSharedPreferences
 import io.github.proify.lyricon.app.LyriconApp
 import io.github.proify.lyricon.app.ui.activity.lyric.packagestyle.sheet.AppCache
 import java.util.Locale
@@ -52,12 +52,12 @@ object AppLangUtils {
     }
 
     fun getCustomizeLang(context: Context): String =
-        context.getDefaultSharedPreferences()
+        context.defaultSharedPreferences
             .getString(KEY_LANGUAGE, DEFAULT_LANGUAGE)
             ?: DEFAULT_LANGUAGE
 
     fun saveCustomizeLanguage(context: Context, language: String) {
-        context.getDefaultSharedPreferences()
+        context.defaultSharedPreferences
             .editCommit {
                 putString(KEY_LANGUAGE, language)
             }

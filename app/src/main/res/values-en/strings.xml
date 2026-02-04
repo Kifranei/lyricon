@@ -73,7 +73,7 @@
     <string name="item_app_theme_mode">Theme Mode</string>
     <string name="option_app_theme_mode_light">Light</string>
     <string name="option_app_theme_mode_dark">Dark</string>
-    <string name="option_app_theme_mode_follow_system">Follow System</string>
+    <string name="option_app_theme_mode_system">Follow System</string>
     <string name="item_app_theme_monet_color">Monet Engine</string>
 
     <string name="tab_style_text">Text</string>

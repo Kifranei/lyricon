@@ -1,54 +1,28 @@
-import com.android.build.api.dsl.LibraryExtension
-
 plugins {
-    alias(libs.plugins.android.library)
-    id("kotlin-parcelize")
-    kotlin("plugin.serialization") version "2.1.21"
+    id("java-library")
+    alias(libs.plugins.jetbrains.kotlin.jvm)
     signing
     id("com.vanniktech.maven.publish")
-    alias(libs.plugins.ksp)
+    kotlin("plugin.serialization") version "2.1.21"
 }
 
-configure<LibraryExtension> {
-    namespace = "io.github.proify.lyricon.lyric.model"
-    compileSdk {
-        version = release(rootProject.extra.get("compileSdkVersion") as Int) {
-            minorApiLevel = 1
-        }
-    }
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
 
-    defaultConfig {
-        minSdk = 14
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17
     }
 }
 
 dependencies {
-    api(libs.kotlinx.serialization.json)
-    api(libs.androidx.core.ktx)
-
-    testImplementation(libs.junit)
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    implementation(libs.kotlinx.serialization.json)
+    testImplementation(kotlin("test"))
 }
 
-val version: String = rootProject.extra.get("providerSdkVersion") as String
+val version: String = rootProject.extra.get("lyricModelVersion") as String
 
 mavenPublishing {
     coordinates(

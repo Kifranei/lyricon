@@ -4,8 +4,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-@file:Suppress("MayBeConstant")
-
 package io.github.proify.lyricon.xposed.systemui
 
 import android.annotation.SuppressLint
@@ -35,15 +33,14 @@ import io.github.proify.lyricon.xposed.systemui.util.StatusBarColorMonitor
 import io.github.proify.lyricon.xposed.systemui.util.ViewVisibilityTracker
 
 object SystemUIHooker : YukiBaseHooker() {
-    private val testCrash = false
+    private const val TEST_CEASH = false
+
     private var layoutInflaterResult: YukiMemberHookCreator.MemberHookCreator.Result? = null
     private var safeMode = false
 
     override fun onHook() {
         onAppLifecycle {
-            onCreate {
-                onPreAppCreate()
-            }
+            onCreate { onPreAppCreate() }
         }
     }
 
@@ -51,30 +48,24 @@ object SystemUIHooker : YukiBaseHooker() {
         YLog.info("onPreAppCreate")
         val context = appContext ?: return
 
-        val detector = CrashDetector.getInstance(context)
-        detector.record()
-        if (detector.isContinuousCrash()) {
-            safeMode = true
-            YLog.error("检测到连续崩溃，已停止hook")
-            try {
-                handleCrashMode()
-            } catch (it: Throwable) {
-                YLog.error(it)
+        CrashDetector.getInstance(context).apply {
+            record()
+            if (isContinuousCrash()) {
+                safeMode = true
+                YLog.error("检测到连续崩溃，已停止hook")
             }
+            if (safeMode) reset()
         }
 
-        if (safeMode) {
-            detector.reset()
-            return
-        }
-
-        onAppCreate()
+        initCrashDataChannel()
+        if (!safeMode) onAppCreate()
     }
 
     @SuppressLint("DiscouragedApi")
     private fun onAppCreate() {
         YLog.info("onAppCreate")
         val context = appContext ?: return
+
         initialize()
 
         val statusBarLayoutId =
@@ -82,15 +73,16 @@ object SystemUIHooker : YukiBaseHooker() {
 
         layoutInflaterResult = LayoutInflater::class.resolve()
             .firstMethod {
-                name = "inflate"
-                parameters(Int::class.java, ViewGroup::class.java, Boolean::class.java)
-            }.hook {
+                name = "inflate"; parameters(
+                Int::class.java,
+                ViewGroup::class.java,
+                Boolean::class.java
+            )
+            }
+            .hook {
                 after {
-                    val id = args(0).int()
-                    if (id != statusBarLayoutId) return@after
-                    val result = result<ViewGroup>() ?: return@after
-
-                    addStatusBarView(result)
+                    if (args(0).int() != statusBarLayoutId) return@after
+                    result<ViewGroup>()?.let { addStatusBarView(it) }
                 }
             }
     }
@@ -98,6 +90,7 @@ object SystemUIHooker : YukiBaseHooker() {
     private fun initialize() {
         YLog.info("onInit")
         val context = appContext ?: return
+
         ScreenStateMonitor.initialize(context)
         OplusCapsuleHooker.initialize(context.classLoader)
         BridgeCentral.initialize(context)
@@ -108,28 +101,19 @@ object SystemUIHooker : YukiBaseHooker() {
     }
 
     private fun initDataChannel() {
-        dataChannel.wait(key = AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE) {
-            val style = LyricPrefs.getLyricStyle()
-            StatusBarViewManager.forEach {
-                it.updateLyricStyle(style)
-            }
+        val channel = dataChannel
+        channel.wait(key = AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE) {
+            StatusBarViewManager.forEach { it.updateLyricStyle(LyricPrefs.getLyricStyle()) }
         }
-        dataChannel.wait<String>(key = AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW) { id ->
-            StatusBarViewManager.forEach {
-                it.highlightView(id)
-            }
+        channel.wait<String>(key = AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW) { id ->
+            StatusBarViewManager.forEach { it.highlightView(id) }
         }
-        dataChannel.wait<String>(key = AppBridgeConstants.REQUEST_VIEW_TREE) { _ ->
-            StatusBarViewManager.forEach {
-                val node = ViewHierarchyParser.buildNodeTree(it.statusBarView)
-                val data = json.safeEncode(node)
-                    .toByteArray(Charsets.UTF_8)
-                    .deflate()
-
-                dataChannel.put(
-                    AppBridgeConstants.REQUEST_VIEW_TREE_CALLBACK,
-                    data
-                )
+        channel.wait<String>(key = AppBridgeConstants.REQUEST_VIEW_TREE) {
+            StatusBarViewManager.forEach { controller ->
+                val data =
+                    json.safeEncode(ViewHierarchyParser.buildNodeTree(controller.statusBarView))
+                        .toByteArray(Charsets.UTF_8).deflate()
+                channel.put(AppBridgeConstants.REQUEST_VIEW_TREE_CALLBACK, data)
                 return@forEach
             }
         }
@@ -139,17 +123,17 @@ object SystemUIHooker : YukiBaseHooker() {
         view.doOnAttach {
             val controller = StatusBarViewController(view, LyricPrefs.getLyricStyle())
             StatusBarViewManager.add(controller)
-            val isFirst = StatusBarViewManager.controllers.size == 1
 
+            val isFirst = StatusBarViewManager.controllers.size == 1
             if (isFirst) {
                 BridgeCentral.sendBootCompleted()
                 StatusBarColorMonitor.hookFromClock(view)
-                if (testCrash) view.postDelayed({ error("test crash") }, 3000)
+                if (TEST_CEASH) view.postDelayed({ error("test crash") }, 3000)
             }
         }
     }
 
-    private fun handleCrashMode() {
+    private fun initCrashDataChannel() {
         dataChannel.put(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE_CALLBACK, safeMode)
         dataChannel.wait(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE) {
             dataChannel.put(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE_CALLBACK, safeMode)

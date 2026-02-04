@@ -419,7 +419,7 @@ class SuperLogo(context: Context) : ImageView(context) {
                             TAG,
                             "SVG string: w:$w, h:$h, svg: $svgString"
                         )
-                        SVGHelper.create(svgString).createBitmap(w, h)
+                        runCatching { SVGHelper.create(svgString).createBitmap(w, h) }.getOrNull()
                     }
                 }
 

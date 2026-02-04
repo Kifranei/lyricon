@@ -31,7 +31,7 @@ class CachedRemotePlayer(
 
     /** 最近的播放位置（毫秒） */
     @Volatile
-    var lastPosition: Long = -1L
+    var lastPosition: Long = 0
         private set
 
     /** 最近设置的位置更新间隔（毫秒） */
@@ -62,7 +62,6 @@ class CachedRemotePlayer(
 
     /**
      * 根据当前缓存的状态同步至 [player]。
-     * 优化点：采用局部变量快照防止同步期状态被并行修改。
      */
     @Synchronized
     internal fun syncs() {
@@ -73,13 +72,8 @@ class CachedRemotePlayer(
             player.setPositionUpdateInterval(interval)
         }
 
-        lastDisplayTranslation?.let {
-            player.setDisplayTranslation(it)
-        }
-
-        lastDisplayRoma?.let {
-            player.setDisplayRoma(it)
-        }
+        lastDisplayTranslation?.let { player.setDisplayTranslation(it) }
+        lastDisplayRoma?.let { player.setDisplayRoma(it) }
 
         when (lastLyricType) {
             LastLyricType.SONG -> player.setSong(lastSong)
@@ -90,8 +84,7 @@ class CachedRemotePlayer(
         player.seekTo(lastPosition.coerceAtLeast(0))
     }
 
-    override val isActive: Boolean
-        get() = player.isActive
+    override val isActive: Boolean get() = player.isActive
 
     override fun setSong(song: Song?): Boolean {
         lastLyricType = LastLyricType.SONG

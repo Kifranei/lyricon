@@ -50,6 +50,7 @@ dependencies {
     api(project(":lyric:model"))
     api(libs.androidx.core.ktx)
     api(libs.androidx.appcompat.resources)
+    api(libs.kotlinx.serialization.json)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

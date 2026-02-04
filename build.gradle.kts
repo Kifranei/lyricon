@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.ksp) apply false
 
     id("com.vanniktech.maven.publish") version "0.36.0" apply false
+    alias(libs.plugins.jetbrains.kotlin.jvm) apply false
 }
 
 extra["appPackageName"] = "io.github.proify.lyricon"
@@ -15,4 +16,5 @@ extra["targetSdkVersion"] = 36
 extra["minSdkVersion"] = 28
 extra["buildTime"] = System.currentTimeMillis()
 
-extra["providerSdkVersion"] = "0.1.67"
+extra["providerSdkVersion"] = "0.1.68"
+extra["lyricModelVersion"] = "0.1.68"

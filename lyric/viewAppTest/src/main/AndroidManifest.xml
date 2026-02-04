@@ -24,17 +24,17 @@
 
         <activity android:name=".MarqueeTestActivity"/>
 
-        <meta-data
-            android:name="lyricon_module"
-            android:value="true" />
+        <!--        <meta-data-->
+        <!--            android:name="lyricon_module"-->
+        <!--            android:value="true" />-->
 
-        <meta-data
-            android:name="lyricon_module_author"
-            android:value="your name" />
+        <!--        <meta-data-->
+        <!--            android:name="lyricon_module_author"-->
+        <!--            android:value="your name" />-->
 
-        <meta-data
-            android:name="lyricon_module_description"
-            android:value="module description" />
+        <!--        <meta-data-->
+        <!--            android:name="lyricon_module_description"-->
+        <!--            android:value="module description" />-->
 
     </application>
 

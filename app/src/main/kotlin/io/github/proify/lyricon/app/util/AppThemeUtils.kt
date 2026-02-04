@@ -7,7 +7,7 @@
 package io.github.proify.lyricon.app.util
 
 import android.content.Context
-import io.github.proify.android.extensions.getDefaultSharedPreferences
+import io.github.proify.android.extensions.defaultSharedPreferences
 
 object AppThemeUtils {
     const val MODE_SYSTEM: Int = 0
@@ -18,19 +18,19 @@ object AppThemeUtils {
     private const val KEY_MONET_COLOR = "theme_monet_color"
 
     fun getMode(context: Context): Int =
-        context.getDefaultSharedPreferences().getInt(KEY_THEME_MODE, MODE_SYSTEM)
+        context.defaultSharedPreferences.getInt(KEY_THEME_MODE, MODE_SYSTEM)
 
     fun setMode(context: Context, mode: Int) {
-        context.getDefaultSharedPreferences().editCommit { putInt(KEY_THEME_MODE, mode) }
+        context.defaultSharedPreferences.editCommit { putInt(KEY_THEME_MODE, mode) }
     }
 
     fun isEnableMonetColor(context: Context): Boolean =
-        context.getDefaultSharedPreferences().getBoolean(
+        context.defaultSharedPreferences.getBoolean(
             KEY_MONET_COLOR,
             false
         )
 
     fun setEnableMonetColor(context: Context, enable: Boolean) {
-        context.getDefaultSharedPreferences().editCommit { putBoolean(KEY_MONET_COLOR, enable) }
+        context.defaultSharedPreferences.editCommit { putBoolean(KEY_MONET_COLOR, enable) }
     }
 }

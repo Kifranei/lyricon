@@ -64,7 +64,7 @@
     <string name="item_app_theme_mode">테마 모드</string>
     <string name="option_app_theme_mode_light">라이트 모드</string>
     <string name="option_app_theme_mode_dark">다크 모드</string>
-    <string name="option_app_theme_mode_follow_system">시스템 설정 따름</string>
+    <string name="option_app_theme_mode_system">시스템 설정 따름</string>
     <string name="item_app_theme_monet_color">모네(Monet) 컬러</string>
     <string name="tab_style_text">텍스트</string>
     <string name="tab_style_icon">아이콘</string>

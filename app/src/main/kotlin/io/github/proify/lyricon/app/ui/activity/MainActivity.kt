@@ -44,7 +44,7 @@ import androidx.core.content.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
-import io.github.proify.android.extensions.getDefaultSharedPreferences
+import io.github.proify.android.extensions.defaultSharedPreferences
 import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.LyriconApp
 import io.github.proify.lyricon.app.LyriconApp.Companion.systemUIChannel
@@ -93,7 +93,7 @@ class MainActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val sharedPreferences = getDefaultSharedPreferences()
+        val sharedPreferences = defaultSharedPreferences
         val savedVersionCode = sharedPreferences.getLong(PREF_KEY_LAST_VERSION, 0)
         if (savedVersionCode <= 0) {
             sharedPreferences.edit {
@@ -112,11 +112,10 @@ class MainActivity : BaseActivity() {
         }
 
         setupEventListeners()
-        requestSafeModeCheck()
     }
 
-    override fun onRestart() {
-        super.onRestart()
+    override fun onResume() {
+        super.onResume()
         requestSafeModeCheck()
     }
 
@@ -144,11 +143,14 @@ class MainActivity : BaseActivity() {
                 viewModel.setWaitingForReboot(false)
             }
         }
-        Utils.killSystemUI()
+        val result = Utils.killSystemUI()
+        if (result.result == -1) {
+            viewModel.showRestartFailDialog.value = true
+        }
     }
 
     private fun saveCurrentVersionCode() {
-        getDefaultSharedPreferences().editCommit {
+        defaultSharedPreferences.editCommit {
             putLong(PREF_KEY_LAST_VERSION, LyriconApp.versionCode)
         }
     }

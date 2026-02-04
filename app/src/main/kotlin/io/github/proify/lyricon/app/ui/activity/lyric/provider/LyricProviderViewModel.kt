@@ -17,7 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.proify.android.extensions.getDefaultSharedPreferences
+import io.github.proify.android.extensions.defaultSharedPreferences
 import io.github.proify.lyricon.app.ui.activity.lyric.packagestyle.sheet.AppCache
 import io.github.proify.lyricon.app.util.SignatureValidator
 import kotlinx.coroutines.Dispatchers
@@ -39,7 +39,7 @@ class LyricProviderViewModel(application: Application) : AndroidViewModel(applic
 
     // 视图模式状态
     var listStyle by mutableIntStateOf(
-        application.getDefaultSharedPreferences()
+        application.defaultSharedPreferences
             .getInt("activity_provider_list_style", ViewMode.SHORT)
     )
 

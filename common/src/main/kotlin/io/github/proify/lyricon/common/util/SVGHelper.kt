@@ -71,20 +71,18 @@ data class SVGHelper(val svg: SVG) {
     }
 
     companion object {
+        @Throws(Exception::class)
         fun create(svg: String): SVGHelper {
             val svg = SVG.getFromString(svg)
             return SVGHelper(svg)
         }
 
-        fun create(file: File): SVGHelper? {
-            try {
-                FileInputStream(file).use { `is` ->
-                    val svg = SVG.getFromInputStream(`is`)
-                    return SVGHelper(svg)
-                }
-            } catch (ignored: Exception) {
+        @Throws(Exception::class)
+        fun create(file: File): SVGHelper {
+            FileInputStream(file).use { `is` ->
+                val svg = SVG.getFromInputStream(`is`)
+                return SVGHelper(svg)
             }
-            return null
         }
     }
 }

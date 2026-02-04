@@ -5,12 +5,10 @@
  */
 package io.github.proify.lyricon.lyric.model
 
-import android.os.Parcelable
 import io.github.proify.lyricon.lyric.model.extensions.deepCopy
 import io.github.proify.lyricon.lyric.model.extensions.normalizeSortByTime
 import io.github.proify.lyricon.lyric.model.interfaces.DeepCopyable
 import io.github.proify.lyricon.lyric.model.interfaces.Normalize
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 /**
@@ -24,7 +22,6 @@ import kotlinx.serialization.Serializable
  * @property lyrics 歌词列表
  */
 @Serializable
-@Parcelize
 data class Song(
     var id: String? = null,
     var name: String? = null,
@@ -32,21 +29,15 @@ data class Song(
     var duration: Long = 0,
     var metadata: LyricMetadata? = null,
     var lyrics: List<RichLyricLine>? = null,
-) : Parcelable, DeepCopyable<Song>, Normalize<Song> {
+) : DeepCopyable<Song>, Normalize<Song> {
 
-    override fun deepCopy(): Song = copy(
-        lyrics = lyrics?.deepCopy()
-    )
-
+    override fun deepCopy(): Song = copy(lyrics = lyrics?.deepCopy())
     override fun normalize(): Song = deepCopy().apply {
-        lyrics = lyrics
-            ?.map { line ->
-                if (line.duration <= 0) line.duration = line.end - line.begin
-                line
-            }
-            ?.filter { line ->
-                line.begin >= 0 && line.begin < line.end && line.duration > 0
-            }
-            ?.normalizeSortByTime()
+        lyrics = lyrics?.mapNotNull { line ->
+            if (line.duration <= 0) line.duration = line.end - line.begin
+
+            val isValid = line.begin >= 0 && line.begin < line.end && line.duration > 0
+            if (isValid) line else null
+        }?.normalizeSortByTime()
     }
 }

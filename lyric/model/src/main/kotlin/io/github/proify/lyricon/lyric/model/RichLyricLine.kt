@@ -6,13 +6,11 @@
 
 package io.github.proify.lyricon.lyric.model
 
-import android.os.Parcelable
 import io.github.proify.lyricon.lyric.model.extensions.deepCopy
 import io.github.proify.lyricon.lyric.model.extensions.normalize
 import io.github.proify.lyricon.lyric.model.interfaces.DeepCopyable
 import io.github.proify.lyricon.lyric.model.interfaces.IRichLyricLine
 import io.github.proify.lyricon.lyric.model.interfaces.Normalize
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 /**
@@ -31,7 +29,6 @@ import kotlinx.serialization.Serializable
  * @property translationWords 主要翻译文本单词列表
  */
 @Serializable
-@Parcelize
 data class RichLyricLine(
     override var begin: Long = 0,
     override var end: Long = 0,
@@ -45,7 +42,7 @@ data class RichLyricLine(
     override var translation: String? = null,
     override var translationWords: List<LyricWord>? = null,
     override var roma: String? = null
-) : IRichLyricLine, Parcelable, DeepCopyable<RichLyricLine>, Normalize<RichLyricLine> {
+) : IRichLyricLine, DeepCopyable<RichLyricLine>, Normalize<RichLyricLine> {
 
     init {
         if (duration == 0L && end > begin) duration = end - begin

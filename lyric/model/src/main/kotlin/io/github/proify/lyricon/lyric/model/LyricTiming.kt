@@ -6,9 +6,7 @@
 
 package io.github.proify.lyricon.lyric.model
 
-import android.os.Parcelable
 import io.github.proify.lyricon.lyric.model.interfaces.ILyricTiming
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 /**
@@ -19,9 +17,8 @@ import kotlinx.serialization.Serializable
  * @property duration 持续时间
  */
 @Serializable
-@Parcelize
 data class LyricTiming(
     override var begin: Long,
     override var end: Long,
     override var duration: Long
-) : ILyricTiming, Parcelable
+) : ILyricTiming

@@ -28,7 +28,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     OnColorChangeListener, OplusCapsuleHooker.CapsuleStateChangeListener,
     NotificationCoverHelper.OnCoverUpdateListener {
 
-    private const val TAG = "LyricViewController"
+    const val TAG = "LyricViewController"
     private const val DEBUG = true
 
     private const val MSG_PROVIDER_CHANGED = 1
@@ -224,7 +224,12 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
 
     inline fun forControllerEach(crossinline block: StatusBarViewController.() -> Unit) {
         StatusBarViewManager.forEach { controller ->
-            block(controller)
+            try {
+                block(controller)
+            } catch (e: Throwable) {
+                //兜底
+                YLog.error(tag = TAG, msg = "forControllerEach error $controller", e = e)
+            }
         }
     }
 

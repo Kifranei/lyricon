@@ -7,7 +7,6 @@
 @file:Suppress("unused")
 
 package io.github.proify.android.extensions
-
 import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
@@ -30,5 +29,12 @@ fun Context.getSharedPreferences(name: String, worldReadable: Boolean): SharedPr
     if (worldReadable) getWorldReadableSharedPreferences(name)
     else getPrivateSharedPreferences(name)
 
-fun Context.getDefaultSharedPreferences(): SharedPreferences =
-    getWorldReadableSharedPreferences(packageName + "_preferences")
+/**
+ * 默认的 SharedPreferences
+ *
+ * 注意：`BackupManager`不会备份此SharedPreferences的设置
+ */
+val Context.defaultSharedPreferences: SharedPreferences
+    get() = getWorldReadableSharedPreferences(defaultSharedPreferencesName)
+
+val Context.defaultSharedPreferencesName: String get() = packageName + "_preferences"

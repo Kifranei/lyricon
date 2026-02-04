@@ -11,31 +11,46 @@ package io.github.proify.lyricon.lyric.model.extensions
 import io.github.proify.lyricon.lyric.model.interfaces.ILyricTiming
 
 /**
- * 时间轴导航器：用于在毫秒级播放进度中高效定位歌词。
+ * 时间轴导航器（毫秒级）
  *
- * ### 核心架构设计：
- * 1. **分级定位策略**：
- * - **Hot Path (O(1))**：针对连续播放场景，优先校验缓存索引及其后继索引。
- * - **Cold Path (O(log N))**：针对进度条拖动或回退场景，使用二分查找定位。
- * 2. **轻重路径分离**：
- * - [first]：极速路径，仅返回当前锚点索引项，无重叠回溯开销。
- * - [forEachAt]：完整路径，处理重叠歌词（Overlapping Lyrics），保证多行并发显示的准确性。
+ * 用途
+ * - 在播放进度（毫秒）中高效定位歌词条目。
+ * - 支持单行显示与多行重叠歌词（Overlapping Lyrics）的遍历。
  *
- * ### 使用前提：
- * - [source] 必须已按 [ILyricTiming.begin] 升序排列。
- * - 本类【非线程安全】，建议仅在播放控制线程中使用。
+ * 设计要点
+ * - 分级定位策略：
+ *   - 热路径 (O(1))：利用最近命中的索引与其后继项，优化顺序播放场景。
+ *   - 冷路径 (O(log N))：对随机跳转或回退使用二分查找。
+ * - 轻重路径分离：
+ *   - `first`：仅返回首条匹配（单行场景），无额外回溯开销。
+ *   - `forEachAt`：处理重叠歌词，回溯并顺序扫描以保证多行展示准确性。
+ *
+ * 前提与约束
+ * - `source` 必须按 `ILyricTiming.begin` 升序排列。
+ * - 本类非线程安全；仅用于单一播放控制线程（单线程语境下使用）。
+ *
+ * 复杂度
+ * - 热路径：常数时间 O(1)
+ * - 冷路径（二分查找）：对数时间 O(log N)
  */
 class TimingNavigator<T : ILyricTiming>(
     val source: Array<T>
 ) {
-    /** 歌词总数 */
+    /** 条目总数（只读） */
     val size: Int = source.size
 
-    /** 最近一次成功匹配的索引。初始为 -1，表示尚未匹配或已超出边界。 */
+    /**
+     * 最近一次成功匹配的索引。
+     * 初始值 -1：表示未命中或越界。
+     * 由内部方法维护（对外只读）。
+     */
     var lastMatchedIndex: Int = -1
         private set
 
-    /** 最近一次查询的时间戳（ms）。用于判断播放方向以决定是否启用顺序优化。 */
+    /**
+     * 最近一次查询的时间戳（毫秒）。
+     * 用于判断播放方向（递增时启用顺序优化）。
+     */
     var lastQueryPosition: Long = -1L
         private set
 
@@ -44,11 +59,12 @@ class TimingNavigator<T : ILyricTiming>(
     // ----------------------------------------------------------------
 
     /**
-     * 获取当前时间点对应的第一条歌词。
-     * 适用于只需显示单行歌词的场景。
+     * 返回给定时间点对应的第一条有效歌词（若存在）。
      *
-     * @param position 当前播放时间 (ms)
-     * @return 匹配的歌词项，若无匹配则返回 null
+     * 场景：仅需显示单行歌词的 UI（例如普通文本显示）。
+     *
+     * @param position 播放时间（ms）
+     * @return 匹配条目或 null（无匹配或超出范围）
      */
     fun first(position: Long): T? {
         val index = findTargetIndex(position)
@@ -57,12 +73,13 @@ class TimingNavigator<T : ILyricTiming>(
     }
 
     /**
-     * 遍历当前时间点所有生效的歌词项（处理重叠歌词）。
-     * 适用于支持多行重叠、卡拉OK逐字渲染等复杂场景。
+     * 对给定时间点所有生效的歌词执行操作，处理重叠情况。
      *
-     * @param position 当前播放时间 (ms)
-     * @param action 对每一项匹配歌词执行的操作
-     * @return 匹配到的歌词总数
+     * 场景：多行重叠显示、卡拉 OK 逐字渲染等。
+     *
+     * @param position 播放时间（ms）
+     * @param action 对每个匹配条目的回调
+     * @return 匹配到的条目数量
      */
     inline fun forEachAt(position: Long, action: (T) -> Unit): Int {
         if (size == 0) return 0
@@ -72,13 +89,18 @@ class TimingNavigator<T : ILyricTiming>(
 
         if (anchorIndex == -1) return 0
 
-        // 针对重叠歌词执行回溯扫描
+        // 回溯并顺序扫描以覆盖所有重叠条目
         return resolveOverlapping(position, anchorIndex, action)
     }
 
     /**
-     * 尝试匹配当前歌词，若当前为空隙，则回退并匹配最近的一条历史歌词。
-     * 常用于 UI 在间歇期保留上一句歌词的显示状态。
+     * 与 `forEachAt` 类似，但在当前时间窗口没有匹配时回退至最近的历史条目并执行一次回调。
+     *
+     * 场景：UI 在间歇期保留上一句歌词显示时使用。
+     *
+     * @param position 播放时间（ms）
+     * @param action 对匹配或回退到的条目执行的回调
+     * @return 实际调用回调的条目数量（0 或 1）
      */
     inline fun forEachAtOrPrevious(position: Long, action: (T) -> Unit): Int {
         val count = forEachAt(position, action)
@@ -90,7 +112,14 @@ class TimingNavigator<T : ILyricTiming>(
     }
 
     /**
-     * 查找当前位置之前的最后一条有效歌词。
+     * 查找指定时间点之前（严格小于或等于 position）的最后一条条目。
+     *
+     * 返回值说明：
+     * - position < source[0].begin -> null
+     * - position > source[last].end -> 返回最后一条
+     *
+     * @param position 播放时间（ms）
+     * @return 找到的条目或 null
      */
     fun findPreviousEntry(position: Long): T? {
         if (size == 0 || position < source[0].begin) return null
@@ -100,6 +129,7 @@ class TimingNavigator<T : ILyricTiming>(
         var high = size - 1
         var resultIdx = -1
 
+        // 二分查找最后一个 begin < position 的索引
         while (low <= high) {
             val mid = (low + high) ushr 1
             if (source[mid].begin < position) {
@@ -113,8 +143,7 @@ class TimingNavigator<T : ILyricTiming>(
     }
 
     /**
-     * 清除缓存索引与时间记录。
-     * 在切换歌曲或停止播放时应调用此方法。
+     * 重置内部缓存（用于切歌、停止或重新加载场景）。
      */
     fun resetCache() {
         lastMatchedIndex = -1
@@ -126,31 +155,44 @@ class TimingNavigator<T : ILyricTiming>(
     // ----------------------------------------------------------------
 
     /**
-     * 查找目标索引的核心引擎。
-     * 优先顺序：边界检查 -> 顺序缓存命中 -> 线性探测下一项 -> 二分查找。
+     * 定位给定时间点的目标索引（若存在）。
+     *
+     * 优先级：
+     * 1. 边界快速失败（整体时间轴之外）
+     * 2. 顺序缓存命中（热路径，O(1)）
+     * 3. 紧邻下一项线性检查（热路径补充）
+     * 4. 二分查找（冷路径，O(log N)）
+     *
+     * @param position 播放时间（ms）
+     * @return 匹配索引或 -1
      */
     fun findTargetIndex(position: Long): Int {
         if (size == 0) return -1
 
-        // 快速失败：超出整体时间轴
+        // 超出整体时间轴范围
         if (position < source[0].begin || position > source[size - 1].end) return -1
 
         val lastIdx = lastMatchedIndex
 
-        // 顺序播放优化：当时间线性增加时，利用缓存索引
+        // 顺序播放优化：当请求时间不小于上次查询时间时启用
         if (lastIdx >= 0 && position >= lastQueryPosition) {
-            // 1. 检查当前项是否依然有效
+            // 检查缓存索引
             if (isHit(lastIdx, position)) return lastIdx
 
-            // 2. 检查紧邻的下一项（连续播放最常见场景）
+            // 检查紧邻下一项（连续播放最常见）
             val nextIdx = lastIdx + 1
             if (nextIdx < size && isHit(nextIdx, position)) return nextIdx
         }
 
-        // 随机跳转或回退：执行二分查找
+        // 随机跳转或回退：使用二分查找
         return binarySearch(position)
     }
 
+    /**
+     * 标准二分查找：在 [0, size-1] 中查找包含 position 的条目（按 begin 排序）。
+     *
+     * @return 匹配索引或 -1
+     */
     private fun binarySearch(position: Long): Int {
         var low = 0
         var high = size - 1
@@ -167,9 +209,14 @@ class TimingNavigator<T : ILyricTiming>(
     }
 
     /**
-     * 处理重叠逻辑。
-     * 由于 source 按 begin 排序，多个歌词可能在同一 position 重叠。
-     * 需要向前回溯到最早可能重叠的项，然后顺序向后扫描。
+     * 处理重叠条目：从锚点向前回溯到最早可能的重叠起点，然后顺序扫描直到不再匹配。
+     *
+     * 由于 source 按 begin 升序，回溯检查 prev.end 是否 >= position 即可判断是否可能重叠。
+     *
+     * @param position 播放时间（ms）
+     * @param anchorIndex 二分查找或缓存命中的锚点索引
+     * @param action 对每个匹配条目的回调
+     * @return 匹配到的条目数量
      */
     @PublishedApi
     internal inline fun resolveOverlapping(
@@ -179,17 +226,16 @@ class TimingNavigator<T : ILyricTiming>(
     ): Int {
         var start = anchorIndex
 
-        // 回溯：寻找所有可能包含当前时间的歌词起始点
+        // 向前回溯所有可能包含 position 的条目起点
         while (start > 1) {
             val prev = source[start - 1]
-            // 如果前一项的结束时间在 position 之后，说明存在重叠风险，继续回溯
             if (prev.end >= position) start-- else break
         }
 
         var count = 0
         for (i in start until size) {
             val entry = source[i]
-            // 剪枝：如果当前项开始时间已超，后续项因排序关系必不匹配
+            // 若当前项尚未开始，则后续项均未开始（按 begin 排序），可剪枝退出
             if (position < entry.begin) break
 
             if (position <= entry.end) {
@@ -200,12 +246,19 @@ class TimingNavigator<T : ILyricTiming>(
         return count
     }
 
+    /**
+     * 命中检测：判断指定索引的条目是否包含 position（闭区间 [begin, end]）。
+     */
     private fun isHit(index: Int, position: Long): Boolean {
         val item = source[index]
         return position >= item.begin && position <= item.end
     }
 
-    fun updateCache(position: Long, index: Int) {
+    /**
+     * 更新查询缓存（记录最后查询时间与匹配索引）。
+     */
+    @PublishedApi
+    internal fun updateCache(position: Long, index: Int) {
         lastQueryPosition = position
         lastMatchedIndex = index
     }

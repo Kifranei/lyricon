@@ -6,13 +6,11 @@
 
 package io.github.proify.lyricon.lyric.model
 
-import android.os.Parcelable
 import io.github.proify.lyricon.lyric.model.extensions.deepCopy
 import io.github.proify.lyricon.lyric.model.extensions.normalize
 import io.github.proify.lyricon.lyric.model.interfaces.DeepCopyable
 import io.github.proify.lyricon.lyric.model.interfaces.ILyricLine
 import io.github.proify.lyricon.lyric.model.interfaces.Normalize
-import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
 
 /**
@@ -21,13 +19,12 @@ import kotlinx.serialization.Serializable
  * @property begin 开始时间
  * @property end 结束时间
  * @property duration 持续时间
- * @property isAlignedRight 是否显示在右边
+ * @property isAlignedRight 是否渲染显示在右边
  * @property metadata 元数据
  * @property text 文本
  * @property words 文本单词列表
  */
 @Serializable
-@Parcelize
 data class LyricLine(
     override var begin: Long = 0,
     override var end: Long = 0,
@@ -36,7 +33,7 @@ data class LyricLine(
     override var metadata: LyricMetadata? = null,
     override var text: String? = null,
     override var words: List<LyricWord>? = null,
-) : ILyricLine, Parcelable, DeepCopyable<LyricLine>, Normalize<LyricLine> {
+) : ILyricLine, DeepCopyable<LyricLine>, Normalize<LyricLine> {
 
     init {
         if (duration == 0L && end > begin) duration = end - begin
