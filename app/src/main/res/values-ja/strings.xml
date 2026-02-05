@@ -1,14 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?><!--
+<!--
   ~ Copyright 2026 Proify, Tomakino
   ~ Licensed under the Apache License, Version 2.0
   ~ http://www.apache.org/licenses/LICENSE-2.0
   -->
 
 <resources>
-    <string name="app_name">Lyricon</string>
-    <string name="xposed_description">ステータスバーに歌詞を表示🎵</string>
-
-    <string name="confirm">確認</string>
+    <string name="app_name">詞幕</string>
+    <string name="xposed_description">ステータスバーに歌詞表示機能を追加します🎵</string>
+    <string name="ok">@android:string/ok</string>
+    <string name="yes">@android:string/yes</string>
+    <string name="no">@android:string/no</string>
+    <string name="cancel">@android:string/cancel</string>
+    <string name="copy">@android:string/copy</string>
+    <string name="paste">@android:string/paste</string>
+    <string name="confirm">確定</string>
     <string name="save">保存</string>
     <string name="add">追加</string>
     <string name="delete">削除</string>
@@ -21,50 +26,47 @@
     <string name="defaultText">デフォルト</string>
     <string name="basic">基本</string>
     <string name="unknown">不明</string>
-    <string name="author">作成者</string>
-
+    <string name="author">開発者</string>
     <string name="status_enabled">有効</string>
     <string name="status_not_enabled">無効</string>
     <string name="module_status_activated">有効化済み</string>
     <string name="module_status_not_activated">未有効化</string>
-    <string name="module_status_system_ui_safe_mode">システムUIエラー。無効化されました</string>
-    <string name="module_status_waiting_for_reboot">システムUIの再起動待ち</string>
-
-    <string name="restart_system_ui">システムUIを再起動</string>
+    <string name="module_status_system_ui_safe_mode">システム UI 異常、無効化されました</string>
+    <string name="module_status_waiting_for_reboot">システム UI の再起動待ち</string>
+    <string name="module_status_summary">v%s</string>
+    <string name="restart_system_ui">システム UI を再起動</string>
     <string name="restart_app">アプリを再起動</string>
     <string name="restart_fail">再起動に失敗しました</string>
-    <string name="message_app_restart_fail">Root権限が付与されているか確認してください</string>
-
+    <string name="message_app_restart_fail">Root 権限が許可されているか確認してください</string>
     <string name="unit_ms">ミリ秒</string>
-
+    <string name="unit_sp">sp</string>
+    <string name="unit_dp">dp</string>
+    <string name="unit_ms_px">ms/px</string>
     <string name="activity_settings">設定</string>
-    <string name="activity_about">このアプリについて</string>
+    <string name="activity_about">概要</string>
     <string name="activity_anchor">アンカー</string>
     <string name="activity_view_rules">ビューコントローラー</string>
-    <string name="activity_base_lyric_style">基本設定</string>
-    <string name="activity_package_style_manager">パッケージ設定管理</string>
+    <string name="activity_base_lyric_style">基本構成</string>
+    <string name="activity_package_style_manager">パッケージ構成の管理</string>
     <string name="activity_lyric_provider">歌詞プロバイダー</string>
     <string name="activity_open_source_license">オープンソースライセンス</string>
-
-    <string name="item_base_lyric_style">基本設定</string>
-    <string name="item_summary_base_lyric_style">歌詞の位置、サイズ、表示ルールなどを設定します</string>
-    <string name="item_package_style_manager">パッケージ設定</string>
-    <string name="item_summary_package_style_manager">アプリごとに個別の歌詞スタイルを設定します</string>
+    <string name="item_base_lyric_style">基本構成</string>
+    <string name="item_summary_base_lyric_style">歌詞の位置、サイズ、ステータスバーの表示ルールなどを設定</string>
+    <string name="item_package_style_manager">パッケージ構成</string>
+    <string name="item_summary_package_style_manager">デフォルトスタイルまたは各パッケージ個別のスタイルを設定</string>
     <string name="item_provider_manager">歌詞プロバイダー</string>
-    <string name="item_summary_provider_manager">歌詞のデータソースを管理します</string>
-    <string name="item_config_view_rules">表示ルールの設定</string>
-    <string name="item_app_settings">アプリの設定</string>
-    <string name="item_summary_app_settings">言語、テーマ、全般的なオプション</string>
-    <string name="item_about_app">情報</string>
-    <string name="item_summary_about_app">バージョンとソフトウェア情報</string>
-
-    <string name="manager_package_config">パッケージ設定管理</string>
-    <string name="add_package_config">パッケージ設定を追加</string>
-    <string name="package_config_default">デフォルト設定</string>
-
+    <string name="item_summary_provider_manager">歌詞プロバイダーの管理</string>
+    <string name="item_config_view_rules">ビューの表示ルールを設定</string>
+    <string name="item_app_settings">設定</string>
+    <string name="item_summary_app_settings">言語、テーマなどの設定</string>
+    <string name="item_about_app">概要</string>
+    <string name="item_summary_about_app">アプリ情報</string>
+    <string name="manager_package_config">パッケージ構成の管理</string>
+    <string name="add_package_config">パッケージ構成を追加</string>
     <string name="item_app_version">バージョン</string>
     <string name="item_build_time">ビルド時間</string>
-    <string name="item_view_on_github">GitHubで表示</string>
+    <string name="item_app_version_summary">%s (%s) %s</string>
+    <string name="item_view_on_github">GitHub で表示</string>
     <string name="item_open_source_license">オープンソースライセンス</string>
     <string name="section_music_apps">関連</string>
     <string name="section_other_apps">その他</string>
@@ -74,93 +76,88 @@
     <string name="option_app_theme_mode_light">ライト</string>
     <string name="option_app_theme_mode_dark">ダーク</string>
     <string name="option_app_theme_mode_system">システムに従う</string>
-    <string name="item_app_theme_monet_color">Monetカラー</string>
-
+    <string name="item_app_theme_monet_color">Monet 配色</string>
     <string name="tab_style_text">テキスト</string>
     <string name="tab_style_icon">アイコン</string>
-    <string name="tab_style_anim">アニメ</string>
-
+    <string name="tab_style_anim">アニメーション</string>
     <string name="item_text_size">サイズ</string>
     <string name="item_text_margins">マージン</string>
     <string name="item_text_paddings">パディング</string>
-    <string name="item_text_color">色</string>
-    <string name="item_text_enable_custom_color">カスタムカラーを有効化</string>
-    <string name="item_text_color_light_mode">ライトモードの色</string>
-    <string name="item_text_color_dark_mode">ダークモードの色</string>
+    <string name="item_text_color">カラー</string>
+    <string name="item_text_enable_custom_color">カスタムカラー</string>
+    <string name="item_text_color_light_mode">ライトモード時の色</string>
+    <string name="item_text_color_dark_mode">ダークモード时的色</string>
     <string name="item_text_font">フォント</string>
     <string name="item_text_typeface">カスタムフォント</string>
-    <string name="item_text_font_weight">フォントの太さ</string>
-    <string name="item_text_typeface_bold">太字</string>
-    <string name="item_text_typeface_italic">斜体</string>
-    <string name="item_text_marquee">マーキー（流れる文字）</string>
+    <string name="item_text_font_weight">フォントウェイト</string>
+    <string name="item_text_typeface_bold">太字スタイル</string>
+    <string name="item_text_typeface_italic">斜体スタイル</string>
+    <string name="item_text_marquee">マーキー</string>
     <string name="item_text_marquee_speed">速度</string>
-    <string name="item_text_marquee_space">文字の間隔</string>
-    <string name="item_text_marquee_initial_delay">初期遅延</string>
-    <string name="item_text_marquee_delay">繰り返し遅延</string>
-    <string name="item_text_marquee_repeat_unlimited">無限ループ</string>
-    <string name="item_text_marquee_repeat_count">最大ループ回数</string>
-    <string name="item_text_marquee_stop_at_end">最後に停止する</string>
-    <string name="item_text_fading_style">グラデーション進行状況</string>
+    <string name="item_text_marquee_space">ゴースト距離</string>
+    <string name="item_text_marquee_initial_delay">初期スクロール遅延</string>
+    <string name="item_text_marquee_delay">スクロール遅延</string>
+    <string name="item_text_marquee_repeat_unlimited">無限スクロールを有効化</string>
+    <string name="item_text_marquee_repeat_count">最大スクロール回数</string>
+    <string name="item_text_marquee_stop_at_end">終了時に末尾で停止</string>
+    <string name="item_text_fading_style">フェード進行スタイル</string>
     <string name="item_text_syllable">ダイナミック歌詞</string>
     <string name="item_text_relative_progress">相対進行歌詞を有効化</string>
-    <string name="item_text_relative_progress_summary">単語データがない場合、行全体を1つの単語として表示します</string>
-    <string name="item_text_relative_progress_highlight">相対進行のハイライトを表示</string>
-    <string name="item_text_color_normal">通常の色</string>
+    <string name="item_text_relative_progress_summary">単語データが欠落している場合、行全体をハイライトとして表示します</string>
+    <string name="item_text_relative_progress_highlight">相対進行歌詞のハイライトを表示</string>
+    <string name="item_text_color_normal">通常色</string>
     <string name="item_text_color_background">背景色</string>
     <string name="item_text_color_highlight">ハイライト色</string>
     <string name="hint_custom_color">カスタム</string>
     <string name="item_text_size_scale_in_multi_line">複数行モードの文字サイズ比率</string>
-
     <string name="item_text_transition_config">アニメーション速度</string>
-    <string name="option_text_transition_config_smooth">滑らか</string>
+    <string name="option_text_transition_config_smooth">スムーズ</string>
     <string name="option_text_transition_config_fast">高速</string>
-    <string name="option_text_transition_config_slow">低速</string>
+    <string name="option_text_transition_config_slow">スロー</string>
     <string name="option_text_transition_config_none">オフ</string>
-
     <string name="item_logo_section_basic">基本</string>
-    <string name="item_logo_enable">ロゴを表示</string>
+    <string name="item_logo_enable">有効化</string>
     <string name="item_logo_margins">マージン</string>
     <string name="item_logo_section_coloros">ColorOS</string>
-    <string name="item_logo_hide_in_coloros_capsule_mode">カプセルモード時は非表示</string>
+    <string name="item_logo_hide_in_coloros_capsule_mode">フルーイドクラウドモードで非表示</string>
     <string name="item_logo_section_style">スタイル</string>
     <string name="item_logo_style_default">デフォルト</string>
-    <string name="item_logo_style_app_logo">アイコン</string>
-    <string name="item_logo_style_cover_square">カバー（四角）</string>
-    <string name="item_logo_style_cover_circle">カバー（円形）</string>
-    <string name="item_logo_section_color">色</string>
+    <string name="item_logo_style_app_logo">アプリアイコン</string>
+    <string name="item_logo_style_cover_square">音楽カバー（正方形）</string>
+    <string name="item_logo_style_cover_circle">音楽カバー（円形）</string>
+    <string name="item_logo_section_color">カラー</string>
     <string name="item_logo_custom_color">カスタムカラー</string>
-    <string name="item_logo_color_light">ライトモードの色</string>
-    <string name="item_logo_color_dark">ダークモードの色</string>
+    <string name="item_logo_color_light">ライトモード時の色</string>
+    <string name="item_logo_color_dark">ダークモード時の色</string>
     <string name="item_logo_size">サイズ</string>
-    <string name="option_logo_color_follow_text">テキストの色に合わせる</string>
+    <string name="option_logo_color_follow_text">テキストカラーに従う</string>
     <string name="item_logo_position">挿入順序</string>
-    <string name="item_logo_position_before">テキストの前</string>
-    <string name="item_logo_position_after">テキストの後</string>
-
+    <string name="item_logo_position_before">前</string>
+    <string name="item_logo_position_after">後</string>
     <string name="item_base_anchor">アンカー</string>
-    <string name="item_base_insertion_order">挿入位置</string>
+    <string name="item_base_insertion_order">挿入順序</string>
     <string name="item_base_insertion_before">前</string>
     <string name="item_base_insertion_after">後</string>
     <string name="item_base_width">幅</string>
-    <string name="item_base_width_color_os_capsule">幅（カプセルモード）</string>
+    <string name="item_base_width_color_os_capsule">幅（フルーイドクラウドモード時）</string>
     <string name="item_base_margins">マージン</string>
     <string name="item_base_paddings">パディング</string>
-
     <string name="option_visibility_default">デフォルト</string>
     <string name="option_visibility_hide_when_playing">再生中に非表示</string>
-
-    <string name="rect_left">左</string>
-    <string name="rect_top">上</string>
-    <string name="rect_right">右</string>
-    <string name="rect_bottom">下</string>
-
-    <string name="module_tag_syllable">ダイナミック</string>
+    <string name="rect_left">左マージン</string>
+    <string name="rect_top">上マージン</string>
+    <string name="rect_right">右マージン</string>
+    <string name="rect_bottom">下マージン</string>
+    <string name="item_provider_info_secondary">%s, %s %s</string>
+    <string name="module_tag_syllable">ダイナミック歌詞</string>
     <string name="module_tag_translation">翻訳</string>
-    <string name="no_provider_available">利用可能なプロバイダーがありません</string>
-
+    <string name="no_provider_available">利用可能な歌詞プロバイダーがありません</string>
     <string name="item_base_lockscreen_hidden">ロック画面で非表示</string>
-    <string name="option_provider_list_full">詳細表示</string>
-    <string name="option_provider_list_short">簡略表示</string>
-    <string name="no_query_app_permission">インストール済みアプリの読み取り権限を許可してください</string>
-    <string name="item_text_fading_edge_length">フェードエッジの長さ</string>
+    <string name="option_provider_list_full">詳細</string>
+    <string name="option_provider_list_short">簡略</string>
+    <string name="no_query_app_permission">アプリ情報の読み取り権限を許可してください</string>
+    <string name="package_config_default">デフォルト構成</string>
+    <string name="item_text_fading_edge_length">エッジフェードの長さ</string>
+    <string name="item_app_backup">バックアップ</string>
+    <string name="item_app_restore">復元</string>
 </resources>

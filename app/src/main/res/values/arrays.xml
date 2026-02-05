@@ -11,17 +11,9 @@
         <item>zh-Hans</item>
         <item>zh-Hant</item>
         <item>ja</item>
-        <item>vi</item>
         <item>ru</item>
-        <item>es</item>
-        <item>pt</item>
         <item>ko</item>
-        <item>de</item>
-        <item>fr</item>
-        <item>th</item>
-        <item>in</item>
-        <item>it</item>
-        <item>ar</item>
+        <item>es</item>
     </string-array>
 
     <string-array name="xposed_scope">

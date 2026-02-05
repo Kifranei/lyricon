@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~ Copyright 2026 Proify, Tomakino
+  ~ Licensed under the Apache License, Version 2.0
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  -->
+
+<resources>
+    <string name="github_home" translatable="false">https://github.com/proify/lyricon</string>
+
+    <string name="ok" translatable="false">@android:string/ok</string>
+    <string name="yes" translatable="false">@android:string/yes</string>
+    <string name="no" translatable="false">@android:string/no</string>
+    <string name="cancel" translatable="false">@android:string/cancel</string>
+    <string name="copy" translatable="false">@android:string/copy</string>
+    <string name="paste" translatable="false">@android:string/paste</string>
+    <string name="module_status_summary" translatable="false">v%s</string>
+
+    <string name="unit_sp" translatable="false">sp</string>
+    <string name="unit_dp" translatable="false">dp</string>
+    <string name="unit_ms_px" translatable="false">ms/px</string>
+
+    <string name="item_app_version_summary" translatable="false">%s (%s) %s</string>
+    <string name="item_provider_info_secondary" translatable="false">%s, %s %s</string>
+</resources>

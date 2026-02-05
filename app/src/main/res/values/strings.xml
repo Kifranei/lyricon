@@ -6,14 +6,7 @@
 
 <resources>
     <string name="app_name">词幕</string>
-    <string name="github_home" translatable="false">https://github.com/proify/lyricon</string>
     <string name="xposed_description">为状态栏拓展歌词功能🎵</string>
-    <string name="ok" translatable="false">@android:string/ok</string>
-    <string name="yes" translatable="false">@android:string/yes</string>
-    <string name="no" translatable="false">@android:string/no</string>
-    <string name="cancel" translatable="false">@android:string/cancel</string>
-    <string name="copy" translatable="false">@android:string/copy</string>
-    <string name="paste" translatable="false">@android:string/paste</string>
     <string name="confirm">确定</string>
     <string name="save">保存</string>
     <string name="add">添加</string>
@@ -34,15 +27,11 @@
     <string name="module_status_not_activated">未激活</string>
     <string name="module_status_system_ui_safe_mode">系统界面异常，已禁用</string>
     <string name="module_status_waiting_for_reboot">待重启系统界面</string>
-    <string name="module_status_summary" formatted="true" translatable="false">v%s</string>
     <string name="restart_system_ui">重启系统界面</string>
     <string name="restart_app">重启软件</string>
     <string name="restart_fail">重启失败</string>
     <string name="message_app_restart_fail">请确认已授予 Root 权限</string>
     <string name="unit_ms">毫秒</string>
-    <string name="unit_sp" translatable="false">sp</string>
-    <string name="unit_dp" translatable="false">dp</string>
-    <string name="unit_ms_px" translatable="false">ms/px</string>
     <string name="activity_settings">设置</string>
     <string name="activity_about">关于</string>
     <string name="activity_anchor">锚点</string>
@@ -66,7 +55,6 @@
     <string name="add_package_config">添加包配置</string>
     <string name="item_app_version">版本</string>
     <string name="item_build_time">构建时间</string>
-    <string name="item_app_version_summary" formatted="true" translatable="false">%s (%s) %s</string>
     <string name="item_view_on_github">在 Github 上查看</string>
     <string name="item_open_source_license">开放源代码许可</string>
     <string name="section_music_apps">相关</string>
@@ -149,7 +137,6 @@
     <string name="rect_top">上边距</string>
     <string name="rect_right">右边距</string>
     <string name="rect_bottom">下边距</string>
-    <string name="item_provider_info_secondary" formatted="true" translatable="false">%s, %s %s</string>
     <string name="module_tag_syllable">动态歌词</string>
     <string name="module_tag_translation">翻译</string>
     <string name="no_provider_available">没有可用的歌词提供者</string>
