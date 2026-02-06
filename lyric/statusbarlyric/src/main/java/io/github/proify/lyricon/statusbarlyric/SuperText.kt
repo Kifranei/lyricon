@@ -23,30 +23,49 @@ import io.github.proify.lyricon.lyric.view.LyricPlayerView
 import java.io.File
 import kotlin.math.min
 
+/**
+ * 高级歌词文本渲染控件，支持逐字染色、跑马灯及间奏监听。
+ *
+ */
 class SuperText(context: Context) : LyricPlayerView(context) {
 
     companion object {
-        private const val TAG = "LyricPlayerView"
-        private const val DEBUG = true
         const val VIEW_TAG: String = "lyricon:text_view"
-        private const val FONT_WEIGHT_MAX: Int = 1000
+        private const val TAG = "SuperText"
+        private const val DEBUG = false
+        private const val MAX_FONT_WEIGHT: Int = 1000
     }
+
+    /**
+     * 关联的系统 TextView，用于同步默认的字体、字号等样式。
+     */
+    var linkedTextView: TextView? = null
+
+    /**
+     * 歌词事件监听器
+     */
+    var eventListener: EventListener? = null
 
     private var currentStatusColor = StatusColor(Color.BLACK, false, Color.TRANSPARENT)
     private var currentLyricStyle: LyricStyle? = null
+    private val syllableConfigCache = DefaultSyllableConfig()
 
-    var linkedTextView: TextView? = null
+    /**
+     * 事件监听接口
+     */
+    interface EventListener {
+        /** 进入间奏模式 */
+        fun enteringInterludeMode(duration: Long)
+
+        /** 退出间奏模式 */
+        fun exitInterludeMode()
+    }
 
     init {
         tag = VIEW_TAG
     }
 
-    var eventListener: EventListener? = null
-
-    interface EventListener {
-        fun enteringInterludeMode(duration: Long)
-        fun exitInterludeMode()
-    }
+    // --- 生命周期/重写方法 ---
 
     override fun enteringInterludeMode(duration: Long) {
         super.enteringInterludeMode(duration)
@@ -58,23 +77,36 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         eventListener?.exitInterludeMode()
     }
 
+    // --- 公开 API ---
+
+    /**
+     * 应用全量歌词样式。
+     *
+     * @param style 歌词样式配置
+     */
     fun applyStyle(style: LyricStyle) {
         this.currentLyricStyle = style
         val textStyle = style.packageStyle.text
-        setTransitionConfig(style.packageStyle.text.transitionConfig)
 
-        updateViewLayout(textStyle)
+        // 应用过渡配置
+        setTransitionConfig(textStyle.transitionConfig)
 
+        // 更新容器布局（Margin/Padding）
+        updateContainerLayout(textStyle)
+
+        // 配置核心样式
         val config = getStyle().apply {
-            val typeface = resolveTypeface(textStyle)
-            val fontSize =
-                if (textStyle.textSize > 0) textStyle.textSize.sp else (linkedTextView?.textSize
-                    ?: 14f.sp)
+            val resolvedTypeface = resolveTypeface(textStyle)
+            val fontSize = if (textStyle.textSize > 0) {
+                textStyle.textSize.sp
+            } else {
+                linkedTextView?.textSize ?: 14f.sp
+            }
 
             primary.apply {
                 this.textColor = resolvePrimaryColor(textStyle)
                 this.textSize = fontSize
-                this.typeface = typeface
+                this.typeface = resolvedTypeface
                 enableRelativeProgress = textStyle.relativeProgress
                 enableRelativeProgressHighlight = textStyle.relativeProgressHighlight
             }
@@ -82,7 +114,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             secondary.apply {
                 this.textColor = primary.textColor
                 this.textSize = fontSize * 0.8f
-                this.typeface = typeface
+                this.typeface = resolvedTypeface
             }
 
             this.marquee = buildMarqueeConfig(textStyle)
@@ -96,12 +128,20 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         setStyle(config)
     }
 
+    /**
+     * 更新状态栏颜色环境，同步刷新文本及染色颜色。
+     */
     fun setStatusBarColor(color: StatusColor) {
         this.currentStatusColor = color
-        refreshColors()
+        refreshVisualColors()
     }
 
-    private fun refreshColors() {
+    // --- 内部逻辑私有方法 ---
+
+    /**
+     * 仅刷新颜色相关的配置，不触发布局变更。
+     */
+    private fun refreshVisualColors() {
         val textStyle = currentLyricStyle?.packageStyle?.text ?: return
 
         val primaryColor = resolvePrimaryColor(textStyle)
@@ -114,19 +154,16 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         )
 
         if (DEBUG) {
-            Log.d(TAG, "Updating colors: $primaryColor")
+            Log.d(TAG, "Color refreshed: Primary=$primaryColor")
         }
     }
 
-    private fun updateViewLayout(textStyle: TextStyle) {
+    private fun updateContainerLayout(textStyle: TextStyle) {
         val margins = textStyle.margins
         val paddings = textStyle.paddings
 
         val params = (layoutParams as? MarginLayoutParams)
-            ?: MarginLayoutParams(
-                LayoutParams.MATCH_PARENT,
-                LayoutParams.WRAP_CONTENT
-            )
+            ?: MarginLayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
 
         params.setMargins(
             margins.left.dp,
@@ -147,17 +184,14 @@ class SuperText(context: Context) : LyricPlayerView(context) {
     private fun buildMarqueeConfig(textStyle: TextStyle) = DefaultMarqueeConfig().apply {
         scrollSpeed = textStyle.marqueeSpeed
         ghostSpacing = textStyle.marqueeGhostSpacing
-
         initialDelay = textStyle.marqueeInitialDelay
         loopDelay = textStyle.marqueeLoopDelay
-
         repeatCount = if (textStyle.marqueeRepeatUnlimited) -1 else textStyle.marqueeRepeatCount
         stopAtEnd = textStyle.marqueeStopAtEnd
     }
 
-    private val defaultSyllableConfigCache = DefaultSyllableConfig()
     private fun buildSyllableConfig(textStyle: TextStyle) =
-        defaultSyllableConfigCache.apply {
+        syllableConfigCache.apply {
             val customColor = textStyle.color(currentStatusColor.lightMode)
             val isCustomEnabled = textStyle.enableCustomTextColor && customColor != null
 
@@ -174,17 +208,15 @@ class SuperText(context: Context) : LyricPlayerView(context) {
 
     private fun resolvePrimaryColor(textStyle: TextStyle): Int {
         val customColor = textStyle.color(currentStatusColor.lightMode)
-        return if (textStyle.enableCustomTextColor
-            && customColor != null
-            && customColor.normal != 0
-        ) {
-            customColor.normal
+        return if (textStyle.enableCustomTextColor && customColor?.normal != 0) {
+            customColor?.normal ?: currentStatusColor.color
         } else {
             currentStatusColor.color
         }
     }
 
     private fun resolveTypeface(textStyle: TextStyle): Typeface {
+        // 1. 获取基础字体
         val baseTypeface = textStyle.typeFace?.takeIf { it.isNotBlank() }?.let { path ->
             val file = File(path)
             if (file.exists()) {
@@ -192,20 +224,21 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             } else null
         } ?: linkedTextView?.typeface ?: Typeface.DEFAULT
 
-        return if (textStyle.fontWeight > 0 && Build.VERSION.SDK_INT >= 28) {
+        // 2. 处理粗细和斜体
+        return if (textStyle.fontWeight > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             Typeface.create(
                 baseTypeface,
-                min(FONT_WEIGHT_MAX, textStyle.fontWeight),
+                min(MAX_FONT_WEIGHT, textStyle.fontWeight),
                 textStyle.typeFaceItalic
             )
         } else {
-            val style = when {
+            val styleFlag = when {
                 textStyle.typeFaceBold && textStyle.typeFaceItalic -> Typeface.BOLD_ITALIC
                 textStyle.typeFaceBold -> Typeface.BOLD
                 textStyle.typeFaceItalic -> Typeface.ITALIC
                 else -> Typeface.NORMAL
             }
-            Typeface.create(baseTypeface, style)
+            Typeface.create(baseTypeface, styleFlag)
         }
     }
 }

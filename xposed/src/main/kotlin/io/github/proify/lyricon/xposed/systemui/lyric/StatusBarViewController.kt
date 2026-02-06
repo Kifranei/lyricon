@@ -190,7 +190,7 @@ class StatusBarViewController(
     }
 
     override fun onScreenOn() {
-        lyricView.updateVisibility(true)
+        lyricView.updateVisibility()
         lyricView.sleepMode = false
     }
 
@@ -200,7 +200,7 @@ class StatusBarViewController(
     }
 
     override fun onScreenUnlocked() {
-        lyricView.updateVisibility(true)
+        lyricView.updateVisibility()
         lyricView.sleepMode = false
     }
 

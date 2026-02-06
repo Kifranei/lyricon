@@ -28,8 +28,8 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     OnColorChangeListener, OplusCapsuleHooker.CapsuleStateChangeListener,
     NotificationCoverHelper.OnCoverUpdateListener {
 
-    const val TAG = "LyricViewController"
-    private const val DEBUG = true
+    private const val TAG = "LyricViewController"
+    private const val DEBUG = false
 
     private const val MSG_PROVIDER_CHANGED = 1
     private const val MSG_SONG_CHANGED = 2
@@ -222,7 +222,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
         }
     }
 
-    inline fun forControllerEach(crossinline block: StatusBarViewController.() -> Unit) {
+    private inline fun forControllerEach(crossinline block: StatusBarViewController.() -> Unit) {
         StatusBarViewManager.forEach { controller ->
             try {
                 block(controller)
@@ -233,7 +233,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
         }
     }
 
-    inline fun forViewEach(crossinline block: StatusBarLyric.() -> Unit) {
+    private inline fun forViewEach(crossinline block: StatusBarLyric.() -> Unit) {
         forControllerEach {
             val view = lyricView
             block(view)
