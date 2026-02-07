@@ -51,7 +51,8 @@
    checked.
 3. **Reboot**: Restart the System UI or your device to apply the hooks.
 4. **Install Plugins**: Install the
-   appropriate [Lyric Plugin](https://github.com/proify/LyricProvider) for your specific music
+   appropriate [Lyric Plugin](https://github.com/proify/LyricProvider/blob/master/README-English.md)
+   for your specific music
    player.
 5. **Customize**: Open the Lyricon app to adjust the anchor position, width, and visual style in
    real-time.
