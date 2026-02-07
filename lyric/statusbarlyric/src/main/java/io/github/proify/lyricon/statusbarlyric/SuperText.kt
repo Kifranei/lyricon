@@ -113,7 +113,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
 
             secondary.apply {
                 this.textColor = primary.textColor
-                this.textSize = fontSize * 0.8f
+                this.textSize = fontSize * 0.76f
                 this.typeface = resolvedTypeface
             }
 
@@ -121,7 +121,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             this.syllable = buildSyllableConfig(textStyle)
 
             this.gradientProgressStyle = textStyle.gradientProgressStyle
-            scaleInMultiLine = textStyle.scaleInMultiLineMode
+            scaleInMultiLine = textStyle.scaleInMultiLine
             fadingEdgeLength = textStyle.fadingEdgeLength.coerceAtLeast(0).dp
         }
 

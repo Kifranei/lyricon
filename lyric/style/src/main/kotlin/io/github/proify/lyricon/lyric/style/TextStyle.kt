@@ -45,7 +45,7 @@ data class TextStyle(
 
     var relativeProgress: Boolean = Defaults.RELATIVE_PROGRESS,
     var relativeProgressHighlight: Boolean = Defaults.RELATIVE_PROGRESS_HIGHLIGHT,
-    var scaleInMultiLineMode: Float = Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE_MODE,
+    var scaleInMultiLine: Float = Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE,
 
     var transitionConfig: String? = Defaults.TRANSITION_CONFIG,
 ) : AbstractStyle(), Parcelable {
@@ -55,13 +55,12 @@ data class TextStyle(
         const val TRANSITION_CONFIG_SMOOTH: String = "smooth"
         const val TRANSITION_CONFIG_SLOW: String = "slow"
         const val TRANSITION_CONFIG_NONE = "none"
-
     }
 
     object Defaults {
         const val TRANSITION_CONFIG: String = TRANSITION_CONFIG_SMOOTH
 
-        const val TEXT_SIZE_RATIO_IN_MULTI_LINE_MODE: Float = 1f
+        const val TEXT_SIZE_RATIO_IN_MULTI_LINE: Float = 0.86f
         const val RELATIVE_PROGRESS: Boolean = true
         const val RELATIVE_PROGRESS_HIGHLIGHT: Boolean = false
 
@@ -159,9 +158,9 @@ data class TextStyle(
             "lyric_style_text_relative_progress_highlight",
             Defaults.RELATIVE_PROGRESS_HIGHLIGHT
         )
-        scaleInMultiLineMode = preferences.getFloat(
+        scaleInMultiLine = preferences.getFloat(
             "lyric_style_text_size_ratio_in_multi_line_mode",
-            Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE_MODE
+            Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE
         )
 
         transitionConfig = preferences.getString(
@@ -205,7 +204,7 @@ data class TextStyle(
         )
         editor.putFloat(
             "lyric_style_text_size_ratio_in_multi_line_mode",
-            scaleInMultiLineMode
+            scaleInMultiLine
         )
 
         editor.putString(
