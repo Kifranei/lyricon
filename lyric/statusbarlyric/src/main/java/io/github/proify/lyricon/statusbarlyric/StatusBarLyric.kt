@@ -11,7 +11,7 @@ import android.annotation.SuppressLint
 import android.app.KeyguardManager
 import android.content.Context
 import android.graphics.Color
-import android.os.SystemClock
+import android.os.Handler
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -26,15 +26,10 @@ import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LogoStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
+import io.github.proify.lyricon.lyric.view.LyricPlayerView
 import io.github.proify.lyricon.lyric.view.util.LayoutTransitionX
-import io.github.proify.lyricon.lyric.view.util.visibilityIfChanged
+import io.github.proify.lyricon.lyric.view.util.visibleIfChanged
 
-/**
- * 状态栏歌词容器视图
- *
- * @property initialStyle 初始歌词样式
- * @property linkedTextView 关联的 TextView，用于同步某些状态
- */
 @SuppressLint("ViewConstructor")
 class StatusBarLyric(
     context: Context,
@@ -64,58 +59,88 @@ class StatusBarLyric(
         }
     }
 
-    // --- 状态属性 ---
+    // --- 对外状态 ---
 
     var currentStatusColor: StatusColor = StatusColor(Color.BLACK, false, Color.GRAY)
         private set
 
-    var sleepMode: Boolean = false
+    var isSleepMode: Boolean = false
         set(value) {
             if (field == value) return
             field = value
             Log.d(TAG, "休眠模式：$value")
             if (value) {
-                pendingDataWhileAsleep = PendingData()
+                pendingSleepData = PendingData()
             } else {
-                pendingDataWhileAsleep?.let { seekTo(it.position) }
-                pendingDataWhileAsleep = null
+                pendingSleepData?.let { seekTo(it.position) }
+                pendingSleepData = null
             }
         }
+
+    // --- 样式 / 播放状态 ---
 
     private var currentStyle: LyricStyle = initialStyle
     private var isPlaying: Boolean = false
     private var isOplusCapsuleShowing: Boolean = false
+
+    // 上一次 Logo gravity，用于避免重复重排
     private var lastLogoGravity: Int = -114
-    private var pendingDataWhileAsleep: PendingData? = null
+
+    // 休眠期间缓存的进度数据
+    private var pendingSleepData: PendingData? = null
+
+    // --- 歌词内容与超时状态 ---
+
     private var hasLyricContent: Boolean = false
-    private var noLyricSinceUptimeMs: Long? = null
-    private var noLyricTimeoutReached: Boolean = false
-    private var noLyricTimeoutToken: Int = 0
-    private var noLyricTimeoutRunnable: Runnable? = null
+    private var lyricTimedOut: Boolean = false
 
-    // --- 辅助组件 ---
+    // 主线程调度器
+    private val mainHandler: Handler = Handler(context.mainLooper)
 
-    private val keyguardManager by lazy {
+    // 当前生效的超时 Runnable
+    private var lyricTimeoutTask: Runnable? = null
+
+    // --- 系统 / 辅助组件 ---
+
+    private val keyguardManager: KeyguardManager by lazy {
         context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
     }
 
     /**
-     * 单次布局过渡动画处理器
+     * 单次布局变更动画
+     * 用于样式或尺寸突变时的过渡
      */
     private val singleLayoutTransition: LayoutTransition = LayoutTransitionX().apply {
         addTransitionListener(object : LayoutTransition.TransitionListener {
-            override fun startTransition(p0: LayoutTransition, p1: ViewGroup, p2: View, p3: Int) {}
-            override fun endTransition(p0: LayoutTransition?, p1: ViewGroup?, p2: View?, p3: Int) {
+
+            override fun startTransition(
+                transition: LayoutTransition?, container: ViewGroup?,
+                view: View?, transitionType: Int
+            ) = Unit
+
+            override fun endTransition(
+                transition: LayoutTransition?, container: ViewGroup?,
+                view: View?, transitionType: Int
+            ) {
                 disableTransitionType(LayoutTransition.CHANGING)
                 layoutTransition = null
             }
         })
     }
 
+    // TextView 子视图结构变化监听，用于刷新可见性
     private val textHierarchyChangeListener = object : OnHierarchyChangeListener {
         override fun onChildViewAdded(parent: View?, child: View?) = updateVisibility()
         override fun onChildViewRemoved(parent: View?, child: View?) = updateVisibility()
     }
+
+    // 歌词行数变化监听，用于重置超时逻辑
+    private val lyricCountChangeListener =
+        object : LyricPlayerView.LyricCountChangeListener {
+            override fun onLyricCountChanged(newCount: Int, removeCount: Int) {
+                refreshLyricTimeoutState()
+            }
+        }
 
     init {
         tag = VIEW_TAG
@@ -123,20 +148,22 @@ class StatusBarLyric(
         visibility = GONE
         layoutTransition = null
 
-        addView(textView, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-            weight = 1f
-        })
+        addView(
+            textView,
+            LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+                weight = 1f
+            }
+        )
 
         updateLogoLocation()
         applyInitialStyle(initialStyle)
+
         textView.setOnHierarchyChangeListener(textHierarchyChangeListener)
+        textView.lyricCountChangeListeners += lyricCountChangeListener
     }
 
     // --- 公开 API ---
 
-    /**
-     * 更新歌词样式
-     */
     fun updateStyle(style: LyricStyle) {
         triggerSingleTransition()
         currentStyle = style
@@ -144,79 +171,60 @@ class StatusBarLyric(
         updateLogoLocation()
         textView.applyStyle(style)
         updateLayoutConfig(style)
-        updateNoLyricState(hasLyricContent)
+
+        refreshLyricTimeoutState()
         requestLayout()
     }
 
-    /**
-     * 设置状态栏颜色适配
-     */
     fun setStatusBarColor(color: StatusColor) {
         currentStatusColor = color
         logoView.setStatusBarColor(color)
         textView.setStatusBarColor(color)
     }
 
-    /**
-     * 设置播放状态并更新可见性
-     */
     fun setPlaying(playing: Boolean) {
         this.isPlaying = playing
-        updateNoLyricState(hasLyricContent)
+        refreshLyricTimeoutState()
         updateVisibility()
     }
 
-    /**
-     * 更新视图可见性逻辑
-     */
     fun updateVisibility() {
         val isLocked = keyguardManager.isKeyguardLocked
         val hideOnLockScreen = currentStyle.basicStyle.hideOnLockScreen && isLocked
         val shouldShow =
-            isPlaying && !hideOnLockScreen && textView.isNotEmpty() && !noLyricTimeoutReached
+            isPlaying && !hideOnLockScreen && textView.isNotEmpty() && !lyricTimedOut
 
-        visibilityIfChanged = if (shouldShow) VISIBLE else GONE
+        visibleIfChanged = shouldShow
     }
 
-    /**
-     * 设置当前歌曲
-     */
     fun setSong(song: Song?) {
         textView.song = song
-        hasLyricContent = !(song?.lyrics.isNullOrEmpty())
-        updateNoLyricState(hasLyricContent)
+        hasLyricContent = !song?.lyrics.isNullOrEmpty()
+        refreshLyricTimeoutState()
     }
 
-    /**
-     * 直接更新文本内容
-     */
-    fun updateText(text: String?) {
+    fun setText(text: String?) {
         textView.text = text
         hasLyricContent = !text.isNullOrBlank()
-        updateNoLyricState(hasLyricContent)
+        refreshLyricTimeoutState()
     }
 
-    /**
-     * 跳转至指定进度
-     */
     fun seekTo(position: Long) {
+        if (isSleepMode) {
+            pendingSleepData?.position = position
+            return
+        }
         textView.seekTo(position)
     }
 
-    /**
-     * 更新当前进度
-     */
-    fun updatePosition(position: Long) {
-        if (sleepMode) {
-            pendingDataWhileAsleep?.position = position
+    fun setPosition(position: Long) {
+        if (isSleepMode) {
+            pendingSleepData?.position = position
             return
         }
         textView.setPosition(position)
     }
 
-    /**
-     * 更新翻译/罗马音显示配置
-     */
     fun updateDisplayTranslation(
         displayTranslation: Boolean = textView.isDisplayTranslation,
         displayRoma: Boolean = textView.isDisplayRoma
@@ -224,9 +232,6 @@ class StatusBarLyric(
         textView.updateDisplayTranslation(displayTranslation, displayRoma)
     }
 
-    /**
-     * 设置 ColorOS 胶囊状态
-     */
     fun setOplusCapsuleVisibility(visible: Boolean) {
         isOplusCapsuleShowing = visible
         triggerSingleTransition()
@@ -234,7 +239,7 @@ class StatusBarLyric(
         logoView.oplusCapsuleShowing = visible
     }
 
-    // --- 内部私有方法 ---
+    // --- 内部逻辑 ---
 
     private fun applyInitialStyle(style: LyricStyle) {
         currentStyle = style
@@ -281,17 +286,25 @@ class StatusBarLyric(
     }
 
     private fun updateWidthInternal(style: LyricStyle) {
-        ensureMarginLayoutParams().width = calculateTargetWidth(style.basicStyle).dp
+        ensureMarginLayoutParams().width =
+            calculateTargetWidth(style.basicStyle).dp
         requestLayout()
     }
 
     private fun calculateTargetWidth(basicStyle: BasicStyle): Float {
-        return if (isOplusCapsuleShowing) basicStyle.widthInColorOSCapsuleMode else basicStyle.width
+        return if (isOplusCapsuleShowing) {
+            basicStyle.widthInColorOSCapsuleMode
+        } else {
+            basicStyle.width
+        }
     }
 
     private fun ensureMarginLayoutParams(): MarginLayoutParams {
         val lp = layoutParams as? MarginLayoutParams
-            ?: MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.MATCH_PARENT)
+            ?: MarginLayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.MATCH_PARENT
+            )
         if (layoutParams == null) layoutParams = lp
         return lp
     }
@@ -301,54 +314,40 @@ class StatusBarLyric(
         layoutTransition = singleLayoutTransition
     }
 
-    private fun updateNoLyricState(hasLyric: Boolean) {
-        val timeoutSeconds = currentStyle.basicStyle.hideWhenNoLyricAfterSeconds
+    private fun refreshLyricTimeoutState() {
+        resetLyricTimeout()
 
-        if (!isPlaying || timeoutSeconds <= 0 || hasLyric) {
-            noLyricTimeoutReached = false
-            clearNoLyricTimeout()
-            updateVisibility()
-            return
+        val hideWhenNoLyricAfterSeconds =
+            currentStyle.basicStyle.hideWhenNoLyricAfterSeconds
+        val hideWhenNoUpdateAfterSeconds =
+            currentStyle.basicStyle.hideWhenNoUpdateAfterSeconds
+
+        val hideWhenNoLyric = hideWhenNoLyricAfterSeconds > 0
+        val hideWhenNoUpdate = hideWhenNoUpdateAfterSeconds > 0
+
+        val timeout = when {
+            hideWhenNoLyric && !hasLyricContent -> hideWhenNoLyricAfterSeconds
+            hideWhenNoUpdate && hasLyricContent -> hideWhenNoUpdateAfterSeconds
+            else -> -1
         }
 
-        if (noLyricSinceUptimeMs == null) {
-            noLyricSinceUptimeMs = SystemClock.uptimeMillis()
+        if (timeout > 0) {
+            val task = Runnable {
+                lyricTimedOut = true
+                updateVisibility()
+            }
+            lyricTimeoutTask = task
+            mainHandler.postDelayed(task, timeout * 1000L)
         }
 
-        val deadlineMs = noLyricSinceUptimeMs!! + timeoutSeconds * 1000L
-        val remainingMs = deadlineMs - SystemClock.uptimeMillis()
-
-        if (remainingMs <= 0L) {
-            noLyricTimeoutReached = true
-            clearNoLyricTimeout()
-            updateVisibility()
-            return
-        }
-
-        scheduleNoLyricTimeout(remainingMs)
         updateVisibility()
     }
 
-    private fun scheduleNoLyricTimeout(delayMs: Long) {
-        val token = ++noLyricTimeoutToken
-        noLyricTimeoutRunnable?.let { removeCallbacks(it) }
-        noLyricTimeoutRunnable = Runnable {
-            if (token != noLyricTimeoutToken) return@Runnable
-            noLyricTimeoutReached = true
-            updateVisibility()
-        }
-        postDelayed(noLyricTimeoutRunnable, delayMs)
+    private fun resetLyricTimeout() {
+        lyricTimedOut = false
+        lyricTimeoutTask?.let { mainHandler.removeCallbacks(it) }
+        lyricTimeoutTask = null
     }
 
-    private fun clearNoLyricTimeout() {
-        noLyricSinceUptimeMs = null
-        noLyricTimeoutToken++
-        noLyricTimeoutRunnable?.let { removeCallbacks(it) }
-        noLyricTimeoutRunnable = null
-    }
-
-    /**
-     * 休眠期间暂存的数据结构
-     */
     private class PendingData(var position: Long = 0)
 }

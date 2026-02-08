@@ -27,15 +27,10 @@
     <string name="module_status_not_activated">활성화되지 않음</string>
     <string name="module_status_system_ui_safe_mode">SystemUI 오류, 비활성화됨</string>
     <string name="module_status_waiting_for_reboot">SystemUI 재시작 대기 중</string>
-    <string name="module_status_summary">v%s</string>
     <string name="restart_system_ui">SystemUI 재시작</string>
     <string name="restart_app">앱 재시작</string>
     <string name="restart_fail">재시작 실패</string>
     <string name="message_app_restart_fail">Root 권한이 있는지 확인하세요</string>
-    <string name="unit_ms">ms</string>
-    <string name="unit_sp">sp</string>
-    <string name="unit_dp">dp</string>
-    <string name="unit_ms_px">ms/px</string>
     <string name="activity_settings">설정</string>
     <string name="activity_about">정보</string>
     <string name="activity_anchor">앵커</string>
@@ -59,7 +54,6 @@
     <string name="add_package_config">패키지 구성 추가</string>
     <string name="item_app_version">버전</string>
     <string name="item_build_time">빌드 시간</string>
-    <string name="item_app_version_summary">%s (%s) %s</string>
     <string name="item_view_on_github">GitHub에서 보기</string>
     <string name="item_open_source_license">오픈 소스 라이선스</string>
     <string name="section_music_apps">관련</string>
@@ -142,7 +136,6 @@
     <string name="rect_top">위쪽</string>
     <string name="rect_right">오른쪽</string>
     <string name="rect_bottom">아래쪽</string>
-    <string name="item_provider_info_secondary">%s, %s %s</string>
     <string name="module_tag_syllable">다이내믹</string>
     <string name="module_tag_translation">번역</string>
     <string name="no_provider_available">사용 가능한 가사 제공자 없음</string>
@@ -154,4 +147,8 @@
     <string name="item_text_fading_edge_length">페이드 에지 길이</string>
     <string name="item_app_backup">백업</string>
     <string name="item_app_restore">복구</string>
+    <string name="item_base_hide_when_no_lyric_after_seconds">가사 없으면 타임아웃 숨김</string>
+    <string name="option_no_lyric_timeout_never">숨기지 않음</string>
+    <string name="item_base_hide_when_no_update_after_seconds">업데이트 없으면 타임아웃 숨김</string>
+    <string name="option_no_update_timeout_never">숨기지 않음</string>
 </resources>

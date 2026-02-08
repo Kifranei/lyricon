@@ -173,7 +173,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
                 MSG_PLAYBACK_STATE -> view.setPlaying(msg.arg1 == 1)
                 MSG_POSITION -> {
                     val pos = (msg.arg1.toLong() shl 32) or (msg.arg2.toLong() and 0xFFFFFFFFL)
-                    view.updatePosition(pos)
+                    view.setPosition(pos)
                 }
 
                 MSG_SEEK_TO -> {
@@ -181,7 +181,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
                     view.seekTo(pos)
                 }
 
-                MSG_SEND_TEXT -> view.updateText(msg.obj as? String)
+                MSG_SEND_TEXT -> view.setText(msg.obj as? String)
                 MSG_TRANSLATION_TOGGLE -> view.updateDisplayTranslation(displayTranslation = msg.arg1 == 1)
                 MSG_SHOW_ROMA -> view.updateDisplayTranslation(displayRoma = msg.arg1 == 1)
             }

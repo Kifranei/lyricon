@@ -31,7 +31,6 @@
     <string name="restart_app">Reiniciar aplicación</string>
     <string name="restart_fail">Error al reiniciar</string>
     <string name="message_app_restart_fail">Asegúrese de haber concedido permisos de Root</string>
-    <string name="unit_ms">ms</string>
     <string name="activity_settings">Ajustes</string>
     <string name="activity_about">Acerca de</string>
     <string name="activity_anchor">Anclaje</string>
@@ -148,4 +147,8 @@
     <string name="item_text_fading_edge_length">Longitud de desvanecimiento</string>
     <string name="item_app_backup">Copia de seguridad</string>
     <string name="item_app_restore">Restaurar</string>
+    <string name="item_base_hide_when_no_lyric_after_seconds">Ocultar al expirar letra</string>
+    <string name="option_no_lyric_timeout_never">Nunca ocultar</string>
+    <string name="item_base_hide_when_no_update_after_seconds">Ocultar al expirar actualización</string>
+    <string name="option_no_update_timeout_never">Nunca ocultar</string>
 </resources>

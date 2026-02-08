@@ -17,7 +17,7 @@ extra["appVersionCode"] = 15
 extra["appVersionName"] = "1.0.10"
 extra["compileSdkVersion"] = 36
 extra["targetSdkVersion"] = 36
-extra["minSdkVersion"] = 28
+extra["minSdkVersion"] = 27
 extra["buildTime"] = System.currentTimeMillis()
 
 extra["providerSdkVersion"] = "0.1.68"

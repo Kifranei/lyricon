@@ -31,7 +31,6 @@
     <string name="restart_app">重启软件</string>
     <string name="restart_fail">重启失败</string>
     <string name="message_app_restart_fail">请确认已授予 Root 权限</string>
-    <string name="unit_ms">毫秒</string>
     <string name="activity_settings">设置</string>
     <string name="activity_about">关于</string>
     <string name="activity_anchor">锚点</string>
@@ -141,9 +140,6 @@
     <string name="module_tag_translation">翻译</string>
     <string name="no_provider_available">没有可用的歌词提供者</string>
     <string name="item_base_lockscreen_hidden">在锁屏界面隐藏</string>
-    <string name="item_base_hide_when_no_lyric_after_seconds">无歌词超时隐藏</string>
-    <string name="option_no_lyric_timeout_never">不隐藏</string>
-    <string name="format_no_lyric_timeout_seconds">%1$d 秒</string>
     <string name="option_provider_list_full">完整</string>
     <string name="option_provider_list_short">精简</string>
     <string name="no_query_app_permission">请授予读取应用权限</string>
@@ -152,4 +148,8 @@
     <string name="item_app_backup">备份</string>
     <string name="item_app_restore">恢复</string>
 
+    <string name="item_base_hide_when_no_lyric_after_seconds">无歌词超时隐藏</string>
+    <string name="option_no_lyric_timeout_never">不隐藏</string>
+    <string name="item_base_hide_when_no_update_after_seconds">无更新超时隐藏</string>
+    <string name="option_no_update_timeout_never">不隐藏</string>
 </resources>

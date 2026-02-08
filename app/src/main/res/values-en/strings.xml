@@ -31,15 +31,11 @@
     <string name="restart_app">Restart App</string>
     <string name="restart_fail">Restart failed</string>
     <string name="message_app_restart_fail">Please ensure Root permission is granted</string>
-    <string name="unit_ms">ms</string>
-    <string name="unit_sp">sp</string>
-    <string name="unit_dp">dp</string>
-    <string name="unit_ms_px">ms/px</string>
     <string name="activity_settings">Settings</string>
     <string name="activity_about">About</string>
     <string name="activity_anchor">Anchor</string>
     <string name="activity_view_rules">View Rules</string>
-    <string name="activity_base_lyric_style">Base Configuration</string>
+    <string name="activity_base_lyric_style">Base Configs</string>
     <string name="activity_package_style_manager">Manage Package Configs</string>
     <string name="activity_lyric_provider">Lyric Providers</string>
     <string name="activity_open_source_license">Open Source Licenses</string>
@@ -62,12 +58,12 @@
     <string name="item_open_source_license">Open Source Licenses</string>
     <string name="section_music_apps">Related</string>
     <string name="section_other_apps">Other</string>
-    <string name="option_language_follow_system">Follow System</string>
+    <string name="option_language_follow_system">System</string>
     <string name="item_app_language">Language</string>
     <string name="item_app_theme_mode">Theme Mode</string>
     <string name="option_app_theme_mode_light">Light</string>
     <string name="option_app_theme_mode_dark">Dark</string>
-    <string name="option_app_theme_mode_system">Follow System</string>
+    <string name="option_app_theme_mode_system">System</string>
     <string name="item_app_theme_monet_color">Monet Color</string>
     <string name="tab_style_text">Text</string>
     <string name="tab_style_icon">Icon</string>
@@ -144,9 +140,6 @@
     <string name="module_tag_translation">Translation</string>
     <string name="no_provider_available">No lyric providers available</string>
     <string name="item_base_lockscreen_hidden">Hide on lock screen</string>
-    <string name="item_base_hide_when_no_lyric_after_seconds">Hide when no lyrics</string>
-    <string name="option_no_lyric_timeout_never">Never</string>
-    <string name="format_no_lyric_timeout_seconds">%1$d s</string>
     <string name="option_provider_list_full">Full</string>
     <string name="option_provider_list_short">Compact</string>
     <string name="no_query_app_permission">Please grant permission to read apps</string>
@@ -154,4 +147,9 @@
     <string name="item_text_fading_edge_length">Fading edge length</string>
     <string name="item_app_backup">Backup</string>
     <string name="item_app_restore">Restore</string>
+
+    <string name="item_base_hide_when_no_lyric_after_seconds">Hide on lyric timeout</string>
+    <string name="option_no_lyric_timeout_never">Never hide</string>
+    <string name="item_base_hide_when_no_update_after_seconds">Hide on update timeout</string>
+    <string name="option_no_update_timeout_never">Never hide</string>
 </resources>

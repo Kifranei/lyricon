@@ -19,26 +19,26 @@ import kotlin.math.roundToInt
 fun ViewGroup.getChildAtOrNull(index: Int): View? =
     if (index in 0..<size) getChildAt(index) else null
 
+
 var View.visibilityIfChanged: Int
     get() = visibility
     set(value) {
         if (visibility != value) visibility = value
     }
 
-internal fun View.hide() {
+fun View.hide() {
     if (visibility != View.GONE) visibility = View.GONE
 }
 
-internal fun View.show() {
+fun View.show() {
     if (visibility != View.VISIBLE) visibility = View.VISIBLE
 }
 
-internal inline var View.visibleIfChanged: Boolean
+inline var View.visibleIfChanged: Boolean
     get() = isVisible
     set(value) {
         if (isVisible != value) isVisible = value
     }
-
 
 internal inline val Int.dp: Int
     get() = toFloat().dp.roundToInt()

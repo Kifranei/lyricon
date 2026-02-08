@@ -83,10 +83,10 @@ fun LogoPage(
                 InputPreference(
                     sharedPreferences = sharedPreferences,
                     key = "lyric_style_logo_width",
+                    title = stringResource(R.string.item_logo_size),
                     syncKeys = arrayOf("lyric_style_logo_height"),
                     inputType = InputType.DOUBLE,
                     maxValue = 100.0,
-                    title = stringResource(R.string.item_logo_size),
                     leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
                 )
                 RectInputPreference(

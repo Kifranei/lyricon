@@ -67,9 +67,9 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                 InputPreference(
                     sharedPreferences = sharedPreferences,
                     key = "lyric_style_text_size",
+                    title = stringResource(R.string.item_text_size),
                     inputType = InputType.DOUBLE,
                     maxValue = 100.0,
-                    title = stringResource(R.string.item_text_size),
                     leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
                 )
                 RectInputPreference(
@@ -90,11 +90,11 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                 InputPreference(
                     sharedPreferences = sharedPreferences,
                     key = "lyric_style_text_size_ratio_in_multi_line_mode",
-                    inputType = InputType.DOUBLE,
+                    title = stringResource(R.string.item_text_size_scale_in_multi_line),
                     defaultValue = TextStyle.Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE.toString(),
+                    inputType = InputType.DOUBLE,
                     minValue = 0.1,
                     maxValue = 1.0,
-                    title = stringResource(R.string.item_text_size_scale_in_multi_line),
                     leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
                 )
                 TransitionConfigPreference(sharedPreferences)
@@ -102,9 +102,9 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                 InputPreference(
                     sharedPreferences = sharedPreferences,
                     key = "lyric_style_text_fading_edge_length",
+                    title = stringResource(R.string.item_text_fading_edge_length),
                     inputType = InputType.DOUBLE,
                     maxValue = 100.0,
-                    title = stringResource(R.string.item_text_fading_edge_length),
                     leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
                 )
                 SwitchPreference(
@@ -177,10 +177,10 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
 
                 InputPreference(
                     sharedPreferences = sharedPreferences,
-                    inputType = InputType.INTEGER,
-                    maxValue = 1000.0,
                     key = "lyric_style_text_weight",
                     title = stringResource(R.string.item_text_font_weight),
+                    inputType = InputType.INTEGER,
+                    maxValue = 1000.0,
                     leftAction = { IconActions(painterResource(R.drawable.ic_fontdownload)) },
                 )
 
@@ -248,21 +248,21 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     .fillMaxWidth(),
             ) {
                 InputPreference(
-                    defaultValue = TextStyle.Defaults.MARQUEE_SPEED.toString(),
                     sharedPreferences = sharedPreferences,
                     key = "lyric_style_text_marquee_speed",
-                    inputType = InputType.INTEGER,
-                    maxValue = 300.0,
                     title = stringResource(R.string.item_text_marquee_speed),
+                    defaultValue = TextStyle.Defaults.MARQUEE_SPEED.toString(),
+                    inputType = InputType.INTEGER,
+                    maxValue = 500.0,
                     leftAction = { IconActions(painterResource(R.drawable.ic_speed)) },
                 )
                 InputPreference(
-                    defaultValue = TextStyle.Defaults.MARQUEE_GHOST_SPACING.toString(),
                     sharedPreferences = sharedPreferences,
                     key = "lyric_style_text_marquee_space",
+                    title = stringResource(R.string.item_text_marquee_space),
+                    defaultValue = TextStyle.Defaults.MARQUEE_GHOST_SPACING.toString(),
                     inputType = InputType.INTEGER,
                     maxValue = 1000.0,
-                    title = stringResource(R.string.item_text_marquee_space),
                     leftAction = { IconActions(painterResource(R.drawable.ic_space_bar)) },
                 )
 //                SwitchPreference(
@@ -272,22 +272,24 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
 //                    leftAction = { IconActions(painterResource(R.drawable.ic_timer)) },
 //                )
                 InputPreference(
-                    defaultValue = TextStyle.Defaults.MARQUEE_INITIAL_DELAY.toString(),
                     sharedPreferences = sharedPreferences,
                     key = "lyric_style_text_marquee_initial_delay",
-                    inputType = InputType.INTEGER,
-                    maxValue = 5000.0,
                     title = stringResource(R.string.item_text_marquee_initial_delay),
+                    defaultValue = TextStyle.Defaults.MARQUEE_INITIAL_DELAY.toString(),
+                    inputType = InputType.INTEGER,
+                    maxValue = 3600000.0,
                     leftAction = { IconActions(painterResource(R.drawable.ic_autopause)) },
+                    isTimeUnit = true,
                 )
                 InputPreference(
-                    defaultValue = TextStyle.Defaults.MARQUEE_LOOP_DELAY.toString(),
                     sharedPreferences = sharedPreferences,
                     key = "lyric_style_text_marquee_loop_delay",
-                    inputType = InputType.INTEGER,
-                    maxValue = 5000.0,
                     title = stringResource(R.string.item_text_marquee_delay),
+                    defaultValue = TextStyle.Defaults.MARQUEE_LOOP_DELAY.toString(),
+                    inputType = InputType.INTEGER,
+                    maxValue = 3600000.0,
                     leftAction = { IconActions(painterResource(R.drawable.ic_autopause)) },
+                    isTimeUnit = true,
                 )
                 SwitchPreference(
                     defaultValue = TextStyle.Defaults.MARQUEE_REPEAT_UNLIMITED,
@@ -300,10 +302,10 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     sharedPreferences = sharedPreferences,
                     key = "lyric_style_text_marquee_repeat_count",
                     //defaultValue = TextStyle.Defaults.MARQUEE_REPEAT_COUNT.toString(),
-                    inputType = InputType.INTEGER,
-                    minValue = -1.0,
-                    maxValue = 100.0,
                     title = stringResource(R.string.item_text_marquee_repeat_count),
+                    inputType = InputType.INTEGER,
+                    minValue = 0.0,
+                    maxValue = 3600000.0,
                     leftAction = { IconActions(painterResource(R.drawable.ic_pin)) },
                 )
                 SwitchPreference(
@@ -341,6 +343,7 @@ private fun TransitionConfigPreference(preferences: SharedPreferences) {
             values.indexOf(config)
         )
     }
+
     SuperDropdown(
         leftAction = { IconActions(painterResource(R.drawable.ic_speed)) },
         title = stringResource(R.string.item_text_transition_config),

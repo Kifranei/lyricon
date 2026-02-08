@@ -191,17 +191,17 @@ class StatusBarViewController(
 
     override fun onScreenOn() {
         lyricView.updateVisibility()
-        lyricView.sleepMode = false
+        lyricView.isSleepMode = false
     }
 
     override fun onScreenOff() {
         lyricView.updateVisibility()
-        lyricView.sleepMode = true
+        lyricView.isSleepMode = true
     }
 
     override fun onScreenUnlocked() {
         lyricView.updateVisibility()
-        lyricView.sleepMode = false
+        lyricView.isSleepMode = false
     }
 
     // --- 通用重写 ---

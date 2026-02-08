@@ -41,6 +41,8 @@ import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentCol
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentDefaults
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
+import io.github.proify.lyricon.app.util.AppLangUtils
+import io.github.proify.lyricon.app.util.TimeFormatter
 import io.github.proify.lyricon.app.util.editCommit
 import kotlinx.coroutines.delay
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -76,7 +78,9 @@ fun InputPreference(
     insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
     onClick: (() -> Unit)? = null,
     holdDownState: Boolean = false,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    isTimeUnit: Boolean = false,
+    formatMultiplier: Int = 1
 ) {
     val fixDefaultValue = if (inputType == InputType.INTEGER && defaultValue?.contains(".") == true)
         defaultValue.substringBefore(".")
@@ -88,10 +92,22 @@ fun InputPreference(
 
     var showDialog by remember { mutableStateOf(false) }
 
+    val finalSummary = when {
+        isTimeUnit && inputType == InputType.INTEGER -> {
+            val value = currentSummary.toLongOrNull()
+            if (value != null) TimeFormatter.formatTime(
+                value * formatMultiplier,
+                AppLangUtils.getLocale()
+            ) else currentSummary
+        }
+
+        else -> currentSummary
+    }
+
     SuperArrow(
         title = title,
         titleColor = titleColor,
-        summary = currentSummary,
+        summary = finalSummary,
         summaryColor = summaryColor,
         leftAction = leftAction,
         rightActions = rightActions,
@@ -125,10 +141,13 @@ fun InputPreference(
                             remove(syncKey)
                         }
                     } else {
-                        putString(key, newValue)
+                        val value = when (inputType) {
+                            else -> newValue
+                        }
 
+                        putString(key, value)
                         for (syncKey in syncKeys) {
-                            putString(syncKey, newValue)
+                            putString(syncKey, value)
                         }
                     }
                 }
@@ -296,8 +315,8 @@ private fun validateInput(
     return when (inputType) {
         InputType.STRING -> true
         InputType.INTEGER -> {
-            val num = text.toIntOrNull()
-            num != null && (max <= min || num in min.toInt()..max.toInt())
+            val num = text.toDoubleOrNull()
+            num != null && (max <= min || num in min..max)
         }
 
         InputType.DOUBLE -> {
