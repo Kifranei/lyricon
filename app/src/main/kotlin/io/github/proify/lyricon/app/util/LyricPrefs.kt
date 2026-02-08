@@ -90,4 +90,21 @@ object LyricPrefs {
         val json = basicStylePrefs.getString("lyric_style_base_visibility_rules", null)
         return json?.fromJson<List<VisibilityRule>>() ?: emptyList()
     }
+
+    fun setLyricTextBlacklist(texts: List<String>?) {
+        val normalized =
+            texts.orEmpty().map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+        basicStylePrefs.editCommit {
+            if (normalized.isEmpty()) {
+                remove("lyric_style_base_lyric_text_blacklist")
+            } else {
+                putString("lyric_style_base_lyric_text_blacklist", normalized.toJson())
+            }
+        }
+    }
+
+    fun getLyricTextBlacklist(): List<String> {
+        val jsonString = basicStylePrefs.getString("lyric_style_base_lyric_text_blacklist", null)
+        return json.safeDecode<List<String>>(jsonString).map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+    }
 }

@@ -40,6 +40,7 @@
     <string name="activity_anchor">錨點</string>
     <string name="activity_view_rules">視圖控制器</string>
     <string name="activity_base_lyric_style">基本配置</string>
+    <string name="activity_lyric_text_blacklist">歌詞文字黑名單</string>
     <string name="activity_package_style_manager">管理包配置</string>
     <string name="activity_lyric_provider">歌詞提供者</string>
     <string name="activity_open_source_license">開放原始碼授權</string>
@@ -147,6 +148,11 @@
     <string name="item_base_hide_when_no_lyric_after_seconds">無歌詞超時隱藏</string>
     <string name="option_no_lyric_timeout_never">不隱藏</string>
     <string name="format_no_lyric_timeout_seconds">%1$d 秒</string>
+    <string name="item_base_lyric_text_blacklist">歌詞文字黑名單</string>
+    <string name="item_summary_lyric_text_blacklist">每行一條，匹配到的文字將按無歌詞處理（不會在狀態欄顯示）</string>
+    <string name="option_blacklist_empty">未設定</string>
+    <string name="format_blacklist_item_count">%1$d 條</string>
+    <string name="hint_lyric_text_blacklist_placeholder">例如：暫無歌詞\n純音樂，請欣賞</string>
     <string name="option_provider_list_full">完整</string>
     <string name="option_provider_list_short">精簡</string>
     <string name="no_query_app_permission">請授予讀取應用程式權限</string>

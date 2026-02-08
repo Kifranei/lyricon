@@ -23,6 +23,7 @@ import androidx.core.view.isNotEmpty
 import androidx.core.view.updatePadding
 import io.github.proify.android.extensions.dp
 import io.github.proify.lyricon.lyric.model.Song
+import io.github.proify.lyricon.lyric.model.RichLyricLine
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LogoStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
@@ -144,6 +145,7 @@ class StatusBarLyric(
         updateLogoLocation()
         textView.applyStyle(style)
         updateLayoutConfig(style)
+        refreshLyricContentState()
         updateNoLyricState(hasLyricContent)
         requestLayout()
     }
@@ -182,8 +184,13 @@ class StatusBarLyric(
      * 设置当前歌曲
      */
     fun setSong(song: Song?) {
-        textView.song = song
-        hasLyricContent = !(song?.lyrics.isNullOrEmpty())
+        if (song != null && isBlacklistedSong(song)) {
+            textView.song = null
+            hasLyricContent = false
+        } else {
+            textView.song = song
+            hasLyricContent = !(song?.lyrics.isNullOrEmpty())
+        }
         updateNoLyricState(hasLyricContent)
     }
 
@@ -191,8 +198,13 @@ class StatusBarLyric(
      * 直接更新文本内容
      */
     fun updateText(text: String?) {
-        textView.text = text
-        hasLyricContent = !text.isNullOrBlank()
+        if (isBlacklistedText(text)) {
+            textView.text = null
+            hasLyricContent = false
+        } else {
+            textView.text = text
+            hasLyricContent = !text.isNullOrBlank()
+        }
         updateNoLyricState(hasLyricContent)
     }
 
@@ -299,6 +311,51 @@ class StatusBarLyric(
     private fun triggerSingleTransition() {
         singleLayoutTransition.enableTransitionType(LayoutTransition.CHANGING)
         layoutTransition = singleLayoutTransition
+    }
+
+    private fun refreshLyricContentState() {
+        val currentText = textView.text
+        if (!currentText.isNullOrBlank()) {
+            if (isBlacklistedText(currentText)) {
+                textView.text = null
+                hasLyricContent = false
+                return
+            }
+            hasLyricContent = true
+            return
+        }
+
+        val currentSong = textView.song
+        if (currentSong != null && isBlacklistedSong(currentSong)) {
+            textView.song = null
+            hasLyricContent = false
+            return
+        }
+        hasLyricContent = !(currentSong?.lyrics.isNullOrEmpty())
+    }
+
+    private fun isBlacklistedText(text: String?): Boolean {
+        val normalizedText = text?.trim().orEmpty()
+        if (normalizedText.isEmpty()) return false
+        val patterns = currentStyle.basicStyle.lyricTextBlacklist
+        if (patterns.isEmpty()) return false
+        return patterns.any { pattern ->
+            val p = pattern.trim()
+            p.isNotEmpty() && normalizedText.contains(p, ignoreCase = true)
+        }
+    }
+
+    private fun isBlacklistedSong(song: Song): Boolean {
+        val lines = song.lyrics ?: return false
+        if (lines.size != 1) return false
+        return isBlacklistedLine(lines.first())
+    }
+
+    private fun isBlacklistedLine(line: RichLyricLine): Boolean {
+        if (!isBlacklistedText(line.text)) return false
+        return line.secondary.isNullOrBlank() &&
+            line.translation.isNullOrBlank() &&
+            line.roma.isNullOrBlank()
     }
 
     private fun updateNoLyricState(hasLyric: Boolean) {

@@ -49,6 +49,10 @@
             android:label="@string/activity_base_lyric_style" />
 
         <activity
+            android:name=".ui.activity.lyric.LyricTextBlacklistActivity"
+            android:label="@string/activity_lyric_text_blacklist" />
+
+        <activity
             android:name=".ui.activity.lyric.packagestyle.PackageStyleActivity"
             android:label="@string/activity_package_style_manager" />
 

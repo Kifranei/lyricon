@@ -26,6 +26,7 @@ data class BasicStyle(
     var visibilityRules: List<VisibilityRule> = Defaults.VISIBILITY_RULES,
     var hideOnLockScreen: Boolean = Defaults.HIDE_ON_LOCK_SCREEN,
     var hideWhenNoLyricAfterSeconds: Int = Defaults.HIDE_WHEN_NO_LYRIC_AFTER_SECONDS,
+    var lyricTextBlacklist: List<String> = Defaults.LYRIC_TEXT_BLACKLIST,
 ) : AbstractStyle(), Parcelable {
 
     override fun onLoad(preferences: SharedPreferences) {
@@ -59,6 +60,10 @@ data class BasicStyle(
             "lyric_style_base_hide_when_no_lyric_after_seconds",
             Defaults.HIDE_WHEN_NO_LYRIC_AFTER_SECONDS
         )
+        lyricTextBlacklist = json.safeDecode<MutableList<String>>(
+            preferences.getString("lyric_style_base_lyric_text_blacklist", null),
+            Defaults.LYRIC_TEXT_BLACKLIST.toMutableList()
+        )
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -71,6 +76,7 @@ data class BasicStyle(
         editor.putString("lyric_style_base_visibility_rules", visibilityRules.toJson())
         editor.putBoolean("lyric_style_base_hide_on_lock_screen", hideOnLockScreen)
         editor.putInt("lyric_style_base_hide_when_no_lyric_after_seconds", hideWhenNoLyricAfterSeconds)
+        editor.putString("lyric_style_base_lyric_text_blacklist", lyricTextBlacklist.toJson())
     }
 
     object Defaults {
@@ -83,6 +89,7 @@ data class BasicStyle(
         val PADDINGS: RectF = RectF()
         val VISIBILITY_RULES: List<VisibilityRule> = emptyList()
         const val HIDE_WHEN_NO_LYRIC_AFTER_SECONDS: Int = 0
+        val LYRIC_TEXT_BLACKLIST: List<String> = emptyList()
     }
 
     companion object {

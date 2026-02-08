@@ -20,6 +20,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.proify.android.extensions.json
+import io.github.proify.android.extensions.safeDecode
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
@@ -211,6 +213,39 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                 maxValue = 3600.0,
                 title = stringResource(R.string.item_base_hide_when_no_lyric_after_seconds),
                 summary = hideWhenNoLyricSummary
+            )
+
+            val blacklistJson = rememberStringPreference(
+                preferences,
+                "lyric_style_base_lyric_text_blacklist",
+                null
+            )
+            val blacklistCount = remember(blacklistJson.value) {
+                json.safeDecode<List<String>>(blacklistJson.value)
+                    .map { it.trim() }
+                    .filter { it.isNotEmpty() }
+                    .distinct()
+                    .size
+            }
+            val blacklistSummary = remember(blacklistCount) {
+                blacklistCount
+            }.let { count ->
+                if (count <= 0) {
+                    stringResource(R.string.option_blacklist_empty)
+                } else {
+                    stringResource(R.string.format_blacklist_item_count, count)
+                }
+            }
+
+            SuperArrow(
+                leftAction = { IconActions(painterResource(R.drawable.ic_sentiment_dissatisfied)) },
+                title = stringResource(R.string.item_base_lyric_text_blacklist),
+                summary = blacklistSummary,
+                onClick = {
+                    context.startActivity(
+                        Intent(context, LyricTextBlacklistActivity::class.java)
+                    )
+                }
             )
         }
 
