@@ -4,8 +4,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-@file:Suppress("KotlinConstantConditions", "unused")
-
 package io.github.proify.lyricon.lyric.style
 
 import android.content.SharedPreferences

@@ -3,7 +3,6 @@
  * Licensed under the Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0
  */
-@file:Suppress("MemberVisibilityCanBePrivate", "unused", "ConvertTwoComparisonsToRangeCheck")
 
 package io.github.proify.lyricon.lyric.view.line
 
@@ -161,6 +160,7 @@ class Marquee(private val viewRef: WeakReference<LyricLineView>) {
             currentRepeat++
 
             // 无限循环或还没到次数
+            @Suppress("ConvertTwoComparisonsToRangeCheck")
             if (repeatCount < 0 || currentRepeat < repeatCount) {
                 scheduleDelay(loopDelayMs.toLong())
                 updateViewOffset(0f, false)

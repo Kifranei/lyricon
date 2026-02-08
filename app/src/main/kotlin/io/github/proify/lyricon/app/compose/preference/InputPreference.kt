@@ -31,7 +31,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.proify.android.extensions.formatToString
@@ -80,7 +82,8 @@ fun InputPreference(
     holdDownState: Boolean = false,
     enabled: Boolean = true,
     isTimeUnit: Boolean = false,
-    formatMultiplier: Int = 1
+    formatMultiplier: Int = 1,
+    label: String? = null,
 ) {
     val fixDefaultValue = if (inputType == InputType.INTEGER && defaultValue?.contains(".") == true)
         defaultValue.substringBefore(".")
@@ -130,6 +133,7 @@ fun InputPreference(
             maxValue = maxValue,
             showKeyboard = showKeyboard,
             onDismiss = { showDialog = false },
+            label = label,
             onSave = { newValue ->
                 showDialog = false
                 sharedPreferences.editCommit {
@@ -168,6 +172,7 @@ private fun InputPreferenceDialog(
     maxValue: Double,
     showKeyboard: Boolean,
     onDismiss: () -> Unit,
+    label: String? = null,
     onSave: (String) -> Unit
 ) {
     var inputValue by remember { mutableStateOf(initialValue) }
@@ -215,11 +220,15 @@ private fun InputPreferenceDialog(
             // 根据输入类型选择组件
             when (inputType) {
                 InputType.STRING -> {
+                    val initialTf = remember(inputValue) {
+                        TextFieldValue(text = inputValue, selection = TextRange(inputValue.length))
+                    }
                     TextField(
-                        value = inputValue,
-                        onValueChange = { inputValue = it },
+                        value = initialTf,
+                        onValueChange = { inputValue = it.text },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                        modifier = Modifier.focusRequester(focusRequester)
+                        modifier = Modifier.focusRequester(focusRequester),
+                        label = label.orEmpty()
                     )
                 }
 
@@ -235,7 +244,8 @@ private fun InputPreferenceDialog(
                             MiuixTheme.colorScheme.primary
                         } else {
                             MiuixTheme.colorScheme.error
-                        }
+                        },
+                        label = label.orEmpty()
                     )
                 }
 
@@ -251,7 +261,8 @@ private fun InputPreferenceDialog(
                             MiuixTheme.colorScheme.primary
                         } else {
                             MiuixTheme.colorScheme.error
-                        }
+                        },
+                        label = label.orEmpty()
                     )
                 }
             }
@@ -287,7 +298,7 @@ private fun InputPreferenceDialog(
                 Spacer(modifier = Modifier.width(20.dp))
                 TextButton(
                     colors = ButtonDefaults.textButtonColorsPrimary(),
-                    text = stringResource(id = R.string.save),
+                    text = stringResource(id = R.string.action_save),
                     onClick = {
                         val finalValue = formatFinalValue(inputValue, inputType)
                         onSave(finalValue)

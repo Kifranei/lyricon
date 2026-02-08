@@ -4,8 +4,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-@file:Suppress("unused")
-
 package io.github.proify.lyricon.central.provider.player
 
 import io.github.proify.lyricon.lyric.model.Song

@@ -11,8 +11,10 @@ import android.os.Parcelable
 import io.github.proify.android.extensions.json
 import io.github.proify.android.extensions.safeDecode
 import io.github.proify.android.extensions.toJson
+import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 @Parcelize
@@ -25,9 +27,28 @@ data class BasicStyle(
     var paddings: RectF = Defaults.PADDINGS,
     var visibilityRules: List<VisibilityRule> = Defaults.VISIBILITY_RULES,
     var hideOnLockScreen: Boolean = Defaults.HIDE_ON_LOCK_SCREEN,
-    var hideWhenNoLyricAfterSeconds: Int = Defaults.HIDE_WHEN_NO_LYRIC_AFTER_SECONDS,
-    var hideWhenNoUpdateAfterSeconds: Int = Defaults.HIDE_WHEN_NO_UPDATE_AFTER_SECONDS,
+    var noLyricHideTimeout: Int = Defaults.NO_LYRIC_HIDE_TIMEOUT,
+    var noUpdateHideTimeout: Int = Defaults.NO_UPDATE_HIDE_TIMEOUT,
+    var keywordHideTimeout: Int = Defaults.KEYWORD_HIDE_TIMEOUT,
+    var keywordHideMatches: List<String> = Defaults.KEYWORD_HIDE_MATCH
 ) : AbstractStyle(), Parcelable {
+
+    @IgnoredOnParcel
+    @Transient
+    var keywordsHidePattern: List<Regex>? = mutableListOf()
+        get() = if (field == null) {
+            val list = keywordHideMatches.mapNotNull {
+                try {
+                    Regex(it)
+                } catch (_: Exception) {
+                    null
+                }
+            }
+            field = list
+            field
+        } else {
+            field
+        }
 
     override fun onLoad(preferences: SharedPreferences) {
         anchor =
@@ -56,14 +77,27 @@ data class BasicStyle(
             "lyric_style_base_hide_on_lock_screen",
             Defaults.HIDE_ON_LOCK_SCREEN
         )
-        hideWhenNoLyricAfterSeconds = preferences.getInt(
-            "lyric_style_base_hide_when_no_lyric_after_seconds",
-            Defaults.HIDE_WHEN_NO_LYRIC_AFTER_SECONDS
+
+        noLyricHideTimeout = preferences.getInt(
+            "lyric_style_base_no_lyric_hide_timeout",
+            Defaults.NO_LYRIC_HIDE_TIMEOUT
         )
-        hideWhenNoUpdateAfterSeconds = preferences.getInt(
-            "lyric_style_base_hide_when_no_update_after_seconds",
-            Defaults.HIDE_WHEN_NO_UPDATE_AFTER_SECONDS
+        noUpdateHideTimeout = preferences.getInt(
+            "lyric_style_base_no_update_hide_timeout",
+            Defaults.NO_UPDATE_HIDE_TIMEOUT
         )
+        keywordHideTimeout = preferences.getInt(
+            "lyric_style_base_keyword_hide_timeout",
+            Defaults.KEYWORD_HIDE_TIMEOUT
+        )
+
+        preferences.getString("lyric_style_base_timeout_hide_keywords", null)
+            ?.trim()
+            ?.lines()
+            .let {
+                keywordHideMatches = it ?: emptyList()
+                keywordsHidePattern = null
+            }
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -76,16 +110,22 @@ data class BasicStyle(
         editor.putString("lyric_style_base_visibility_rules", visibilityRules.toJson())
         editor.putBoolean("lyric_style_base_hide_on_lock_screen", hideOnLockScreen)
         editor.putInt(
-            "lyric_style_base_hide_when_no_lyric_after_seconds",
-            hideWhenNoLyricAfterSeconds
+            "lyric_style_base_no_lyric_hide_timeout",
+            noLyricHideTimeout
         )
         editor.putInt(
-            "lyric_style_base_hide_when_no_update_after_seconds",
-            hideWhenNoUpdateAfterSeconds
+            "lyric_style_base_no_update_hide_timeout",
+            noUpdateHideTimeout
         )
+        editor.putInt(
+            "lyric_style_base_keyword_hide_timeout",
+            keywordHideTimeout
+        )
+        editor.putString("lyric_style_base_timeout_hide_keywords", keywordHideMatches.toJson())
     }
 
     object Defaults {
+
         const val HIDE_ON_LOCK_SCREEN: Boolean = true
         const val ANCHOR: String = "clock"
         const val INSERTION_ORDER: Int = INSERTION_ORDER_BEFORE
@@ -94,8 +134,10 @@ data class BasicStyle(
         val MARGINS: RectF = RectF()
         val PADDINGS: RectF = RectF()
         val VISIBILITY_RULES: List<VisibilityRule> = emptyList()
-        const val HIDE_WHEN_NO_LYRIC_AFTER_SECONDS: Int = 0
-        const val HIDE_WHEN_NO_UPDATE_AFTER_SECONDS = 0
+        const val NO_LYRIC_HIDE_TIMEOUT: Int = 0
+        const val NO_UPDATE_HIDE_TIMEOUT = 0
+        const val KEYWORD_HIDE_TIMEOUT: Int = 0
+        val KEYWORD_HIDE_MATCH: List<String> = listOf()
     }
 
     companion object {

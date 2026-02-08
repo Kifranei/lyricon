@@ -7,15 +7,15 @@
 <resources>
     <string name="app_name">词幕</string>
     <string name="xposed_description">为状态栏拓展歌词功能🎵</string>
-    <string name="confirm">确定</string>
-    <string name="save">保存</string>
-    <string name="add">添加</string>
-    <string name="delete">删除</string>
-    <string name="reset">重置</string>
-    <string name="back">返回</string>
+    <string name="action_confirm">确定</string>
+    <string name="action_save">保存</string>
+    <string name="action_add">添加</string>
+    <string name="action_delete">删除</string>
+    <string name="action_reset">重置</string>
+    <string name="action_back">返回</string>
     <string name="other">其它</string>
-    <string name="restart">重启</string>
-    <string name="search">搜索</string>
+    <string name="action_restart">重启</string>
+    <string name="action_search">搜索</string>
     <string name="hint_search">搜索…</string>
     <string name="defaultText">默认</string>
     <string name="basic">基本</string>
@@ -89,15 +89,15 @@
     <string name="item_text_marquee_repeat_count">最大滚动次数</string>
     <string name="item_text_marquee_stop_at_end">结束时在末尾停止</string>
     <string name="item_text_fading_style">羽化进度样式</string>
-    <string name="item_text_syllable">动态歌词</string>
+    <string name="item_text_syllable">逐字歌词</string>
     <string name="item_text_relative_progress">启用相对进度歌词</string>
-    <string name="item_text_relative_progress_summary">当歌词缺少单词数据时，将整行作为单词显示，高亮范围与整行一致</string>
+    <string name="item_text_relative_progress_summary">当歌词缺少单词数据时，将整行作为单词显示。</string>
     <string name="item_text_relative_progress_highlight">显示相对进度歌词高亮进度</string>
     <string name="item_text_color_normal">正常颜色</string>
     <string name="item_text_color_background">背景颜色</string>
     <string name="item_text_color_highlight">高亮颜色</string>
     <string name="hint_custom_color">自定义</string>
-    <string name="item_text_size_scale_in_multi_line">多行模式下文字大小比例</string>
+    <string name="item_text_size_scale_multi_line">多行模式下文字大小比例</string>
     <string name="item_text_transition_config">变换动画速度</string>
     <string name="option_text_transition_config_smooth">平滑</string>
     <string name="option_text_transition_config_fast">迅捷</string>
@@ -136,7 +136,7 @@
     <string name="rect_top">上边距</string>
     <string name="rect_right">右边距</string>
     <string name="rect_bottom">下边距</string>
-    <string name="module_tag_syllable">动态歌词</string>
+    <string name="module_tag_syllable">逐字歌词</string>
     <string name="module_tag_translation">翻译</string>
     <string name="no_provider_available">没有可用的歌词提供者</string>
     <string name="item_base_lockscreen_hidden">在锁屏界面隐藏</string>
@@ -147,9 +147,10 @@
     <string name="item_text_fading_edge_length">羽化边缘长度</string>
     <string name="item_app_backup">备份</string>
     <string name="item_app_restore">恢复</string>
-
-    <string name="item_base_hide_when_no_lyric_after_seconds">无歌词超时隐藏</string>
-    <string name="option_no_lyric_timeout_never">不隐藏</string>
-    <string name="item_base_hide_when_no_update_after_seconds">无更新超时隐藏</string>
-    <string name="option_no_update_timeout_never">不隐藏</string>
+    <string name="option_timeout_hide_never">不隐藏</string>
+    <string name="item_base_timeout_no_lyric">无歌词隐藏超时</string>
+    <string name="item_base_timeout_no_update">无更新隐藏超时</string>
+    <string name="item_base_timeout_keyword_match">触发关键词隐藏超时</string>
+    <string name="item_base_filter_keyword_list">关键词正则列表</string>
+    <string name="hint_filter_keyword_input">一行一条</string>
 </resources>

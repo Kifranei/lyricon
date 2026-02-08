@@ -69,7 +69,7 @@ fun NavigationBackIcon(
                     scaleX = if (isRtl) -1f else 1f
                 },
             imageVector = MiuixIcons.Useful.Back,
-            contentDescription = stringResource(R.string.back)
+            contentDescription = stringResource(R.string.action_back)
         )
     }
 }

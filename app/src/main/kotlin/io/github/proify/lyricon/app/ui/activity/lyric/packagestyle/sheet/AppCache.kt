@@ -6,17 +6,14 @@
 
 package io.github.proify.lyricon.app.ui.activity.lyric.packagestyle.sheet
 
-import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import io.github.proify.android.extensions.toBitmap
-import java.lang.ref.WeakReference
 import java.util.WeakHashMap
 
 object AppCache {
     private val iconCache = WeakHashMap<String, Drawable>()
     private val labelCache = WeakHashMap<String, String>()
 
-    private val blurredCache = mutableMapOf<String, WeakReference<Bitmap>>()
+    // private val blurredCache = mutableMapOf<String, WeakReference<Bitmap>>()
 
     fun getCachedIcon(packageName: String): Drawable? = synchronized(iconCache) {
         iconCache[packageName]
@@ -37,14 +34,14 @@ object AppCache {
         labelCache.clear()
     }
 
-    fun getBitmap(packageName: String, radius: Float = 20f): Bitmap? {
-        val cached = blurredCache[packageName]?.get()
-        if (cached != null) return cached
-
-        val drawable = getCachedIcon(packageName) ?: return null
-        val bitmap = drawable.toBitmap()
-
-        blurredCache[packageName] = WeakReference(bitmap)
-        return bitmap
-    }
+//    fun getBitmap(packageName: String, radius: Float = 20f): Bitmap? {
+//        val cached = blurredCache[packageName]?.get()
+//        if (cached != null) return cached
+//
+//        val drawable = getCachedIcon(packageName) ?: return null
+//        val bitmap = drawable.toBitmap()
+//
+//        blurredCache[packageName] = WeakReference(bitmap)
+//        return bitmap
+//    }
 }

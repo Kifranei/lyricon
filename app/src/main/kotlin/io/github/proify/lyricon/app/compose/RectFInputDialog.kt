@@ -130,7 +130,7 @@ fun RectFInputDialog(
             Spacer(Modifier.width(20.dp))
 
             TextButton(
-                text = stringResource(R.string.confirm),
+                text = stringResource(R.string.action_confirm),
                 onClick = {
                     val left = leftText.value.toFloatOrNull() ?: 0f
                     val top = topText.value.toFloatOrNull() ?: 0f

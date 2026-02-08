@@ -32,11 +32,11 @@ import io.github.proify.android.extensions.json
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
-import io.github.proify.lyricon.app.model.OpenSourceLibrary
 import io.github.proify.lyricon.app.util.launchBrowser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.decodeFromStream
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Text
@@ -66,7 +66,7 @@ class LicensesActivity : BaseActivity() {
     }
 
     @Composable
-    fun Content(sourceLibraries: List<OpenSourceLibrary>) {
+    private fun Content(sourceLibraries: List<OpenSourceLibrary>) {
         AppToolBarListContainer(
             title = stringResource(R.string.activity_open_source_license),
             canBack = true,
@@ -173,4 +173,23 @@ class LicensesActivity : BaseActivity() {
             }
         }
     }
+
+
+    @Serializable
+    private data class LicenseInfo(
+        val name: String? = null,
+        val url: String? = null
+    )
+
+    @Serializable
+    private data class OpenSourceLibrary(
+        val project: String? = null,
+        val description: String? = null,
+        val version: String? = null,
+        val developers: List<String>? = null,
+        val url: String? = null,
+        val year: String? = null,
+        val licenses: List<LicenseInfo>? = null,
+        val dependency: String? = null
+    )
 }

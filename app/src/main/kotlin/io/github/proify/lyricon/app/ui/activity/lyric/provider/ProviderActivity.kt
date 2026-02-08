@@ -240,7 +240,7 @@ class LyricProviderActivity : BaseActivity() {
                 Icon(
                     modifier = Modifier.size(26.dp),
                     imageVector = MiuixIcons.Useful.ImmersionMore,
-                    contentDescription = stringResource(id = R.string.restart),
+                    contentDescription = stringResource(id = R.string.action_restart),
                     tint = MiuixTheme.colorScheme.onSurface
                 )
             }

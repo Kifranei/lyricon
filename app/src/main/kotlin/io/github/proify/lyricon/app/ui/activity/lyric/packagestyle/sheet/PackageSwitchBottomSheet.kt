@@ -388,7 +388,7 @@ private fun PackageSwitchSheetContent(
                     Icon(
                         modifier = Modifier.size(26.dp),
                         imageVector = MiuixIcons.Useful.New,
-                        contentDescription = stringResource(R.string.add),
+                        contentDescription = stringResource(R.string.action_add),
                         tint = MiuixTheme.colorScheme.onSurface,
                     )
                 }
@@ -456,7 +456,7 @@ private fun PackageListItem(
                 tooltip = {
                     PlainTooltip {
                         Text(
-                            stringResource(R.string.reset),
+                            stringResource(R.string.action_reset),
                             color = Color.White,
                             fontSize = 14.sp,
                         )
@@ -480,7 +480,7 @@ private fun PackageListItem(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_reset_settings),
-                            contentDescription = stringResource(R.string.reset),
+                            contentDescription = stringResource(R.string.action_reset),
                             tint = MiuixTheme.colorScheme.onError,
                         )
                     }
@@ -497,7 +497,7 @@ private fun PackageListItem(
                     tooltip = {
                         PlainTooltip {
                             Text(
-                                stringResource(R.string.delete),
+                                stringResource(R.string.action_delete),
                                 color = Color.White,
                                 fontSize = 14.sp,
                             )
@@ -520,7 +520,7 @@ private fun PackageListItem(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_delete),
-                            contentDescription = stringResource(R.string.delete),
+                            contentDescription = stringResource(R.string.action_delete),
                             tint = MiuixTheme.colorScheme.onError,
                         )
                     }

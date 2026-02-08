@@ -108,7 +108,7 @@ subprojects {
             }
 
             // 自动化：执行 assemble 时触发
-            tasks.matching { it.name == "assemble${variantName.replaceFirstChar { it.uppercase() }}" }
+            tasks.matching { it.name == "assemble${variantName.replaceFirstChar { c -> c.uppercase() }}" }
                 .configureEach {
                     finalizedBy(copyTask)
                 }

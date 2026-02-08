@@ -54,7 +54,7 @@ open class LyricPlayerView(
     private var timingNavigator: TimingNavigator<RichLyricLineModel> = emptyTimingNavigator()
     private var currentInterludeState: InterludeState? = null // 原名 interludeState
 
-    // 视图缓存与临时集合（按用途分组）
+    // 视图缓存与临时集合
     private val activeLyricLines = mutableListOf<IRichLyricLine>()
     private val textRecycleLineView by lazy { LyricLineView(context) }
     private val defaultLayoutParams =
@@ -149,8 +149,13 @@ open class LyricPlayerView(
                 addView(textRecycleLineView, defaultLayoutParams)
                 updateTextLineViewStyle(styleConfig)
             }
+            val old = textRecycleLineView.lyric
             textRecycleLineView.setLyric(LyricLine(text = value, end = Long.MAX_VALUE / 10))
             textRecycleLineView.post { textRecycleLineView.startMarquee() }
+
+            lyricCountChangeListeners.forEach {
+                it.onLyricTextChanged(old.text, value)
+            }
         }
 
     // ---------- 私有方法 ----------
@@ -292,10 +297,11 @@ open class LyricPlayerView(
             }
         }
 
-        if (lyricCountChangeListeners.isNotEmpty()) {
-            lyricCountChangeListeners.forEach {
-                it.onLyricCountChanged(viewsToAddTemp.size, viewsToRemoveTemp.size)
-            }
+        lyricCountChangeListeners.forEach {
+            it.onLyricChanged(
+                viewsToAddTemp,
+                viewsToRemoveTemp.mapNotNull(RichLyricLineView::line)
+            )
         }
 
         updateViewsVisibility()
@@ -506,8 +512,9 @@ open class LyricPlayerView(
 
     // --- 数据填充辅助 ---
 
+    @Suppress("UnnecessaryVariable")
     fun fillGapAtStart(origin: Song): Song {
-        val song = origin.deepCopy()
+        val song = origin
         val title = getSongTitle(song) ?: return song
         val lyrics = song.lyrics?.toMutableList() ?: mutableListOf()
 
@@ -516,10 +523,17 @@ open class LyricPlayerView(
             lyrics.add(createLyricTitleLine(d, d, title))
         } else {
             val first = lyrics.first()
-            if (first.begin > 0) lyrics.add(
-                0,
-                createLyricTitleLine(first.begin, first.begin, title)
-            )
+            if (first.begin > 0) {
+                var end = first.begin
+
+                //优化同时匹配标题行和第一行歌词抖动
+                if (end > 1) end--
+
+                lyrics.add(
+                    0,
+                    createLyricTitleLine(end, end, title)
+                )
+            }
         }
         song.lyrics = lyrics
         return song
@@ -552,7 +566,8 @@ open class LyricPlayerView(
     }
 
     interface LyricCountChangeListener {
-        fun onLyricCountChanged(newCount: Int, removeCount: Int)
+        fun onLyricTextChanged(old: String, new: String)
+        fun onLyricChanged(news: List<IRichLyricLine>, removes: List<IRichLyricLine>)
     }
 }
 

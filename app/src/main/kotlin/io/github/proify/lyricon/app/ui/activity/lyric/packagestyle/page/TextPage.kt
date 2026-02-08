@@ -90,7 +90,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                 InputPreference(
                     sharedPreferences = sharedPreferences,
                     key = "lyric_style_text_size_ratio_in_multi_line_mode",
-                    title = stringResource(R.string.item_text_size_scale_in_multi_line),
+                    title = stringResource(R.string.item_text_size_scale_multi_line),
                     defaultValue = TextStyle.Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE.toString(),
                     inputType = InputType.DOUBLE,
                     minValue = 0.1,

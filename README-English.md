@@ -37,7 +37,7 @@
 
 ### 1. Requirements
 
-* **System**: Android 9.0 (API 28) or higher.
+* **System**: Android 8.1 (API 27) or higher.
 * **Prerequisites**: Device must be **Rooted** with the **LSPosed** framework active.
 
 > [!TIP]

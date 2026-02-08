@@ -299,7 +299,7 @@ class MainActivity : BaseActivity() {
                         IconButton(onClick = onRestartSystemUI) {
                             Icon(
                                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_refresh),
-                                contentDescription = stringResource(id = R.string.restart),
+                                contentDescription = stringResource(id = R.string.action_restart),
                                 tint = White
                             )
                         }
@@ -479,7 +479,7 @@ class MainActivity : BaseActivity() {
                 Icon(
                     modifier = Modifier.size(26.dp),
                     imageVector = MiuixIcons.Useful.Refresh,
-                    contentDescription = stringResource(id = R.string.restart),
+                    contentDescription = stringResource(id = R.string.action_restart),
                     tint = MiuixTheme.colorScheme.onSurface
                 )
             }

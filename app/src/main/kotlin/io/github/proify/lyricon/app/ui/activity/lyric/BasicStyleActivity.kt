@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -203,6 +204,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
 
                     HideWhenNoLyric()
                     HideWhenNoUpdate()
+                    HideWhenKeywords()
                 }
             }
 
@@ -216,25 +218,25 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
     private fun HideWhenNoLyric() {
         val hideWhenNoLyricAfterSeconds = rememberStringPreference(
             preferences,
-            "lyric_style_base_hide_when_no_lyric_after_seconds",
-            BasicStyle.Defaults.HIDE_WHEN_NO_LYRIC_AFTER_SECONDS.toString()
+            "lyric_style_base_no_lyric_hide_timeout",
+            BasicStyle.Defaults.NO_LYRIC_HIDE_TIMEOUT.toString()
         )
         val hideWhenNoLyricAfterSecondsInt = remember(hideWhenNoLyricAfterSeconds.value) {
             hideWhenNoLyricAfterSeconds.value?.toLongOrNull()
-                ?: BasicStyle.Defaults.HIDE_WHEN_NO_LYRIC_AFTER_SECONDS.toLong()
+                ?: BasicStyle.Defaults.NO_LYRIC_HIDE_TIMEOUT.toLong()
         }
         val hideWhenNoLyricSummary = remember(hideWhenNoLyricAfterSecondsInt) {
             hideWhenNoLyricAfterSecondsInt
         }.let { seconds ->
             if (seconds <= 0) {
-                stringResource(R.string.option_no_lyric_timeout_never)
+                stringResource(R.string.option_timeout_hide_never)
             } else null
         }
 
         InputPreference(
             sharedPreferences = preferences,
-            key = "lyric_style_base_hide_when_no_lyric_after_seconds",
-            title = stringResource(R.string.item_base_hide_when_no_lyric_after_seconds),
+            key = "lyric_style_base_no_lyric_hide_timeout",
+            title = stringResource(R.string.item_base_timeout_no_lyric),
             inputType = InputType.INTEGER,
             maxValue = 3600000.0,
             summary = hideWhenNoLyricSummary,
@@ -248,25 +250,25 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
     private fun HideWhenNoUpdate() {
         val seconds = rememberStringPreference(
             preferences,
-            "lyric_style_base_hide_when_no_update_after_seconds",
-            BasicStyle.Defaults.HIDE_WHEN_NO_UPDATE_AFTER_SECONDS.toString()
+            "lyric_style_base_no_update_hide_timeout",
+            BasicStyle.Defaults.NO_UPDATE_HIDE_TIMEOUT.toString()
         )
         val secondsInt = remember(seconds.value) {
             seconds.value?.toLong()
-                ?: BasicStyle.Defaults.HIDE_WHEN_NO_UPDATE_AFTER_SECONDS.toLong()
+                ?: BasicStyle.Defaults.NO_UPDATE_HIDE_TIMEOUT.toLong()
         }
         val summary = remember(secondsInt) {
             secondsInt
         }.let { seconds ->
             if (seconds <= 0) {
-                stringResource(R.string.option_no_update_timeout_never)
+                stringResource(R.string.option_timeout_hide_never)
             } else null
         }
 
         InputPreference(
             sharedPreferences = preferences,
-            key = "lyric_style_base_hide_when_no_update_after_seconds",
-            title = stringResource(R.string.item_base_hide_when_no_update_after_seconds),
+            key = "lyric_style_base_no_update_hide_timeout",
+            title = stringResource(R.string.item_base_timeout_no_update),
             inputType = InputType.INTEGER,
             maxValue = 3600000.0,
             summary = summary,
@@ -274,6 +276,66 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             isTimeUnit = true,
             formatMultiplier = 1000
         )
+    }
+
+    @Composable
+    private fun HideWhenKeywords() {
+        @Composable
+        fun SecondsInput() {
+
+            val seconds = rememberStringPreference(
+                preferences,
+                "lyric_style_base_keyword_hide_timeout",
+                BasicStyle.Defaults.NO_UPDATE_HIDE_TIMEOUT.toString()
+            )
+            val secondsInt = remember(seconds.value) {
+                seconds.value?.toLong()
+                    ?: BasicStyle.Defaults.KEYWORD_HIDE_TIMEOUT.toLong()
+            }
+            val summary = remember(secondsInt) {
+                secondsInt
+            }.let { seconds ->
+                if (seconds <= 0) {
+                    stringResource(R.string.option_timeout_hide_never)
+                } else null
+            }
+
+            InputPreference(
+                sharedPreferences = preferences,
+                key = "lyric_style_base_keyword_hide_timeout",
+                title = stringResource(R.string.item_base_timeout_keyword_match),
+                inputType = InputType.INTEGER,
+                maxValue = 3600000.0,
+                summary = summary,
+                leftAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+                isTimeUnit = true,
+                formatMultiplier = 1000
+            )
+        }
+
+        @Composable
+        fun RegexInput() {
+            val keywords by rememberStringPreference(
+                preferences,
+                "lyric_style_base_timeout_hide_keywords",
+                if (BasicStyle.Defaults.KEYWORD_HIDE_MATCH.isEmpty()) null
+                else BasicStyle.Defaults.KEYWORD_HIDE_MATCH.joinToString()
+            )
+            val summary = keywords
+
+            InputPreference(
+                sharedPreferences = preferences,
+                key = "lyric_style_base_timeout_hide_keywords",
+                title = stringResource(R.string.item_base_filter_keyword_list),
+                inputType = InputType.STRING,
+                summary = summary,
+                leftAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+                label = stringResource(R.string.hint_filter_keyword_input)
+            )
+        }
+
+        SecondsInput()
+        RegexInput()
     }
 
     @Preview(showBackground = true)

@@ -308,7 +308,7 @@ abstract class ViewTreeActivity : AbstractLyricActivity() {
                         Icon(
                             modifier = Modifier.size(26.dp),
                             imageVector = MiuixIcons.Useful.Delete,
-                            contentDescription = stringResource(id = R.string.delete),
+                            contentDescription = stringResource(id = R.string.action_delete),
                             tint = MiuixTheme.colorScheme.onSurface,
                         )
                     }

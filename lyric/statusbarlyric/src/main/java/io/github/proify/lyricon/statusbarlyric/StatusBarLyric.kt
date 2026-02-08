@@ -23,6 +23,7 @@ import androidx.core.view.isNotEmpty
 import androidx.core.view.updatePadding
 import io.github.proify.android.extensions.dp
 import io.github.proify.lyricon.lyric.model.Song
+import io.github.proify.lyricon.lyric.model.interfaces.IRichLyricLine
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LogoStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
@@ -93,6 +94,7 @@ class StatusBarLyric(
 
     private var hasLyricContent: Boolean = false
     private var lyricTimedOut: Boolean = false
+    private var currentLyric: String? = null
 
     // 主线程调度器
     private val mainHandler: Handler = Handler(context.mainLooper)
@@ -134,10 +136,20 @@ class StatusBarLyric(
         override fun onChildViewRemoved(parent: View?, child: View?) = updateVisibility()
     }
 
-    // 歌词行数变化监听，用于重置超时逻辑
+    // 歌词变化监听，用于重置超时逻辑
     private val lyricCountChangeListener =
         object : LyricPlayerView.LyricCountChangeListener {
-            override fun onLyricCountChanged(newCount: Int, removeCount: Int) {
+
+            override fun onLyricTextChanged(old: String, new: String) {
+                currentLyric = new
+                refreshLyricTimeoutState()
+            }
+
+            override fun onLyricChanged(
+                news: List<IRichLyricLine>,
+                removes: List<IRichLyricLine>
+            ) {
+                currentLyric = news.lastOrNull()?.text
                 refreshLyricTimeoutState()
             }
         }
@@ -215,6 +227,7 @@ class StatusBarLyric(
             return
         }
         textView.seekTo(position)
+        refreshLyricTimeoutState()
     }
 
     fun setPosition(position: Long) {
@@ -317,27 +330,42 @@ class StatusBarLyric(
     private fun refreshLyricTimeoutState() {
         resetLyricTimeout()
 
-        val hideWhenNoLyricAfterSeconds =
-            currentStyle.basicStyle.hideWhenNoLyricAfterSeconds
-        val hideWhenNoUpdateAfterSeconds =
-            currentStyle.basicStyle.hideWhenNoUpdateAfterSeconds
+        val basicStyleConfig = currentStyle.basicStyle
 
-        val hideWhenNoLyric = hideWhenNoLyricAfterSeconds > 0
-        val hideWhenNoUpdate = hideWhenNoUpdateAfterSeconds > 0
+        val noLyricTimeoutSec = basicStyleConfig.noLyricHideTimeout
+        val noUpdateTimeoutSec = basicStyleConfig.noUpdateHideTimeout
+        val keywordTimeoutSec = basicStyleConfig.keywordHideTimeout
 
-        val timeout = when {
-            hideWhenNoLyric && !hasLyricContent -> hideWhenNoLyricAfterSeconds
-            hideWhenNoUpdate && hasLyricContent -> hideWhenNoUpdateAfterSeconds
+        val shouldHideWhenNoLyric = noLyricTimeoutSec > 0
+        val shouldHideWhenNoUpdate = noUpdateTimeoutSec > 0
+        val shouldHideWhenKeywordMatched = keywordTimeoutSec > 0
+
+        val timeoutSec = when {
+            shouldHideWhenNoLyric && !hasLyricContent -> noLyricTimeoutSec
+
+            hasLyricContent -> {
+                val keywordMatched =
+                    shouldHideWhenKeywordMatched && !currentLyric.isNullOrEmpty() &&
+                            basicStyleConfig.keywordsHidePattern.orEmpty()
+                                .any { it.containsMatchIn(currentLyric.orEmpty()) }
+
+                when {
+                    keywordMatched -> keywordTimeoutSec
+                    shouldHideWhenNoUpdate -> noUpdateTimeoutSec
+                    else -> -1
+                }
+            }
+
             else -> -1
         }
 
-        if (timeout > 0) {
-            val task = Runnable {
+        if (timeoutSec > 0) {
+            val timeoutRunnable = Runnable {
                 lyricTimedOut = true
                 updateVisibility()
             }
-            lyricTimeoutTask = task
-            mainHandler.postDelayed(task, timeout * 1000L)
+            lyricTimeoutTask = timeoutRunnable
+            mainHandler.postDelayed(timeoutRunnable, timeoutSec * 1000L)
         }
 
         updateVisibility()

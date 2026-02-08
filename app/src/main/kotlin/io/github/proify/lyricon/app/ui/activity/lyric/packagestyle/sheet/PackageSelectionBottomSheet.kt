@@ -297,7 +297,7 @@ private fun PackageSearchBar(
                     Icon(
                         modifier = Modifier.padding(start = 12.dp, end = 8.dp),
                         imageVector = MiuixIcons.Useful.Search,
-                        contentDescription = stringResource(R.string.search),
+                        contentDescription = stringResource(R.string.action_search),
                         tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )
                 },

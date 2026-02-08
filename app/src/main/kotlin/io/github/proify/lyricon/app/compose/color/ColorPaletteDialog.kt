@@ -199,7 +199,7 @@ private fun DialogButtonRow(
         )
         Spacer(Modifier.width(ITEM_SPACING))
         TextButton(
-            text = stringResource(R.string.confirm),
+            text = stringResource(R.string.action_confirm),
             onClick = onConfirm,
             modifier = Modifier.weight(1f),
             colors = ButtonDefaults.textButtonColorsPrimary()
