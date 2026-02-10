@@ -58,11 +58,11 @@ class StatusBarViewController(
 
         colorMonitorView = getClockView()?.also {
             StatusBarColorMonitor.setListener(it, object : OnColorChangeListener {
-                override fun onColorChanged(color: Int, isLightMode: Boolean) {
+                override fun onColorChanged(color: Int, darkIntensity: Float) {
                     lyricView.apply {
                         setStatusBarColor(currentStatusColor.apply {
                             this.color = color
-                            this.lightMode = lightMode
+                            this.darkIntensity = darkIntensity
                             translucentColor = color.setColorAlpha(0.5f)
                         })
                     }

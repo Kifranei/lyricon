@@ -26,8 +26,15 @@ data class RichLyricLineConfig(
     var syllable: SyllableConfig = DefaultSyllableConfig(),
     var gradientProgressStyle: Boolean = true,
     var scaleInMultiLine: Float = 1f,
-    var fadingEdgeLength: Int = 10
+    var fadingEdgeLength: Int = 10,
+    var placeholderFormat: String = PlaceholderFormat.NAME_ARTIST
 )
+
+object PlaceholderFormat {
+    const val NAME: String = "NameOnly"
+    const val NAME_ARTIST: String = "NameAndArtist"
+    const val NONE: String = "None"
+}
 
 interface TextConfig {
     var textColor: Int

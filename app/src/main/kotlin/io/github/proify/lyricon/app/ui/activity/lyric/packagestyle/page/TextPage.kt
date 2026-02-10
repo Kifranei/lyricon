@@ -40,8 +40,7 @@ import top.yukonga.miuix.kmp.extra.SuperDropdown
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Composable
-fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreferences) {
-
+fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,7 +64,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     .fillMaxWidth(),
             ) {
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_size",
                     title = stringResource(R.string.item_text_size),
                     inputType = InputType.DOUBLE,
@@ -73,14 +72,14 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
                 )
                 RectInputPreference(
-                    sharedPreferences,
+                    preferences,
                     "lyric_style_text_margins",
                     stringResource(R.string.item_text_margins),
                     defaultValue = TextStyle.Defaults.MARGINS,
                     leftAction = { IconActions(painterResource(R.drawable.ic_margin)) },
                 )
                 RectInputPreference(
-                    sharedPreferences,
+                    preferences,
                     "lyric_style_text_paddings",
                     stringResource(R.string.item_text_paddings),
                     defaultValue = TextStyle.Defaults.PADDINGS,
@@ -88,7 +87,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                 )
 
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_size_ratio_in_multi_line_mode",
                     title = stringResource(R.string.item_text_size_scale_multi_line),
                     defaultValue = TextStyle.Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE.toString(),
@@ -97,10 +96,10 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     maxValue = 1.0,
                     leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
                 )
-                TransitionConfigPreference(sharedPreferences)
+                TransitionConfigPreference(preferences)
 
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_fading_edge_length",
                     title = stringResource(R.string.item_text_fading_edge_length),
                     inputType = InputType.DOUBLE,
@@ -108,12 +107,13 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
                 )
                 SwitchPreference(
-                    sharedPreferences,
+                    preferences,
                     "lyric_style_text_gradient_progress_style",
                     defaultValue = TextStyle.Defaults.ENABLE_GRADIENT_PROGRESS_STYLE,
                     title = stringResource(R.string.item_text_fading_style),
                     leftAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
+                PlaceholderFormatPreference(preferences)
             }
         }
         item(key = "color") {
@@ -132,20 +132,20 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     .fillMaxWidth(),
             ) {
                 SwitchPreference(
-                    sharedPreferences,
+                    preferences,
                     "lyric_style_text_enable_custom_color",
                     title = stringResource(R.string.item_text_enable_custom_color),
                     leftAction = { IconActions(painterResource(R.drawable.ic_palette)) },
                 )
                 TextColorPreference(
-                    sharedPreferences,
+                    preferences,
                     "lyric_style_text_color_light_mode",
                     title = stringResource(R.string.item_text_color_light_mode),
                     defaultColor = Color.Black,
                     leftAction = { IconActions(painterResource(R.drawable.ic_brightness7)) },
                 )
                 TextColorPreference(
-                    sharedPreferences,
+                    preferences,
                     "lyric_style_text_color_dark_mode",
                     title = stringResource(R.string.item_text_color_dark_mode),
                     defaultColor = Color.White,
@@ -169,14 +169,14 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     .fillMaxWidth(),
             ) {
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_typeface",
                     title = stringResource(R.string.item_text_typeface),
                     leftAction = { IconActions(painterResource(R.drawable.ic_fontdownload)) },
                 )
 
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_weight",
                     title = stringResource(R.string.item_text_font_weight),
                     inputType = InputType.INTEGER,
@@ -185,13 +185,13 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                 )
 
                 CheckboxPreference(
-                    sharedPreferences,
+                    preferences,
                     key = "lyric_style_text_typeface_bold",
                     title = stringResource(R.string.item_text_typeface_bold),
                     leftAction = { IconActions(painterResource(R.drawable.ic_formatbold)) },
                 )
                 CheckboxPreference(
-                    sharedPreferences,
+                    preferences,
                     key = "lyric_style_text_typeface_italic",
                     title = stringResource(R.string.item_text_typeface_italic),
                     leftAction = { IconActions(painterResource(R.drawable.ic_format_italic)) },
@@ -216,7 +216,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
             ) {
                 SwitchPreference(
                     defaultValue = TextStyle.Defaults.RELATIVE_PROGRESS,
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_relative_progress",
                     title = stringResource(R.string.item_text_relative_progress),
                     summary = stringResource(R.string.item_text_relative_progress_summary),
@@ -224,7 +224,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                 )
                 SwitchPreference(
                     defaultValue = TextStyle.Defaults.RELATIVE_PROGRESS_HIGHLIGHT,
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_relative_progress_highlight",
                     title = stringResource(R.string.item_text_relative_progress_highlight),
                     leftAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
@@ -248,7 +248,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     .fillMaxWidth(),
             ) {
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_speed",
                     title = stringResource(R.string.item_text_marquee_speed),
                     defaultValue = TextStyle.Defaults.MARQUEE_SPEED.toString(),
@@ -257,7 +257,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     leftAction = { IconActions(painterResource(R.drawable.ic_speed)) },
                 )
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_space",
                     title = stringResource(R.string.item_text_marquee_space),
                     defaultValue = TextStyle.Defaults.MARQUEE_GHOST_SPACING.toString(),
@@ -265,14 +265,8 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     maxValue = 1000.0,
                     leftAction = { IconActions(painterResource(R.drawable.ic_space_bar)) },
                 )
-//                SwitchPreference(
-//                    currentSp,
-//                    "lyric_style_text_marquee_enable_delay",
-//                    title = "启用滚动延迟",
-//                    leftAction = { IconActions(painterResource(R.drawable.ic_timer)) },
-//                )
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_initial_delay",
                     title = stringResource(R.string.item_text_marquee_initial_delay),
                     defaultValue = TextStyle.Defaults.MARQUEE_INITIAL_DELAY.toString(),
@@ -282,7 +276,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     isTimeUnit = true,
                 )
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_loop_delay",
                     title = stringResource(R.string.item_text_marquee_delay),
                     defaultValue = TextStyle.Defaults.MARQUEE_LOOP_DELAY.toString(),
@@ -293,15 +287,14 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                 )
                 SwitchPreference(
                     defaultValue = TextStyle.Defaults.MARQUEE_REPEAT_UNLIMITED,
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_repeat_unlimited",
                     title = stringResource(R.string.item_text_marquee_repeat_unlimited),
                     leftAction = { IconActions(painterResource(R.drawable.ic_all_inclusive)) },
                 )
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_repeat_count",
-                    //defaultValue = TextStyle.Defaults.MARQUEE_REPEAT_COUNT.toString(),
                     title = stringResource(R.string.item_text_marquee_repeat_count),
                     inputType = InputType.INTEGER,
                     minValue = 0.0,
@@ -309,7 +302,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                     leftAction = { IconActions(painterResource(R.drawable.ic_pin)) },
                 )
                 SwitchPreference(
-                    sharedPreferences = sharedPreferences,
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_stop_at_end",
                     title = stringResource(R.string.item_text_marquee_stop_at_end),
                     leftAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
@@ -320,43 +313,73 @@ fun TextPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
 }
 
 @Composable
-private fun TransitionConfigPreference(preferences: SharedPreferences) {
-    val config = preferences.getString(
-        "lyric_style_text_transition_config",
-        TextStyle.TRANSITION_CONFIG_SMOOTH
-    )
-
-    val options = listOf(
-        stringResource(R.string.option_text_transition_config_none),
-        stringResource(R.string.option_text_transition_config_fast),
-        stringResource(R.string.option_text_transition_config_smooth),
-        stringResource(R.string.option_text_transition_config_slow)
-    )
-    val values = listOf(
-        TextStyle.TRANSITION_CONFIG_NONE,
-        TextStyle.TRANSITION_CONFIG_FAST,
-        TextStyle.TRANSITION_CONFIG_SMOOTH,
-        TextStyle.TRANSITION_CONFIG_SLOW
-    )
+private fun <T> DropdownPreference(
+    preferences: SharedPreferences,
+    preferenceKey: String,
+    defaultValue: T,
+    options: List<String>,
+    values: List<T>,
+    title: String,
+    iconRes: Int = R.drawable.ic_speed
+) {
+    val currentValue = preferences.getString(preferenceKey, defaultValue.toString())
     var selectedIndex by remember {
-        mutableIntStateOf(
-            values.indexOf(config)
-        )
+        mutableIntStateOf(values.indexOfFirst { it.toString() == currentValue }.takeIf { it >= 0 }
+            ?: 0)
     }
 
     SuperDropdown(
-        leftAction = { IconActions(painterResource(R.drawable.ic_speed)) },
-        title = stringResource(R.string.item_text_transition_config),
+        leftAction = { IconActions(painterResource(iconRes)) },
+        title = title,
         items = options,
         selectedIndex = selectedIndex,
         onSelectedIndexChange = {
             selectedIndex = it
             preferences.editCommit {
-                putString(
-                    "lyric_style_text_transition_config",
-                    values[it]
-                )
+                putString(preferenceKey, values[it].toString())
             }
         }
+    )
+}
+
+@Composable
+private fun PlaceholderFormatPreference(preferences: SharedPreferences) {
+    DropdownPreference(
+        preferences = preferences,
+        preferenceKey = "lyric_style_text_placeholder_format",
+        defaultValue = TextStyle.PlaceholderFormat.NAME_ARTIST,
+        options = listOf(
+            stringResource(R.string.option_text_placeholder_format_none),
+            stringResource(R.string.option_text_placeholder_format_name_artist),
+            stringResource(R.string.option_text_placeholder_format_name),
+        ),
+        values = listOf(
+            TextStyle.PlaceholderFormat.NONE,
+            TextStyle.PlaceholderFormat.NAME_ARTIST,
+            TextStyle.PlaceholderFormat.NAME,
+        ),
+        title = stringResource(R.string.item_text_placeholder_format)
+    )
+}
+
+@Composable
+private fun TransitionConfigPreference(preferences: SharedPreferences) {
+    DropdownPreference(
+        preferences = preferences,
+        preferenceKey = "lyric_style_text_transition_config",
+        defaultValue = TextStyle.TRANSITION_CONFIG_SMOOTH,
+        options = listOf(
+            stringResource(R.string.option_text_transition_config_none),
+            stringResource(R.string.option_text_transition_config_fast),
+            stringResource(R.string.option_text_transition_config_smooth),
+            stringResource(R.string.option_text_transition_config_slow)
+        ),
+        values = listOf(
+            TextStyle.TRANSITION_CONFIG_NONE,
+            TextStyle.TRANSITION_CONFIG_FAST,
+            TextStyle.TRANSITION_CONFIG_SMOOTH,
+            TextStyle.TRANSITION_CONFIG_SLOW
+        ),
+        title = stringResource(R.string.item_text_transition_config)
     )
 }

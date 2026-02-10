@@ -13,7 +13,6 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
@@ -59,7 +58,7 @@ class SuperLogo(context: Context) : ImageView(context) {
             }
         }
 
-    private var currentStatusColor: StatusColor = StatusColor(Color.BLACK, false, Color.TRANSPARENT)
+    private var currentStatusColor: StatusColor = StatusColor()
     private var lyricStyle: LyricStyle? = null
 
     // --- 进度条绘制属性 ---

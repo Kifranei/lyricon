@@ -48,6 +48,7 @@ data class TextStyle(
     var scaleInMultiLine: Float = Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE,
 
     var transitionConfig: String? = Defaults.TRANSITION_CONFIG,
+    var placeholderFormat: String? = Defaults.PLACEHOLDER_FORMAT
 ) : AbstractStyle(), Parcelable {
 
     companion object {
@@ -57,7 +58,14 @@ data class TextStyle(
         const val TRANSITION_CONFIG_NONE = "none"
     }
 
+    object PlaceholderFormat {
+        const val NAME: String = "NameOnly"
+        const val NAME_ARTIST: String = "NameAndArtist"
+        const val NONE: String = "None"
+    }
+
     object Defaults {
+        const val PLACEHOLDER_FORMAT: String = PlaceholderFormat.NAME_ARTIST
         const val TRANSITION_CONFIG: String = TRANSITION_CONFIG_SMOOTH
 
         const val TEXT_SIZE_RATIO_IN_MULTI_LINE: Float = 0.86f
@@ -167,6 +175,10 @@ data class TextStyle(
             "lyric_style_text_transition_config",
             Defaults.TRANSITION_CONFIG
         )
+        placeholderFormat = preferences.getString(
+            "lyric_style_text_placeholder_format",
+            Defaults.PLACEHOLDER_FORMAT
+        )
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -210,6 +222,10 @@ data class TextStyle(
         editor.putString(
             "lyric_style_text_transition_config",
             transitionConfig
+        )
+        editor.putString(
+            "lyric_style_text_placeholder_format",
+            placeholderFormat
         )
     }
 }

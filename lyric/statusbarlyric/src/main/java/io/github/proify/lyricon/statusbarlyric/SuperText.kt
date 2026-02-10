@@ -7,7 +7,6 @@
 package io.github.proify.lyricon.statusbarlyric
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Build
 import android.util.Log
@@ -46,7 +45,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
      */
     var eventListener: EventListener? = null
 
-    private var currentStatusColor = StatusColor(Color.BLACK, false, Color.TRANSPARENT)
+    private var currentStatusColor = StatusColor()
     private var currentLyricStyle: LyricStyle? = null
     private val syllableConfigCache = DefaultSyllableConfig()
 
@@ -123,6 +122,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             this.gradientProgressStyle = textStyle.gradientProgressStyle
             scaleInMultiLine = textStyle.scaleInMultiLine
             fadingEdgeLength = textStyle.fadingEdgeLength.coerceAtLeast(0).dp
+            placeholderFormat = textStyle.placeholderFormat ?: TextStyle.Defaults.PLACEHOLDER_FORMAT
         }
 
         setStyle(config)

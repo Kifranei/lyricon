@@ -43,7 +43,7 @@ open class LyricPlayerView(
 
     // ---------- 私有常量 / 状态 ----------
     private var isTextMode = false
-    private var styleConfig = RichLyricLineConfig() // 原名 config
+    private var styleConfig = RichLyricLineConfig()
 
     private var isEnableRelativeProgress = false
     private var isEnableRelativeProgressHighlight = false
@@ -52,7 +52,7 @@ open class LyricPlayerView(
     // data models
     private var lineModelList: List<RichLyricLineModel>? = null
     private var timingNavigator: TimingNavigator<RichLyricLineModel> = emptyTimingNavigator()
-    private var currentInterludeState: InterludeState? = null // 原名 interludeState
+    private var currentInterludeState: InterludeState? = null
 
     // 视图缓存与临时集合
     private val activeLyricLines = mutableListOf<IRichLyricLine>()
@@ -202,6 +202,7 @@ open class LyricPlayerView(
                 it.notifyLineChanged()
             }
         }
+        updateViewsVisibility()
     }
 
     fun seekTo(position: Long) = updatePosition(position, true)
@@ -544,10 +545,21 @@ open class LyricPlayerView(
             metadata = lyricMetadataOf(KEY_SONG_TITLE_LINE to "true")
         }
 
-    private fun getSongTitle(song: Song) = when {
-        !song.name.isNullOrBlank() && !song.artist.isNullOrBlank() -> "${song.name} - ${song.artist}"
-        !song.name.isNullOrBlank() -> song.name
-        else -> null
+    private fun getSongTitle(song: Song): String? {
+        val name = song.name
+        val artist = song.artist
+
+        return when (styleConfig.placeholderFormat) {
+            PlaceholderFormat.NONE -> null
+            PlaceholderFormat.NAME_ARTIST -> when {
+                !name.isNullOrBlank() && !artist.isNullOrBlank() -> "$name - $artist"
+                !name.isNullOrBlank() -> name
+                else -> null
+            }
+
+            PlaceholderFormat.NAME -> name?.takeIf { it.isNotBlank() }
+            else -> name?.takeIf { it.isNotBlank() }
+        }
     }
 
     private fun emptyTimingNavigator() = TimingNavigator<RichLyricLineModel>(emptyArray())

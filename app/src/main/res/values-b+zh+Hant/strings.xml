@@ -153,4 +153,8 @@
     <string name="item_base_timeout_keyword_match">觸發關鍵字隱藏超時</string>
     <string name="item_base_filter_keyword_list">關鍵字正則列表</string>
     <string name="hint_filter_keyword_input">一行一條</string>
+    <string name="option_text_placeholder_format_none">無</string>
+    <string name="option_text_placeholder_format_name_artist">歌名 + 歌手</string>
+    <string name="option_text_placeholder_format_name">僅歌手</string>
+    <string name="item_text_placeholder_format">占位格式</string>
 </resources>

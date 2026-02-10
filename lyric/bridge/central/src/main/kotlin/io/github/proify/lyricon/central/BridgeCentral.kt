@@ -11,6 +11,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.content.ContextCompat
+import io.github.proify.lyricon.central.util.ScreenStateMonitor
 
 /**
  * 中央桥接管理对象。
@@ -38,7 +39,7 @@ object BridgeCentral {
     fun initialize(appContext: Context) {
         if (::context.isInitialized) return
         context = appContext.applicationContext
-
+        ScreenStateMonitor.initialize(appContext)
         ContextCompat.registerReceiver(
             context,
             receiver,

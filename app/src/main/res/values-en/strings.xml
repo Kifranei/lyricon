@@ -153,4 +153,8 @@
     <string name="item_base_timeout_keyword_match">Keyword-match hide timeout</string>
     <string name="item_base_filter_keyword_list">Keyword regex list</string>
     <string name="hint_filter_keyword_input">One entry per line</string>
+    <string name="option_text_placeholder_format_none">None</string>
+    <string name="option_text_placeholder_format_name_artist">Title + Artist</string>
+    <string name="option_text_placeholder_format_name">Artist Only</string>
+    <string name="item_text_placeholder_format">Placeholder</string>
 </resources>

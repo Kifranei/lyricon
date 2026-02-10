@@ -102,7 +102,7 @@ object StatusBarColorMonitor {
                 if (color == lastColor) return
 
                 view.setTag(TAG_KEY_COLOR, color)
-                listener.onColorChanged(color, darkIntensity > 0.5f)
+                listener.onColorChanged(color, darkIntensity)
 
             } catch (e: Exception) {
                 YLog.error(tag = TAG, msg = "颜色回调解析异常", e = e)
