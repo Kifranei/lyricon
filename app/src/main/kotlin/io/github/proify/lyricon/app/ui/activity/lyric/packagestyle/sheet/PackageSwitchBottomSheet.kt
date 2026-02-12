@@ -49,7 +49,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.SwipeableItem
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import io.github.proify.lyricon.app.util.LyricPrefs
 import kotlinx.coroutines.Dispatchers
@@ -58,12 +57,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.New
+import top.yukonga.miuix.kmp.icon.extended.AddCircle
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -382,12 +382,12 @@ private fun PackageSwitchSheetContent(
             showState.value = false
             callbacks.onDismiss()
         },
-        rightAction = {
+        endAction = {
             Row {
                 IconButton(onClick = callbacks.onAddClick) {
                     Icon(
                         modifier = Modifier.size(26.dp),
-                        imageVector = MiuixIcons.Useful.New,
+                        imageVector = MiuixIcons.AddCircle,
                         contentDescription = stringResource(R.string.action_add),
                         tint = MiuixTheme.colorScheme.onSurface,
                     )
@@ -516,12 +516,12 @@ private fun PackageListItem(
                             hapticFeedback.performHapticFeedback(
                                 HapticFeedbackType.ContextClick,
                             )
-                        },
+                        }
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_delete),
                             contentDescription = stringResource(R.string.action_delete),
-                            tint = MiuixTheme.colorScheme.onError,
+                            tint = MiuixTheme.colorScheme.onError
                         )
                     }
                 }
@@ -534,17 +534,17 @@ private fun PackageListItem(
             modifier =
                 Modifier
                     .padding(horizontal = 16.dp)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
         ) {
             SuperCheckbox(
-                leftAction = {
+                startActions = {
                     AsyncAppIcon(
                         application = state.item.applicationInfo,
                         modifier = Modifier.size(40.dp),
                     )
                     Spacer(modifier = Modifier.width(10.dp))
                 },
-                rightActions = {
+                endActions = {
                     if (state.displayEnable) {
                         Switch(
                             checked = state.isEnabled,
@@ -563,7 +563,7 @@ private fun PackageListItem(
                 onCheckedChange = {
                     callbacks.onSelect()
                     closeAction()
-                },
+                }
             )
         }
     }

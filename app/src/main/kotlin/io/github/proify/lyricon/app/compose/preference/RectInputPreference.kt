@@ -16,11 +16,11 @@ import io.github.proify.android.extensions.formatToString
 import io.github.proify.android.extensions.fromJsonOrNull
 import io.github.proify.android.extensions.toJson
 import io.github.proify.lyricon.app.compose.RectFInputDialog
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentColors
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentDefaults
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.RectF
+import top.yukonga.miuix.kmp.basic.BasicComponentColors
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 
 @Composable
 fun RectInputPreference(
@@ -68,8 +68,8 @@ fun RectInputPreference(
         titleColor = titleColor,
         summary = currentSummary,
         summaryColor = summaryColor,
-        leftAction = leftAction,
-        rightActions = rightActions,
+        startAction = leftAction,
+        endActions = rightActions,
         insideMargin = insideMargin,
         onClick = {
             showDialog.value = true

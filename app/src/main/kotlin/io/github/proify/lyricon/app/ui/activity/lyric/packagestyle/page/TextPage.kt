@@ -24,9 +24,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.proify.lyricon.app.R
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
+import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.IconActions
+import io.github.proify.lyricon.app.compose.custom.miuix.extra.CheckboxLocation
 import io.github.proify.lyricon.app.compose.preference.CheckboxPreference
 import io.github.proify.lyricon.app.compose.preference.InputPreference
 import io.github.proify.lyricon.app.compose.preference.InputType
@@ -35,6 +35,7 @@ import io.github.proify.lyricon.app.compose.preference.SwitchPreference
 import io.github.proify.lyricon.app.compose.preference.TextColorPreference
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.TextStyle
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.extra.SuperDropdown
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -111,7 +112,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     "lyric_style_text_gradient_progress_style",
                     defaultValue = TextStyle.Defaults.ENABLE_GRADIENT_PROGRESS_STYLE,
                     title = stringResource(R.string.item_text_fading_style),
-                    leftAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
                 PlaceholderFormatPreference(preferences)
             }
@@ -135,7 +136,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences,
                     "lyric_style_text_enable_custom_color",
                     title = stringResource(R.string.item_text_enable_custom_color),
-                    leftAction = { IconActions(painterResource(R.drawable.ic_palette)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_palette)) },
                 )
                 TextColorPreference(
                     preferences,
@@ -188,13 +189,15 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences,
                     key = "lyric_style_text_typeface_bold",
                     title = stringResource(R.string.item_text_typeface_bold),
-                    leftAction = { IconActions(painterResource(R.drawable.ic_formatbold)) },
+                    startActions = { IconActions(painterResource(R.drawable.ic_formatbold)) },
+                    checkboxLocation = CheckboxLocation.End
                 )
                 CheckboxPreference(
                     preferences,
                     key = "lyric_style_text_typeface_italic",
                     title = stringResource(R.string.item_text_typeface_italic),
-                    leftAction = { IconActions(painterResource(R.drawable.ic_format_italic)) },
+                    startActions = { IconActions(painterResource(R.drawable.ic_format_italic)) },
+                    checkboxLocation = CheckboxLocation.End
                 )
             }
         }
@@ -220,14 +223,14 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     key = "lyric_style_text_relative_progress",
                     title = stringResource(R.string.item_text_relative_progress),
                     summary = stringResource(R.string.item_text_relative_progress_summary),
-                    leftAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
                 )
                 SwitchPreference(
                     defaultValue = TextStyle.Defaults.RELATIVE_PROGRESS_HIGHLIGHT,
                     sharedPreferences = preferences,
                     key = "lyric_style_text_relative_progress_highlight",
                     title = stringResource(R.string.item_text_relative_progress_highlight),
-                    leftAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
             }
         }
@@ -290,7 +293,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_repeat_unlimited",
                     title = stringResource(R.string.item_text_marquee_repeat_unlimited),
-                    leftAction = { IconActions(painterResource(R.drawable.ic_all_inclusive)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_all_inclusive)) },
                 )
                 InputPreference(
                     sharedPreferences = preferences,
@@ -305,7 +308,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_stop_at_end",
                     title = stringResource(R.string.item_text_marquee_stop_at_end),
-                    leftAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
                 )
             }
         }
@@ -329,7 +332,7 @@ private fun <T> DropdownPreference(
     }
 
     SuperDropdown(
-        leftAction = { IconActions(painterResource(iconRes)) },
+        startAction = { IconActions(painterResource(iconRes)) },
         title = title,
         items = options,
         selectedIndex = selectedIndex,

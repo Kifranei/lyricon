@@ -39,14 +39,15 @@ import androidx.compose.ui.unit.sp
 import io.github.proify.android.extensions.formatToString
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.NumberTextField
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentColors
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentDefaults
+import io.github.proify.lyricon.app.compose.color
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.TimeFormatter
 import io.github.proify.lyricon.app.util.editCommit
 import kotlinx.coroutines.delay
+import top.yukonga.miuix.kmp.basic.BasicComponentColors
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -112,8 +113,8 @@ fun InputPreference(
         titleColor = titleColor,
         summary = finalSummary,
         summaryColor = summaryColor,
-        leftAction = leftAction,
-        rightActions = rightActions,
+        startAction = leftAction,
+        endActions = rightActions,
         modifier = modifier,
         insideMargin = insideMargin,
         onClick = {

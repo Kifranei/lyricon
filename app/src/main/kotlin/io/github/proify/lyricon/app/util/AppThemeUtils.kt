@@ -16,6 +16,7 @@ object AppThemeUtils {
 
     private const val KEY_THEME_MODE = "theme_mode"
     private const val KEY_MONET_COLOR = "theme_monet_color"
+    private var isEnableMonetColor: Boolean? = null
 
     fun getMode(context: Context): Int =
         context.defaultSharedPreferences.getInt(KEY_THEME_MODE, MODE_SYSTEM)
@@ -24,13 +25,20 @@ object AppThemeUtils {
         context.defaultSharedPreferences.editCommit { putInt(KEY_THEME_MODE, mode) }
     }
 
-    fun isEnableMonetColor(context: Context): Boolean =
-        context.defaultSharedPreferences.getBoolean(
-            KEY_MONET_COLOR,
-            false
-        )
+    fun isEnableMonet(context: Context): Boolean {
+        if (isEnableMonetColor == null) {
+            isEnableMonetColor = context.defaultSharedPreferences.getBoolean(
+                KEY_MONET_COLOR,
+                false
+            )
+        }
+        return isEnableMonetColor!!
+    }
 
-    fun setEnableMonetColor(context: Context, enable: Boolean) {
-        context.defaultSharedPreferences.editCommit { putBoolean(KEY_MONET_COLOR, enable) }
+    fun setEnableMonet(context: Context, enable: Boolean) {
+        context.defaultSharedPreferences.editCommit {
+            putBoolean(KEY_MONET_COLOR, enable)
+            isEnableMonetColor = enable
+        }
     }
 }

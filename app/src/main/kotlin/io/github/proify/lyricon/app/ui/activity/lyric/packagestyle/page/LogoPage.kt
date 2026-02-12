@@ -26,9 +26,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.proify.lyricon.app.R
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
+import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import io.github.proify.lyricon.app.compose.preference.InputPreference
 import io.github.proify.lyricon.app.compose.preference.InputType
@@ -40,8 +39,9 @@ import io.github.proify.lyricon.app.util.Utils
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LogoStyle
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SmallTitle
-import top.yukonga.miuix.kmp.extra.SpinnerEntry
+import top.yukonga.miuix.kmp.basic.SpinnerEntry
 import top.yukonga.miuix.kmp.extra.SuperSpinner
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -75,10 +75,10 @@ fun LogoPage(
                     sharedPreferences,
                     "lyric_style_logo_enable",
                     defaultValue = LogoStyle.Defaults.ENABLE,
-                    leftAction = {
+                    startAction = {
                         IconActions(painterResource(R.drawable.ic_music_note))
                     },
-                    title = stringResource(R.string.item_logo_enable),
+                    title = stringResource(R.string.item_logo_enable)
                 )
                 InputPreference(
                     sharedPreferences = sharedPreferences,
@@ -87,7 +87,7 @@ fun LogoPage(
                     syncKeys = arrayOf("lyric_style_logo_height"),
                     inputType = InputType.DOUBLE,
                     maxValue = 100.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
+                    leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) }
                 )
                 RectInputPreference(
                     sharedPreferences,
@@ -122,7 +122,7 @@ fun LogoPage(
                         sharedPreferences,
                         "lyric_style_logo_hide_in_coloros_capsule_mode",
                         defaultValue = LogoStyle.Defaults.HIDE_IN_COLOROS_CAPSULE_MODE,
-                        leftAction = {
+                        startAction = {
                             IconActions(painterResource(R.drawable.ic_visibility_off))
                         },
                         title = stringResource(R.string.item_logo_hide_in_coloros_capsule_mode),
@@ -207,9 +207,9 @@ fun LogoPage(
                     sharedPreferences,
                     "lyric_style_logo_enable_custom_color",
                     title = stringResource(R.string.item_logo_custom_color),
-                    leftAction = {
+                    startAction = {
                         IconActions(painterResource(R.drawable.ic_palette))
-                    },
+                    }
                 )
 
                 LogoColorPreference(
@@ -265,7 +265,7 @@ private fun LogoGravity(sharedPreferences: SharedPreferences) {
     }
 
     SuperSpinner(
-        leftAction = {
+        startAction = {
             IconActions(painterResource(R.drawable.ic_stack))
         },
         title = stringResource(R.string.item_logo_position),

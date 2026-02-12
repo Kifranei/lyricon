@@ -14,10 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentColors
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentDefaults
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.CheckboxLocation
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
+import top.yukonga.miuix.kmp.basic.BasicComponentColors
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.CheckboxColors
 import top.yukonga.miuix.kmp.basic.CheckboxDefaults
 
@@ -27,18 +27,19 @@ fun CheckboxPreference(
     key: String,
     title: String,
     defaultValue: Boolean = false,
+    onCheckedChange: ((Boolean) -> Unit)? = null,
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     titleColor: BasicComponentColors = BasicComponentDefaults.titleColor(),
     summary: String? = null,
     summaryColor: BasicComponentColors = BasicComponentDefaults.summaryColor(),
     checkboxColors: CheckboxColors = CheckboxDefaults.checkboxColors(),
-    leftAction: @Composable () -> Unit = {},
-    rightActions: @Composable RowScope.() -> Unit = {},
-    checkboxLocation: CheckboxLocation = CheckboxLocation.Right,
+    startActions: @Composable () -> Unit = {},
+    endActions: @Composable RowScope.() -> Unit = {},
+    checkboxLocation: CheckboxLocation = CheckboxLocation.Start,
+    bottomAction: (@Composable () -> Unit)? = null,
     insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
-    onClick: (() -> Unit)? = null,
     holdDownState: Boolean = false,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     val checked = rememberBooleanPreference(sharedPreferences, key, defaultValue)
 
@@ -53,18 +54,19 @@ fun CheckboxPreference(
                 else HapticFeedbackType.ToggleOff
             )
             checked.value = it
+            onCheckedChange?.invoke(it)
         },
         modifier = modifier,
         titleColor = titleColor,
         summary = summary,
         summaryColor = summaryColor,
         checkboxColors = checkboxColors,
-        leftAction = leftAction,
-        rightActions = rightActions,
+        startActions = startActions,
+        endActions = endActions,
         checkboxLocation = checkboxLocation,
+        bottomAction = bottomAction,
         insideMargin = insideMargin,
-        onClick = onClick,
         holdDownState = holdDownState,
-        enabled = enabled
+        enabled = enabled,
     )
 }

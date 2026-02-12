@@ -53,26 +53,26 @@ import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.GoogleRainbowText
 import io.github.proify.lyricon.app.compose.MaterialPalette
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentDefaults
+import io.github.proify.lyricon.app.compose.color
 import io.github.proify.lyricon.app.compose.preference.rememberIntPreference
 import io.github.proify.lyricon.app.ui.activity.BaseActivity
 import io.github.proify.lyricon.app.ui.activity.lyric.packagestyle.sheet.AsyncAppIcon
 import io.github.proify.lyricon.app.util.AnimationEmoji
 import io.github.proify.lyricon.app.util.LaunchBrowserCompose
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.ListPopup
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.extra.DropdownImpl
+import top.yukonga.miuix.kmp.extra.SuperListPopup
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.other.GitHub
-import top.yukonga.miuix.kmp.icon.icons.useful.ImmersionMore
+import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -234,8 +234,8 @@ class LyricProviderActivity : BaseActivity() {
         Row(modifier = Modifier.padding(end = 14.dp)) {
             IconButton(onClick = { shouldLaunch = true }) {
                 Icon(
-                    modifier = Modifier.size(24.dp),
-                    imageVector = MiuixIcons.Other.GitHub,
+                    modifier = Modifier.size(26.dp),
+                    painter = painterResource(R.drawable.ic_github),
                     contentDescription = null,
                     tint = MiuixTheme.colorScheme.onSurface
                 )
@@ -246,16 +246,16 @@ class LyricProviderActivity : BaseActivity() {
             Box {
                 IconButton(onClick = { showPopup.value = true }) {
                     Icon(
-                        modifier = Modifier.size(26.dp),
-                        imageVector = MiuixIcons.Useful.ImmersionMore,
+                        modifier = Modifier.size(24.dp),
+                        imageVector = MiuixIcons.More,
                         contentDescription = null,
                         tint = MiuixTheme.colorScheme.onSurface
                     )
                 }
 
-                ListPopup(
+                SuperListPopup(
                     show = showPopup,
-                    alignment = PopupPositionProvider.Align.TopRight,
+                    alignment = PopupPositionProvider.Align.TopEnd,
                     onDismissRequest = { showPopup.value = false }
                 ) {
                     ListPopupColumn {

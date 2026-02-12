@@ -1,23 +1,25 @@
-/*
- * Copyright 2026 Proify, Tomakino
- * Licensed under the Apache License, Version 2.0
- * http://www.apache.org/licenses/LICENSE-2.0
- */
-
-package io.github.proify.lyricon.app.compose.custom.miuix.extra
-
 // Copyright 2025, compose-miuix-ui contributors
 // SPDX-License-Identifier: Apache-2.0
 
+package io.github.proify.lyricon.app.compose.custom.miuix.extra
+
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.NonRestartableComposable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.LayoutDirection
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponent
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentColors
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentDefaults
+import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.BasicComponentColors
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Checkbox
 import top.yukonga.miuix.kmp.basic.CheckboxColors
 import top.yukonga.miuix.kmp.basic.CheckboxDefaults
@@ -33,14 +35,15 @@ import top.yukonga.miuix.kmp.basic.CheckboxDefaults
  * @param summary The summary of the [SuperCheckbox].
  * @param summaryColor The color of the summary.
  * @param checkboxColors The [CheckboxColors] of the [SuperCheckbox].
- * @param rightActions The [Composable] content that on the right side of the [SuperCheckbox].
- * @param checkboxLocation The insertionOrder of checkbox, [CheckboxLocation.Left] or [CheckboxLocation.Right].
+ * @param endActions The [Composable] content that on the end side of the [SuperCheckbox].
+ * @param checkboxLocation The location of checkbox, [CheckboxLocation.Start] or [CheckboxLocation.End].
+ * @param bottomAction The [Composable] content at the bottom of the [SuperCheckbox].
  * @param insideMargin The margin inside the [SuperCheckbox].
- * @param onClick Optional callback when the component is clicked before checkbox is toggled.
  * @param holdDownState Used to determine whether it is in the pressed state.
  * @param enabled Whether the [SuperCheckbox] is clickable.
  */
 @Composable
+@NonRestartableComposable
 fun SuperCheckbox(
     title: String,
     checked: Boolean,
@@ -50,14 +53,36 @@ fun SuperCheckbox(
     summary: String? = null,
     summaryColor: BasicComponentColors = BasicComponentDefaults.summaryColor(),
     checkboxColors: CheckboxColors = CheckboxDefaults.checkboxColors(),
-    leftAction: @Composable () -> Unit = {},
-    rightActions: @Composable RowScope.() -> Unit = {},
-    checkboxLocation: CheckboxLocation = CheckboxLocation.Left,
+    startActions: (@Composable () -> Unit)? = null,
+    endActions: @Composable RowScope.() -> Unit = {},
+    checkboxLocation: CheckboxLocation = CheckboxLocation.Start,
+    bottomAction: (@Composable () -> Unit)? = null,
     insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
-    onClick: (() -> Unit)? = null,
     holdDownState: Boolean = false,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
+    val currentOnCheckedChange by rememberUpdatedState(onCheckedChange)
+    val startAction = if (checkboxLocation == CheckboxLocation.Start) {
+        @Composable {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SuperCheckboxStartAction(
+                    checked = checked,
+                    onCheckedChange = currentOnCheckedChange,
+                    enabled = enabled,
+                    checkboxColors = checkboxColors,
+                )
+                if (startActions != null) {
+                    Spacer(modifier = Modifier.width(5.dp))
+                    startActions()
+                }
+            }
+        }
+    } else {
+        null
+    }
 
     BasicComponent(
         modifier = modifier,
@@ -66,77 +91,67 @@ fun SuperCheckbox(
         titleColor = titleColor,
         summary = summary,
         summaryColor = summaryColor,
-        leftAction = {
-            if (checkboxLocation == CheckboxLocation.Left) {
-                SuperCheckboxLeftAction(
+        startAction = startAction,
+        endActions = {
+            Row(
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .align(Alignment.CenterVertically)
+                    .weight(1f, fill = false),
+            ) {
+                endActions()
+            }
+            if (checkboxLocation == CheckboxLocation.End) {
+                SuperCheckboxEndAction(
                     checked = checked,
-                    onCheckedChange = onCheckedChange,
+                    onCheckedChange = currentOnCheckedChange,
                     enabled = enabled,
                     checkboxColors = checkboxColors,
-                    insideMargin = insideMargin
                 )
             }
-            leftAction()
         },
-        rightActions = {
-            SuperCheckboxRightActions(
-                rightActions = rightActions,
-                checkboxLocation = checkboxLocation,
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                enabled = enabled,
-                checkboxColors = checkboxColors
-            )
-        },
+        bottomAction = bottomAction,
         onClick = {
-            if (enabled) {
-                onClick?.invoke()
-                onCheckedChange?.invoke(!checked)
-            }
+            currentOnCheckedChange.takeIf { enabled }?.invoke(!checked)
         },
         holdDownState = holdDownState,
-        enabled = enabled
+        enabled = enabled,
     )
 }
 
 @Composable
-private fun SuperCheckboxLeftAction(
+private fun SuperCheckboxStartAction(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
     enabled: Boolean,
     checkboxColors: CheckboxColors,
-    insideMargin: PaddingValues
 ) {
     Checkbox(
-        modifier = Modifier.padding(end = insideMargin.calculateLeftPadding(LayoutDirection.Ltr)),
+        modifier = Modifier
+            .padding(end = 8.dp),
         checked = checked,
         onCheckedChange = onCheckedChange,
         enabled = enabled,
-        colors = checkboxColors
+        colors = checkboxColors,
     )
 }
 
 @Composable
-private fun RowScope.SuperCheckboxRightActions(
-    rightActions: @Composable RowScope.() -> Unit,
-    checkboxLocation: CheckboxLocation,
+private fun SuperCheckboxEndAction(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
     enabled: Boolean,
-    checkboxColors: CheckboxColors
+    checkboxColors: CheckboxColors,
 ) {
-    rightActions()
-    if (checkboxLocation == CheckboxLocation.Right) {
-        Checkbox(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            enabled = enabled,
-            colors = checkboxColors
-        )
-    }
+    Checkbox(
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        enabled = enabled,
+        colors = checkboxColors,
+    )
 }
 
 enum class CheckboxLocation {
-    Left,
-    Right,
+    Start,
+    End,
 }

@@ -30,14 +30,14 @@ import io.github.proify.android.extensions.toJson
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.color.ColorBox
 import io.github.proify.lyricon.app.compose.color.ColorPaletteDialog
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.TextColor
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Delete
+import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -107,7 +107,7 @@ private fun TextColorBottomSheet(
     SuperBottomSheet(
         show = isVisible,
         title = title,
-        rightAction = {
+        endAction = {
             if (textColor.hasCustomColors()) {
                 Row {
                     IconButton(onClick = {
@@ -115,7 +115,7 @@ private fun TextColorBottomSheet(
                         onReset()
                     }) {
                         Icon(
-                            imageVector = MiuixIcons.Useful.Delete,
+                            imageVector = MiuixIcons.Delete,
                             contentDescription = "Reset color"
                         )
                     }
@@ -201,8 +201,8 @@ private fun TextColorArrow(
 ) {
     SuperArrow(
         title = title,
-        leftAction = leftAction,
-        rightActions = {
+        startAction = leftAction,
+        endActions = {
             ColorPreviewRow(textColor)
         },
         onClick = onClick
@@ -256,8 +256,8 @@ private fun ColorPickerItem(
 
     SuperArrow(
         title = title,
-        leftAction = leftAction,
-        rightActions = {
+        startAction = leftAction,
+        endActions = {
             currentColor.value?.let {
                 ColorBox(colors = listOf(it))
                 Spacer(modifier = Modifier.width(10.dp))
@@ -266,7 +266,6 @@ private fun ColorPickerItem(
         onClick = { isDialogVisible.value = true }
     )
 }
-
 
 private fun TextColor.hasCustomColors(): Boolean =
     normal != EMPTY_COLOR || highlight != EMPTY_COLOR

@@ -44,7 +44,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.proify.lyricon.app.R
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import io.github.proify.lyricon.app.util.LyricPrefs
 import kotlinx.coroutines.Dispatchers
@@ -52,6 +51,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.InputField
@@ -59,7 +59,7 @@ import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Search
+import top.yukonga.miuix.kmp.icon.extended.Search
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -252,7 +252,7 @@ private fun PackageSelectionItem(
                 .fillMaxWidth(),
     ) {
         SuperCheckbox(
-            leftAction = {
+            startActions = {
                 AsyncAppIcon(
                     application = item.applicationInfo,
                     modifier = Modifier.size(40.dp),
@@ -296,7 +296,7 @@ private fun PackageSearchBar(
                 leadingIcon = {
                     Icon(
                         modifier = Modifier.padding(start = 12.dp, end = 8.dp),
-                        imageVector = MiuixIcons.Useful.Search,
+                        imageVector = MiuixIcons.Search,
                         contentDescription = stringResource(R.string.action_search),
                         tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                     )

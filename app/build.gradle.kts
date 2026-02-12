@@ -58,6 +58,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
 
     implementation(libs.miuix.android)
+    implementation(libs.miuix.icons)
 
     implementation(libs.accompanist.drawablepainter)
     implementation(libs.androidx.browser)

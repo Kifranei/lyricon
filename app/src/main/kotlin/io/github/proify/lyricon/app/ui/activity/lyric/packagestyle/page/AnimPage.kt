@@ -22,24 +22,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.proify.lyricon.app.R
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
+import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import io.github.proify.lyricon.app.compose.preference.SwitchPreference
 import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.lyric.style.AnimStyle
 import io.github.proify.lyricon.lyric.view.yoyo.YoYoPresets
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Composable
-fun AnimPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreferences) {
+fun AnimPage(
+    scrollBehavior: ScrollBehavior,
+    sharedPreferences: SharedPreferences
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
     ) {
-
         val registry = YoYoPresets.registry
         val keys = registry.keys.toList()
         var selectedId by rememberStringPreference(
@@ -53,6 +55,7 @@ fun AnimPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                 .fillMaxHeight()
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
+            // .hazeSource(hazeState)
         ) {
 
             item("enable") {
@@ -65,7 +68,7 @@ fun AnimPage(scrollBehavior: ScrollBehavior, sharedPreferences: SharedPreference
                         sharedPreferences,
                         "lyric_style_anim_enable",
                         defaultValue = AnimStyle.Defaults.ENABLE,
-                        leftAction = {
+                        startAction = {
                             IconActions(painterResource(R.drawable.masked_transitions_24px))
                         },
                         title = stringResource(R.string.item_logo_enable),

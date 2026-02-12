@@ -6,18 +6,25 @@
 
 <resources>
 
-    <style name="Theme.Dark" parent="@android:style/Theme.Material.NoActionBar">
-        <item name="android:windowSoftInputMode">adjustResize</item>
+    <style name="Theme.Dark" parent="Theme.MaterialComponents.NoActionBar">
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+
+        <item name="android:windowSharedElementEnterTransition">@null</item>
+        <item name="android:windowSharedElementExitTransition">@null</item>
     </style>
 
-    <style name="Theme.Light" parent="@android:style/Theme.Material.Light.NoActionBar">
+    <style name="Theme.Light" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="android:colorBackground">@android:color/white</item>
-        <item name="android:windowSoftInputMode">adjustResize</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowAllowEnterTransitionOverlap">true</item>
+        <item name="android:windowAllowReturnTransitionOverlap">true</item>
+        <item name="android:windowSharedElementEnterTransition">@null</item>
+        <item name="android:windowSharedElementExitTransition">@null</item>
     </style>
 
     <style name="Theme.DayNight" parent="Theme.Light" />
-
     <style name="Theme.SplashScreen.DayNight" parent="Theme.DayNight" />
-
     <style name="Theme.SplashScreen" parent="Theme.SplashScreen.DayNight" />
 </resources>

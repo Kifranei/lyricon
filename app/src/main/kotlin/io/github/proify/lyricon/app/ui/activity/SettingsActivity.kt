@@ -26,11 +26,8 @@ import io.github.proify.lyricon.app.AppBackup
 import io.github.proify.lyricon.app.LyriconApp
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.IconActions
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SpinnerEntry
+import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperSpinner
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperSwitch
 import io.github.proify.lyricon.app.event.SettingChangedEvent
 import io.github.proify.lyricon.app.updateRemoteLyricStyle
@@ -42,7 +39,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.SpinnerEntry
 import top.yukonga.miuix.kmp.extra.SuperDropdown
+import top.yukonga.miuix.kmp.extra.SuperSpinner
 import java.util.Locale
 
 class SettingsActivity : BaseActivity() {
@@ -139,12 +139,12 @@ class SettingsActivity : BaseActivity() {
         onImport: () -> Unit
     ) {
         SuperArrow(
-            leftAction = { IconActions(painterResource(R.drawable.ic_save)) },
+            startAction = { IconActions(painterResource(R.drawable.ic_save)) },
             title = stringResource(R.string.item_app_backup),
             onClick = onExport
         )
         SuperArrow(
-            leftAction = { IconActions(painterResource(R.drawable.ic_settings_backup_restore)) },
+            startAction = { IconActions(painterResource(R.drawable.ic_settings_backup_restore)) },
             title = stringResource(R.string.item_app_restore),
             onClick = onImport
         )
@@ -176,14 +176,14 @@ class SettingsActivity : BaseActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val monetEnabled = remember {
-                AppThemeUtils.isEnableMonetColor(context)
+                AppThemeUtils.isEnableMonet(context)
             }
             SuperSwitch(
-                leftAction = { IconActions(painterResource(R.drawable.ic_palette)) },
+                startAction = { IconActions(painterResource(R.drawable.ic_palette)) },
                 title = stringResource(R.string.item_app_theme_monet_color),
                 checked = monetEnabled,
                 onCheckedChange = {
-                    AppThemeUtils.setEnableMonetColor(context, it)
+                    AppThemeUtils.setEnableMonet(context, it)
                     onApplied()
                 }
             )
@@ -199,7 +199,7 @@ class SettingsActivity : BaseActivity() {
         }
 
         SuperDropdown(
-            leftAction = { IconActions(painterResource(R.drawable.ic_routine)) },
+            startAction = { IconActions(painterResource(R.drawable.ic_routine)) },
             title = stringResource(R.string.item_app_theme_mode),
             items = themeModeOptions.map { stringResource(it.first) },
             selectedIndex = selectedIndex,
@@ -244,7 +244,7 @@ class SettingsActivity : BaseActivity() {
         }
 
         SuperSpinner(
-            leftAction = { IconActions(painterResource(R.drawable.ic_language)) },
+            startAction = { IconActions(painterResource(R.drawable.ic_language)) },
             title = stringResource(R.string.item_app_language),
             items = spinnerItems,
             selectedIndex = selectedIndex,

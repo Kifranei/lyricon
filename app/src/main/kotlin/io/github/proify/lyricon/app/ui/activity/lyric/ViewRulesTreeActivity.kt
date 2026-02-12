@@ -33,19 +33,21 @@ import androidx.lifecycle.ViewModel
 import io.github.proify.lyricon.app.LyriconApp.Companion.systemUIChannel
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
+import io.github.proify.lyricon.app.compose.MaterialPalette
 import io.github.proify.lyricon.app.compose.custom.bonsai.core.node.Node
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
+import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import io.github.proify.lyricon.app.updateRemoteLyricStyle
+import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.common.util.ViewTreeNode
 import io.github.proify.lyricon.lyric.style.VisibilityRule
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class ViewRulesTreeActivity : ViewTreeActivity() {
     internal val viewModel: RuleViewModel by viewModels()
-    private val activeRuleColor = Color(color = 0xFF66BB6A)
 
     override fun onDestroy() {
         super.onDestroy()
@@ -76,7 +78,8 @@ class ViewRulesTreeActivity : ViewTreeActivity() {
             val rules = LyricPrefs.getViewVisibilityRule()
             val hasActiveRule =
                 rules.any { it.id == node.id && it.mode != VisibilityRule.MODE_NORMAL }
-            return if (hasActiveRule) activeRuleColor else Color.Transparent
+            return if (hasActiveRule) if (AppThemeUtils.isEnableMonet(application)) CurrentThemeConfigs.primaryContainer else MaterialPalette.Green.Primary
+            else Color.Transparent
         }
     }
 

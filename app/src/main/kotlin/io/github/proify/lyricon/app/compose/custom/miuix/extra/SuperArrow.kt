@@ -1,40 +1,34 @@
-/*
- * Copyright 2026 Proify, Tomakino
- * Licensed under the Apache License, Version 2.0
- * http://www.apache.org/licenses/LICENSE-2.0
- */
-
-package io.github.proify.lyricon.app.compose.custom.miuix.extra
-
-
 // Copyright 2025, compose-miuix-ui contributors
 // SPDX-License-Identifier: Apache-2.0
 
-//package top.yukonga.miuix.kmp.extra
+package io.github.proify.lyricon.app.compose.custom.miuix.extra
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponent
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentColors
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentDefaults
-import top.yukonga.miuix.kmp.basic.Icon
+import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
+import top.yukonga.miuix.kmp.basic.BasicComponentColors
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.basic.ArrowRight
+import top.yukonga.miuix.kmp.icon.basic.ArrowRight
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
@@ -44,64 +38,74 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  * @param titleColor The color of the title.
  * @param summary The summary of the [SuperArrow].
  * @param summaryColor The color of the summary.
- * @param leftAction The [Composable] content that on the left side of the [SuperArrow].
- * @param rightActions The [Composable] content on the right side of the [SuperArrow].
+ * @param startAction The [Composable] content that on the start side of the [SuperArrow].
+ * @param endActions The [Composable] content on the end side of the [SuperArrow].
+ * @param bottomAction The [Composable] content at the bottom of the [SuperArrow].
  * @param modifier The modifier to be applied to the [SuperArrow].
  * @param insideMargin The margin inside the [SuperArrow].
- * @param onClick The callback when the [SuperArrow] is clicked.
  * @param holdDownState Used to determine whether it is in the pressed state.
  * @param enabled Whether the [SuperArrow] is clickable.
  */
 @Composable
+@NonRestartableComposable
 fun SuperArrow(
     title: String,
+    modifier: Modifier = Modifier,
     titleColor: BasicComponentColors = BasicComponentDefaults.titleColor(),
     summary: String? = null,
     summaryColor: BasicComponentColors = BasicComponentDefaults.summaryColor(),
-    leftAction: @Composable (() -> Unit)? = null,
-    rightActions: @Composable RowScope.() -> Unit = {},
-    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
+    startAction: @Composable (() -> Unit)? = null,
+    endActions: @Composable RowScope.() -> Unit = {},
+    bottomAction: (@Composable () -> Unit)? = null,
     insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
     onClick: (() -> Unit)? = null,
     holdDownState: Boolean = false,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
-    BasicComponent(
+    AppBasicComponent(
         modifier = modifier,
         insideMargin = insideMargin,
         title = title,
         titleColor = titleColor,
         summary = summary,
         summaryColor = summaryColor,
-        leftAction = leftAction,
-        rightActions = {
-            SuperArrowRightActions(
-                rightActions = rightActions,
-                enabled = enabled
+        startAction = startAction,
+        endActions = {
+            Row(
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .align(Alignment.CenterVertically)
+                    .weight(1f, fill = false),
+            ) {
+                endActions()
+            }
+            SuperArrowEndAction(
+                enabled = enabled,
             )
         },
-        onClick = onClick?.takeIf { enabled },
+        bottomAction = bottomAction,
+        onClick = onClick,
         holdDownState = holdDownState,
-        enabled = enabled
+        enabled = enabled,
     )
 }
 
 @Composable
-fun RowScope.SuperArrowRightActions(
-    rightActions: @Composable RowScope.() -> Unit,
+private fun RowScope.SuperArrowEndAction(
     enabled: Boolean,
 ) {
-    rightActions()
-    val tintFilter = ColorFilter.tint(
-        color = SuperArrowDefaults.rightActionColors().color(enabled = enabled)
-    )
-    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val actionColors = SuperArrowDefaults.endActionColors()
+    val tintFilter by remember(enabled, actionColors) {
+        derivedStateOf { ColorFilter.tint(actionColors.color(enabled = enabled)) }
+    }
+    val layoutDirection = LocalLayoutDirection.current
     Image(
         modifier = Modifier
             .size(width = 10.dp, height = 16.dp)
             .graphicsLayer {
-                scaleX = if (isRtl) -1f else 1f
-            },
+                scaleX = if (layoutDirection == LayoutDirection.Rtl) -1f else 1f
+            }
+            .align(Alignment.CenterVertically),
         imageVector = MiuixIcons.Basic.ArrowRight,
         contentDescription = null,
         colorFilter = tintFilter,
@@ -113,37 +117,17 @@ object SuperArrowDefaults {
      * The default color of the arrow.
      */
     @Composable
-    fun rightActionColors(): RightActionColors = RightActionColors(
+    fun endActionColors() = EndActionColors(
         color = MiuixTheme.colorScheme.onSurfaceVariantActions,
-        disabledColor = MiuixTheme.colorScheme.disabledOnSecondaryVariant
+        disabledColor = MiuixTheme.colorScheme.disabledOnSecondaryVariant,
     )
 }
 
-
 @Immutable
-class RightActionColors(
+data class EndActionColors(
     private val color: Color,
-    private val disabledColor: Color
+    private val disabledColor: Color,
 ) {
     @Stable
     internal fun color(enabled: Boolean): Color = if (enabled) color else disabledColor
-}
-
-
-@Composable
-fun IconActions(
-    painter: Painter,
-    contentDescription: String? = null,
-    tint: Color = MiuixTheme.colorScheme.onSurfaceSecondary,
-) {
-    Icon(
-        modifier = Modifier
-            .padding(
-                start = 0.dp, end = 16.dp
-            )
-            .size(24.dp),
-        painter = painter,
-        contentDescription = contentDescription,
-        tint = tint
-    )
 }

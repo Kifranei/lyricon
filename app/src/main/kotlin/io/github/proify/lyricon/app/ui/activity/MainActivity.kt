@@ -19,7 +19,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -37,10 +40,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import androidx.graphics.shapes.RoundedPolygon
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
@@ -54,31 +57,32 @@ import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.EmojiInfiniteQueuePlayer
 import io.github.proify.lyricon.app.compose.MaterialPalette
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponent
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentColors
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.CardColors
+import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
 import io.github.proify.lyricon.app.event.SettingChangedEvent
 import io.github.proify.lyricon.app.ui.activity.lyric.BasicLyricStyleActivity
 import io.github.proify.lyricon.app.ui.activity.lyric.packagestyle.PackageStyleActivity
 import io.github.proify.lyricon.app.ui.activity.lyric.provider.LyricProviderActivity
+import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.Utils
 import io.github.proify.lyricon.app.util.collectEvent
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.app.util.restartApp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.basic.BasicComponentColors
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardColors
+import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.ListPopup
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.extra.DropdownImpl
+import top.yukonga.miuix.kmp.extra.SuperListPopup
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Refresh
+import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 
@@ -172,6 +176,8 @@ class MainActivity : BaseActivity() {
         fun setWaitingForReboot(waiting: Boolean) {
             _isWaitingForReboot.value = waiting
         }
+
+        val isMonet: Boolean get() = AppThemeUtils.isEnableMonet(LyriconApp.get())
     }
 
     private interface CardStatus {
@@ -189,9 +195,15 @@ class MainActivity : BaseActivity() {
     ) : CardStatus {
 
         override val content: @Composable ColumnScope.() -> Unit = {
-            BasicComponent(
-                rightActions = rightActions,
-                leftAction = {
+            AppBasicComponent(
+                insideMargin = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 12.dp,
+                    bottom = 12.dp
+                ),
+                endActions = rightActions,
+                startAction = {
                     Box(
                         modifier = Modifier
                             .padding(end = 16.dp)
@@ -242,12 +254,6 @@ class MainActivity : BaseActivity() {
         val fallbackShowPopup = remember { mutableStateOf(false) }
         val showPopupState = model?.showPopup ?: fallbackShowPopup
 
-        val cardStatus = determineCardStatus(
-            safeMode = model?.safeMode?.value ?: false,
-            isWaitingForReboot = model?.isWaitingForReboot?.value ?: false,
-            onRestartSystemUI = onRestartSystemUI
-        )
-
         AppToolBarListContainer(
             title = stringResource(R.string.app_name),
             actions = { TopBarActions(showPopupState, onRestartSystemUI, onRestartApp) },
@@ -255,7 +261,17 @@ class MainActivity : BaseActivity() {
                 if (model != null) RestartFailDialog(showState = model.showRestartFailDialog)
             }
         ) {
-            item("status_card") { StatusCardItem(cardStatus) }
+
+            item("status_card") {
+                val cardStatus = determineCardStatus(
+                    safeMode = model?.safeMode?.value ?: false,
+                    isWaitingForReboot = model?.isWaitingForReboot?.value ?: false,
+                    onRestartSystemUI = onRestartSystemUI
+                )
+
+                StatusCardItem(cardStatus)
+            }
+
             item("style_settings") { StyleSettingsCard() }
             item("provider_settings") { ProviderSettingsCard() }
             item("other_settings") { OtherSettingsCard() }
@@ -308,7 +324,14 @@ class MainActivity : BaseActivity() {
             }
 
             return StatusCard(
-                colors = CardColors(MaterialPalette.Green.Primary, White),
+                colors = when {
+                    viewModel.isMonet -> CardColors(
+                        MiuixTheme.colorScheme.primary,
+                        MiuixTheme.colorScheme.onPrimary
+                    )
+
+                    else -> CardColors(MaterialPalette.Green.Primary, White)
+                },
                 icon = ImageVector.vectorResource(id = R.drawable.ic_check_circle),
                 title = stringResource(id = R.string.module_status_activated),
                 summary = summary,
@@ -324,6 +347,7 @@ class MainActivity : BaseActivity() {
         )
     }
 
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
     private fun StatusCardItem(cardStatus: CardStatus) {
         Card(
@@ -338,6 +362,7 @@ class MainActivity : BaseActivity() {
         )
     }
 
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
     private fun StyleSettingsCard() {
         val context = LocalContext.current
@@ -347,8 +372,13 @@ class MainActivity : BaseActivity() {
                 .fillMaxWidth()
         ) {
             SuperArrow(
-                leftAction = {
-                    ColoredIconBox(MaterialPalette.Teal.Primary, R.drawable.ic_android)
+                startAction = {
+                    ColoredIconBox(
+                        Modifier,
+                        MaterialPalette.Teal.Primary,
+                        R.drawable.ic_android,
+                        MaterialShapes.Sunny
+                    )
                 },
                 title = stringResource(id = R.string.item_base_lyric_style),
                 summary = stringResource(id = R.string.item_summary_base_lyric_style),
@@ -357,11 +387,12 @@ class MainActivity : BaseActivity() {
                 }
             )
             SuperArrow(
-                leftAction = {
+                startAction = {
                     ColoredIconBox(
+                        Modifier.padding(2.dp),
                         MaterialPalette.Orange.Primary,
                         R.drawable.ic_palette_swatch_variant,
-                        iconSize = 22.dp,
+                        MaterialShapes.Clover8Leaf
                     )
                 },
                 title = stringResource(id = R.string.item_package_style_manager),
@@ -373,6 +404,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
     private fun ProviderSettingsCard() {
         val context = LocalContext.current
@@ -382,8 +414,13 @@ class MainActivity : BaseActivity() {
                 .fillMaxWidth()
         ) {
             SuperArrow(
-                leftAction = {
-                    ColoredIconBox(MaterialPalette.Blue.Primary, R.drawable.ic_extension)
+                startAction = {
+                    ColoredIconBox(
+                        Modifier,
+                        MaterialPalette.Blue.Primary,
+                        R.drawable.ic_extension,
+                        MaterialShapes.Pentagon
+                    )
                 },
                 title = stringResource(id = R.string.item_provider_manager),
                 summary = stringResource(id = R.string.item_summary_provider_manager),
@@ -394,6 +431,7 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
     private fun OtherSettingsCard() {
         val context = LocalContext.current
@@ -404,8 +442,13 @@ class MainActivity : BaseActivity() {
                 .fillMaxWidth()
         ) {
             SuperArrow(
-                leftAction = {
-                    ColoredIconBox(MaterialPalette.BlueGrey.Primary, R.drawable.ic_settings)
+                startAction = {
+                    ColoredIconBox(
+                        Modifier,
+                        MaterialPalette.BlueGrey.Primary,
+                        R.drawable.ic_settings,
+                        MaterialShapes.Pill
+                    )
                 },
                 title = stringResource(id = R.string.item_app_settings),
                 summary = stringResource(id = R.string.item_summary_app_settings),
@@ -415,8 +458,13 @@ class MainActivity : BaseActivity() {
             )
 
             SuperArrow(
-                leftAction = {
-                    ColoredIconBox(MaterialPalette.Green.Primary, R.drawable.ic_info_fill)
+                startAction = {
+                    ColoredIconBox(
+                        Modifier,
+                        MaterialPalette.Green.Primary,
+                        R.drawable.ic_info_fill,
+                        MaterialShapes.Cookie6Sided
+                    )
                 },
                 title = stringResource(id = R.string.item_about_app),
                 summary = stringResource(id = R.string.item_summary_about_app),
@@ -427,22 +475,34 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
     private fun ColoredIconBox(
+        modifier: Modifier = Modifier,
         backgroundColor: Color,
         iconRes: Int,
-        iconSize: Dp = 24.dp
+        polygon: RoundedPolygon
     ) {
+        val iconSize = if (viewModel.isMonet) 20.dp else 24.dp
         Box(
             modifier = Modifier
                 .padding(end = 16.dp)
                 .size(40.dp)
-                .background(backgroundColor, CircleShape),
+                .let {
+                    if (viewModel.isMonet) {
+                        it.background(
+                            MiuixTheme.colorScheme.primary,
+                            polygon.toShape()
+                        )
+                    } else {
+                        it.background(backgroundColor, CircleShape)
+                    }
+                },
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 painter = painterResource(id = iconRes),
-                modifier = if (iconSize != 24.dp) Modifier.size(iconSize) else Modifier,
+                modifier = modifier.size(iconSize),
                 tint = White,
                 contentDescription = null
             )
@@ -471,14 +531,13 @@ class MainActivity : BaseActivity() {
         onRestartSystemUI: () -> Unit,
         onRestartApp: () -> Unit
     ) {
-
         Box(modifier = Modifier.padding(end = 14.dp)) {
             IconButton(
                 onClick = { showPopup.value = true }
             ) {
                 Icon(
-                    modifier = Modifier.size(26.dp),
-                    imageVector = MiuixIcons.Useful.Refresh,
+                    modifier = Modifier.size(24.dp),
+                    imageVector = MiuixIcons.Refresh,
                     contentDescription = stringResource(id = R.string.action_restart),
                     tint = MiuixTheme.colorScheme.onSurface
                 )
@@ -498,21 +557,21 @@ class MainActivity : BaseActivity() {
         onRestartSystemUI: () -> Unit,
         onRestartApp: () -> Unit
     ) {
-        ListPopup(
-            show = showPopup,
-            alignment = PopupPositionProvider.Align.TopRight,
-            onDismissRequest = { showPopup.value = false },
-        ) {
-            val menuItems = listOf(
-                stringResource(R.string.restart_system_ui),
-                stringResource(R.string.restart_app)
-            )
+        val items = listOf(
+            stringResource(R.string.restart_system_ui),
+            stringResource(R.string.restart_app)
+        )
 
+        SuperListPopup(
+            show = showPopup,
+            alignment = PopupPositionProvider.Align.TopEnd,
+            onDismissRequest = { showPopup.value = false }
+        ) {
             ListPopupColumn {
-                menuItems.forEachIndexed { index, itemText ->
+                items.forEachIndexed { index, string ->
                     DropdownImpl(
-                        text = itemText,
-                        optionSize = menuItems.size,
+                        text = string,
+                        optionSize = items.size,
                         isSelected = false,
                         onSelectedIndexChange = {
                             if (index == 0) {

@@ -32,11 +32,11 @@ import androidx.compose.ui.unit.sp
 import com.mikepenz.aboutlibraries.Libs
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
 import io.github.proify.lyricon.app.util.launchBrowser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -173,7 +173,7 @@ class LicensesActivity : BaseActivity() {
                                     text = licenses
                                         .filter { it.name.isNotBlank() }
                                         .joinToString { it.name },
-                                    fontSize = 14.sp,
+                                    fontSize = 14.sp
                                 )
                             }
                         }

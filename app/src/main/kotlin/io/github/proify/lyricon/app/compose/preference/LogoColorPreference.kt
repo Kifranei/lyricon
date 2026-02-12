@@ -89,8 +89,8 @@ fun LogoColorPreference(
     SuperArrow(
         title = title,
         summary = if (logoColor.followTextColor) stringResource(R.string.option_logo_color_follow_text) else null,
-        leftAction = leftAction,
-        rightActions = {
+        startAction = leftAction,
+        endActions = {
             val color = currentColor.toColorOrNull()
             if (color != null) {
                 ColorBox(colors = listOf(color))

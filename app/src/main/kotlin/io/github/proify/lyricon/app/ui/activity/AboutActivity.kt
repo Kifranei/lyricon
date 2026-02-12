@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -41,15 +40,17 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import io.github.proify.lyricon.app.AppConstants
 import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponent
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.IconActions
+import io.github.proify.lyricon.app.compose.IconActions
+import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.util.AppLangUtils
+import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.launchBrowser
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
@@ -66,6 +67,8 @@ class AboutActivity : BaseActivity() {
 
     @Composable
     private fun AboutContent() {
+        val isEnableMonet = AppThemeUtils.isEnableMonet(this)
+
         val buildTimeFormat =
             Instant
                 .ofEpochMilli(BuildConfig.BUILD_TIME)
@@ -73,9 +76,8 @@ class AboutActivity : BaseActivity() {
                 .format(
                     DateTimeFormatter
                         .ofLocalizedDateTime(FormatStyle.MEDIUM)
-                        .withLocale(AppLangUtils.getLocale()),
+                        .withLocale(AppLangUtils.getLocale())
                 )
-
 
         AppToolBarListContainer(
             title = stringResource(id = R.string.activity_about),
@@ -89,15 +91,14 @@ class AboutActivity : BaseActivity() {
                             .fillMaxWidth(),
                     pressFeedbackType = PressFeedbackType.Sink,
                 ) {
-
                     val drawable =
                         AppCompatResources.getDrawable(
                             this@AboutActivity,
                             R.mipmap.ic_launcher
                         )
-                    Box(modifier = Modifier.fillMaxSize()) {
 
-                        if (Build.VERSION.SDK_INT >= 31) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (Build.VERSION.SDK_INT >= 31 && !isEnableMonet) {
                             Row(
                                 modifier =
                                     Modifier
@@ -120,7 +121,7 @@ class AboutActivity : BaseActivity() {
                                             ),
                                         ),
                                     contentDescription = null,
-                                    contentScale = ContentScale.Crop,
+                                    contentScale = ContentScale.Crop
                                 )
                             }
                         } else {
@@ -128,7 +129,10 @@ class AboutActivity : BaseActivity() {
                                 modifier = Modifier
                                     .matchParentSize()
                                     .background(
-                                        Color(0xFF3582FF).copy(alpha = 0.4f),
+                                        (if (isEnableMonet) MiuixTheme.colorScheme.primaryVariant
+                                        else AppConstants.APP_COLOR).copy(
+                                            alpha = 0.4f
+                                        )
                                     )
                             )
                         }
@@ -145,17 +149,15 @@ class AboutActivity : BaseActivity() {
                                 modifier = Modifier.size(54.dp),
                                 painter = rememberDrawablePainter(drawable),
                                 contentDescription = null,
-                                tint = null,
+                                tint = null
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = stringResource(id = R.string.app_name),
                                 style = MiuixTheme.textStyles.title3,
-                                fontSize = 18.sp,
+                                fontSize = 18.sp
                             )
                         }
-
-
                     }
                 }
             }
@@ -166,25 +168,27 @@ class AboutActivity : BaseActivity() {
                         Modifier
                             .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 0.dp)
                             .fillMaxWidth(),
-                    insideMargin = PaddingValues(0.dp),
+                    insideMargin = PaddingValues(0.dp)
                 ) {
-                    BasicComponent(
-                        leftAction = { IconActions(painterResource(R.drawable.ic_info)) },
+                    AppBasicComponent(
+                        startAction = { IconActions(painterResource(R.drawable.ic_info)) },
                         title = stringResource(id = R.string.item_app_version),
                         summary =
                             stringResource(
                                 id = R.string.item_app_version_summary,
                                 BuildConfig.VERSION_NAME,
                                 BuildConfig.VERSION_CODE.toString(),
-                                BuildConfig.BUILD_TYPE,
-                            ),
+                                BuildConfig.BUILD_TYPE
+                            )
                     )
-                    BasicComponent(
-                        leftAction = { IconActions(painterResource(R.drawable.ic_build)) },
+
+                    AppBasicComponent(
+                        startAction = { IconActions(painterResource(R.drawable.ic_build)) },
                         title = stringResource(id = R.string.item_build_time),
-                        summary = buildTimeFormat,
+                        summary = buildTimeFormat
                     )
                 }
+
                 Card(
                     modifier =
                         Modifier
@@ -194,18 +198,20 @@ class AboutActivity : BaseActivity() {
                 ) {
                     val url = stringResource(id = R.string.github_home)
                     val toolbarColor = MiuixTheme.colorScheme.surface.toArgb()
+
                     SuperArrow(
-                        leftAction = { IconActions(painterResource(R.drawable.ic_github)) },
+                        startAction = { IconActions(painterResource(R.drawable.ic_github)) },
                         title = stringResource(id = R.string.item_view_on_github),
                         onClick = {
                             launchBrowser(
                                 url,
-                                toolbarColor,
+                                toolbarColor
                             )
-                        },
+                        }
                     )
+
                     SuperArrow(
-                        leftAction = { IconActions(painterResource(R.drawable.ic_license)) },
+                        startAction = { IconActions(painterResource(R.drawable.ic_license)) },
                         title = stringResource(id = R.string.item_open_source_license),
                         onClick = {
                             startActivity(Intent(this@AboutActivity, LicensesActivity::class.java))

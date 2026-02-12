@@ -13,7 +13,10 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import io.github.proify.lyricon.app.R
+import io.github.proify.lyricon.app.compose.MaterialPalette
 import io.github.proify.lyricon.app.compose.custom.bonsai.core.node.Node
+import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
+import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.common.util.ViewTreeNode
@@ -66,7 +69,7 @@ class AnchorViewTreeActivity : ViewTreeActivity() {
 
         override fun getNodeColor(node: ViewTreeNode): Color =
             when (node.id) {
-                currentAnchor -> Color(color = 0xFF66bb6a)
+                currentAnchor -> if (AppThemeUtils.isEnableMonet(application)) CurrentThemeConfigs.primaryContainer else MaterialPalette.Green.Primary
                 else -> Color.Transparent
             }
     }

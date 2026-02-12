@@ -77,7 +77,7 @@ import kotlinx.serialization.json.decodeFromStream
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Delete
+import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 import kotlin.coroutines.resume
@@ -307,7 +307,7 @@ abstract class ViewTreeActivity : AbstractLyricActivity() {
                     ) {
                         Icon(
                             modifier = Modifier.size(26.dp),
-                            imageVector = MiuixIcons.Useful.Delete,
+                            imageVector = MiuixIcons.Delete,
                             contentDescription = stringResource(id = R.string.action_delete),
                             tint = MiuixTheme.colorScheme.onSurface,
                         )

@@ -34,13 +34,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.rememberHazeState
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarContainer
@@ -59,7 +60,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.TabRowWithContour
+import top.yukonga.miuix.kmp.basic.TabRow
+import top.yukonga.miuix.kmp.basic.TabRowDefaults
 
 const val DEFAULT_PACKAGE_NAME: String = LyricPrefs.DEFAULT_PACKAGE_NAME
 private const val TAB_COUNT = 3
@@ -195,7 +197,7 @@ internal fun PackageStyleScreen(viewModel: PackageStyleViewModel) {
     val view = LocalView.current
     val pagerState = rememberPagerState(pageCount = { TAB_COUNT })
     val scrollBehavior = MiuixScrollBehavior()
-    val hazeState = rememberHazeState()
+    val hazeState: HazeState = rememberHazeState()
 
     val title by remember(currentPackageName) {
         derivedStateOf {
@@ -235,16 +237,15 @@ internal fun PackageStyleScreen(viewModel: PackageStyleViewModel) {
                 Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
-                    .hazeSource(hazeState)
-                    .padding(top = paddingValues.calculateTopPadding() - 5.dp),
+                    .padding(top = paddingValues.calculateTopPadding()),
         ) {
             StyleTabRow(pagerState, scrollBehavior)
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             StyleContentPager(
                 pagerState = pagerState,
                 scrollBehavior = scrollBehavior,
                 sharedPreferences = currentSp,
-                refreshTrigger = refreshTrigger,
+                refreshTrigger = refreshTrigger
             )
         }
     }
@@ -265,11 +266,11 @@ private fun StyleTabRow(
     val selectedTabIndex = remember { mutableIntStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
 
-    TabRowWithContour(
-        height = 50.dp,
+    TabRow(
+        height = 43.dp,
         modifier =
             Modifier
-                .padding(horizontal = 13.dp)
+                .padding(horizontal = 16.dp)
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
         tabs = tabs,
         selectedTabIndex = selectedTabIndex.intValue,
@@ -279,6 +280,9 @@ private fun StyleTabRow(
                 pagerState.animateScrollToPage(index)
             }
         },
+        colors = TabRowDefaults.tabRowColors().copy(
+            backgroundColor = Color.Transparent
+        ),
     )
 
     LaunchedEffect(pagerState) {
@@ -292,7 +296,7 @@ private fun StyleContentPager(
     pagerState: PagerState,
     scrollBehavior: ScrollBehavior,
     sharedPreferences: SharedPreferences?,
-    refreshTrigger: Int,
+    refreshTrigger: Int
 ) {
     HorizontalPager(
         state = pagerState,

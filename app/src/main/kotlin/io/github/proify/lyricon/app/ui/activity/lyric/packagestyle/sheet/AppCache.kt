@@ -30,6 +30,7 @@ object AppCache {
     fun cacheLabel(packageName: String, label: String): Unit = synchronized(labelCache) {
         labelCache[packageName] = label
     }
+
     fun clearLabelCache() {
         labelCache.clear()
     }
