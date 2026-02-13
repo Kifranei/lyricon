@@ -19,8 +19,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import io.github.proify.lyricon.app.LyriconApp
+import io.github.proify.lyricon.app.activity.MainActivity
 import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
-import io.github.proify.lyricon.app.ui.activity.MainActivity
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 object Utils {
@@ -46,7 +46,6 @@ object Utils {
             isRoot = true,
             isNeedResultMsg = true,
         )
-
 }
 
 fun Activity.restartApp() {

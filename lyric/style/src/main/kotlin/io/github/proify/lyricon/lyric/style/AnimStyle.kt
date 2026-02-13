@@ -20,7 +20,7 @@ data class AnimStyle(
 
     object Defaults {
         const val ENABLE: Boolean = true
-        const val ID: String = "stack_flow"
+        const val ID: String = "default"
     }
 
     override fun onLoad(preferences: SharedPreferences) {

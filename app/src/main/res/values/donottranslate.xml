@@ -7,6 +7,7 @@
 <resources>
     <string name="github_home" translatable="false">https://github.com/proify/lyricon</string>
     <string name="provider_release_home" translatable="false">https://github.com/proify/LyricProvider/releases</string>
+    <string name="donation_home" translatable="false">https://afdian.com/a/tomakino</string>
 
     <string name="ok" translatable="false">@android:string/ok</string>
     <string name="yes" translatable="false">@android:string/yes</string>

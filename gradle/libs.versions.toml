@@ -27,6 +27,7 @@ espresso = "3.7.0"
 bonsai = "1.2.0"
 miuixAndroid = "0.8.1"
 miuixIcons = "0.8.1"
+navigationCompose = "2.9.7"
 xposed = "82"
 yukihookapi = "1.3.1"
 kavaref = "1.0.2"
@@ -62,6 +63,7 @@ androidx-compose-material3 = { group = "androidx.compose.material3", name = "mat
 androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "materialIconsCore" }
 
 # ===== Material =====
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 # ===== 动画 / UI 扩展 =====

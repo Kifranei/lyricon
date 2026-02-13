@@ -19,6 +19,11 @@
       <w>testprovider</w>
       <w>trantor</w>
       <w>vanniktech</w>
+      <w>xposeddescription</w>
+      <w>xposedminversion</w>
+      <w>xposedmodule</w>
+      <w>xposedscope</w>
+      <w>xposedsharedprefs</w>
     </words>
   </dictionary>
 </component>

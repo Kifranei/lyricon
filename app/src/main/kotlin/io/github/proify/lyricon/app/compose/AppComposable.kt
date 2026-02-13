@@ -42,10 +42,10 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import io.github.proify.lyricon.app.R
+import io.github.proify.lyricon.app.activity.BaseActivity
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.MiuixScrollBehavior
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.TopAppBar
 import io.github.proify.lyricon.app.compose.theme.AppTheme
-import io.github.proify.lyricon.app.ui.activity.BaseActivity
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton

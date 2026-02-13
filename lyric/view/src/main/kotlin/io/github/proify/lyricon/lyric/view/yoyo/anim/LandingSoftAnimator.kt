@@ -2,10 +2,12 @@ package io.github.proify.lyricon.lyric.view.yoyo.anim
 
 import android.animation.ObjectAnimator
 import android.view.View
+import androidx.annotation.Keep
 import com.daimajia.androidanimations.library.BaseViewAnimator
 import com.daimajia.easing.Glider
 import com.daimajia.easing.Skill
 
+@Keep
 class LandingSoftAnimator : BaseViewAnimator() {
 
     override fun prepare(target: View) {

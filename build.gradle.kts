@@ -12,14 +12,14 @@ plugins {
 }
 
 extra["appPackageName"] = "io.github.proify.lyricon"
-extra["appVersionCode"] = 16
+extra["appVersionCode"] = 17
 extra["appVersionName"] = "1.0.20"
 extra["compileSdkVersion"] = 36
 extra["targetSdkVersion"] = 36
 extra["minSdkVersion"] = 27
 
 extra["providerSdkVersion"] = "0.1.69"
-extra["lyricModelVersion"] = "0.1.68"
+extra["lyricModelVersion"] = "0.1.69"
 
 // apk自动导出
 /**

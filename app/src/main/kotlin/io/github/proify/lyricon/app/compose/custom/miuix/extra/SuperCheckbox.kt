@@ -16,6 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
@@ -23,6 +25,7 @@ import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Checkbox
 import top.yukonga.miuix.kmp.basic.CheckboxColors
 import top.yukonga.miuix.kmp.basic.CheckboxDefaults
+import top.yukonga.miuix.kmp.extra.CheckboxLocation
 
 /**
  * A checkbox with a title and a summary.
@@ -81,8 +84,13 @@ fun SuperCheckbox(
             }
         }
     } else {
-        null
+        if (startActions != null) {
+            @Composable {
+                startActions()
+            }
+        } else null
     }
+    val hapticFeedback = LocalHapticFeedback.current
 
     BasicComponent(
         modifier = modifier,
@@ -112,7 +120,9 @@ fun SuperCheckbox(
         },
         bottomAction = bottomAction,
         onClick = {
-            currentOnCheckedChange.takeIf { enabled }?.invoke(!checked)
+            val checked = !checked
+            currentOnCheckedChange.takeIf { enabled }?.invoke(checked)
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
         },
         holdDownState = holdDownState,
         enabled = enabled,
@@ -149,9 +159,4 @@ private fun SuperCheckboxEndAction(
         enabled = enabled,
         colors = checkboxColors,
     )
-}
-
-enum class CheckboxLocation {
-    Start,
-    End,
 }

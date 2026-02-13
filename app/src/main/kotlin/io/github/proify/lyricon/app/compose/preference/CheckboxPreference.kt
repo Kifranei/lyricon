@@ -14,12 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.CheckboxLocation
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.CheckboxColors
 import top.yukonga.miuix.kmp.basic.CheckboxDefaults
+import top.yukonga.miuix.kmp.extra.CheckboxLocation
 
 @Composable
 fun CheckboxPreference(

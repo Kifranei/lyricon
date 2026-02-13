@@ -13,6 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.unit.dp
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
@@ -58,6 +60,8 @@ fun SuperSwitch(
     enabled: Boolean = true,
 ) {
     val currentOnCheckedChange by rememberUpdatedState(onCheckedChange)
+    val hapticFeedback = LocalHapticFeedback.current
+
     AppBasicComponent(
         modifier = modifier,
         insideMargin = insideMargin,
@@ -84,7 +88,11 @@ fun SuperSwitch(
         },
         bottomAction = bottomAction,
         onClick = {
-            currentOnCheckedChange.takeIf { enabled }?.invoke(!checked)
+            val checked = !checked
+            currentOnCheckedChange.takeIf { enabled }?.invoke(checked)
+            hapticFeedback.performHapticFeedback(
+                if (enabled) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff
+            )
         },
         holdDownState = holdDownState,
         enabled = enabled,
