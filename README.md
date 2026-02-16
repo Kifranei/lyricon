@@ -66,6 +66,7 @@
 ### 💡 以下应用已原生适配
 
 * [光锥音乐](https://coneplayer.trantor.ink/) - 一款追求设计感的优雅本地音乐播放器。
+* Flamingo
 
 ---
 
