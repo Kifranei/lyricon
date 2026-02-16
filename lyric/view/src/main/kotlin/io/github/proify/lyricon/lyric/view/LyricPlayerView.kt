@@ -175,7 +175,9 @@ open class LyricPlayerView(
      * 由 [autoAddView] 方法在合适时设置布局过渡器
      */
     private fun updateLayoutTransitionHandler(config: String? = LayoutTransitionX.TRANSITION_CONFIG_SMOOTH) {
-        layoutTransitionHandler = LayoutTransitionX(config)
+        layoutTransitionHandler = LayoutTransitionX(config).apply {
+            setAnimateParentHierarchy(true)
+        }
         layoutTransition = null
     }
 
@@ -231,9 +233,9 @@ open class LyricPlayerView(
         super.removeAllViews()
     }
 
-    override fun updateColor(primary: Int, background: Int, highlight: Int) {
-        val needsUpdate = primary != styleConfig.primary.textColor ||
-                highlight != styleConfig.syllable.highlightColor
+    override fun updateColor(primary: IntArray, background: IntArray, highlight: IntArray) {
+        val needsUpdate = !primary.contentEquals(styleConfig.primary.textColor) ||
+                !highlight.contentEquals(styleConfig.syllable.highlightColor)
         if (!needsUpdate) return
 
         styleConfig.apply {
@@ -334,8 +336,15 @@ open class LyricPlayerView(
         }
     }
 
+    private var isVisibilityUpdatePending = false
+
     fun updateViewsVisibility() {
-        doUpdateViewsVisibility()
+        if (isVisibilityUpdatePending) return
+        isVisibilityUpdatePending = true
+        post {
+            doUpdateViewsVisibility()
+            isVisibilityUpdatePending = false
+        }
     }
 
     /**

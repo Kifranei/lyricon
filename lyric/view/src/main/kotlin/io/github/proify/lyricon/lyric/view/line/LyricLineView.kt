@@ -10,6 +10,9 @@ package io.github.proify.lyricon.lyric.view.line
 
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.LinearGradient
+import android.graphics.Shader
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.util.Log
@@ -25,7 +28,7 @@ import io.github.proify.lyricon.lyric.view.util.dp
 import io.github.proify.lyricon.lyric.view.util.sp
 import java.lang.ref.WeakReference
 
-class LyricLineView(context: Context, attrs: AttributeSet? = null) :
+open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
     View(context, attrs), UpdatableColor {
 
     companion object {
@@ -82,15 +85,11 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        if (changed) {
-            syllable.reLayout()
-        }
+        if (changed) syllable.reLayout()
     }
 
     fun reLayout() {
-        if (isSyllableMode()) {
-            syllable.reLayout()
-        }
+        if (isSyllableMode()) syllable.reLayout()
     }
 
     override fun onAttachedToWindow() {
@@ -102,13 +101,19 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         reset()
     }
 
-    override fun updateColor(
-        primary: Int,
-        background: Int,
-        highlight: Int
-    ) {
+    override fun updateColor(primary: IntArray, background: IntArray, highlight: IntArray) {
         textPaint.apply {
-            color = primary
+            if (primary.isEmpty()) {
+                color = Color.BLACK
+                shader = null
+            } else {
+                color = primary.firstOrNull() ?: Color.BLACK
+                shader = if (primary.size > 1) {
+                    getRainbowShader(lyricWidth, primary)
+                } else {
+                    null
+                }
+            }
         }
         syllable.setColor(background, highlight)
         invalidate()
@@ -124,7 +129,19 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         textPaint.apply {
             textSize = textConfig.textSize
             typeface = textConfig.typeface
-            color = textConfig.textColor
+
+            val textColor = textConfig.textColor
+            if (textColor.isEmpty()) {
+                color = Color.BLACK
+                shader = null
+            } else {
+                color = textConfig.textColor.firstOrNull() ?: Color.RED
+                shader = if (textColor.size > 1) {
+                    getRainbowShader(lyricWidth, textColor)
+                } else {
+                    null
+                }
+            }
         }
 
         syllable.setColor(
@@ -133,7 +150,6 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         )
         syllable.setTextSize(textConfig.textSize)
         syllable.setTypeface(textConfig.typeface)
-
         syllable.isGradientEnabled = configs.gradientProgressStyle
 
         marquee.apply {
@@ -373,5 +389,31 @@ class LyricLineView(context: Context, attrs: AttributeSet? = null) :
                 //Log.d("LyricLineView", "AnimationDriver.doFrame: $frameTimeNanos")
             }
         }
+    }
+
+    private var cachedShader: Shader? = null
+    private var cachedShaderSignature: Int = 0
+
+    private fun getRainbowShader(lyricWidth: Float, colors: IntArray): Shader {
+        var sign = 17
+        sign = sign * 31 + lyricWidth.hashCode()
+        sign = sign * 31 + colors.contentHashCode()
+
+        var cachedShader = cachedShader
+        if (cachedShader != null && cachedShaderSignature == sign) {
+            return cachedShader
+        }
+        cachedShaderSignature = sign
+
+        val positions = FloatArray(colors.size) { i ->
+            i.toFloat() / (colors.size - 1)
+        }
+        val shader = LinearGradient(
+            0f, 0f, lyricWidth, 0f,
+            colors, positions,
+            Shader.TileMode.CLAMP
+        )
+        cachedShader = shader
+        return shader
     }
 }

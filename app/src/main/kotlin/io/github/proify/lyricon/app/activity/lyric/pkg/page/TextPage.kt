@@ -18,7 +18,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -140,16 +139,14 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 )
                 TextColorPreference(
                     preferences,
-                    "lyric_style_text_color_light_mode",
+                    "lyric_style_text_rainbow_color_light_mode",
                     title = stringResource(R.string.item_text_color_light_mode),
-                    defaultColor = Color.Black,
                     leftAction = { IconActions(painterResource(R.drawable.ic_brightness7)) },
                 )
                 TextColorPreference(
                     preferences,
-                    "lyric_style_text_color_dark_mode",
+                    "lyric_style_text_rainbow_color_dark_mode",
                     title = stringResource(R.string.item_text_color_dark_mode),
-                    defaultColor = Color.White,
                     leftAction = { IconActions(painterResource(R.drawable.ic_darkmode)) },
                 )
             }

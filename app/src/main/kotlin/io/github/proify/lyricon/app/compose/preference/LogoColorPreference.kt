@@ -36,7 +36,6 @@ import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.LogoColor
-import io.github.proify.lyricon.lyric.style.TextColor
 
 @Composable
 fun LogoColorPreference(
@@ -66,8 +65,8 @@ fun LogoColorPreference(
         },
         content = {
             Spacer(modifier = Modifier.height(16.dp))
-
             val shape = ContinuousRoundedRectangle(16.dp)
+
             Box(
                 modifier = Modifier.clip(shape),
             ) {
@@ -92,6 +91,7 @@ fun LogoColorPreference(
         startAction = leftAction,
         endActions = {
             val color = currentColor.toColorOrNull()
+
             if (color != null) {
                 ColorBox(colors = listOf(color))
                 Spacer(modifier = Modifier.width(10.dp))
@@ -114,20 +114,20 @@ private fun rememberLogoColor(
 
 private fun Int.toColorOrNull(): Color? =
     if (this == 0) null else runCatching { Color(this) }.getOrNull()
-
-@Composable
-private fun ColorPreviewRow(textColor: TextColor) {
-    val normalColor = textColor.normal.toColorOrNull()
-    val backgroundColor = textColor.background.toColorOrNull()
-    val highlightColor = textColor.highlight.toColorOrNull()
-
-    normalColor?.let {
-        ColorBox(colors = listOf(it))
-        Spacer(modifier = Modifier.width(10.dp))
-    }
-
-    if (backgroundColor != null || highlightColor != null) {
-        ColorBox(colors = listOf(backgroundColor, highlightColor))
-        Spacer(modifier = Modifier.width(10.dp))
-    }
-}
+//
+//@Composable
+//private fun ColorPreviewRow(textColor: TextColor) {
+////    val normalColor = textColor.normal.toColorOrNull()
+////    val backgroundColor = textColor.background.toColorOrNull()
+////    val highlightColor = textColor.highlight.toColorOrNull()
+////
+////    normalColor?.let {
+////        ColorBox(colors = listOf(it))
+////        Spacer(modifier = Modifier.width(10.dp))
+////    }
+////
+////    if (backgroundColor != null || highlightColor != null) {
+////        ColorBox(colors = listOf(backgroundColor, highlightColor))
+////        Spacer(modifier = Modifier.width(10.dp))
+////    }
+//}

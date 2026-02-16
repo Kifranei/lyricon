@@ -16,7 +16,6 @@ import java.lang.ref.WeakReference
 class Marquee(private val viewRef: WeakReference<LyricLineView>) {
     companion object {
         private const val DEFAULT_SCROLL_SPEED_DP = 40f
-
     }
 
     private val interpolator = LinearInterpolator()
@@ -83,12 +82,6 @@ class Marquee(private val viewRef: WeakReference<LyricLineView>) {
         }
         reset()
         scheduleDelay(initialDelayMs.toLong())
-    }
-
-    fun pause() {
-        isRunning = false
-        isPendingDelay = false
-        // 注意：暂停不等于结束，所以不设置 _isFinished
     }
 
     fun reset() {

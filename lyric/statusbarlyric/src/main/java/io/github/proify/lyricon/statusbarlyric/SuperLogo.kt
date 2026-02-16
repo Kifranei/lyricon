@@ -453,8 +453,8 @@ class SuperLogo(context: Context) : ImageView(context) {
                 return currentStatusColor.color
             }
             val textColorConfig = textStyle.color(currentStatusColor.lightMode)
-            return if (textColorConfig != null && textColorConfig.normal != 0) {
-                textColorConfig.normal
+            return if (textColorConfig != null && textColorConfig.normal.isNotEmpty() == true) {
+                textColorConfig.normal.firstOrNull() ?: currentStatusColor.color
             } else {
                 currentStatusColor.color
             }

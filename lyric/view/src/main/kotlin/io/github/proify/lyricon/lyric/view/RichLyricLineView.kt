@@ -62,7 +62,9 @@ class RichLyricLineView(
     }
 
     private fun updateLayoutTransitionX(config: String? = LayoutTransitionX.TRANSITION_CONFIG_SMOOTH) {
-        val layoutTransitionX = LayoutTransitionX(config)
+        val layoutTransitionX = LayoutTransitionX(config).apply {
+            setAnimateParentHierarchy(true)
+        }
         layoutTransition = layoutTransitionX
     }
 
@@ -163,7 +165,7 @@ class RichLyricLineView(
         )
     }
 
-    override fun updateColor(primary: Int, background: Int, highlight: Int) {
+    override fun updateColor(primary: IntArray, background: IntArray, highlight: IntArray) {
         forEach { if (it is UpdatableColor) it.updateColor(primary, background, highlight) }
     }
 
