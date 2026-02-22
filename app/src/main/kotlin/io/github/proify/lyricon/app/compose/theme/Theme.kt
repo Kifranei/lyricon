@@ -24,6 +24,8 @@ import top.yukonga.miuix.kmp.theme.platformDynamicColors
 
 object CurrentThemeConfigs {
     var isDark: Boolean = false
+    var primary: Color = Color.Transparent
+    var primaryContainer: Color = Color.Transparent
 }
 
 @Composable
@@ -44,7 +46,11 @@ fun AppTheme(
 
     MiuixTheme(
         colors = colors.colors,
-        content = content
+        content = {
+            CurrentThemeConfigs.primary = MiuixTheme.colorScheme.primary
+            CurrentThemeConfigs.primaryContainer = MiuixTheme.colorScheme.primaryContainer
+            content()
+        }
     )
 }
 
@@ -54,7 +60,7 @@ private fun rememberAppColors(): AppColors {
     val dark = resolveDarkMode(context)
 
     return when {
-        AppThemeUtils.isEnableMonetColor(context) ->
+        AppThemeUtils.isEnableMonet(context) ->
             AppColors(platformDynamicColors(dark), dark)
 
         dark ->

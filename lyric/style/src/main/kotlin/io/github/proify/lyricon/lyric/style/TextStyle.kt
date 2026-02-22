@@ -4,7 +4,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-
 package io.github.proify.lyricon.lyric.style
 
 import android.content.SharedPreferences
@@ -26,8 +25,8 @@ data class TextStyle(
     var fadingEdgeLength: Int = Defaults.FADING_EDGE_LENGTH,
 
     var enableCustomTextColor: Boolean = Defaults.ENABLE_CUSTOM_TEXT_COLOR,
-    var lightModeColor: TextColor? = Defaults.LIGHT_MODE_COLOR,
-    var darkModeColor: TextColor? = Defaults.DARK_MODE_COLOR,
+    var lightModeRainbowColor: RainbowTextColor? = Defaults.LIGHT_MODE_RAINBOW_COLOR,
+    var darkModeRainbowColor: RainbowTextColor? = Defaults.DARK_MODE_RAINBOW_COLOR,
 
     var typeFace: String? = Defaults.TYPE_FACE,
     var typeFaceBold: Boolean = Defaults.TYPE_FACE_BOLD,
@@ -48,6 +47,7 @@ data class TextStyle(
     var scaleInMultiLine: Float = Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE,
 
     var transitionConfig: String? = Defaults.TRANSITION_CONFIG,
+    var placeholderFormat: String? = Defaults.PLACEHOLDER_FORMAT
 ) : AbstractStyle(), Parcelable {
 
     companion object {
@@ -57,7 +57,14 @@ data class TextStyle(
         const val TRANSITION_CONFIG_NONE = "none"
     }
 
+    object PlaceholderFormat {
+        const val NAME: String = "NameOnly"
+        const val NAME_ARTIST: String = "NameAndArtist"
+        const val NONE: String = "None"
+    }
+
     object Defaults {
+        const val PLACEHOLDER_FORMAT: String = PlaceholderFormat.NAME_ARTIST
         const val TRANSITION_CONFIG: String = TRANSITION_CONFIG_SMOOTH
 
         const val TEXT_SIZE_RATIO_IN_MULTI_LINE: Float = 0.86f
@@ -72,8 +79,9 @@ data class TextStyle(
         const val FADING_EDGE_LENGTH: Int = 14
 
         const val ENABLE_CUSTOM_TEXT_COLOR: Boolean = false
-        val LIGHT_MODE_COLOR: TextColor? = null
-        val DARK_MODE_COLOR: TextColor? = null
+
+        val LIGHT_MODE_RAINBOW_COLOR: RainbowTextColor? = null
+        val DARK_MODE_RAINBOW_COLOR: RainbowTextColor? = null
 
         val TYPE_FACE: String? = null
         const val TYPE_FACE_BOLD: Boolean = false
@@ -91,7 +99,8 @@ data class TextStyle(
         const val ENABLE_GRADIENT_PROGRESS_STYLE: Boolean = true
     }
 
-    fun color(lightMode: Boolean): TextColor? = if (lightMode) lightModeColor else darkModeColor
+    fun color(lightMode: Boolean): RainbowTextColor? =
+        if (lightMode) lightModeRainbowColor else darkModeRainbowColor
 
     override fun onLoad(preferences: SharedPreferences) {
         textSize = preferences.getFloat("lyric_style_text_size", Defaults.TEXT_SIZE)
@@ -104,13 +113,13 @@ data class TextStyle(
             "lyric_style_text_enable_custom_color",
             Defaults.ENABLE_CUSTOM_TEXT_COLOR
         )
-        lightModeColor = json.safeDecode<TextColor>(
-            preferences.getString("lyric_style_text_color_light_mode", null),
-            Defaults.LIGHT_MODE_COLOR
+        lightModeRainbowColor = json.safeDecode<RainbowTextColor>(
+            preferences.getString("lyric_style_text_rainbow_color_light_mode", null),
+            Defaults.LIGHT_MODE_RAINBOW_COLOR
         )
-        darkModeColor = json.safeDecode<TextColor>(
-            preferences.getString("lyric_style_text_color_dark_mode", null),
-            Defaults.DARK_MODE_COLOR
+        darkModeRainbowColor = json.safeDecode<RainbowTextColor>(
+            preferences.getString("lyric_style_text_rainbow_color_dark_mode", null),
+            Defaults.DARK_MODE_RAINBOW_COLOR
         )
 
         fadingEdgeLength =
@@ -167,6 +176,10 @@ data class TextStyle(
             "lyric_style_text_transition_config",
             Defaults.TRANSITION_CONFIG
         )
+        placeholderFormat = preferences.getString(
+            "lyric_style_text_placeholder_format",
+            Defaults.PLACEHOLDER_FORMAT
+        )
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -177,8 +190,11 @@ data class TextStyle(
         editor.putString("lyric_style_text_paddings", paddings.toJson())
 
         editor.putBoolean("lyric_style_text_enable_custom_color", enableCustomTextColor)
-        editor.putString("lyric_style_text_color_light_mode", lightModeColor.toJson())
-        editor.putString("lyric_style_text_color_dark_mode", darkModeColor.toJson())
+        editor.putString(
+            "lyric_style_text_rainbow_color_light_mode",
+            lightModeRainbowColor.toJson()
+        )
+        editor.putString("lyric_style_text_rainbow_color_dark_mode", darkModeRainbowColor.toJson())
 
         editor.putInt("lyric_style_text_fading_edge_length", fadingEdgeLength)
 
@@ -210,6 +226,10 @@ data class TextStyle(
         editor.putString(
             "lyric_style_text_transition_config",
             transitionConfig
+        )
+        editor.putString(
+            "lyric_style_text_placeholder_format",
+            placeholderFormat
         )
     }
 }

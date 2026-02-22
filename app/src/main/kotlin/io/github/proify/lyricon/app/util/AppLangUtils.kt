@@ -11,7 +11,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import io.github.proify.android.extensions.defaultSharedPreferences
 import io.github.proify.lyricon.app.LyriconApp
-import io.github.proify.lyricon.app.ui.activity.lyric.packagestyle.sheet.AppCache
+import io.github.proify.lyricon.app.activity.lyric.pkg.sheet.AppCache
 import java.util.Locale
 
 object AppLangUtils {

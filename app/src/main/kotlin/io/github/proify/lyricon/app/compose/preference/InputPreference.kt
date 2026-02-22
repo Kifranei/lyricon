@@ -39,14 +39,15 @@ import androidx.compose.ui.unit.sp
 import io.github.proify.android.extensions.formatToString
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.NumberTextField
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentColors
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentDefaults
+import io.github.proify.lyricon.app.compose.color
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.TimeFormatter
 import io.github.proify.lyricon.app.util.editCommit
 import kotlinx.coroutines.delay
+import top.yukonga.miuix.kmp.basic.BasicComponentColors
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -112,8 +113,8 @@ fun InputPreference(
         titleColor = titleColor,
         summary = finalSummary,
         summaryColor = summaryColor,
-        leftAction = leftAction,
-        rightActions = rightActions,
+        startAction = leftAction,
+        endActions = rightActions,
         modifier = modifier,
         insideMargin = insideMargin,
         onClick = {
@@ -176,6 +177,17 @@ private fun InputPreferenceDialog(
     onSave: (String) -> Unit
 ) {
     var inputValue by remember { mutableStateOf(initialValue) }
+
+    // STRING 类型专用 TextFieldValue（必须持久保存 selection）
+    var textFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = initialValue,
+                selection = TextRange(initialValue.length)
+            )
+        )
+    }
+
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -187,12 +199,12 @@ private fun InputPreferenceDialog(
         validateInput(inputValue, inputType, minValue, maxValue)
     }
 
-    // 提示文本
+    // 范围提示文本
     val hintText = remember(inputValue, hasRangeLimit) {
         if (hasRangeLimit) {
             val currentVal = inputValue.toDoubleOrNull() ?: 0.0
             "${currentVal.formatToString()} (${minValue.formatToString()}-${maxValue.formatToString()})"
-        } else run {
+        } else {
             ""
         }
     }
@@ -217,16 +229,19 @@ private fun InputPreferenceDialog(
         onDismissRequest = { dismiss() }
     ) {
         Column(modifier = Modifier.imePadding()) {
-            // 根据输入类型选择组件
+
             when (inputType) {
+
                 InputType.STRING -> {
-                    val initialTf = remember(inputValue) {
-                        TextFieldValue(text = inputValue, selection = TextRange(inputValue.length))
-                    }
                     TextField(
-                        value = initialTf,
-                        onValueChange = { inputValue = it.text },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        value = textFieldValue,
+                        onValueChange = {
+                            textFieldValue = it
+                            inputValue = it.text
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Text
+                        ),
                         modifier = Modifier.focusRequester(focusRequester),
                         label = label.orEmpty()
                     )
@@ -267,7 +282,6 @@ private fun InputPreferenceDialog(
                 }
             }
 
-            // 范围提示
             if (hintText.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(
@@ -288,14 +302,15 @@ private fun InputPreferenceDialog(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // 按钮组
             Row(horizontalArrangement = Arrangement.SpaceBetween) {
                 TextButton(
                     text = stringResource(id = R.string.cancel),
                     onClick = { dismiss() },
                     modifier = Modifier.weight(1f)
                 )
+
                 Spacer(modifier = Modifier.width(20.dp))
+
                 TextButton(
                     colors = ButtonDefaults.textButtonColorsPrimary(),
                     text = stringResource(id = R.string.action_save),
@@ -311,6 +326,7 @@ private fun InputPreferenceDialog(
         }
     }
 }
+
 
 /**
  * 验证输入值是否有效

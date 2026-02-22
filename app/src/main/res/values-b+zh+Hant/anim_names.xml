@@ -1,0 +1,28 @@
+<resources>
+    <string name="yoyo_default">預設</string>
+    <string name="yoyo_fade_out_fade_in">淡入淡出</string>
+    <string name="yoyo_fade_out_up_fade_in_up">向上淡入淡出</string>
+    <string name="yoyo_fade_out_down_fade_in_down">向下淡入淡出</string>
+    <string name="yoyo_fade_out_left_fade_in_right">向左淡出向右出現</string>
+    <string name="yoyo_fade_out_left_fade_in_up">向左淡出向上出現</string>
+    <string name="yoyo_fade_out_left_zoom_in">向左淡出縮放出現</string>
+    <string name="yoyo_fade_out_left_landing">向左淡出柔和落下</string>
+    <string name="yoyo_fade_out_right_fade_in_left">向右淡出向左出現</string>
+    <string name="yoyo_fade_out_right_fade_in_up">向右淡出向上出現</string>
+    <string name="yoyo_fade_out_right_zoom_in">向右淡出縮放出現</string>
+    <string name="yoyo_fade_out_right_landing">向右淡出聚焦落下</string>
+    <string name="yoyo_fade_out_left_zoom_in_right">向左淡出向右縮放出現</string>
+    <string name="yoyo_fade_out_right_zoom_in_left">向右淡出向左縮放出現</string>
+    <string name="yoyo_slide_out_left_slide_in_right">向左滑出向右滑入</string>
+    <string name="yoyo_slide_out_left_fade_in_up">向左滑出向上出現</string>
+    <string name="yoyo_slide_out_left_zoom_in">向左滑出縮放出現</string>
+    <string name="yoyo_slide_out_left_landing">向左滑出柔和落下</string>
+    <string name="yoyo_slide_out_right_slide_in_left">向右滑出向左滑入</string>
+    <string name="yoyo_slide_out_right_fade_in_up">向右滑出向上出現</string>
+    <string name="yoyo_slide_out_right_zoom_in">向右滑出縮放出現</string>
+    <string name="yoyo_slide_out_right_landing">向右滑出柔和落下</string>
+    <string name="yoyo_flip_out_x_flip_in_x">X軸翻轉</string>
+    <string name="yoyo_flip_out_y_flip_in_y">Y軸翻轉</string>
+    <string name="yoyo_rotate_out_rotate_in">旋轉</string>
+    <string name="yoyo_zoom_out_zoom_in">縮放</string>
+</resources>

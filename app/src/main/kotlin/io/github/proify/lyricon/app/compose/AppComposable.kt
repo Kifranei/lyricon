@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -41,14 +42,16 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import io.github.proify.lyricon.app.R
+import io.github.proify.lyricon.app.activity.BaseActivity
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.MiuixScrollBehavior
+import io.github.proify.lyricon.app.compose.custom.miuix.basic.TopAppBar
 import io.github.proify.lyricon.app.compose.theme.AppTheme
-import io.github.proify.lyricon.app.ui.activity.BaseActivity
+import top.yukonga.miuix.kmp.basic.BasicComponentColors
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Scaffold
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Back
+import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -68,7 +71,7 @@ fun NavigationBackIcon(
                 .graphicsLayer {
                     scaleX = if (isRtl) -1f else 1f
                 },
-            imageVector = MiuixIcons.Useful.Back,
+            imageVector = MiuixIcons.Back,
             contentDescription = stringResource(R.string.action_back)
         )
     }
@@ -106,7 +109,7 @@ fun BlurTopAppBar(
         )
     )
 
-    _root_ide_package_.io.github.proify.lyricon.app.compose.custom.miuix.basic.TopAppBar(
+    TopAppBar(
         title = title,
         modifier = if (hazeState != null) modifier.hazeEffect(hazeState, hazeStyle) else modifier,
         color = color,
@@ -252,4 +255,28 @@ fun AppToolBarContainer(
             content(paddingValues)
         }
     }
+}
+
+
+@Composable
+fun IconActions(
+    painter: Painter,
+    contentDescription: String? = null,
+    tint: Color = MiuixTheme.colorScheme.onSurfaceSecondary,
+) {
+    Icon(
+        modifier = Modifier
+            .padding(
+                start = 0.dp, end = 16.dp
+            )
+            .size(24.dp),
+        painter = painter,
+        contentDescription = contentDescription,
+        tint = tint
+    )
+}
+
+
+fun BasicComponentColors.color(enabled: Boolean): Color {
+    return if (enabled) color else disabledColor
 }

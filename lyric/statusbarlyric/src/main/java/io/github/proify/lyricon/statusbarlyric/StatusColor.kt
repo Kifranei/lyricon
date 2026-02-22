@@ -7,7 +7,9 @@
 package io.github.proify.lyricon.statusbarlyric
 
 data class StatusColor(
-    var color: Int,
-    var lightMode: Boolean,
-    var translucentColor: Int
-)
+    var color: Int = 0,
+    var darkIntensity: Float = 0f,
+    var translucentColor: Int = 0
+) {
+    val lightMode: Boolean get() = darkIntensity < 0.5f
+}

@@ -36,14 +36,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.proify.lyricon.app.R
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.ColorPalette
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.ColorPalette
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Delete
+import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -73,13 +73,13 @@ fun ColorPaletteDialog(
     SuperBottomSheet(
         show = show,
         title = title,
-        rightAction = {
+        endAction = {
             IconButton(onClick = {
                 onDelete()
                 dismiss()
             }) {
                 Icon(
-                    imageVector = MiuixIcons.Useful.Delete,
+                    imageVector = MiuixIcons.Delete,
                     tint = LocalContentColor.current,
                     contentDescription = "Delete"
                 )
@@ -94,7 +94,7 @@ fun ColorPaletteDialog(
         ) {
             item("color_picker_content") {
                 ColorPalette(
-                    initialColor = selectedColor,
+                    color = selectedColor,
                     onColorChanged = {
                         selectedColor = it
                         hexInput = it.toHexString()
@@ -218,10 +218,10 @@ private fun Clipboard.pasteText(): String? {
     } else null
 }
 
-fun Color.toHexString(): String =
+private fun Color.toHexString(): String =
     String.format("#%08X", toArgb())
 
-fun String.parseHexColor(): Color {
+private fun String.parseHexColor(): Color {
     var hex = removePrefix("#")
     if (hex.length == 6) hex = "FF$hex"
     require(hex.length == 8) { "Invalid color format: $this" }

@@ -1,0 +1,28 @@
+<resources>
+    <string name="yoyo_default">Default</string>
+    <string name="yoyo_fade_out_fade_in">Fade</string>
+    <string name="yoyo_fade_out_up_fade_in_up">Rise Fade</string>
+    <string name="yoyo_fade_out_down_fade_in_down">Drop Fade</string>
+    <string name="yoyo_fade_out_left_fade_in_right">Slide Across</string>
+    <string name="yoyo_fade_out_left_fade_in_up">Slide Up from Left</string>
+    <string name="yoyo_fade_out_left_zoom_in">Left Zoom In</string>
+    <string name="yoyo_fade_out_left_landing">Soft Left Landing</string>
+    <string name="yoyo_fade_out_right_fade_in_left">Slide Across Reverse</string>
+    <string name="yoyo_fade_out_right_fade_in_up">Slide Up from Right</string>
+    <string name="yoyo_fade_out_right_zoom_in">Right Zoom In</string>
+    <string name="yoyo_fade_out_right_landing">Soft Right Landing</string>
+    <string name="yoyo_fade_out_left_zoom_in_right">Left-to-Right Zoom</string>
+    <string name="yoyo_fade_out_right_zoom_in_left">Right-to-Left Zoom</string>
+    <string name="yoyo_slide_out_left_slide_in_right">Push Left to Right</string>
+    <string name="yoyo_slide_out_left_fade_in_up">Slide Up from Left</string>
+    <string name="yoyo_slide_out_left_zoom_in">Left Push Zoom</string>
+    <string name="yoyo_slide_out_left_landing">Left Soft Landing</string>
+    <string name="yoyo_slide_out_right_slide_in_left">Push Right to Left</string>
+    <string name="yoyo_slide_out_right_fade_in_up">Slide Up from Right</string>
+    <string name="yoyo_slide_out_right_zoom_in">Right Push Zoom</string>
+    <string name="yoyo_slide_out_right_landing">Right Soft Landing</string>
+    <string name="yoyo_flip_out_x_flip_in_x">Flip Horizontally</string>
+    <string name="yoyo_flip_out_y_flip_in_y">Flip Vertically</string>
+    <string name="yoyo_rotate_out_rotate_in">Rotate</string>
+    <string name="yoyo_zoom_out_zoom_in">Zoom</string>
+</resources>

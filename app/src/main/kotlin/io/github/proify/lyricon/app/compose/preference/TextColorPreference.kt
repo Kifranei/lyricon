@@ -29,19 +29,18 @@ import io.github.proify.android.extensions.fromJson
 import io.github.proify.android.extensions.toJson
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.color.ColorBox
-import io.github.proify.lyricon.app.compose.color.ColorPaletteDialog
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.Card
+import io.github.proify.lyricon.app.compose.color.MultiColorEditPaletteDialog
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.util.editCommit
-import io.github.proify.lyricon.lyric.style.TextColor
+import io.github.proify.lyricon.lyric.style.RainbowTextColor
+import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.useful.Delete
+import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
-private const val EMPTY_COLOR = 0
 private val ITEM_SPACING = 16.dp
 
 @Composable
@@ -49,16 +48,14 @@ fun TextColorPreference(
     sharedPreferences: SharedPreferences,
     key: String,
     title: String,
-    defaultColor: Color,
     leftAction: @Composable (() -> Unit)? = null,
 ) {
-    val textColor = rememberLogoColor(sharedPreferences, key)
+    val textColor = rememberTextColor(sharedPreferences, key)
     val isBottomSheetVisible = remember { mutableStateOf(false) }
 
     TextColorBottomSheet(
         title = title,
         textColor = textColor,
-        defaultColor = defaultColor,
         isVisible = isBottomSheetVisible,
         onReset = { resetTextColor(sharedPreferences, key) },
         onColorChange = { saveTextColor(sharedPreferences, key, textColor) }
@@ -66,20 +63,19 @@ fun TextColorPreference(
 
     TextColorArrow(
         title = title,
-        textColor = textColor,
         leftAction = leftAction,
         onClick = { isBottomSheetVisible.value = true }
     )
 }
 
 @Composable
-private fun rememberLogoColor(
+private fun rememberTextColor(
     sharedPreferences: SharedPreferences,
     key: String
-): TextColor {
+): RainbowTextColor {
     val jsonString = rememberStringPreference(sharedPreferences, key, "{}").value
     return remember(jsonString) {
-        jsonString?.fromJson<TextColor>() ?: TextColor()
+        jsonString?.fromJson<RainbowTextColor>() ?: RainbowTextColor()
     }
 }
 
@@ -90,7 +86,7 @@ private fun resetTextColor(sharedPreferences: SharedPreferences, key: String) {
 private fun saveTextColor(
     sharedPreferences: SharedPreferences,
     key: String,
-    textColor: TextColor
+    textColor: RainbowTextColor
 ) {
     sharedPreferences.editCommit { putString(key, textColor.toJson()) }
 }
@@ -98,8 +94,7 @@ private fun saveTextColor(
 @Composable
 private fun TextColorBottomSheet(
     title: String,
-    textColor: TextColor,
-    defaultColor: Color,
+    textColor: RainbowTextColor,
     isVisible: MutableState<Boolean>,
     onReset: () -> Unit,
     onColorChange: () -> Unit
@@ -107,7 +102,7 @@ private fun TextColorBottomSheet(
     SuperBottomSheet(
         show = isVisible,
         title = title,
-        rightAction = {
+        endAction = {
             if (textColor.hasCustomColors()) {
                 Row {
                     IconButton(onClick = {
@@ -115,7 +110,7 @@ private fun TextColorBottomSheet(
                         onReset()
                     }) {
                         Icon(
-                            imageVector = MiuixIcons.Useful.Delete,
+                            imageVector = MiuixIcons.Delete,
                             contentDescription = "Reset color"
                         )
                     }
@@ -135,7 +130,6 @@ private fun TextColorBottomSheet(
             item("color_settings") {
                 ColorSettingsContent(
                     textColor = textColor,
-                    defaultColor = defaultColor,
                     onColorChange = onColorChange
                 )
             }
@@ -145,8 +139,7 @@ private fun TextColorBottomSheet(
 
 @Composable
 private fun ColorSettingsContent(
-    textColor: TextColor,
-    defaultColor: Color,
+    textColor: RainbowTextColor,
     onColorChange: () -> Unit
 ) {
     Card(
@@ -156,10 +149,9 @@ private fun ColorSettingsContent(
     ) {
         ColorPickerItem(
             title = stringResource(R.string.item_text_color_normal),
-            initialColor = textColor.normal.toColorOrNull(),
-            defaultColor = defaultColor
+            initialColor = textColor.normal.map { Color(it) }
         ) {
-            textColor.normal = it
+            textColor.normal = it.map { it.toArgb() }.toIntArray()
             onColorChange()
         }
     }
@@ -173,18 +165,16 @@ private fun ColorSettingsContent(
     ) {
         ColorPickerItem(
             title = stringResource(R.string.item_text_color_background),
-            initialColor = textColor.background.toColorOrNull(),
-            defaultColor = defaultColor
+            initialColor = textColor.background.map { Color(it) }
         ) {
-            textColor.background = it
+            textColor.background = it.map { it.toArgb() }.toIntArray()
             onColorChange()
         }
         ColorPickerItem(
             title = stringResource(R.string.item_text_color_highlight),
-            initialColor = textColor.highlight.toColorOrNull(),
-            defaultColor = defaultColor
+            initialColor = textColor.highlight.map { Color(it) }
         ) {
-            textColor.highlight = it
+            textColor.highlight = it.map { it.toArgb() }.toIntArray()
             onColorChange()
         }
     }
@@ -195,71 +185,47 @@ private fun ColorSettingsContent(
 @Composable
 private fun TextColorArrow(
     title: String,
-    textColor: TextColor,
     leftAction: @Composable (() -> Unit)?,
     onClick: () -> Unit
 ) {
     SuperArrow(
         title = title,
-        leftAction = leftAction,
-        rightActions = {
-            ColorPreviewRow(textColor)
-        },
+        startAction = leftAction,
+        endActions = {},
         onClick = onClick
     )
-}
-
-private fun Int.toColorOrNull(): Color? =
-    if (this == 0) null else runCatching { Color(this) }.getOrNull()
-
-@Composable
-private fun ColorPreviewRow(textColor: TextColor) {
-    val normalColor = textColor.normal.toColorOrNull()
-    val backgroundColor = textColor.background.toColorOrNull()
-    val highlightColor = textColor.highlight.toColorOrNull()
-
-    normalColor?.let {
-        ColorBox(colors = listOf(it))
-        Spacer(modifier = Modifier.width(10.dp))
-    }
-
-    if (backgroundColor != null || highlightColor != null) {
-        ColorBox(colors = listOf(backgroundColor, highlightColor))
-        Spacer(modifier = Modifier.width(10.dp))
-    }
 }
 
 @Composable
 private fun ColorPickerItem(
     title: String,
-    initialColor: Color?,
-    defaultColor: Color,
+    initialColor: List<Color>,
     leftAction: @Composable (() -> Unit)? = null,
-    onColorSelected: (Int) -> Unit
+    onColorSelected: (List<Color>) -> Unit
 ) {
     val isDialogVisible = remember { mutableStateOf(false) }
     val currentColor = remember { mutableStateOf(initialColor) }
 
-    ColorPaletteDialog(
+    MultiColorEditPaletteDialog(
         title = title,
         show = isDialogVisible,
-        initialColor = currentColor.value ?: defaultColor,
+        initialColor = currentColor.value,
         onDelete = {
-            currentColor.value = null
-            onColorSelected(EMPTY_COLOR)
+            currentColor.value = emptyList()
+            onColorSelected(listOf())
         },
         onConfirm = { color ->
             currentColor.value = color
-            onColorSelected(color.toArgb())
+            onColorSelected(color)
         }
     )
 
     SuperArrow(
         title = title,
-        leftAction = leftAction,
-        rightActions = {
-            currentColor.value?.let {
-                ColorBox(colors = listOf(it))
+        startAction = leftAction,
+        endActions = {
+            currentColor.value.let {
+                ColorBox(colors = it)
                 Spacer(modifier = Modifier.width(10.dp))
             }
         },
@@ -267,6 +233,5 @@ private fun ColorPickerItem(
     )
 }
 
-
-private fun TextColor.hasCustomColors(): Boolean =
-    normal != EMPTY_COLOR || highlight != EMPTY_COLOR
+private fun RainbowTextColor.hasCustomColors(): Boolean =
+    normal.isNotEmpty() || background.isNotEmpty() || highlight.isNotEmpty()

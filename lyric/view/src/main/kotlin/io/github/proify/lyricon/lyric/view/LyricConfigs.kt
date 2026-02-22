@@ -16,7 +16,7 @@ open class LyricLineConfig(
     var marquee: MarqueeConfig,
     var syllable: SyllableConfig,
     var gradientProgressStyle: Boolean,
-    var fadingEdgeLength: Int
+    var fadingEdgeLength: Int,
 )
 
 data class RichLyricLineConfig(
@@ -26,11 +26,20 @@ data class RichLyricLineConfig(
     var syllable: SyllableConfig = DefaultSyllableConfig(),
     var gradientProgressStyle: Boolean = true,
     var scaleInMultiLine: Float = 1f,
-    var fadingEdgeLength: Int = 10
+    var fadingEdgeLength: Int = 10,
+    var placeholderFormat: String = PlaceholderFormat.NAME_ARTIST,
+    var enableAnim: Boolean = false,
+    var animId: String = "stack_flow"
 )
 
+object PlaceholderFormat {
+    const val NAME: String = "NameOnly"
+    const val NAME_ARTIST: String = "NameAndArtist"
+    const val NONE: String = "None"
+}
+
 interface TextConfig {
-    var textColor: Int
+    var textColor: IntArray
     var textSize: Float
     var typeface: Typeface
 }
@@ -54,27 +63,87 @@ open class DefaultMarqueeConfig(
 ) : MarqueeConfig
 
 interface SyllableConfig {
-    var backgroundColor: Int
-    var highlightColor: Int
-    // var disableHighlight: Boolean
+    var backgroundColor: IntArray
+    var highlightColor: IntArray
 }
 
 data class MainTextConfig(
-    override var textColor: Int = Color.BLACK,
+    override var textColor: IntArray = intArrayOf(Color.WHITE),
     override var textSize: Float = 16f.sp,
     override var typeface: Typeface = Typeface.DEFAULT,
     var enableRelativeProgress: Boolean = false,
     var enableRelativeProgressHighlight: Boolean = false,
-) : TextConfig
+) : TextConfig {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
 
-class DefaultSyllableConfig(
-    override var highlightColor: Int = Color.BLACK,
-    override var backgroundColor: Int = Color.GRAY,
-    // override var disableHighlight: Boolean = false,
-) : SyllableConfig
+        other as MainTextConfig
 
-class SecondaryTextConfig(
-    override var textColor: Int = Color.GRAY,
+        if (textSize != other.textSize) return false
+        if (enableRelativeProgress != other.enableRelativeProgress) return false
+        if (enableRelativeProgressHighlight != other.enableRelativeProgressHighlight) return false
+        if (!textColor.contentEquals(other.textColor)) return false
+        if (typeface != other.typeface) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = textSize.hashCode()
+        result = 31 * result + enableRelativeProgress.hashCode()
+        result = 31 * result + enableRelativeProgressHighlight.hashCode()
+        result = 31 * result + textColor.contentHashCode()
+        result = 31 * result + typeface.hashCode()
+        return result
+    }
+}
+
+data class DefaultSyllableConfig(
+    override var highlightColor: IntArray = intArrayOf(Color.WHITE),
+    override var backgroundColor: IntArray = intArrayOf(Color.GRAY),
+) : SyllableConfig {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as DefaultSyllableConfig
+
+        if (!highlightColor.contentEquals(other.highlightColor)) return false
+        if (!backgroundColor.contentEquals(other.backgroundColor)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = highlightColor.contentHashCode()
+        result = 31 * result + backgroundColor.contentHashCode()
+        return result
+    }
+}
+
+data class SecondaryTextConfig(
+    override var textColor: IntArray = intArrayOf(Color.GRAY),
     override var textSize: Float = 14f.sp,
     override var typeface: Typeface = Typeface.DEFAULT
-) : TextConfig
+) : TextConfig {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as SecondaryTextConfig
+
+        if (textSize != other.textSize) return false
+        if (!textColor.contentEquals(other.textColor)) return false
+        if (typeface != other.typeface) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = textSize.hashCode()
+        result = 31 * result + textColor.contentHashCode()
+        result = 31 * result + typeface.hashCode()
+        return result
+    }
+}

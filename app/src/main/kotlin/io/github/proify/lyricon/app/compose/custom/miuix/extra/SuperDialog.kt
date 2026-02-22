@@ -28,7 +28,8 @@ fun SuperDialog(
     summaryColor: Color = SuperDialogDefaults.summaryColor(),
     backgroundColor: Color = SuperDialogDefaults.backgroundColor(),
     enableWindowDim: Boolean = true,
-    onDismissRequest: (() -> Unit)? = { show.value = false },
+    onDismissRequest: (() -> Unit)? = null,
+    onDismissFinished: (() -> Unit)? = null,
     outsideMargin: DpSize = SuperDialogDefaults.outsideMargin,
     insideMargin: DpSize = SuperDialogDefaults.insideMargin,
     defaultWindowInsetsPadding: Boolean = true,
@@ -40,18 +41,19 @@ fun SuperDialog(
     }
 
     top.yukonga.miuix.kmp.extra.SuperDialog(
-        show,
-        modifier,
-        title,
-        titleColor,
-        summary,
-        summaryColor,
-        backgroundColor,
-        enableWindowDim,
-        onDismissRequest,
-        outsideMargin,
-        insideMargin,
-        defaultWindowInsetsPadding,
+        show = show,
+        modifier = modifier,
+        title = title,
+        titleColor = titleColor,
+        summary = summary,
+        summaryColor = summaryColor,
+        backgroundColor = backgroundColor,
+        enableWindowDim = enableWindowDim,
+        onDismissRequest = onDismissRequest,
+        onDismissFinished = onDismissFinished,
+        outsideMargin = outsideMargin,
+        insideMargin = insideMargin,
+        defaultWindowInsetsPadding = defaultWindowInsetsPadding,
     ) {
         Spacer(modifier = Modifier.height(10.dp))
         content()

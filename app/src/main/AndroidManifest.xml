@@ -22,7 +22,7 @@
         android:theme="@style/Theme.DayNight">
 
         <activity
-            android:name=".ui.activity.MainActivity"
+            android:name=".activity.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.SplashScreen">
             <intent-filter>
@@ -33,35 +33,35 @@
         </activity>
 
         <activity
-            android:name=".ui.activity.AboutActivity"
+            android:name=".activity.AboutActivity"
             android:label="@string/activity_about" />
 
         <activity
-            android:name=".ui.activity.SettingsActivity"
+            android:name=".activity.SettingsActivity"
             android:label="@string/activity_settings" />
 
         <activity
-            android:name=".ui.activity.LicensesActivity"
+            android:name=".activity.LicensesActivity"
             android:label="@string/activity_open_source_license" />
 
         <activity
-            android:name=".ui.activity.lyric.BasicLyricStyleActivity"
+            android:name=".activity.lyric.BasicLyricStyleActivity"
             android:label="@string/activity_base_lyric_style" />
 
         <activity
-            android:name=".ui.activity.lyric.packagestyle.PackageStyleActivity"
+            android:name=".activity.lyric.pkg.PackageStyleActivity"
             android:label="@string/activity_package_style_manager" />
 
         <activity
-            android:name=".ui.activity.lyric.provider.LyricProviderActivity"
+            android:name=".activity.lyric.provider.LyricProviderActivity"
             android:label="@string/activity_lyric_provider" />
 
         <activity
-            android:name=".ui.activity.lyric.AnchorViewTreeActivity"
+            android:name=".activity.lyric.AnchorViewTreeActivity"
             android:label="@string/activity_anchor" />
 
         <activity
-            android:name=".ui.activity.lyric.ViewRulesTreeActivity"
+            android:name=".activity.lyric.ViewRulesTreeActivity"
             android:label="@string/activity_view_rules" />
 
         <meta-data

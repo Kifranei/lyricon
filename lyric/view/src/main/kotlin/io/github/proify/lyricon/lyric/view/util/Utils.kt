@@ -19,7 +19,6 @@ import kotlin.math.roundToInt
 fun ViewGroup.getChildAtOrNull(index: Int): View? =
     if (index in 0..<size) getChildAt(index) else null
 
-
 var View.visibilityIfChanged: Int
     get() = visibility
     set(value) {

@@ -7,5 +7,5 @@
 package io.github.proify.lyricon.lyric.view
 
 interface UpdatableColor {
-    fun updateColor(primary: Int, background: Int, highlight: Int)
+    fun updateColor(primary: IntArray, background: IntArray, highlight: IntArray)
 }

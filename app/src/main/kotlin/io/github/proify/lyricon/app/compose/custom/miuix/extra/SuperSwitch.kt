@@ -1,22 +1,24 @@
-/*
- * Copyright 2026 Proify, Tomakino
- * Licensed under the Apache License, Version 2.0
- * http://www.apache.org/licenses/LICENSE-2.0
- */
+// Copyright 2025, compose-miuix-ui contributors
+// SPDX-License-Identifier: Apache-2.0
 
 package io.github.proify.lyricon.app.compose.custom.miuix.extra
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponent
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentColors
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.BasicComponentDefaults
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.unit.dp
+import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
+import top.yukonga.miuix.kmp.basic.BasicComponentColors
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.SwitchColors
 import top.yukonga.miuix.kmp.basic.SwitchDefaults
@@ -27,16 +29,15 @@ import top.yukonga.miuix.kmp.basic.SwitchDefaults
  * @param checked The checked state of the [SuperSwitch].
  * @param onCheckedChange The callback when the checked state of the [SuperSwitch] is changed.
  * @param title The title of the [SuperSwitch].
+ * @param modifier The modifier to be applied to the [SuperSwitch].
  * @param titleColor The color of the title.
  * @param summary The summary of the [SuperSwitch].
  * @param summaryColor The color of the summary.
- * @param leftAction The [Composable] content that on the left side of the [SuperSwitch].
- * @param rightActions The [Composable] content on the right side of the [SuperSwitch].
+ * @param startAction The [Composable] content that on the start side of the [SuperSwitch].
+ * @param endActions The [Composable] content on the end side of the [SuperSwitch].
  * @param bottomAction The [Composable] content at the bottom of the [SuperSwitch].
  * @param switchColors The [SwitchColors] of the [SuperSwitch].
- * @param modifier The modifier to be applied to the [SuperSwitch].
  * @param insideMargin The margin inside the [SuperSwitch].
- * @param onClick The callback when the [SuperSwitch] is clicked.
  * @param holdDownState Used to determine whether it is in the pressed state.
  * @param enabled Whether the [SuperSwitch] is clickable.
  */
@@ -44,65 +45,71 @@ import top.yukonga.miuix.kmp.basic.SwitchDefaults
 @NonRestartableComposable
 fun SuperSwitch(
     checked: Boolean,
-    onCheckedChange: ((Boolean) -> Unit)?,
+    onCheckedChange: (Boolean) -> Unit,
     title: String,
+    modifier: Modifier = Modifier,
     titleColor: BasicComponentColors = BasicComponentDefaults.titleColor(),
     summary: String? = null,
     summaryColor: BasicComponentColors = BasicComponentDefaults.summaryColor(),
-    leftAction: @Composable (() -> Unit)? = null,
-    rightActions: @Composable RowScope.() -> Unit = {},
+    startAction: @Composable (() -> Unit)? = null,
+    endActions: @Composable RowScope.() -> Unit = {},
     bottomAction: (@Composable () -> Unit)? = null,
     switchColors: SwitchColors = SwitchDefaults.switchColors(),
-    @SuppressLint("ModifierParameter") modifier: Modifier = Modifier,
     insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
-    onClick: (() -> Unit)? = null,
     holdDownState: Boolean = false,
-    enabled: Boolean = true
+    enabled: Boolean = true,
 ) {
     val currentOnCheckedChange by rememberUpdatedState(onCheckedChange)
-    val currentOnClick by rememberUpdatedState(onClick)
-    BasicComponent(
+    val hapticFeedback = LocalHapticFeedback.current
+
+    AppBasicComponent(
         modifier = modifier,
         insideMargin = insideMargin,
         title = title,
         titleColor = titleColor,
         summary = summary,
         summaryColor = summaryColor,
-        leftAction = leftAction,
-        rightActions = {
-            SuperSwitchRightActions(
-                rightActions = rightActions,
+        startAction = startAction,
+        endActions = {
+            Row(
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .align(Alignment.CenterVertically)
+                    .weight(1f, fill = false),
+            ) {
+                endActions()
+            }
+            SuperSwitchEndActions(
                 checked = checked,
                 onCheckedChange = currentOnCheckedChange,
                 enabled = enabled,
-                switchColors = switchColors
+                switchColors = switchColors,
             )
         },
-        //bottomAction = bottomAction,
+        bottomAction = bottomAction,
         onClick = {
-            if (enabled) {
-                currentOnClick?.invoke()
-                currentOnCheckedChange?.invoke(!checked)
-            }
+            val checked = !checked
+            currentOnCheckedChange.takeIf { enabled }?.invoke(checked)
+            hapticFeedback.performHapticFeedback(
+                if (enabled) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff
+            )
         },
         holdDownState = holdDownState,
-        enabled = enabled
+        enabled = enabled,
     )
 }
 
 @Composable
-private fun RowScope.SuperSwitchRightActions(
-    rightActions: @Composable RowScope.() -> Unit,
+private fun SuperSwitchEndActions(
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit)?,
     enabled: Boolean,
-    switchColors: SwitchColors
+    switchColors: SwitchColors,
 ) {
-    rightActions()
     Switch(
         checked = checked,
         onCheckedChange = onCheckedChange,
         enabled = enabled,
-        colors = switchColors
+        colors = switchColors,
     )
 }

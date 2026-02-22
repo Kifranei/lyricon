@@ -8,16 +8,17 @@ package io.github.proify.lyricon.lyric.view.line
 
 import android.content.res.Resources
 import android.graphics.Canvas
+import android.view.animation.LinearInterpolator
 import androidx.core.graphics.withTranslation
-import io.github.proify.lyricon.lyric.view.util.Interpolates
 import io.github.proify.lyricon.lyric.view.util.dp
 import java.lang.ref.WeakReference
 
 class Marquee(private val viewRef: WeakReference<LyricLineView>) {
     companion object {
         private const val DEFAULT_SCROLL_SPEED_DP = 40f
-        private val interpolator = Interpolates.linear
     }
+
+    private val interpolator = LinearInterpolator()
 
     // --- 配置参数 ---
     var ghostSpacing: Float = 40f.dp
@@ -81,12 +82,6 @@ class Marquee(private val viewRef: WeakReference<LyricLineView>) {
         }
         reset()
         scheduleDelay(initialDelayMs.toLong())
-    }
-
-    fun pause() {
-        isRunning = false
-        isPendingDelay = false
-        // 注意：暂停不等于结束，所以不设置 _isFinished
     }
 
     fun reset() {

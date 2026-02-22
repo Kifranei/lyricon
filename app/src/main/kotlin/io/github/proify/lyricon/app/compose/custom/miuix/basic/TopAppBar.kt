@@ -80,7 +80,7 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBarState
 import top.yukonga.miuix.kmp.basic.TopAppBarState.Companion.Saver
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.icons.basic.ArrowUpDownIntegrated
+import top.yukonga.miuix.kmp.icon.basic.ArrowUpDown
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -570,7 +570,7 @@ private fun TopAppBarLayout(
                         Spacer(modifier = Modifier.width(10.dp))
                         Icon(
                             modifier = Modifier,
-                            imageVector = MiuixIcons.Basic.ArrowUpDownIntegrated,
+                            imageVector = MiuixIcons.Basic.ArrowUpDown,
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(5.dp))
@@ -623,7 +623,7 @@ private fun TopAppBarLayout(
                         Icon(
                             modifier = Modifier
                                 .offset { IntOffset(0, heightOffset) },
-                            imageVector = MiuixIcons.Basic.ArrowUpDownIntegrated,
+                            imageVector = MiuixIcons.Basic.ArrowUpDown,
                             contentDescription = null
                         )
                         Spacer(modifier = Modifier.width(5.dp))

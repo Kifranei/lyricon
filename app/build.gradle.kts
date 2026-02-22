@@ -51,11 +51,14 @@ dependencies {
     implementation(project(":bridge"))
     implementation(project(":common"))
     implementation(project(":lyric:style"))
+    implementation(project(":lyric:view"))
+    implementation(libs.aboutlibraries.core)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.core.ktx)
 
     implementation(libs.miuix.android)
+    implementation(libs.miuix.icons)
 
     implementation(libs.accompanist.drawablepainter)
     implementation(libs.androidx.browser)
@@ -66,12 +69,16 @@ dependencies {
     implementation(libs.backdrop)
 
     implementation(libs.capsule.android)
-    implementation(libs.lottie.compose)
+    implementation(libs.lottie.compose) {
+        exclude(group = "androidx.appcompat", module = "appcompat")
+    }
 
     // Xposed
     implementation(libs.yukihookapi.api)
     implementation(libs.kavaref.core)
     implementation(libs.kavaref.extension)
+
+    implementation(libs.androidx.navigation.compose)
 
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -84,6 +91,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.remote.creation.core)
+    implementation(libs.androidx.appcompat.resources)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

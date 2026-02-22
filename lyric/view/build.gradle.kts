@@ -29,7 +29,7 @@ configure<LibraryExtension> {
     }
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 23
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
@@ -52,6 +52,10 @@ configure<LibraryExtension> {
 }
 
 dependencies {
+    //noinspection UseTomlInstead
+    implementation("com.daimajia.androidanimations:library:2.4@aar")
+    implementation("com.daimajia.easing:library:2.4@aar")
+
     implementation(project(":lyric:model"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.interpolator)

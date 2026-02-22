@@ -24,8 +24,8 @@ import io.github.proify.lyricon.common.util.ScreenStateMonitor
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric
+import io.github.proify.lyricon.xposed.systemui.util.ClockColorMonitor
 import io.github.proify.lyricon.xposed.systemui.util.OnColorChangeListener
-import io.github.proify.lyricon.xposed.systemui.util.StatusBarColorMonitor
 import io.github.proify.lyricon.xposed.systemui.util.ViewVisibilityController
 
 /**
@@ -56,18 +56,23 @@ class StatusBarViewController(
         lyricView.addOnAttachStateChangeListener(lyricAttachListener)
         ScreenStateMonitor.addListener(this)
 
-        colorMonitorView = getClockView()?.also {
-            StatusBarColorMonitor.setListener(it, object : OnColorChangeListener {
-                override fun onColorChanged(color: Int, isLightMode: Boolean) {
-                    lyricView.apply {
-                        setStatusBarColor(currentStatusColor.apply {
-                            this.color = color
-                            this.lightMode = lightMode
-                            translucentColor = color.setColorAlpha(0.5f)
-                        })
-                    }
+
+        val onColorChangeListener = object : OnColorChangeListener {
+            override fun onColorChanged(color: Int, darkIntensity: Float) {
+                lyricView.apply {
+                    setStatusBarColor(currentStatusColor.apply {
+                        this.color = color
+                        this.darkIntensity = darkIntensity
+                        translucentColor = color.setColorAlpha(0.5f)
+                    })
                 }
-            })
+            }
+        }
+
+        ClockColorMonitor.hook()
+
+        colorMonitorView = getClockView()?.also {
+            ClockColorMonitor.setListener(it, onColorChangeListener)
         }
 
         statusBarView.doOnAttach { checkLyricViewExists() }
@@ -79,7 +84,7 @@ class StatusBarViewController(
         statusBarView.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
         lyricView.removeOnAttachStateChangeListener(lyricAttachListener)
         ScreenStateMonitor.removeListener(this)
-        colorMonitorView?.let { StatusBarColorMonitor.setListener(it, null) }
+        colorMonitorView?.let { ClockColorMonitor.setListener(it, null) }
         YLog.info("Lyric view destroyed for $statusBarView")
     }
 
@@ -181,7 +186,7 @@ class StatusBarViewController(
             val shouldLyricViewVisible = lyricView.isVisible
 
             var visible = LyricViewController.isPlaying && when {
-                lyricView.isSystemDisable -> !lyricView.isHideOnLockScreen()
+                lyricView.isDisabledVisible -> !lyricView.isHideOnLockScreen()
                 shouldLyricViewVisible -> true
                 else -> false
             }
@@ -233,7 +238,7 @@ class StatusBarViewController(
     }
 
     fun onDisableStateChanged(shouldHide: Boolean) {
-        lyricView.isSystemDisable = shouldHide
+        lyricView.isDisabledVisible = shouldHide
     }
 
     override fun equals(other: Any?): Boolean =

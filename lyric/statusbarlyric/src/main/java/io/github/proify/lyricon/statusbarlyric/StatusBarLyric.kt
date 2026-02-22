@@ -10,7 +10,6 @@ import android.animation.LayoutTransition
 import android.annotation.SuppressLint
 import android.app.KeyguardManager
 import android.content.Context
-import android.graphics.Color
 import android.os.Handler
 import android.util.Log
 import android.view.Gravity
@@ -19,7 +18,6 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.contains
-import androidx.core.view.isNotEmpty
 import androidx.core.view.updatePadding
 import io.github.proify.android.extensions.dp
 import io.github.proify.lyricon.lyric.model.Song
@@ -30,6 +28,9 @@ import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.lyric.view.LyricPlayerView
 import io.github.proify.lyricon.lyric.view.util.LayoutTransitionX
 import io.github.proify.lyricon.lyric.view.util.visibleIfChanged
+import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.NONE
+import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.SONG
+import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.TEXT
 
 @SuppressLint("ViewConstructor")
 class StatusBarLyric(
@@ -62,7 +63,7 @@ class StatusBarLyric(
 
     // --- 对外状态 ---
 
-    var currentStatusColor: StatusColor = StatusColor(Color.BLACK, false, Color.GRAY)
+    var currentStatusColor: StatusColor = StatusColor()
         private set
 
     var isSleepMode: Boolean = false
@@ -103,7 +104,7 @@ class StatusBarLyric(
     private var lyricTimeoutTask: Runnable? = null
 
     // 跟随系统隐藏状态栏内容
-    var isSystemDisable = false
+    var isDisabledVisible = false
         set(value) {
             field = value
             updateVisibility()
@@ -201,8 +202,26 @@ class StatusBarLyric(
         textView.setStatusBarColor(color)
     }
 
+    private var lastPlaying: Boolean? = null
+    private var lastSong: Song? = null
+    private var lastText: String? = null
+    private var lyricType = NONE
+
     fun setPlaying(playing: Boolean) {
+        if (lastPlaying == playing) return
+        lastPlaying = playing
+
         this.isPlaying = playing
+        if (!playing) {
+            textView.reset()
+        } else {
+            when (lyricType) {
+                NONE -> Unit
+                SONG -> setSong(lastSong)
+                TEXT -> setText(lastText)
+            }
+        }
+
         refreshLyricTimeoutState()
         updateVisibility()
     }
@@ -213,20 +232,25 @@ class StatusBarLyric(
     fun updateVisibility() {
         val shouldShow = isPlaying
                 && !isHideOnLockScreen()
-                && textView.isNotEmpty()
+                && textView.shouldShow()
                 && !lyricTimedOut
-                && !isSystemDisable
+                && !isDisabledVisible
 
         visibleIfChanged = shouldShow
     }
 
     fun setSong(song: Song?) {
+        lyricType = SONG
+        lastSong = song
         textView.song = song
         hasLyricContent = !song?.lyrics.isNullOrEmpty()
         refreshLyricTimeoutState()
     }
 
     fun setText(text: String?) {
+        lyricType = TEXT
+        lastText = text
+
         textView.text = text
         hasLyricContent = !text.isNullOrBlank()
         refreshLyricTimeoutState()
@@ -389,4 +413,8 @@ class StatusBarLyric(
     }
 
     private class PendingData(var position: Long = 0)
+
+    private enum class LyricType {
+        NONE, SONG, TEXT
+    }
 }
