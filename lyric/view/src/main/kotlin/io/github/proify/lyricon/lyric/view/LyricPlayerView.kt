@@ -443,23 +443,20 @@ open class LyricPlayerView(
         val isMultiViewMode =
             totalChildCount > 1 && v1?.visibility == VISIBLE && targetScale != 1.0f
 
-        post {
-            for (i in 0 until totalChildCount) {
-                val view = getChildAtOrNull(i) as? RichLyricLineView ?: continue
+        for (i in 0 until totalChildCount) {
+            val view = getChildAtOrNull(i) as? RichLyricLineView ?: continue
 
-                // 应用缩放
-                view.setRenderScale(targetScale)
+            // 应用缩放
+            view.setRenderScale(targetScale)
 
-                // 吸附位移：上下吸附以保持视觉中心
-                if (isMultiViewMode && view.isVisible && view.measuredHeight > 0) {
-                    val offset = (view.measuredHeight * (1f - targetScale)) / 2f
-                    view.translationY = if (i == 0) offset else -offset
-                } else {
-                    view.translationY = 0f
+            // 吸附位移：上下吸附以保持视觉中心
+            if (isMultiViewMode && view.isVisible && view.measuredHeight > 0) {
+                val offset = (view.measuredHeight * (1f - targetScale)) / 2f
+                view.translationY = if (i == 0) offset else -offset
+            } else {
+                view.translationY = 0f
 
-                }
             }
-            invalidate()
         }
 
         invalidate()
