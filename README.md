@@ -73,8 +73,15 @@
 
 <p align="left">
   <a href="https://qm.qq.com/q/IXif8Zi0Iq">
-    <img src="https://img.shields.io/badge/QQ交流群-加入社区-0084FF?style=flat&logo=tencent-qq&logoColor=white" alt="QQ Group">
+    <img src="https://img.shields.io/badge/QQ交流群-0084FF?style=flat&logo=qq&logoColor=white" alt="QQ Group">
   </a>
+  
+</p>
+
+  <a href="https://t.me/cslyric">
+    <img src="https://img.shields.io/badge/Telegram-0084FF?style=flat&logo=telegram&logoColor=white" alt="telegram">
+  </a>
+  
 </p>
 
 * **反馈问题**：若遇 Bug 或功能建议，请提交 [Issue](https://github.com/proify/lyricon/issues)。
