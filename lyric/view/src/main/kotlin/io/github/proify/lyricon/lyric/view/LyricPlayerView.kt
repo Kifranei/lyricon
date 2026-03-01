@@ -336,15 +336,9 @@ open class LyricPlayerView(
         }
     }
 
-    private var isVisibilityUpdatePending = false
 
     fun updateViewsVisibility() {
-        if (isVisibilityUpdatePending) return
-        isVisibilityUpdatePending = true
-        post {
-            doUpdateViewsVisibility()
-            isVisibilityUpdatePending = false
-        }
+        doUpdateViewsVisibility()
     }
 
     /**
@@ -456,13 +450,15 @@ open class LyricPlayerView(
             view.setRenderScale(targetScale)
 
             // 吸附位移：上下吸附以保持视觉中心
-            if (isMultiViewMode && view.isVisible && view.height > 0) {
-                val offset = (view.height * (1f - targetScale)) / 2f
+            if (isMultiViewMode && view.isVisible && view.measuredHeight > 0) {
+                val offset = (view.measuredHeight * (1f - targetScale)) / 2f
                 view.translationY = if (i == 0) offset else -offset
             } else {
                 view.translationY = 0f
+
             }
         }
+
         invalidate()
     }
 
