@@ -78,10 +78,6 @@
 
 ---
 
-## Star History
-
-[![Star History Chart](https://api.star-history.com/image?repos=tomakino/lyricon&type=date&legend=top-left)](https://www.star-history.com/?repos=tomakino%2Flyricon&type=date&legend=top-left)
-
 ## ⭐ Star History
 
 <p align="center">
@@ -97,5 +93,5 @@
 ---
 
 <p align="center">
-  <img src="https://count.getloli.com/get/@tomakino_lyricon?theme=moebooru" alt="访客统计" />
+  <img src="https://count.getloli.com/get/@tomakino_lyricon?theme=random" alt="访客统计" />
 </p>
