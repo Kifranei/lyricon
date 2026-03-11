@@ -205,13 +205,13 @@ class MainActivity : AppCompatActivity() {
         val config = RichLyricLineConfig().apply {
             primary.run {
                 textSize = 34f.sp
-                textColor = textColorPrimary
+                textColor = intArrayOf(textColorPrimary)
                 typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             }
-            syllable.run { highlightColor = colorPrimary }
+            syllable.run { highlightColor = intArrayOf(colorPrimary) }
             secondary.run {
                 textSize = 26f.sp
-                textColor = textColorSecondary
+                textColor = intArrayOf(textColorSecondary)
                 typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
             }
         }

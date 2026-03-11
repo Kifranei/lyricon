@@ -36,6 +36,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     private const val MSG_SEND_TEXT = 6
     private const val MSG_TRANSLATION_TOGGLE = 7
     private const val MSG_SHOW_ROMA = 8
+    private const val MSG_SONG_TRANSLATED = 9
 
     private const val UPDATE_INTERVAL_MS = 1000L / 60L
 
@@ -54,6 +55,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     private val uiHandler by lazy { Handler(Looper.getMainLooper(), this) }
 
     private var lastPostTime = 0L
+    private var songVersion: Long = 0L
 
     init {
         OplusCapsuleHooker.registerListener(this)
@@ -135,6 +137,11 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
 
     // --- 集中式 UI 处理逻辑 ---
     override fun handleMessage(msg: Message): Boolean {
+        when (msg.what) {
+            MSG_PROVIDER_CHANGED -> songVersion++
+            MSG_SONG_CHANGED -> dispatchAutoTranslation(msg.obj as? Song)
+        }
+
         var ok = true
         forControllerEach {
             ok = handleMessageInternal(msg, this)
@@ -165,7 +172,10 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
                     }
                 }
 
-                MSG_SONG_CHANGED -> view.setSong(msg.obj as? Song)
+                MSG_SONG_CHANGED -> {
+                    val song = msg.obj as? Song
+                    view.setSong(song)
+                }
                 MSG_PLAYBACK_STATE -> view.setPlaying(msg.arg1 == 1)
                 MSG_POSITION -> {
                     val pos = (msg.arg1.toLong() shl 32) or (msg.arg2.toLong() and 0xFFFFFFFFL)
@@ -180,6 +190,12 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
                 MSG_SEND_TEXT -> view.setText(msg.obj as? String)
                 MSG_TRANSLATION_TOGGLE -> view.updateDisplayTranslation(displayTranslation = msg.arg1 == 1)
                 MSG_SHOW_ROMA -> view.updateDisplayTranslation(displayRoma = msg.arg1 == 1)
+                MSG_SONG_TRANSLATED -> {
+                    val version = msg.arg1.toLong() shl 32 or (msg.arg2.toLong() and 0xFFFFFFFFL)
+                    if (version == songVersion) {
+                        view.setSong(msg.obj as? Song)
+                    }
+                }
             }
         } catch (e: Throwable) {
             YLog.error(tag = TAG, msg = "handleMessageInternal error", e = e)
@@ -222,6 +238,21 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
         forControllerEach {
             val view = lyricView
             block(view)
+        }
+    }
+
+    private fun dispatchAutoTranslation(song: Song?) {
+        val settings = LyricPrefs.getActiveTranslationSettings()
+        if (!settings.isUsable || song == null) return
+
+        songVersion++
+        val version = songVersion
+
+        AutoTranslationManager.translateSongIfNeededAsync(song, settings) { translated ->
+            val message = uiHandler.obtainMessage(MSG_SONG_TRANSLATED, translated)
+            message.arg1 = (version shr 32).toInt()
+            message.arg2 = (version and 0xFFFFFFFFL).toInt()
+            message.sendToTarget()
         }
     }
 }

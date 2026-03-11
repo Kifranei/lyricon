@@ -31,6 +31,7 @@ import io.github.proify.lyricon.app.compose.preference.InputType
 import io.github.proify.lyricon.app.compose.preference.RectInputPreference
 import io.github.proify.lyricon.app.compose.preference.SwitchPreference
 import io.github.proify.lyricon.app.compose.preference.TextColorPreference
+import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.TextStyle
 import top.yukonga.miuix.kmp.basic.Card
@@ -232,6 +233,47 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
             }
         }
 
+        item(key = "translation") {
+            SmallTitle(
+                text = stringResource(R.string.module_tag_translation),
+                insideMargin = PaddingValues(
+                    start = 26.dp,
+                    top = 16.dp,
+                    end = 26.dp,
+                    bottom = 10.dp
+                )
+            )
+            Card(
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 0.dp)
+                    .fillMaxWidth(),
+            ) {
+                SwitchPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_translation_enabled",
+                    title = stringResource(R.string.item_translation_enable),
+                    startAction = { IconActions(painterResource(R.drawable.translate_24px)) },
+                )
+                TranslationProviderPreference(preferences)
+                TranslationTargetLanguagePreference(preferences)
+                TranslationApiKeyPreference(preferences)
+                InputPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_translation_openai_model",
+                    title = stringResource(R.string.item_translation_model),
+                    defaultValue = "gpt-4o-mini",
+                    leftAction = { IconActions(painterResource(R.drawable.psychology_24px)) },
+                )
+                InputPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_translation_openai_base_url",
+                    title = stringResource(R.string.item_translation_base_url),
+                    defaultValue = "https://api.openai.com/v1/chat/completions",
+                    leftAction = { IconActions(painterResource(R.drawable.link_24px)) },
+                )
+            }
+        }
+
         item(key = "marquee") {
             SmallTitle(
                 text = stringResource(R.string.item_text_marquee),
@@ -309,6 +351,96 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun TranslationProviderPreference(preferences: SharedPreferences) {
+    val values = listOf("openai", "gemini", "claude", "deepseek", "qwen")
+    val options = listOf(
+        stringResource(R.string.option_translation_provider_openai),
+        stringResource(R.string.option_translation_provider_gemini),
+        stringResource(R.string.option_translation_provider_claude),
+        stringResource(R.string.option_translation_provider_deepseek),
+        stringResource(R.string.option_translation_provider_qwen),
+    )
+    val current = preferences.getString("lyric_translation_api_provider", "openai") ?: "openai"
+    var selectedIndex by remember {
+        mutableIntStateOf(values.indexOf(current).takeIf { it >= 0 } ?: 0)
+    }
+
+    SuperDropdown(
+        startAction = { IconActions(painterResource(R.drawable.smart_toy_24px)) },
+        title = stringResource(R.string.item_translation_api_provider),
+        items = options,
+        selectedIndex = selectedIndex,
+        onSelectedIndexChange = {
+            selectedIndex = it
+            val provider = values[it]
+            preferences.editCommit {
+                putString("lyric_translation_api_provider", provider)
+                putString("lyric_translation_openai_model", defaultModelOf(provider))
+                putString("lyric_translation_openai_base_url", defaultBaseUrlOf(provider))
+            }
+        }
+    )
+}
+
+@Composable
+private fun TranslationTargetLanguagePreference(preferences: SharedPreferences) {
+    DropdownPreference(
+        preferences = preferences,
+        preferenceKey = "lyric_translation_target_language",
+        defaultValue = "简体中文",
+        options = listOf(
+            stringResource(R.string.option_translation_language_zh_cn),
+            stringResource(R.string.option_translation_language_zh_tw),
+            stringResource(R.string.option_translation_language_en),
+            stringResource(R.string.option_translation_language_ja),
+            stringResource(R.string.option_translation_language_ko),
+        ),
+        values = listOf("简体中文", "繁體中文", "English", "日本語", "한국어"),
+        title = stringResource(R.string.item_translation_target_language),
+        iconRes = R.drawable.ic_language
+    )
+}
+
+@Composable
+private fun TranslationApiKeyPreference(preferences: SharedPreferences) {
+    val apiKey = rememberStringPreference(preferences, "lyric_translation_openai_api_key", null)
+    val summary =
+        if (apiKey.value.isNullOrBlank()) {
+            stringResource(R.string.item_translation_api_key_not_set)
+        } else {
+            stringResource(R.string.item_translation_api_key_set)
+        }
+
+    InputPreference(
+        sharedPreferences = preferences,
+        key = "lyric_translation_openai_api_key",
+        title = stringResource(R.string.item_translation_api_key),
+        summary = summary,
+        leftAction = { IconActions(painterResource(R.drawable.vpn_key_24px)) },
+    )
+}
+
+private fun defaultModelOf(provider: String): String {
+    return when (provider) {
+        "gemini" -> "gemini-2.0-flash"
+        "claude" -> "claude-3-5-haiku-latest"
+        "deepseek" -> "deepseek-chat"
+        "qwen" -> "qwen-plus"
+        else -> "gpt-4o-mini"
+    }
+}
+
+private fun defaultBaseUrlOf(provider: String): String {
+    return when (provider) {
+        "gemini" -> "https://generativelanguage.googleapis.com/v1beta/models"
+        "claude" -> "https://api.anthropic.com/v1/messages"
+        "deepseek" -> "https://api.deepseek.com/v1/chat/completions"
+        "qwen" -> "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+        else -> "https://api.openai.com/v1/chat/completions"
     }
 }
 

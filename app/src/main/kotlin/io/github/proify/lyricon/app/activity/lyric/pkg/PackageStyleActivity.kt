@@ -301,7 +301,7 @@ private fun StyleContentPager(
     HorizontalPager(
         state = pagerState,
         modifier = Modifier.fillMaxSize(),
-        key = { page -> "$page-$refreshTrigger" },
+        key = { page -> "$page-$refreshTrigger-${sharedPreferences.hashCode()}" },
     ) { page ->
         if (sharedPreferences == null) {
             Box(modifier = Modifier.fillMaxSize())

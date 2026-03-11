@@ -27,12 +27,12 @@ class ExampleUnitTest {
     fun example() {
         val context = ContextWrapper(null)
 
-        //创建一个提供者实例，建议配置规范图标
-        val provider = LyriconProvider(
-            context,
-            //logo = ProviderLogo.fromDrawable(context, R.drawable.logo)
-            centralPackageNames = listOf(ProviderConstants.SYSTEM_UI_PACKAGE_NAME)
-        )
+//        //创建一个提供者实例，建议配置规范图标
+//        val provider = LyriconProvider(
+//            context,
+//            //logo = ProviderLogo.fromDrawable(context, R.drawable.logo)
+//            centralPackageNames = listOf(ProviderConstants.SYSTEM_UI_PACKAGE_NAME)
+//        )
 
 //        //添加连接状态监听器
 //        provider.service.addConnectionListener {

@@ -16,6 +16,55 @@ import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.lyric.style.PackageStyle
 
 object LyricPrefs {
+    data class TranslationSettings(
+        val enabled: Boolean,
+        val provider: String,
+        val targetLanguage: String,
+        val apiKey: String,
+        val model: String,
+        val baseUrl: String
+    ) {
+        val isUsable: Boolean
+            get() = enabled
+                    && provider in SUPPORTED_TRANSLATION_PROVIDERS
+                    && apiKey.isNotBlank()
+    }
+
+    private const val KEY_TRANSLATION_ENABLED = "lyric_translation_enabled"
+    private const val KEY_TRANSLATION_PROVIDER = "lyric_translation_api_provider"
+    private const val KEY_TRANSLATION_TARGET_LANGUAGE = "lyric_translation_target_language"
+    private const val KEY_TRANSLATION_OPENAI_API_KEY = "lyric_translation_openai_api_key"
+    private const val KEY_TRANSLATION_OPENAI_MODEL = "lyric_translation_openai_model"
+    private const val KEY_TRANSLATION_OPENAI_BASE_URL = "lyric_translation_openai_base_url"
+
+    const val TRANSLATION_PROVIDER_OPENAI = "openai"
+    const val TRANSLATION_PROVIDER_GEMINI = "gemini"
+    const val TRANSLATION_PROVIDER_CLAUDE = "claude"
+    const val TRANSLATION_PROVIDER_DEEPSEEK = "deepseek"
+    const val TRANSLATION_PROVIDER_QWEN = "qwen"
+
+    val SUPPORTED_TRANSLATION_PROVIDERS: Set<String> = setOf(
+        TRANSLATION_PROVIDER_OPENAI,
+        TRANSLATION_PROVIDER_GEMINI,
+        TRANSLATION_PROVIDER_CLAUDE,
+        TRANSLATION_PROVIDER_DEEPSEEK,
+        TRANSLATION_PROVIDER_QWEN
+    )
+
+    private const val DEFAULT_TRANSLATION_TARGET_LANGUAGE = "简体中文"
+    private const val DEFAULT_TRANSLATION_OPENAI_MODEL = "gpt-4o-mini"
+    private const val DEFAULT_TRANSLATION_GEMINI_MODEL = "gemini-2.0-flash"
+    private const val DEFAULT_TRANSLATION_CLAUDE_MODEL = "claude-3-5-haiku-latest"
+    private const val DEFAULT_TRANSLATION_DEEPSEEK_MODEL = "deepseek-chat"
+    private const val DEFAULT_TRANSLATION_QWEN_MODEL = "qwen-plus"
+
+    private const val DEFAULT_TRANSLATION_OPENAI_BASE_URL = "https://api.openai.com/v1/chat/completions"
+    private const val DEFAULT_TRANSLATION_GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
+    private const val DEFAULT_TRANSLATION_CLAUDE_BASE_URL = "https://api.anthropic.com/v1/messages"
+    private const val DEFAULT_TRANSLATION_DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1/chat/completions"
+    private const val DEFAULT_TRANSLATION_QWEN_BASE_URL =
+        "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+
     private val prefsCache = mutableMapOf<String, XSharedPreferences>()
     private val packageStyleCache = mutableMapOf<String, PackageStyleCache>()
 
@@ -105,6 +154,13 @@ object LyricPrefs {
         return XSharedPreferences(PackageNames.APPLICATION, name)
     }
 
+    private fun XSharedPreferences.ensureLatest(): XSharedPreferences {
+        if (hasFileChanged()) {
+            reload()
+        }
+        return this
+    }
+
     /* ---------------- package style cache ---------------- */
 
     private class PackageStyleCache(
@@ -140,5 +196,85 @@ object LyricPrefs {
             baseStyle,
             getPackageStyle(packageName)
         )
+    }
+
+    private fun getActivePackagePrefsForConfig(): XSharedPreferences {
+        val pkg = activePackageName
+        return if (pkg != null && isPackageEnabled(pkg)) {
+            getPackagePrefs(pkg)
+        } else {
+            defaultPackageStylePrefs
+        }
+    }
+
+    private fun readConfigStringWithFallback(
+        activePrefs: XSharedPreferences,
+        key: String,
+        fallback: String
+    ): String {
+        return activePrefs.getString(key, null)
+            ?: defaultPackageStylePrefs.getString(key, fallback)
+            ?: fallback
+    }
+
+    fun getActiveTranslationSettings(): TranslationSettings {
+        val activePrefs = getActivePackagePrefsForConfig().ensureLatest()
+        defaultPackageStylePrefs.ensureLatest()
+        val provider = readConfigStringWithFallback(
+            activePrefs = activePrefs,
+            key = KEY_TRANSLATION_PROVIDER,
+            fallback = TRANSLATION_PROVIDER_OPENAI
+        )
+
+        val model = readConfigStringWithFallback(
+            activePrefs = activePrefs,
+            key = KEY_TRANSLATION_OPENAI_MODEL,
+            fallback = getDefaultModel(provider)
+        )
+        val baseUrl = readConfigStringWithFallback(
+            activePrefs = activePrefs,
+            key = KEY_TRANSLATION_OPENAI_BASE_URL,
+            fallback = getDefaultBaseUrl(provider)
+        )
+
+        return TranslationSettings(
+            enabled = activePrefs.getBoolean(
+                KEY_TRANSLATION_ENABLED,
+                defaultPackageStylePrefs.getBoolean(KEY_TRANSLATION_ENABLED, false)
+            ),
+            provider = provider,
+            targetLanguage = readConfigStringWithFallback(
+                activePrefs = activePrefs,
+                key = KEY_TRANSLATION_TARGET_LANGUAGE,
+                fallback = DEFAULT_TRANSLATION_TARGET_LANGUAGE
+            ),
+            apiKey = readConfigStringWithFallback(
+                activePrefs = activePrefs,
+                key = KEY_TRANSLATION_OPENAI_API_KEY,
+                fallback = ""
+            ),
+            model = model,
+            baseUrl = baseUrl
+        )
+    }
+
+    fun getDefaultModel(provider: String): String {
+        return when (provider) {
+            TRANSLATION_PROVIDER_GEMINI -> DEFAULT_TRANSLATION_GEMINI_MODEL
+            TRANSLATION_PROVIDER_CLAUDE -> DEFAULT_TRANSLATION_CLAUDE_MODEL
+            TRANSLATION_PROVIDER_DEEPSEEK -> DEFAULT_TRANSLATION_DEEPSEEK_MODEL
+            TRANSLATION_PROVIDER_QWEN -> DEFAULT_TRANSLATION_QWEN_MODEL
+            else -> DEFAULT_TRANSLATION_OPENAI_MODEL
+        }
+    }
+
+    fun getDefaultBaseUrl(provider: String): String {
+        return when (provider) {
+            TRANSLATION_PROVIDER_GEMINI -> DEFAULT_TRANSLATION_GEMINI_BASE_URL
+            TRANSLATION_PROVIDER_CLAUDE -> DEFAULT_TRANSLATION_CLAUDE_BASE_URL
+            TRANSLATION_PROVIDER_DEEPSEEK -> DEFAULT_TRANSLATION_DEEPSEEK_BASE_URL
+            TRANSLATION_PROVIDER_QWEN -> DEFAULT_TRANSLATION_QWEN_BASE_URL
+            else -> DEFAULT_TRANSLATION_OPENAI_BASE_URL
+        }
     }
 }

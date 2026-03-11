@@ -3,6 +3,7 @@ import com.android.build.api.dsl.LibraryExtension
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.ksp)
+    kotlin("plugin.serialization") version "2.1.21"
 }
 
 configure<LibraryExtension> {
