@@ -108,10 +108,15 @@ fun InputPreference(
         else -> currentSummary
     }
 
+    // 摘要最多显示 4 行，超出省略号
+    val truncatedSummary = if (finalSummary.lines().size > 3) {
+        finalSummary.lines().take(4).joinToString("\n") + "..."
+    } else finalSummary
+
     SuperArrow(
         title = title,
         titleColor = titleColor,
-        summary = finalSummary,
+        summary = truncatedSummary,
         summaryColor = summaryColor,
         startAction = leftAction,
         endActions = rightActions,

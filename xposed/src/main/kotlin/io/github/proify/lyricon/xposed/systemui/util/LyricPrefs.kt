@@ -22,7 +22,10 @@ object LyricPrefs {
         val targetLanguage: String,
         val apiKey: String,
         val model: String,
-        val baseUrl: String
+        val baseUrl: String,
+        val maxCacheSize: Int,
+        val ignoreRegex: String,
+        val customPrompt: String
     ) {
         val isUsable: Boolean
             get() = enabled
@@ -36,6 +39,9 @@ object LyricPrefs {
     private const val KEY_TRANSLATION_OPENAI_API_KEY = "lyric_translation_openai_api_key"
     private const val KEY_TRANSLATION_OPENAI_MODEL = "lyric_translation_openai_model"
     private const val KEY_TRANSLATION_OPENAI_BASE_URL = "lyric_translation_openai_base_url"
+    private const val KEY_TRANSLATION_CACHE_SIZE = "lyric_translation_cache_size"
+    private const val KEY_TRANSLATION_IGNORE_REGEX = "lyric_translation_ignore_regex"
+    private const val KEY_TRANSLATION_CUSTOM_PROMPT = "lyric_translation_custom_prompt"
 
     const val TRANSLATION_PROVIDER_OPENAI = "openai"
     const val TRANSLATION_PROVIDER_GEMINI = "gemini"
@@ -64,6 +70,9 @@ object LyricPrefs {
     private const val DEFAULT_TRANSLATION_DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1/chat/completions"
     private const val DEFAULT_TRANSLATION_QWEN_BASE_URL =
         "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+
+    private const val DEFAULT_TRANSLATION_CACHE_SIZE = 5000
+    private const val DEFAULT_TRANSLATION_IGNORE_REGEX = "^[\\p{Han}\\p{P}\\s]+$"
 
     private val prefsCache = mutableMapOf<String, XSharedPreferences>()
     private val packageStyleCache = mutableMapOf<String, PackageStyleCache>()
@@ -237,6 +246,22 @@ object LyricPrefs {
             fallback = getDefaultBaseUrl(provider)
         )
 
+        val maxCacheSize = runCatching {
+            activePrefs.getString(KEY_TRANSLATION_CACHE_SIZE, null)?.toIntOrNull()
+        }.getOrNull() ?: DEFAULT_TRANSLATION_CACHE_SIZE
+
+        val ignoreRegex = readConfigStringWithFallback(
+            activePrefs = activePrefs,
+            key = KEY_TRANSLATION_IGNORE_REGEX,
+            fallback = DEFAULT_TRANSLATION_IGNORE_REGEX
+        )
+
+        val customPrompt = readConfigStringWithFallback(
+            activePrefs = activePrefs,
+            key = KEY_TRANSLATION_CUSTOM_PROMPT,
+            fallback = io.github.proify.lyricon.common.Constants.DEFAULT_TRANSLATION_CUSTOM_PROMPT
+        )
+
         return TranslationSettings(
             enabled = activePrefs.getBoolean(
                 KEY_TRANSLATION_ENABLED,
@@ -254,7 +279,10 @@ object LyricPrefs {
                 fallback = ""
             ),
             model = model,
-            baseUrl = baseUrl
+            baseUrl = baseUrl,
+            maxCacheSize = maxCacheSize,
+            ignoreRegex = ignoreRegex,
+            customPrompt = customPrompt
         )
     }
 

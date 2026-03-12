@@ -163,6 +163,9 @@
     <string name="item_translation_api_key">API Key</string>
     <string name="item_translation_model">模型</string>
     <string name="item_translation_base_url">接口地址</string>
+    <string name="item_translation_cache_size">缓存条目上限</string>
+    <string name="item_translation_ignore_regex">忽略匹配到的歌词</string>
+    <string name="item_translation_custom_prompt">自定义提示词</string>
     <string name="item_translation_openai_api_key">OpenAI API Key</string>
     <string name="item_translation_openai_model">OpenAI 模型</string>
     <string name="item_translation_openai_base_url">OpenAI 接口地址</string>

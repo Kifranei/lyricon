@@ -220,6 +220,19 @@ class RichLyricLineView(
             return
         }
 
+        // 尝试获取主歌词第一个字的开始时间和最后一个字的结束时间，用于同步翻译的开始时间和结束时间
+        val timing: ILyricTiming = if (!source.words.isNullOrEmpty()) {
+            val firstWordBegin = source.words!!.first().begin
+            val lastWordEnd = source.words!!.last().end
+            if (firstWordBegin < lastWordEnd) {
+                object : ILyricTiming {
+                    override var begin: Long = firstWordBegin
+                    override var end: Long = lastWordEnd
+                    override var duration: Long = lastWordEnd - firstWordBegin
+                }
+            } else source
+        } else source
+
         var isGenerated = false
         val newLine = LyricLine().apply {
             begin = source.begin
@@ -232,7 +245,7 @@ class RichLyricLineView(
                 !source.secondary.isNullOrBlank() || !source.secondaryWords.isNullOrEmpty() -> {
                     text = source.secondary
                     words = calculateRelativeProgressWords(
-                        source,
+                        timing,
                         source.secondary,
                         source.secondaryWords
                     )
@@ -242,7 +255,7 @@ class RichLyricLineView(
                 displayTranslation && (!source.translation.isNullOrBlank() || !source.translationWords.isNullOrEmpty()) -> {
                     text = source.translation
                     words = calculateRelativeProgressWords(
-                        source,
+                        timing,
                         source.translation,
                         source.translationWords
                     )
@@ -253,7 +266,7 @@ class RichLyricLineView(
                 displayRoma -> {
                     text = source.roma
                     words = calculateRelativeProgressWords(
-                        source,
+                        timing,
                         source.roma,
                         null
                     )

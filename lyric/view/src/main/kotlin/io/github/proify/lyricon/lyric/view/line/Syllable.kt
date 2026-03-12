@@ -134,7 +134,7 @@ class Syllable(private val view: LyricLineView) {
     }
 
     fun seek(position: Long) {
-        val targetWidth = calculateTargetWidth(position)
+        val targetWidth = calculateCurrentWidth(position)
         progressAnimator.jumpTo(targetWidth)
         scrollController.update(targetWidth, view)
         renderDelegate.onHighlightUpdate(targetWidth)
@@ -149,13 +149,23 @@ class Syllable(private val view: LyricLineView) {
         }
         val model = view.lyric
         val currentWord = model.wordTimingNavigator.first(position)
-        val targetWidth = calculateTargetWidth(position, currentWord)
+        val targetWidth = if (currentWord != null) currentWord.endPosition else calculateCurrentWidth(position)
 
         if (currentWord != null && progressAnimator.currentWidth == 0f) {
             currentWord.previous?.let { progressAnimator.jumpTo(it.endPosition) }
         }
-        if (targetWidth != progressAnimator.targetWidth) {
-            progressAnimator.start(targetWidth, currentWord?.duration ?: 0)
+
+        // targetWidth发生变化或animator未运行（例如seek后），需要重新启动动画
+        if (targetWidth != progressAnimator.targetWidth || !progressAnimator.isAnimating) {
+            val duration = if (currentWord != null) {
+                (currentWord.end - position).coerceAtLeast(0)
+            } else 0L
+
+            if (duration > 0) {
+                progressAnimator.start(targetWidth, duration)
+            } else {
+                progressAnimator.jumpTo(targetWidth)
+            }
         }
         lastPosition = position
     }
@@ -180,11 +190,15 @@ class Syllable(private val view: LyricLineView) {
         renderDelegate.onLayout(view.measuredWidth, view.measuredHeight, view.isOverflow())
     }
 
-    private fun calculateTargetWidth(
+    // 根据当前时间精确计算单词内的高亮宽度
+    private fun calculateCurrentWidth(
         pos: Long,
         word: WordModel? = view.lyric.wordTimingNavigator.first(pos)
     ): Float = when {
-        word != null -> word.endPosition
+        word != null -> {
+            val progress = ((pos - word.begin).toFloat() / word.duration).coerceIn(0f, 1f)
+            word.startPosition + (word.endPosition - word.startPosition) * progress
+        }
         pos >= view.lyric.end -> view.lyricWidth
         pos <= view.lyric.begin -> 0f
         else -> progressAnimator.currentWidth

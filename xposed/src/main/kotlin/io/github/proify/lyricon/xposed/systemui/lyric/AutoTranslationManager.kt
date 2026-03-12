@@ -25,12 +25,14 @@ import java.util.concurrent.Executors
 
 object AutoTranslationManager {
     private const val TAG = "AutoTranslationManager"
-    // 最大内存缓存条目数（最近最少使用）
-    private const val MAX_CACHE_SIZE = 5000
     // 缓存目录与文件名
     private const val CACHE_DIR_NAME = "_translation"
     private const val CACHE_FILE_NAME = "llm_translation_cache.json"
     private const val ANTHROPIC_VERSION = "2023-06-01"
+
+    @Volatile
+    // 最大缓存歌词条目数量（默认 5000）
+    private var currentMaxCacheSize = 5000
 
     // 用于短期同步控制
     private val lock = Any()
@@ -38,11 +40,11 @@ object AutoTranslationManager {
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
     // 内存 LRU 缓存（访问顺序 true）
     private val memoryCache = object :
-        LinkedHashMap<String, String>(MAX_CACHE_SIZE, 0.75f, true) {
+        LinkedHashMap<String, String>(currentMaxCacheSize, 0.75f, true) {
         override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>?): Boolean {
-            val remove = size > MAX_CACHE_SIZE
+            val remove = size > currentMaxCacheSize
             if (remove) {
-                Log.i(TAG, "LRU remove eldest entry; new size=$size, max=$MAX_CACHE_SIZE")
+                Log.i(TAG, "LRU remove eldest entry; new size=$size, max=$currentMaxCacheSize")
             }
             return remove
         }
@@ -221,6 +223,15 @@ object AutoTranslationManager {
         song: Song,
         settings: LyricPrefs.TranslationSettings
     ): Song {
+        // 更新最大缓存并清理
+        if (settings.maxCacheSize > 0) {
+            val oldSize = currentMaxCacheSize
+            currentMaxCacheSize = settings.maxCacheSize
+            if (currentMaxCacheSize < oldSize) {
+                trimMemoryCache()
+            }
+        }
+
         val sourceLines = song.lyrics ?: return song
         if (sourceLines.isEmpty()) {
 
@@ -231,8 +242,12 @@ object AutoTranslationManager {
         Log.i(TAG, "translateSong: begin, totalLines=${sourceLines.size}")
         val translationByText = mutableMapOf<String, String>()
         val missedTexts = LinkedHashSet<String>()
-        val sameLanguagePairs = mutableListOf<Pair<String, String>>()
-        val isTargetChinese = settings.targetLanguage.contains("中文")
+
+        // 编译正则
+        val ignoreRegex = runCatching {
+            settings.ignoreRegex.takeIf { it.isNotEmpty() }?.toRegex()
+        }.getOrNull()
+        Log.i(TAG, "translateSong: ignoreRegex=$ignoreRegex")
 
         // 遍历每行，检查是否需要翻译
         for (line in sourceLines) {
@@ -248,26 +263,19 @@ object AutoTranslationManager {
             )
             if (!cached.isNullOrBlank()) {
                 translationByText[text] = cached
+                Log.i(TAG, "cached: $text -> $cached")
             } else {
-                if (isTargetChinese && isChinese(text)) {
+                if (ignoreRegex != null && ignoreRegex.matches(text)) {
                     translationByText[text] = text
-                    sameLanguagePairs += text to text
+                    Log.i(TAG, "ignored: $text")
                 } else {
                     missedTexts += text
+                    Log.i(TAG, "missed: $text")
                 }
             }
         }
 
-        if (sameLanguagePairs.isNotEmpty()) {
-            putCachedTranslations(
-                provider = settings.provider,
-                model = settings.model,
-                targetLanguage = settings.targetLanguage,
-                pairs = sameLanguagePairs
-            )
-        }
-
-        Log.i(TAG, "translateSong: cachedTranslations=${translationByText.size}, sameLang=${sameLanguagePairs.size}, missed=${missedTexts.size}")
+        Log.i(TAG, "translateSong: cachedTranslations=${translationByText.size}, missed=${missedTexts.size}")
         // 请求未命中的批量翻译
         if (missedTexts.isNotEmpty()) {
             val newTranslations = requestTranslation(settings, missedTexts.toList())
@@ -366,10 +374,13 @@ object AutoTranslationManager {
         val request = OpenAiRequest(
             model = settings.model,
             messages = listOf(
-                OpenAiMessage("system", buildSystemPrompt(settings.targetLanguage)),
+                OpenAiMessage("system", buildSystemPrompt(settings)),
                 OpenAiMessage("user", buildUserPrompt(settings.targetLanguage, texts))
             )
         )
+
+        Log.i(TAG, "requestOpenAiCompatibleTranslation: request=$request")
+
         val responseText = executePost(
             url = settings.baseUrl.trim(),
             body = json.encodeToString(request),
@@ -384,6 +395,8 @@ object AutoTranslationManager {
             json.decodeFromString<OpenAiResponse>(responseText)
                 .choices.firstOrNull()?.message?.content
         }.getOrNull().orEmpty()
+
+        Log.i(TAG, "requestOpenAiCompatibleTranslation: responseText=$responseText")
 
         return parseResponseTranslations(content, texts.size)
     }
@@ -420,7 +433,7 @@ object AutoTranslationManager {
         val request = ClaudeRequest(
             model = settings.model,
             max_tokens = 2048,
-            system = buildSystemPrompt(settings.targetLanguage),
+            system = buildSystemPrompt(settings),
             messages = listOf(
                 ClaudeMessage("user", buildUserPrompt(settings.targetLanguage, texts))
             )
@@ -483,7 +496,7 @@ object AutoTranslationManager {
     ): List<String>? {
         val request = GeminiRequest(
             contents = listOf(
-                GeminiContent(parts = listOf(GeminiPart(buildSystemPrompt(settings.targetLanguage)))),
+                GeminiContent(parts = listOf(GeminiPart(buildSystemPrompt(settings)))),
                 GeminiContent(role = "user", parts = listOf(GeminiPart(buildUserPrompt(settings.targetLanguage, texts))))
             ),
             generationConfig = GeminiGenerationConfig()
@@ -513,44 +526,19 @@ object AutoTranslationManager {
         return "${baseUrl.trimEnd('/')}/$model:generateContent"
     }
 
-    private fun buildSystemPrompt(targetLanguage: String): String {
-        return "You are a professional lyric translator. Translate each input line into $targetLanguage. Return JSON array only."
+    private fun buildSystemPrompt(settings: LyricPrefs.TranslationSettings): String {
+        return settings.customPrompt.replace("\$targetLanguage", settings.targetLanguage)
     }
 
     private fun buildUserPrompt(targetLanguage: String, texts: List<String>): String {
         val payload = json.encodeToString(texts)
         return buildString {
             appendLine("Target language: $targetLanguage")
-            appendLine("Translate each line in the same order.")
-            appendLine("If the source text is already in the target language, return the original text directly.")
-            appendLine("Return strictly a JSON array of strings with the same length.")
+            appendLine("Translate each line individually.")
+            appendLine("Output must be a JSON array with the same number of elements.")
+            appendLine("Each output item corresponds to the same index in the input.")
             append("Input: $payload")
         }
-    }
-
-    private fun isChinese(text: String): Boolean {
-        var hasChinese = false
-        for (c in text) {
-            if (c.isWhitespace()) continue
-            if (isCommonPunctuation(c)) continue
-            if (c.code in 0x4E00..0x9FA5) {
-                hasChinese = true
-                continue
-            }
-            return false
-        }
-        return hasChinese
-    }
-
-    private fun isCommonPunctuation(c: Char): Boolean {
-        val type = Character.getType(c)
-        return type == Character.CONNECTOR_PUNCTUATION.toInt() ||
-                type == Character.DASH_PUNCTUATION.toInt() ||
-                type == Character.START_PUNCTUATION.toInt() ||
-                type == Character.END_PUNCTUATION.toInt() ||
-                type == Character.INITIAL_QUOTE_PUNCTUATION.toInt() ||
-                type == Character.FINAL_QUOTE_PUNCTUATION.toInt() ||
-                type == Character.OTHER_PUNCTUATION.toInt()
     }
 
     /**
@@ -641,5 +629,19 @@ object AutoTranslationManager {
 
         if (parsed.size != expectedSize) return null
         return Collections.unmodifiableList(parsed)
+    }
+
+    private fun trimMemoryCache() {
+        synchronized(lock) {
+            if (memoryCache.size <= currentMaxCacheSize) return
+            val iterator = memoryCache.iterator()
+            while (memoryCache.size > currentMaxCacheSize && iterator.hasNext()) {
+                iterator.next()
+                iterator.remove()
+            }
+            Log.i(TAG, "Trim cache complete: size=${memoryCache.size}, max=$currentMaxCacheSize")
+        }
+        // 缓存大小变化，持久化
+        persistCache()
     }
 }

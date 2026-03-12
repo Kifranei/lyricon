@@ -204,7 +204,7 @@ private fun ColorPickerItem(
     onColorSelected: (List<Color>) -> Unit
 ) {
     val isDialogVisible = remember { mutableStateOf(false) }
-    val currentColor = remember { mutableStateOf(initialColor) }
+    val currentColor = remember(initialColor) { mutableStateOf(initialColor) }
 
     MultiColorEditPaletteDialog(
         title = title,

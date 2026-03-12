@@ -259,6 +259,30 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 TranslationApiKeyPreference(preferences)
                 InputPreference(
                     sharedPreferences = preferences,
+                    key = "lyric_translation_cache_size",
+                    title = stringResource(R.string.item_translation_cache_size),
+                    defaultValue = "5000",
+                    inputType = InputType.INTEGER,
+                    leftAction = { IconActions(painterResource(R.drawable.ic_save)) },
+                )
+                InputPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_translation_ignore_regex",
+                    title = stringResource(R.string.item_translation_ignore_regex),
+                    defaultValue = "^[\\p{Han}\\p{P}\\s]+$",
+                    inputType = InputType.STRING,
+                    leftAction = { IconActions(painterResource(R.drawable.ic_build)) },
+                )
+                InputPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_translation_custom_prompt",
+                    title = stringResource(R.string.item_translation_custom_prompt),
+                    defaultValue = io.github.proify.lyricon.common.Constants.DEFAULT_TRANSLATION_CUSTOM_PROMPT,
+                    inputType = InputType.STRING,
+                    leftAction = { IconActions(painterResource(R.drawable.title_24px)) },
+                )
+                InputPreference(
+                    sharedPreferences = preferences,
                     key = "lyric_translation_openai_model",
                     title = stringResource(R.string.item_translation_model),
                     defaultValue = "gpt-4o-mini",
@@ -365,7 +389,7 @@ private fun TranslationProviderPreference(preferences: SharedPreferences) {
         stringResource(R.string.option_translation_provider_qwen),
     )
     val current = preferences.getString("lyric_translation_api_provider", "openai") ?: "openai"
-    var selectedIndex by remember {
+    var selectedIndex by remember(current) {
         mutableIntStateOf(values.indexOf(current).takeIf { it >= 0 } ?: 0)
     }
 
@@ -455,7 +479,7 @@ private fun <T> DropdownPreference(
     iconRes: Int = R.drawable.ic_settings
 ) {
     val currentValue = preferences.getString(preferenceKey, defaultValue.toString())
-    var selectedIndex by remember {
+    var selectedIndex by remember(currentValue) {
         mutableIntStateOf(values.indexOfFirst { it.toString() == currentValue }.takeIf { it >= 0 }
             ?: 0)
     }
