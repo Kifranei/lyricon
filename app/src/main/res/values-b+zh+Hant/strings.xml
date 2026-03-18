@@ -74,6 +74,7 @@
     <string name="item_text_color">顏色</string>
     <string name="item_text_extract_cover_color">提取封面顏色</string>
     <string name="item_text_extract_cover_gradient">提取封面漸變色</string>
+    <string name="item_text_enable_rainbow_color">啟用歌詞彩虹漸變</string>
     <string name="item_text_enable_custom_color">自訂顏色</string>
     <string name="item_text_color_light_mode">亮色模式顏色</string>
     <string name="item_text_color_dark_mode">暗色模式顏色</string>
@@ -95,6 +96,10 @@
     <string name="item_text_relative_progress">啟用相對進度歌詞</string>
     <string name="item_text_relative_progress_summary">當歌詞缺少單詞資料時，將整行視為單詞顯示。</string>
     <string name="item_text_relative_progress_highlight">顯示相對進度歌詞高亮進度</string>
+    <string name="item_text_sustain_lift">長音上浮效果</string>
+    <string name="item_text_sustain_glow">長音發光效果</string>
+    <string name="item_text_sustain_glow_color_mode_summary">已啟用取色模式，發光效果不生效。</string>
+    <string name="item_text_sustain_glow_color_mode_hint">開啟取色模式（封面取色/封面漸變/彩虹色/自訂顏色）時不生效。</string>
     <string name="item_text_color_normal">正常顏色</string>
     <string name="item_text_color_background">背景顏色</string>
     <string name="item_text_color_highlight">高亮顏色</string>

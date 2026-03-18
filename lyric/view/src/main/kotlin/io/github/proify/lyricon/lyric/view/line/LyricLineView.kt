@@ -152,6 +152,8 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         syllable.setTextSize(textConfig.textSize)
         syllable.setTypeface(textConfig.typeface)
         syllable.isGradientEnabled = configs.gradientProgressStyle
+        syllable.isSustainLiftEnabled = syllableConfig.enableSustainLift
+        syllable.isSustainGlowEnabled = syllableConfig.enableSustainGlow
 
         marquee.apply {
             ghostSpacing = marqueeConfig.ghostSpacing

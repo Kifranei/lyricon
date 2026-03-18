@@ -27,10 +27,12 @@ import kotlin.math.max
 class Syllable(private val view: LyricLineView) {
     companion object {
         private const val SUSTAIN_EFFECT_MIN_DURATION_MS = 520L
-        private const val SUSTAIN_EFFECT_MAX_LIFT_DP = 1.0f
+        private const val SUSTAIN_EFFECT_MAX_LIFT_DP = 1.38f
         private const val SUSTAIN_EFFECT_MAX_GLOW_RADIUS_DP = 3.4f
         private const val SUSTAIN_EFFECT_MAX_GLOW_ALPHA = 160
         private const val SUSTAIN_EFFECT_RELEASE_DURATION_MS = 360L
+        private const val SUSTAIN_LINE_BASE_LOWER_DP = 0.85f
+        private const val SUSTAIN_LINE_END_RISE_DP = 0.56f
     }
 
     private data class SustainEffectState(
@@ -82,6 +84,18 @@ class Syllable(private val view: LyricLineView) {
         set(value) {
             field = value
             renderDelegate.isOnlyScrollMode = value
+            renderDelegate.invalidate()
+        }
+
+    var isSustainLiftEnabled: Boolean = true
+        set(value) {
+            field = value
+            renderDelegate.invalidate()
+        }
+
+    var isSustainGlowEnabled: Boolean = true
+        set(value) {
+            field = value
             renderDelegate.invalidate()
         }
 
@@ -253,6 +267,10 @@ class Syllable(private val view: LyricLineView) {
     }
 
     private fun buildSustainEffects(word: WordModel?, position: Long): List<SustainEffectState> {
+        if (!isSustainLiftEnabled && !isSustainGlowEnabled) {
+            resetSustainState()
+            return emptyList()
+        }
         if (position == Long.MIN_VALUE) return emptyList()
 
         val activeEffect = buildActiveSustainEffect(word)
@@ -292,6 +310,7 @@ class Syllable(private val view: LyricLineView) {
     }
 
     private fun buildActiveSustainEffect(word: WordModel?): SustainEffectState? {
+        if (!isSustainLiftEnabled && !isSustainGlowEnabled) return null
         word ?: return null
         if (word.duration < SUSTAIN_EFFECT_MIN_DURATION_MS) return null
 
@@ -310,11 +329,23 @@ class Syllable(private val view: LyricLineView) {
         if (intensity <= 0f) return null
 
         val density = view.resources.displayMetrics.density
-        val lift = density * SUSTAIN_EFFECT_MAX_LIFT_DP * (0.82f + intensity * 0.18f)
-        val glowRadius = density * SUSTAIN_EFFECT_MAX_GLOW_RADIUS_DP * (0.72f + intensity * 0.28f)
-        val glowAlpha = (SUSTAIN_EFFECT_MAX_GLOW_ALPHA * (0.28f + intensity * 0.58f))
-            .toInt()
-            .coerceIn(0, 255)
+        val lift = if (isSustainLiftEnabled) {
+            density * SUSTAIN_EFFECT_MAX_LIFT_DP * (0.82f + intensity * 0.18f)
+        } else {
+            0f
+        }
+        val glowRadius = if (isSustainGlowEnabled) {
+            density * SUSTAIN_EFFECT_MAX_GLOW_RADIUS_DP * (0.72f + intensity * 0.28f)
+        } else {
+            0f
+        }
+        val glowAlpha = if (isSustainGlowEnabled) {
+            (SUSTAIN_EFFECT_MAX_GLOW_ALPHA * (0.28f + intensity * 0.58f))
+                .toInt()
+                .coerceIn(0, 255)
+        } else {
+            0
+        }
 
         return SustainEffectState(
             startX = word.startPosition,
@@ -327,6 +358,7 @@ class Syllable(private val view: LyricLineView) {
     }
 
     private fun buildReleaseSustainEffect(position: Long): SustainEffectState? {
+        if (!isSustainLiftEnabled && !isSustainGlowEnabled) return null
         val word = releaseSustainWord ?: return null
         if (releaseStartRealtimeMs <= 0L) return null
 
@@ -346,11 +378,23 @@ class Syllable(private val view: LyricLineView) {
         if (intensity <= 0.02f) return null
 
         val density = view.resources.displayMetrics.density
-        val lift = density * SUSTAIN_EFFECT_MAX_LIFT_DP * (0.3f + intensity * 0.75f)
-        val glowRadius = density * SUSTAIN_EFFECT_MAX_GLOW_RADIUS_DP * (0.42f + intensity * 0.34f)
-        val glowAlpha = (SUSTAIN_EFFECT_MAX_GLOW_ALPHA * (0.16f + intensity * 0.38f))
-            .toInt()
-            .coerceIn(0, 255)
+        val lift = if (isSustainLiftEnabled) {
+            density * SUSTAIN_EFFECT_MAX_LIFT_DP * (0.3f + intensity * 0.75f)
+        } else {
+            0f
+        }
+        val glowRadius = if (isSustainGlowEnabled) {
+            density * SUSTAIN_EFFECT_MAX_GLOW_RADIUS_DP * (0.42f + intensity * 0.34f)
+        } else {
+            0f
+        }
+        val glowAlpha = if (isSustainGlowEnabled) {
+            (SUSTAIN_EFFECT_MAX_GLOW_ALPHA * (0.16f + intensity * 0.38f))
+                .toInt()
+                .coerceIn(0, 255)
+        } else {
+            0
+        }
 
         return SustainEffectState(
             startX = word.startPosition,
@@ -612,7 +656,19 @@ class Syllable(private val view: LyricLineView) {
             useGradient: Boolean, scrollOnly: Boolean, bgPaint: TextPaint,
             hlPaint: TextPaint, normPaint: TextPaint
         ) {
-            val y = (viewHeight / 2f) + baselineOffset
+            val density = view.resources.displayMetrics.density
+            val lineProgress = if (model.width > 0f) {
+                (highlightWidth / model.width).coerceIn(0f, 1f)
+            } else {
+                0f
+            }
+            val baseLower = if (isSustainLiftEnabled) density * SUSTAIN_LINE_BASE_LOWER_DP else 0f
+            val lineEndRise = if (isSustainLiftEnabled) {
+                density * SUSTAIN_LINE_END_RISE_DP * lineProgress
+            } else {
+                0f
+            }
+            val y = (viewHeight / 2f) + baselineOffset + baseLower - lineEndRise
             canvas.withSave {
                 val xOffset =
                     if (isOverflow) scrollX else if (model.isAlignedRight) viewWidth - model.width else 0f
@@ -776,24 +832,29 @@ class Syllable(private val view: LyricLineView) {
             val outerAlpha = (effect.glowAlpha * 0.28f * effect.intensity).toInt().coerceIn(0, 255)
             val innerAlpha = (effect.glowAlpha * 0.46f).toInt().coerceIn(0, 255)
             val coreColor = (0xFF shl 24) or baseColor
+            val drawGlow = isSustainGlowEnabled && effect.glowAlpha > 0
 
             sustainPaint.set(highlightPaint)
             sustainPaint.shader = null
             canvas.withSave {
-                translate(0f, -effect.liftOffsetPx)
+                if (isSustainLiftEnabled) {
+                    translate(0f, -effect.liftOffsetPx)
+                }
                 clipRect(clipStart, 0f, clipEnd, viewHeight.toFloat())
 
-                // 外层光晕（降低过曝，优先可读性）。
-                sustainPaint.style = Paint.Style.STROKE
-                sustainPaint.strokeWidth = outerStroke
-                sustainPaint.color = (outerAlpha shl 24) or glowRgb
-                drawText(model.wordText, 0f, y, sustainPaint)
+                if (drawGlow) {
+                    // 外层光晕（降低过曝，优先可读性）。
+                    sustainPaint.style = Paint.Style.STROKE
+                    sustainPaint.strokeWidth = outerStroke
+                    sustainPaint.color = (outerAlpha shl 24) or glowRgb
+                    drawText(model.wordText, 0f, y, sustainPaint)
 
-                // 内层高亮描边。
-                sustainPaint.style = Paint.Style.STROKE
-                sustainPaint.strokeWidth = innerStroke
-                sustainPaint.color = (innerAlpha shl 24) or glowRgb
-                drawText(model.wordText, 0f, y, sustainPaint)
+                    // 内层高亮描边。
+                    sustainPaint.style = Paint.Style.STROKE
+                    sustainPaint.strokeWidth = innerStroke
+                    sustainPaint.color = (innerAlpha shl 24) or glowRgb
+                    drawText(model.wordText, 0f, y, sustainPaint)
+                }
 
                 // 核心字形。
                 sustainPaint.style = Paint.Style.FILL

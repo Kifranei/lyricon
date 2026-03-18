@@ -74,6 +74,7 @@
     <string name="item_text_color">Color</string>
     <string name="item_text_extract_cover_color">Extract cover color</string>
     <string name="item_text_extract_cover_gradient">Extract cover gradient</string>
+    <string name="item_text_enable_rainbow_color">Enable rainbow gradient</string>
     <string name="item_text_enable_custom_color">Custom color</string>
     <string name="item_text_color_light_mode">Color (light mode)</string>
     <string name="item_text_color_dark_mode">Color (dark mode)</string>
@@ -95,6 +96,10 @@
     <string name="item_text_relative_progress">Enable relative-progress lyrics</string>
     <string name="item_text_relative_progress_summary">If word timing is unavailable, treat the entire line as a single unit.</string>
     <string name="item_text_relative_progress_highlight">Show relative-progress highlight</string>
+    <string name="item_text_sustain_lift">Long-note lift effect</string>
+    <string name="item_text_sustain_glow">Long-note glow effect</string>
+    <string name="item_text_sustain_glow_color_mode_summary">Color mode is enabled, so glow does not take effect.</string>
+    <string name="item_text_sustain_glow_color_mode_hint">No effect when color mode is enabled (cover color/cover gradient/rainbow/custom).</string>
     <string name="item_text_color_normal">Normal color</string>
     <string name="item_text_color_background">Background color</string>
     <string name="item_text_color_highlight">Highlight color</string>
