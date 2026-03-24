@@ -72,7 +72,7 @@
 - [BBPlayer](https://bbplayer.roitium.com/)
 - MobiMusic
 - [Kanade](https://github.com/rcmiku/Kanade)
-- Sollin Player
+- [Sollin Player](https://www.223210.xyz/)
 - [QZ Music](https://github.com/lqtmcstudio/QZMusic)
 ---
 
