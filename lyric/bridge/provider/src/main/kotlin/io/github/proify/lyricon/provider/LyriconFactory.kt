@@ -10,12 +10,8 @@ import android.app.ActivityManager
 import android.app.Application
 import android.content.Context
 import android.os.Build
-import io.github.proify.lyricon.subscriber.impl.ActivePlayerMonitorV27Impl
-import io.github.proify.lyricon.subscriber.impl.EmptyActivePlayerMonitor
 import io.github.proify.lyricon.provider.impl.EmptyProvider
 import io.github.proify.lyricon.provider.impl.ProviderV27Impl
-import io.github.proify.lyricon.subscriber.ActivePlayerListener
-import io.github.proify.lyricon.subscriber.ActivePlayerMonitor
 
 /**
  * LyriconProvider 工厂对象
@@ -89,31 +85,6 @@ object LyriconFactory {
         if (!CentralServiceReceiver.isInitialized) {
             CentralServiceReceiver.initialize(context)
         }
-    }
-
-    /**
-     * 创建活跃播放器监听器监控器。
-     *
-     * 可独立于 [createProvider] 使用，仅用于接收 Central 回传的活跃播放器状态。
-     * @param context 上下文
-     * @param centralPackageName 中央服务实现包名
-     * @param listener 播放器监听器
-     */
-    fun createActivePlayerMonitor(
-        context: Context,
-        centralPackageName: String = ProviderConstants.SYSTEM_UI_PACKAGE_NAME,
-        listener: ActivePlayerListener? = null,
-    ): ActivePlayerMonitor {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            initialize(context)
-            return ActivePlayerMonitorV27Impl(
-                context = context,
-                centralPackageName = centralPackageName,
-                activePlayerListener = listener
-            )
-        }
-
-        return EmptyActivePlayerMonitor()
     }
 
     fun getCurrentProcessName(context: Context): String? {

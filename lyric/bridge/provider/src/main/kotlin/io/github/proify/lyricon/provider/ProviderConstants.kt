@@ -19,10 +19,6 @@ object ProviderConstants {
     internal const val ACTION_REGISTER_PROVIDER: String =
         "io.github.proify.lyricon.lyric.bridge.REGISTER_PROVIDER"
 
-    /** 注册活跃播放器监听器广播动作 */
-    internal const val ACTION_REGISTER_ACTIVE_PLAYER_LISTENER: String =
-        "io.github.proify.lyricon.lyric.bridge.REGISTER_ACTIVE_PLAYER_LISTENER"
-
     /** 中心服务启动完成广播动作 */
     internal const val ACTION_CENTRAL_BOOT_COMPLETED: String =
         "io.github.proify.lyricon.lyric.bridge.CENTRAL_BOOT_COMPLETED"

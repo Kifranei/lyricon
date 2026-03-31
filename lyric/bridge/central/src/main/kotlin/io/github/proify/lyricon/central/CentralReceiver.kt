@@ -12,8 +12,6 @@ import android.content.Intent
 import android.util.Log
 import io.github.proify.lyricon.central.provider.ProviderManager
 import io.github.proify.lyricon.central.provider.RemoteProvider
-import io.github.proify.lyricon.central.provider.player.RemoteActivePlayerClientManager
-import io.github.proify.lyricon.provider.IActivePlayerBinder
 import io.github.proify.lyricon.provider.IProviderBinder
 import io.github.proify.lyricon.provider.ProviderInfo
 
@@ -22,9 +20,8 @@ internal object CentralReceiver : BroadcastReceiver() {
     private const val TAG = "CentralReceiver"
 
     override fun onReceive(context: Context?, intent: Intent?) {
-        when (intent?.action) {
-            Constants.ACTION_REGISTER_PROVIDER -> registerProvider(intent)
-            Constants.ACTION_REGISTER_ACTIVE_PLAYER_LISTENER -> registerActivePlayerListener(intent)
+        if (intent?.action == Constants.ACTION_REGISTER_PROVIDER) {
+            registerProvider(intent)
         }
     }
 
@@ -34,24 +31,10 @@ internal object CentralReceiver : BroadcastReceiver() {
 
         return when (T::class) {
             IProviderBinder::class -> IProviderBinder.Stub.asInterface(binder) as? T
-            IActivePlayerBinder::class -> IActivePlayerBinder.Stub.asInterface(binder) as? T
             else -> {
                 Log.e(TAG, "Unknown binder type")
                 null
             }
-        }
-    }
-
-    private fun registerActivePlayerListener(intent: Intent) {
-        val binder = getBinder<IActivePlayerBinder>(intent) ?: return
-        var client: RemoteActivePlayerClientManager.RemoteActivePlayerClient? = null
-
-        try {
-            client = RemoteActivePlayerClientManager.register(binder)
-            binder.onRegistrationCallback(client.service)
-        } catch (e: Exception) {
-            Log.e(TAG, "Active player listener registration failed", e)
-            client?.let { RemoteActivePlayerClientManager.unregister(it) }
         }
     }
 

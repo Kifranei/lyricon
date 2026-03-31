@@ -18,7 +18,7 @@ extra["compileSdkVersion"] = 36
 extra["targetSdkVersion"] = 36
 extra["minSdkVersion"] = 27
 
-extra["providerSdkVersion"] = "0.1.70"
+extra["providerSdkVersion"] = "0.1.69"
 extra["lyricModelVersion"] = "0.1.69"
 
 // apk自动导出

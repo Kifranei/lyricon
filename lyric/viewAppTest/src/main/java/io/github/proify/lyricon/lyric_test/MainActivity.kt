@@ -23,9 +23,7 @@ import com.google.android.material.slider.Slider
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.view.RichLyricLineConfig
 import io.github.proify.lyricon.lyric_test.databinding.ActivityMainBinding
-import io.github.proify.lyricon.subscriber.ActivePlayerListener
 import io.github.proify.lyricon.provider.LyriconFactory
-import io.github.proify.lyricon.provider.ProviderInfo
 import io.github.proify.lyricon.provider.ProviderLogo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -70,34 +68,6 @@ class MainActivity : AppCompatActivity() {
             centralPackageName = "io.github.lyricon.localcentralapp"
         )
     }
-
-    /** ActivePlayerMonitor 监视器，用于监听播放器状态变更 */
-    internal val monitor by lazy {
-        LyriconFactory.createActivePlayerMonitor(
-            context = this,
-            centralPackageName = "io.github.lyricon.localcentralapp",
-            listener = object : ActivePlayerListener {
-                override fun onActiveProviderChanged(providerInfo: ProviderInfo?) = Unit
-
-                override fun onSongChanged(song: Song?) {
-                    Log.d("LyriconTest", "onSongChanged $song")
-                }
-
-                override fun onPlaybackStateChanged(isPlaying: Boolean) = Unit
-
-                override fun onPositionChanged(position: Long) = Unit
-
-                override fun onSeekTo(position: Long) = Unit
-
-                override fun onSendText(text: String?) = Unit
-
-                override fun onDisplayTranslationChanged(isDisplayTranslation: Boolean) = Unit
-
-                override fun onDisplayRomaChanged(displayRoma: Boolean) = Unit
-
-            }
-        )
-    }
     private var showtranslation = false
 
     @OptIn(ExperimentalUuidApi::class)
@@ -120,7 +90,6 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             delay(0)
             provider.register()
-            monitor.register()
         }
 
         // 生命周期安全的进度更新协程
