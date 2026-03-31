@@ -1,4 +1,4 @@
-package io.github.proify.lyricon.provider;
+package io.github.proify.lyricon.subscriber;
 
 import io.github.proify.lyricon.provider.ProviderInfo;
 

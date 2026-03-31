@@ -1,6 +1,6 @@
-package io.github.proify.lyricon.provider;
+package io.github.proify.lyricon.subscriber;
 
-import io.github.proify.lyricon.provider.IActivePlayerListener;
+import io.github.proify.lyricon.subscriber.IActivePlayerListener;
 
 interface IRemoteActivePlayerService {
     void addActivePlayerListener(IActivePlayerListener listener);

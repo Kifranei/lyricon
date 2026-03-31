@@ -17,9 +17,9 @@ import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.subscriber.ActivePlayerListener
 import io.github.proify.lyricon.subscriber.ActivePlayerMonitor
 import io.github.proify.lyricon.provider.CentralServiceReceiver
-import io.github.proify.lyricon.provider.IActivePlayerBinder
-import io.github.proify.lyricon.provider.IActivePlayerListener
-import io.github.proify.lyricon.provider.IRemoteActivePlayerService
+import io.github.proify.lyricon.subscriber.IActivePlayerBinder
+import io.github.proify.lyricon.subscriber.IActivePlayerListener
+import io.github.proify.lyricon.subscriber.IRemoteActivePlayerService
 import io.github.proify.lyricon.provider.ProviderConstants
 import io.github.proify.lyricon.provider.ProviderInfo
 import io.github.proify.lyricon.provider.json

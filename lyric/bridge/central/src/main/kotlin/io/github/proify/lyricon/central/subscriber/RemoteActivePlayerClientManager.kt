@@ -1,23 +1,19 @@
-/*
- * Copyright 2026 Proify, Tomakino
- * Licensed under the Apache License, Version 2.0
- * http://www.apache.org/licenses/LICENSE-2.0
- */
-
-package io.github.proify.lyricon.central.provider.player
+package io.github.proify.lyricon.central.subscriber
 
 import android.os.IBinder
 import android.os.RemoteException
 import android.util.Log
 import io.github.proify.lyricon.central.Constants
 import io.github.proify.lyricon.central.json
+import io.github.proify.lyricon.central.provider.player.ActivePlayerDispatcher
+import io.github.proify.lyricon.central.provider.player.ActivePlayerListener
 import io.github.proify.lyricon.lyric.model.Song
-import io.github.proify.lyricon.provider.IActivePlayerBinder
-import io.github.proify.lyricon.provider.IActivePlayerListener
-import io.github.proify.lyricon.provider.IRemoteActivePlayerService
+import io.github.proify.lyricon.subscriber.IActivePlayerBinder
+import io.github.proify.lyricon.subscriber.IActivePlayerListener
+import io.github.proify.lyricon.subscriber.IRemoteActivePlayerService
 import io.github.proify.lyricon.provider.ProviderInfo
-import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArraySet
 
 internal object RemoteActivePlayerClientManager {
 

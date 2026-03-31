@@ -1,6 +1,6 @@
-package io.github.proify.lyricon.provider;
+package io.github.proify.lyricon.subscriber;
 
-import io.github.proify.lyricon.provider.IRemoteActivePlayerService;
+import io.github.proify.lyricon.subscriber.IRemoteActivePlayerService;
 
 interface IActivePlayerBinder {
     void onRegistrationCallback(IRemoteActivePlayerService service);

@@ -12,8 +12,8 @@ import android.content.Intent
 import android.util.Log
 import io.github.proify.lyricon.central.provider.ProviderManager
 import io.github.proify.lyricon.central.provider.RemoteProvider
-import io.github.proify.lyricon.central.provider.player.RemoteActivePlayerClientManager
-import io.github.proify.lyricon.provider.IActivePlayerBinder
+import io.github.proify.lyricon.central.subscriber.RemoteActivePlayerClientManager
+import io.github.proify.lyricon.subscriber.IActivePlayerBinder
 import io.github.proify.lyricon.provider.IProviderBinder
 import io.github.proify.lyricon.provider.ProviderInfo
 
