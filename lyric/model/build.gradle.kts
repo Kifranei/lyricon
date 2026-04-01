@@ -56,7 +56,7 @@ mavenPublishing {
             developerConnection.set("scm:git:ssh://git@github.com/proify/lyricon.git")
         }
     }
-    publishToMavenCentral()
+    //publishToMavenCentral()
     signAllPublications()
 }
 

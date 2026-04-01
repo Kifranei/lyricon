@@ -57,6 +57,16 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
 }
 
+publishing {
+    repositories {
+        maven {
+            name = "fastmcmirror"
+            url = uri("https://repo.fastmcmirror.org/content/repositories/releases/")
+            credentials(PasswordCredentials::class)
+        }
+    }
+}
+
 mavenPublishing {
     coordinates(
         "io.github.proify.lyricon",
@@ -89,7 +99,6 @@ mavenPublishing {
             developerConnection.set("scm:git:ssh://git@github.com/proify/lyricon.git")
         }
     }
-    publishToMavenCentral()
     signAllPublications()
 }
 
