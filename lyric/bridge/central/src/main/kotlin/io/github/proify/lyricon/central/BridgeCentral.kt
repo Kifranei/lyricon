@@ -40,14 +40,10 @@ object BridgeCentral {
         if (::context.isInitialized) return
         context = appContext.applicationContext
         ScreenStateMonitor.initialize(appContext)
-        val filter = IntentFilter(Constants.ACTION_REGISTER_PROVIDER).apply {
-            addAction(Constants.ACTION_REGISTER_ACTIVE_PLAYER_LISTENER)
-        }
-
         ContextCompat.registerReceiver(
             context,
             receiver,
-            filter,
+            IntentFilter(Constants.ACTION_REGISTER_PROVIDER),
             ContextCompat.RECEIVER_EXPORTED
         )
     }
