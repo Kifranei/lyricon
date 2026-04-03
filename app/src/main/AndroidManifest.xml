@@ -27,10 +27,21 @@
             android:theme="@style/Theme.SplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.INFO" />
             </intent-filter>
         </activity>
+
+        <activity-alias
+            android:name=".activity.LauncherAlias"
+            android:enabled="true"  
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:targetActivity=".activity.MainActivity"> 
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" /> 
+            </intent-filter>
+        </activity-alias>
 
         <activity
             android:name=".activity.AboutActivity"

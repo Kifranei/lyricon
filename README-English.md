@@ -77,9 +77,9 @@
 - [**Light Cone Player**](https://coneplayer.trantor.ink/)
 - **Flamingo**
 - [BBPlayer](https://bbplayer.roitium.com/)
-- [MobiMusic](https://mobimusic.com/)
+- MobiMusic
 - [Kanade](https://github.com/rcmiku/Kanade)
-- [Sollin Player](https://www.223210.xyz/)
+- Sollin Player
 - [QZ Music](https://github.com/lqtmcstudio/QZMusic)
 
 ---

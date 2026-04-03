@@ -6,16 +6,22 @@
 
 package io.github.proify.lyricon.app.activity
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -104,7 +110,6 @@ class SettingsActivity : BaseActivity() {
         finish()
     }
 
-
     @Composable
     private fun SettingsScreen(
         onSettingsApplied: () -> Unit,
@@ -125,12 +130,58 @@ class SettingsActivity : BaseActivity() {
                     ThemeSetting(onSettingsApplied)
                 }
             }
+            // 🌟 核心：我们把桌面图标的开关无缝融合在主题设置下方
+            item("desktop_icon") {
+                SettingsSectionCard(topPadding = 16.dp) {
+                    DesktopIconSetting()
+                }
+            }
             item("backup") {
                 SettingsSectionCard(topPadding = 16.dp) {
                     BackupSetting(onBackupExport, onBackupImport)
                 }
             }
         }
+    }
+
+    @Composable
+    private fun DesktopIconSetting() {
+        val context = LocalContext.current
+        val packageManager = context.packageManager
+        // 指向你在 Manifest 中写的别名
+        val aliasName = remember { ComponentName(context, "io.github.proify.lyricon.app.activity.LauncherAlias") }
+
+        // 动态读取系统里这个别名的当前状态，不需要存进 SharedPreferences
+        var showDesktopIcon by remember {
+            mutableStateOf(
+                packageManager.getComponentEnabledSetting(aliasName) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+            )
+        }
+
+        SuperSwitch(
+            startAction = { IconActions(painterResource(R.drawable.ic_visibility)) },
+            title = "显示桌面图标",
+            summary = "关闭后将隐藏桌面图标，仅可通过 LSPosed 模块管理界面进入",
+            checked = showDesktopIcon,
+            onCheckedChange = { isChecked ->
+                showDesktopIcon = isChecked
+                val state = if (isChecked) {
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED
+                } else {
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+                }
+                
+                packageManager.setComponentEnabledSetting(
+                    aliasName,
+                    state,
+                    PackageManager.DONT_KILL_APP
+                )
+                
+                if (!isChecked) {
+                    Toast.makeText(context, "桌面图标已隐藏，可能需要稍等片刻或重启桌面生效", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
     }
 
     @Composable
