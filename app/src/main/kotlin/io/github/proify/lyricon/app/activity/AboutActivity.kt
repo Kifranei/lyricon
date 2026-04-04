@@ -196,17 +196,6 @@ class AboutActivity : BaseActivity() {
                     insideMargin = PaddingValues(0.dp),
                 ) {
                     val githubHome = stringResource(id = R.string.github_home)
-                    val donationHome = stringResource(id = R.string.donation_home)
-
-                    SuperArrow(
-                        startAction = { IconActions(painterResource(R.drawable.bolt_24px)) },
-                        title = stringResource(id = R.string.item_app_donation),
-                        onClick = {
-                            launchBrowser(
-                                donationHome,
-                            )
-                        }
-                    )
 
                     SuperArrow(
                         startAction = { IconActions(painterResource(R.drawable.ic_github)) },

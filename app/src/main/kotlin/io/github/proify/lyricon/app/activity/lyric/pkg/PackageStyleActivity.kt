@@ -53,9 +53,9 @@ import io.github.proify.lyricon.app.activity.lyric.pkg.sheet.PackageSwitchBottom
 import io.github.proify.lyricon.app.compose.AppToolBarContainer
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.MiuixScrollBehavior
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
-import io.github.proify.lyricon.app.updateRemoteLyricStyle
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.app.util.editCommit
+import io.github.proify.lyricon.app.util.updateRemoteLyricStyle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

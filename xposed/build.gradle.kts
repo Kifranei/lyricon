@@ -66,6 +66,12 @@ dependencies {
     implementation(project(":lyric:style"))
     implementation(project(":lyric:statusbarlyric"))
 
+    implementation(libs.openai.client)
+    implementation(libs.androidx.palette.ktx)
+
+    implementation(libs.ktor.client.okhttp)
+    testImplementation(libs.ktor.ktor.client.okhttp)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

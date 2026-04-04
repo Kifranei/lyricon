@@ -4,9 +4,10 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-package io.github.proify.lyricon.app
+package io.github.proify.lyricon.app.util
 
 import android.util.Log
+import io.github.proify.lyricon.app.LyriconApp
 import io.github.proify.lyricon.app.LyriconApp.Companion.systemUIChannel
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 

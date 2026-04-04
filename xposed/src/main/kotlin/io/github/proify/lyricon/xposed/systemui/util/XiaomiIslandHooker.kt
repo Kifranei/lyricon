@@ -8,6 +8,7 @@
 
 package io.github.proify.lyricon.xposed.systemui.util
 
+import android.annotation.SuppressLint
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
@@ -22,6 +23,7 @@ import java.util.WeakHashMap
  * 小米超级岛（island_container）运行时控制器：
  * 在系统界面进程中直接追踪目标 View，并在歌词显示时将尺寸压缩到 0，隐藏时恢复原尺寸。
  */
+@Deprecated("未测试")
 object XiaomiIslandHooker {
     private const val TAG = "XiaomiIslandHooker"
     private const val TARGET_ID_NAME = "island_container"
@@ -117,6 +119,7 @@ object XiaomiIslandHooker {
             .maxOrNull() ?: 0
     }
 
+    @SuppressLint("PrivateApi")
     private fun getSystemProperty(key: String): String? {
         return runCatching {
             val systemProperties = Class.forName("android.os.SystemProperties")
@@ -216,16 +219,16 @@ object XiaomiIslandHooker {
     private class TrackIslandAttachHook : XC_MethodHook() {
         override fun afterHookedMethod(param: MethodHookParam) {
             val view = param.thisObject as? View ?: return
-            XiaomiIslandHooker.trackViewTree(view)
+            trackViewTree(view)
         }
     }
 
     private class TrackIslandVisibilityHook : XC_MethodHook() {
         override fun afterHookedMethod(param: MethodHookParam) {
             val view = param.thisObject as? View ?: return
-            if (!XiaomiIslandHooker.tryTrackIslandView(view)) return
-            if (!XiaomiIslandHooker.hideByLyric) return
-            XiaomiIslandHooker.applyState(view, XiaomiIslandHooker.hideByLyric)
+            if (!tryTrackIslandView(view)) return
+            if (!hideByLyric) return
+            applyState(view, hideByLyric)
         }
     }
 

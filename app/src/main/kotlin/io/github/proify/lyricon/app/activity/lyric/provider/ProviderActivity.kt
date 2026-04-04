@@ -1,6 +1,7 @@
 /*
  * Copyright 2026 Proify, Tomakino
  * Licensed under the Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  */
 
 package io.github.proify.lyricon.app.activity.lyric.provider
@@ -67,6 +68,7 @@ import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
@@ -254,26 +256,32 @@ class LyricProviderActivity : BaseActivity() {
                 }
 
                 SuperListPopup(
-                    show = showPopup,
+                    show = showPopup.value,
+                    popupModifier = Modifier,
+                    popupPositionProvider = ListPopupDefaults.DropdownPositionProvider,
                     alignment = PopupPositionProvider.Align.TopEnd,
-                    onDismissRequest = { showPopup.value = false }
-                ) {
-                    ListPopupColumn {
-                        options.forEachIndexed { index, (labelRes, value) ->
-                            DropdownImpl(
-                                text = stringResource(labelRes),
-                                optionSize = options.size,
-                                isSelected = index == selectedIndex,
-                                onSelectedIndexChange = {
-                                    showPopup.value = false
-                                    listStylePref = value
-                                    viewModel.listStyle = value
-                                },
-                                index = index
-                            )
+                    enableWindowDim = true,
+                    onDismissRequest = { showPopup.value = false },
+                    maxHeight = null,
+                    minWidth = 200.dp,
+                    renderInRootScaffold = true,
+                    content = {
+                        ListPopupColumn {
+                            options.forEachIndexed { index, (labelRes, value) ->
+                                DropdownImpl(
+                                    text = stringResource(labelRes),
+                                    optionSize = options.size,
+                                    isSelected = index == selectedIndex,
+                                    onSelectedIndexChange = {
+                                        showPopup.value = false
+                                        listStylePref = value
+                                        viewModel.listStyle = value
+                                    },
+                                    index = index
+                                )
+                            }
                         }
-                    }
-                }
+                    })
             }
         }
     }

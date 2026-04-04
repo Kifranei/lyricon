@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Proify, Tomakino
+ * Licensed under the Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
 @file:Suppress("unused")
 
 package io.github.proify.lyricon.xposed.systemui.util
@@ -5,11 +11,10 @@ package io.github.proify.lyricon.xposed.systemui.util
 import com.highcapable.yukihookapi.hook.log.YLog
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
-import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CopyOnWriteArraySet
 
 /**
- * 状态栏禁用指令 Hook 引擎
- * 支持外部动态添加/移除监听器，实现业务与 Hook 的彻底解耦
+ * 监听状态栏禁用事件
  */
 object StatusBarDisableHooker {
 
@@ -18,7 +23,7 @@ object StatusBarDisableHooker {
     // 状态标志位定义
     private const val FLAG_DISABLE_SYSTEM_INFO = 0x00800000
 
-    private val listeners = CopyOnWriteArrayList<OnStatusBarDisableListener>()
+    private val listeners = CopyOnWriteArraySet<OnStatusBarDisableListener>()
 
     /**
      * 外部注册监听器

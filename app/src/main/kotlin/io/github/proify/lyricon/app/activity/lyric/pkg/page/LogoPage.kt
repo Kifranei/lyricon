@@ -4,8 +4,6 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-@file:Suppress("KotlinConstantConditions", "RedundantValueArgument")
-
 package io.github.proify.lyricon.app.activity.lyric.pkg.page
 
 import android.content.SharedPreferences
@@ -32,9 +30,9 @@ import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import io.github.proify.lyricon.app.compose.preference.InputPreference
 import io.github.proify.lyricon.app.compose.preference.InputType
 import io.github.proify.lyricon.app.compose.preference.LogoColorPreference
-import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.RectInputPreference
 import io.github.proify.lyricon.app.compose.preference.SwitchPreference
+import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberIntPreference
 import io.github.proify.lyricon.app.util.Utils
 import io.github.proify.lyricon.app.util.editCommit
@@ -82,13 +80,13 @@ fun LogoPage(
                     title = stringResource(R.string.item_logo_enable)
                 )
                 InputPreference(
-                    sharedPreferences = sharedPreferences,
+                    preferences = sharedPreferences,
                     key = "lyric_style_logo_width",
                     title = stringResource(R.string.item_logo_size),
                     syncKeys = arrayOf("lyric_style_logo_height"),
                     inputType = InputType.DOUBLE,
                     maxValue = 100.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) }
+                    startAction = { IconActions(painterResource(R.drawable.ic_format_size)) }
                 )
                 RectInputPreference(
                     sharedPreferences,

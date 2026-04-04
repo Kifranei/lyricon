@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Proify, Tomakino
+ * Licensed under the Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
 @file:Suppress("UnusedReceiverParameter")
 
 package io.github.proify.lyricon.app.compose.icon
@@ -92,4 +98,5 @@ val MiuixIcons.Regular.MinusCircle: ImageVector
         return _minuscircleRegular!!
     }
 
+@Suppress("ObjectPropertyName")
 private var _minuscircleRegular: ImageVector? = null

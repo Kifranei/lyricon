@@ -41,6 +41,7 @@ import top.yukonga.miuix.kmp.basic.ColorPalette
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.extra.BottomSheetDefaults
 import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Delete
@@ -71,8 +72,10 @@ fun ColorPaletteDialog(
     }
 
     SuperBottomSheet(
-        show = show,
+        show = show.value,
+        modifier = Modifier,
         title = title,
+        startAction = null,
         endAction = {
             IconButton(onClick = {
                 onDelete()
@@ -85,58 +88,70 @@ fun ColorPaletteDialog(
                 )
             }
         },
-        onDismissRequest = { dismiss() }
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .overScrollVertical()
-        ) {
-            item("color_picker_content") {
-                ColorPalette(
-                    color = selectedColor,
-                    onColorChanged = {
-                        selectedColor = it
-                        hexInput = it.toHexString()
-                    }
-                )
-
-                Spacer(Modifier.height(ITEM_SPACING))
-
-                HexInputRow(
-                    hexInput = hexInput,
-                    onHexInputChange = {
-                        hexInput = it
-                        runCatching { selectedColor = it.parseHexColor() }
-                    },
-                    onCopy = {
-                        clipboard.copyText(hexInput)
-                        hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
-                    },
-                    onPaste = {
-                        clipboard.pasteText()?.let { text ->
-                            hexInput = text
-                            runCatching { selectedColor = text.parseHexColor() }
+        backgroundColor = BottomSheetDefaults.backgroundColor(),
+        enableWindowDim = true,
+        cornerRadius = BottomSheetDefaults.cornerRadius,
+        sheetMaxWidth = BottomSheetDefaults.maxWidth,
+        onDismissRequest = { dismiss() },
+        onDismissFinished = null,
+        outsideMargin = BottomSheetDefaults.outsideMargin,
+        insideMargin = BottomSheetDefaults.insideMargin,
+        defaultWindowInsetsPadding = true,
+        dragHandleColor = BottomSheetDefaults.dragHandleColor(),
+        allowDismiss = true,
+        enableNestedScroll = true,
+        renderInRootScaffold = true,
+        content = {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .overScrollVertical()
+            ) {
+                item("color_picker_content") {
+                    ColorPalette(
+                        color = selectedColor,
+                        onColorChanged = {
+                            selectedColor = it
+                            hexInput = it.toHexString()
                         }
-                        hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
-                    }
-                )
+                    )
 
-                content()
-                Spacer(Modifier.height(ITEM_SPACING))
+                    Spacer(Modifier.height(ITEM_SPACING))
 
-                DialogButtonRow(
-                    onCancel = { dismiss() },
-                    onConfirm = {
-                        onConfirm(selectedColor)
-                        dismiss()
-                    }
-                )
+                    HexInputRow(
+                        hexInput = hexInput,
+                        onHexInputChange = {
+                            hexInput = it
+                            runCatching { selectedColor = it.parseHexColor() }
+                        },
+                        onCopy = {
+                            clipboard.copyText(hexInput)
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        },
+                        onPaste = {
+                            clipboard.pasteText()?.let { text ->
+                                hexInput = text
+                                runCatching { selectedColor = text.parseHexColor() }
+                            }
+                            hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
+                        }
+                    )
 
-                Spacer(Modifier.height(ITEM_SPACING))
+                    content()
+                    Spacer(Modifier.height(ITEM_SPACING))
+
+                    DialogButtonRow(
+                        onCancel = { dismiss() },
+                        onConfirm = {
+                            onConfirm(selectedColor)
+                            dismiss()
+                        }
+                    )
+
+                    Spacer(Modifier.height(ITEM_SPACING))
+                }
             }
-        }
-    }
+        })
 }
 
 @Composable

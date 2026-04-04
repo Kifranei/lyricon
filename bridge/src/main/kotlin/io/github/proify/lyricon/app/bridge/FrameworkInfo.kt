@@ -6,6 +6,9 @@
 
 package io.github.proify.lyricon.app.bridge
 
+/**
+ * 未实现
+ */
 data class FrameworkInfo(
     val versionName: String,
     val versionCode: Long

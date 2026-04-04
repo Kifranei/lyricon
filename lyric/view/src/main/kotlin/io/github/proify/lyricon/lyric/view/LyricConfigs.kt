@@ -63,8 +63,6 @@ open class DefaultMarqueeConfig(
 interface SyllableConfig {
     var backgroundColor: IntArray
     var highlightColor: IntArray
-    var enableSustainLift: Boolean
-    var enableSustainGlow: Boolean
 }
 
 data class MainTextConfig(
@@ -102,8 +100,6 @@ data class MainTextConfig(
 data class DefaultSyllableConfig(
     override var highlightColor: IntArray = intArrayOf(Color.WHITE),
     override var backgroundColor: IntArray = intArrayOf(Color.GRAY),
-    override var enableSustainLift: Boolean = true,
-    override var enableSustainGlow: Boolean = true,
 ) : SyllableConfig {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -113,8 +109,6 @@ data class DefaultSyllableConfig(
 
         if (!highlightColor.contentEquals(other.highlightColor)) return false
         if (!backgroundColor.contentEquals(other.backgroundColor)) return false
-        if (enableSustainLift != other.enableSustainLift) return false
-        if (enableSustainGlow != other.enableSustainGlow) return false
 
         return true
     }
@@ -122,8 +116,6 @@ data class DefaultSyllableConfig(
     override fun hashCode(): Int {
         var result = highlightColor.contentHashCode()
         result = 31 * result + backgroundColor.contentHashCode()
-        result = 31 * result + enableSustainLift.hashCode()
-        result = 31 * result + enableSustainGlow.hashCode()
         return result
     }
 }

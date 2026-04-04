@@ -57,6 +57,7 @@ import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.extra.BottomSheetDefaults
 import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Search
@@ -152,46 +153,59 @@ fun PackageSelectionBottomSheet(
     }
 
     SuperBottomSheet(
-        insideMargin = DpSize(0.dp, 0.dp),
-        backgroundColor = MiuixTheme.colorScheme.surface,
-        show = show,
+        show = show.value,
+        modifier = Modifier,
         title = stringResource(R.string.add_package_config),
+        startAction = null,
+        endAction = null,
+        backgroundColor = MiuixTheme.colorScheme.surface,
+        enableWindowDim = true,
+        cornerRadius = BottomSheetDefaults.cornerRadius,
+        sheetMaxWidth = BottomSheetDefaults.maxWidth,
         onDismissRequest = { show.value = false },
-    ) {
-        Column {
-            PackageSearchBar(
-                query = state.searchQuery,
-                onQueryChange = viewModel::updateSearchQuery,
-            )
-            if (state.isLoading) {
-                Box(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    InfiniteProgressIndicator()
-                }
-            } else {
-                val context = LocalContext.current
-                AppList(
-                    categories = categories,
-                    selectedPackages = state.selectedPackages,
-                    onSelection = { packageName, selected ->
-                        viewModel.toggleSelection(packageName, selected)
-                        onSelectionChanged(viewModel.uiState.value.selectedPackages)
-
-                        if (context is Activity) {
-                            context.window.decorView.performHapticFeedback(
-                                HapticFeedbackConstants.CONTEXT_CLICK,
-                            )
-                        }
-                    },
+        onDismissFinished = null,
+        outsideMargin = BottomSheetDefaults.outsideMargin,
+        insideMargin = DpSize(0.dp, 0.dp),
+        defaultWindowInsetsPadding = true,
+        dragHandleColor = BottomSheetDefaults.dragHandleColor(),
+        allowDismiss = true,
+        enableNestedScroll = true,
+        renderInRootScaffold = true,
+        content = {
+            Column {
+                PackageSearchBar(
+                    query = state.searchQuery,
+                    onQueryChange = viewModel::updateSearchQuery,
                 )
+                if (state.isLoading) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(100.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        InfiniteProgressIndicator()
+                    }
+                } else {
+                    val context = LocalContext.current
+                    AppList(
+                        categories = categories,
+                        selectedPackages = state.selectedPackages,
+                        onSelection = { packageName, selected ->
+                            viewModel.toggleSelection(packageName, selected)
+                            onSelectionChanged(viewModel.uiState.value.selectedPackages)
+
+                            if (context is Activity) {
+                                context.window.decorView.performHapticFeedback(
+                                    HapticFeedbackConstants.CONTEXT_CLICK,
+                                )
+                            }
+                        },
+                    )
+                }
             }
-        }
-    }
+        })
 }
 
 @Composable

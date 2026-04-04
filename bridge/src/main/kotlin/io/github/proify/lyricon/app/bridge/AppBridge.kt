@@ -13,10 +13,14 @@ import androidx.annotation.Keep
 import com.highcapable.yukihookapi.YukiHookAPI
 import io.github.proify.lyricon.common.Constants
 import java.io.File
-import android.os.Build
 
+/**
+ * 桥接模块
+ * 用于给xposed环境hook
+ */
 object AppBridge {
 
+    @Keep
     fun isModuleActive(): Boolean =
         runCatching {
             YukiHookAPI.Status.isXposedModuleActive
@@ -27,19 +31,7 @@ object AppBridge {
 
     @Keep
     fun getPreferenceDirectory(context: Context): File {
-        val baseContext =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                context.createDeviceProtectedStorageContext()
-            } else {
-                context
-            }
-        val dataDir =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                baseContext.dataDir
-            } else {
-                File(baseContext.applicationInfo.dataDir)
-            }
-        return File(dataDir, "shared_prefs")
+        return context.dataDir.resolve("shared_prefs")
     }
 
     object LyricStylePrefs {

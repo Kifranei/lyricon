@@ -8,12 +8,12 @@ plugins {
     alias(libs.plugins.ksp) apply false
     id("com.vanniktech.maven.publish") version "0.36.0" apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
-    id("com.mikepenz.aboutlibraries.plugin.android") version "14.0.0-b02" apply false
+    id("com.mikepenz.aboutlibraries.plugin.android") version "14.0.0-b03" apply false
 }
 
 extra["appPackageName"] = "io.github.proify.lyricon"
-extra["appVersionCode"] = 27
-extra["appVersionName"] = "1.0.31"
+extra["appVersionCode"] = 30
+extra["appVersionName"] = "1.0.30-beta1"
 extra["compileSdkVersion"] = 36
 extra["targetSdkVersion"] = 36
 extra["minSdkVersion"] = 27

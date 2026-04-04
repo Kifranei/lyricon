@@ -7,6 +7,7 @@
 
 package io.github.proify.lyricon.app.util
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -20,9 +21,11 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import io.github.proify.lyricon.app.LyriconApp
+import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.MainActivity
 import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import java.util.Locale
 
 object Utils {
     val isOPlus: Boolean by lazy {
@@ -71,6 +74,7 @@ object Utils {
             .maxOrNull() ?: 0
     }
 
+    @SuppressLint("PrivateApi")
     private fun getSystemProperty(key: String): String? {
         return runCatching {
             val systemProperties = Class.forName("android.os.SystemProperties")
@@ -132,6 +136,22 @@ fun Context.launchBrowser(
             .setDefaultColorSchemeParams(colorSchemeParamsBuilder.build())
             .build()
     customTabs.launchUrl(this, url.toUri())
+}
+
+fun Context.resolveLanguageName(
+    languageCode: String,
+    displayLocale: Locale? = null
+): String {
+    if (languageCode == AppLangUtils.DEFAULT_LANGUAGE) {
+        return getString(R.string.option_language_follow_system)
+    }
+    return runCatching {
+        val locale = Locale.forLanguageTag(languageCode)
+        locale.getDisplayName(displayLocale ?: locale)
+            .replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(locale) else it.toString()
+            }
+    }.getOrDefault(languageCode)
 }
 
 inline fun SharedPreferences.editCommit(action: SharedPreferences.Editor.() -> Unit): Unit =

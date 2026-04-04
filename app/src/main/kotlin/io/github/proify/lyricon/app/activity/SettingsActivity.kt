@@ -6,7 +6,6 @@
 
 package io.github.proify.lyricon.app.activity
 
-import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -30,10 +29,11 @@ import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperSwitch
 import io.github.proify.lyricon.app.event.SettingChangedEvent
-import io.github.proify.lyricon.app.updateRemoteLyricStyle
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.EventBus
+import io.github.proify.lyricon.app.util.resolveLanguageName
+import io.github.proify.lyricon.app.util.updateRemoteLyricStyle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -43,7 +43,6 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SpinnerEntry
 import top.yukonga.miuix.kmp.extra.SuperDropdown
 import top.yukonga.miuix.kmp.extra.SuperSpinner
-import java.util.Locale
 
 class SettingsActivity : BaseActivity() {
 
@@ -258,19 +257,4 @@ class SettingsActivity : BaseActivity() {
     private fun getSupportedLanguageCodes(): List<String> =
         LyriconApp.instance.resources.getStringArray(R.array.language_codes).toList()
 
-    private fun Context.resolveLanguageName(
-        languageCode: String,
-        displayLocale: Locale? = null
-    ): String {
-        if (languageCode == AppLangUtils.DEFAULT_LANGUAGE) {
-            return getString(R.string.option_language_follow_system)
-        }
-        return runCatching {
-            val locale = Locale.forLanguageTag(languageCode)
-            locale.getDisplayName(displayLocale ?: locale)
-                .replaceFirstChar {
-                    if (it.isLowerCase()) it.titlecase(locale) else it.toString()
-                }
-        }.getOrDefault(languageCode)
-    }
 }

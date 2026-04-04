@@ -16,22 +16,23 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import top.yukonga.miuix.kmp.extra.SuperDialogDefaults
+import top.yukonga.miuix.kmp.extra.DialogDefaults
+import top.yukonga.miuix.kmp.extra.SuperDialog
 
 @Composable
 fun SuperDialog(
     show: MutableState<Boolean>,
     modifier: Modifier = Modifier,
     title: String? = null,
-    titleColor: Color = SuperDialogDefaults.titleColor(),
+    titleColor: Color = DialogDefaults.titleColor(),
     summary: String? = null,
-    summaryColor: Color = SuperDialogDefaults.summaryColor(),
-    backgroundColor: Color = SuperDialogDefaults.backgroundColor(),
+    summaryColor: Color = DialogDefaults.summaryColor(),
+    backgroundColor: Color = DialogDefaults.backgroundColor(),
     enableWindowDim: Boolean = true,
     onDismissRequest: (() -> Unit)? = null,
     onDismissFinished: (() -> Unit)? = null,
-    outsideMargin: DpSize = SuperDialogDefaults.outsideMargin,
-    insideMargin: DpSize = SuperDialogDefaults.insideMargin,
+    outsideMargin: DpSize = DialogDefaults.outsideMargin,
+    insideMargin: DpSize = DialogDefaults.insideMargin,
     defaultWindowInsetsPadding: Boolean = true,
     content: @Composable () -> Unit,
 ) {
@@ -40,8 +41,8 @@ fun SuperDialog(
         if (show.value.not()) keyboardController?.hide()
     }
 
-    top.yukonga.miuix.kmp.extra.SuperDialog(
-        show = show,
+    SuperDialog(
+        show = show.value,
         modifier = modifier,
         title = title,
         titleColor = titleColor,
@@ -54,8 +55,8 @@ fun SuperDialog(
         outsideMargin = outsideMargin,
         insideMargin = insideMargin,
         defaultWindowInsetsPadding = defaultWindowInsetsPadding,
-    ) {
-        Spacer(modifier = Modifier.height(10.dp))
-        content()
-    }
+        content = {
+            Spacer(modifier = Modifier.height(10.dp))
+            content()
+        })
 }

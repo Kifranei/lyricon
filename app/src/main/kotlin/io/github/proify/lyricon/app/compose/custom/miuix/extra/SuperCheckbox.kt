@@ -1,5 +1,8 @@
-// Copyright 2025, compose-miuix-ui contributors
-// SPDX-License-Identifier: Apache-2.0
+/*
+ * Copyright 2026 Proify, Tomakino
+ * Licensed under the Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
 
 package io.github.proify.lyricon.app.compose.custom.miuix.extra
 
@@ -18,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
@@ -137,13 +141,12 @@ private fun SuperCheckboxStartAction(
     checkboxColors: CheckboxColors,
 ) {
     Checkbox(
-        modifier = Modifier
+        state = ToggleableState(value = checked), onClick = if (onCheckedChange != null) {
+            { onCheckedChange(!checked) }
+        } else null, modifier = Modifier
             .padding(end = 8.dp),
-        checked = checked,
-        onCheckedChange = onCheckedChange,
-        enabled = enabled,
         colors = checkboxColors,
-    )
+        enabled = enabled)
 }
 
 @Composable
@@ -154,9 +157,7 @@ private fun SuperCheckboxEndAction(
     checkboxColors: CheckboxColors,
 ) {
     Checkbox(
-        checked = checked,
-        onCheckedChange = onCheckedChange,
-        enabled = enabled,
-        colors = checkboxColors,
-    )
+        state = ToggleableState(value = checked), onClick = if (onCheckedChange != null) {
+            { onCheckedChange(!checked) }
+        } else null, modifier = Modifier, colors = checkboxColors, enabled = enabled)
 }

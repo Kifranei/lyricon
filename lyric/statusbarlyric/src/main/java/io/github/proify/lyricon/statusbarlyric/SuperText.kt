@@ -7,7 +7,6 @@
 package io.github.proify.lyricon.statusbarlyric
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Build
 import android.widget.TextView
@@ -27,7 +26,6 @@ import kotlin.math.min
 
 /**
  * 高级歌词文本渲染控件，支持逐字染色、跑马灯及间奏监听。
- *
  */
 class SuperText(context: Context) : LyricPlayerView(context) {
 
@@ -37,15 +35,6 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         private const val TAG = "SuperText"
         private const val DEBUG = false
         private const val MAX_FONT_WEIGHT: Int = 1000
-        private val RAINBOW_COLORS = intArrayOf(
-            Color.parseColor("#FF4D4F"),
-            Color.parseColor("#FF9F43"),
-            Color.parseColor("#FFD93D"),
-            Color.parseColor("#2ED573"),
-            Color.parseColor("#1E90FF"),
-            Color.parseColor("#5352ED"),
-            Color.parseColor("#A55EEA")
-        )
     }
 
     /**
@@ -133,14 +122,6 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             this.syllable.apply {
                 backgroundColor = resolveBgColor(textStyle)
                 highlightColor = resolveHighlightColor(textStyle)
-                // 上浮效果暂时移除，仅保留发光。
-                enableSustainLift = false
-                val colorModeEnabled = textStyle.enableCustomTextColor
-                        || textStyle.enableExtractCoverTextColor
-                        || textStyle.enableExtractCoverTextGradient
-                        || textStyle.enableRainbowTextColor
-                // 取色模式下发光禁用，避免叠加影响可读性。
-                enableSustainGlow = textStyle.sustainGlowEnabled && !colorModeEnabled
             }
 
             this.gradientProgressStyle = textStyle.gradientProgressStyle
@@ -210,44 +191,29 @@ class SuperText(context: Context) : LyricPlayerView(context) {
     }
 
     private fun resolvePrimaryColor(textStyle: TextStyle): IntArray {
-        if (textStyle.enableRainbowTextColor) {
-            return RAINBOW_COLORS
-        }
-        val customColor = textStyle.color(currentStatusColor.lightMode)
+        val customColor = textStyle.color(currentStatusColor.isLightMode)
         return if (textStyle.enableCustomTextColor && customColor?.normal?.isNotEmpty() == true) {
             customColor.normal
         } else {
-            currentStatusColor.gradientColors?.takeIf { it.isNotEmpty() } ?: intArrayOf(
-                currentStatusColor.color
-            )
+            currentStatusColor.color
         }
     }
 
     private fun resolveBgColor(textStyle: TextStyle): IntArray {
-        if (textStyle.enableRainbowTextColor) {
-            return RAINBOW_COLORS.map { it.withAlpha(0.45f) }.toIntArray()
-        }
-        val customColor = textStyle.color(currentStatusColor.lightMode)
+        val customColor = textStyle.color(currentStatusColor.isLightMode)
         return if (textStyle.enableCustomTextColor && customColor?.background?.isNotEmpty() == true) {
             customColor.background
         } else {
-            currentStatusColor.translucentGradientColors?.takeIf { it.isNotEmpty() } ?: intArrayOf(
-                currentStatusColor.translucentColor
-            )
+            currentStatusColor.translucentColor
         }
     }
 
     private fun resolveHighlightColor(textStyle: TextStyle): IntArray {
-        if (textStyle.enableRainbowTextColor) {
-            return RAINBOW_COLORS
-        }
-        val customColor = textStyle.color(currentStatusColor.lightMode)
+        val customColor = textStyle.color(currentStatusColor.isLightMode)
         return if (textStyle.enableCustomTextColor && customColor?.highlight?.isNotEmpty() == true) {
             customColor.highlight
         } else {
-            currentStatusColor.gradientColors?.takeIf { it.isNotEmpty() } ?: intArrayOf(
-                currentStatusColor.color
-            )
+            currentStatusColor.color
         }
     }
 
@@ -274,11 +240,6 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             }
             Typeface.create(baseTypeface, styleFlag)
         }
-    }
-
-    private fun Int.withAlpha(ratio: Float): Int {
-        val alpha = (ratio.coerceIn(0f, 1f) * 255).toInt().coerceIn(0, 255)
-        return Color.argb(alpha, Color.red(this), Color.green(this), Color.blue(this))
     }
 
     fun shouldShow(): Boolean {

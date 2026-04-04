@@ -44,10 +44,6 @@ class RichLyricLineView(
     private var animationTransition: Boolean = false
     private var pendingLine: IRichLyricLine? = null
     private var pendingPosition: Long? = null
-    private var mainBaseSustainGlowEnabled: Boolean = false
-    private var secondaryBaseSustainGlowEnabled: Boolean = false
-    private var mainGeneratedByRelativeProgress: Boolean = false
-    private var secondaryGeneratedByRelativeProgress: Boolean = false
 
     fun beginAnimationTransition() {
         animationTransition = true
@@ -188,7 +184,6 @@ class RichLyricLineView(
 
     private fun setMainLine(source: IRichLyricLine?) {
         if (source == null) {
-            mainGeneratedByRelativeProgress = false
             main.setLyric(EMPTY_LYRIC_LINE)
             return
         }
@@ -200,7 +195,6 @@ class RichLyricLineView(
         } else source.words
 
         val isGenerated = processedWords !== source.words
-        mainGeneratedByRelativeProgress = isGenerated
 
         main.setLyric(
             LyricLine(
@@ -216,31 +210,15 @@ class RichLyricLineView(
 
         // 如果是生成的 Word，根据配置决定是否显示逐字高亮效果
         main.syllable.isScrollOnly = isGenerated && !enableRelativeProgressHighlight
-        // 相对进度生成词会把整行作为单词，开启拉长音发光会导致整行发光，这里直接禁用。
-        main.syllable.isSustainGlowEnabled = mainBaseSustainGlowEnabled && !mainGeneratedByRelativeProgress
     }
 
     private fun setSecondaryLine(source: IRichLyricLine?) {
         alwaysShowSecondary = false
 
         if (source == null) {
-            secondaryGeneratedByRelativeProgress = false
             secondary.apply { setLyric(null); visibleIfChanged = false }
             return
         }
-
-        // 尝试获取主歌词第一个字的开始时间和最后一个字的结束时间，用于同步翻译的开始时间和结束时间
-        val timing: ILyricTiming = if (!source.words.isNullOrEmpty()) {
-            val firstWordBegin = source.words!!.first().begin
-            val lastWordEnd = source.words!!.last().end
-            if (firstWordBegin < lastWordEnd) {
-                object : ILyricTiming {
-                    override var begin: Long = firstWordBegin
-                    override var end: Long = lastWordEnd
-                    override var duration: Long = lastWordEnd - firstWordBegin
-                }
-            } else source
-        } else source
 
         var isGenerated = false
         val newLine = LyricLine().apply {
@@ -254,7 +232,7 @@ class RichLyricLineView(
                 !source.secondary.isNullOrBlank() || !source.secondaryWords.isNullOrEmpty() -> {
                     text = source.secondary
                     words = calculateRelativeProgressWords(
-                        timing,
+                        source,
                         source.secondary,
                         source.secondaryWords
                     )
@@ -264,7 +242,7 @@ class RichLyricLineView(
                 displayTranslation && (!source.translation.isNullOrBlank() || !source.translationWords.isNullOrEmpty()) -> {
                     text = source.translation
                     words = calculateRelativeProgressWords(
-                        timing,
+                        source,
                         source.translation,
                         source.translationWords
                     )
@@ -275,7 +253,7 @@ class RichLyricLineView(
                 displayRoma -> {
                     text = source.roma
                     words = calculateRelativeProgressWords(
-                        timing,
+                        source,
                         source.roma,
                         null
                     )
@@ -299,9 +277,6 @@ class RichLyricLineView(
 
         secondary.setLyric(newLine)
         secondary.syllable.isScrollOnly = isGenerated && !enableRelativeProgressHighlight
-        secondaryGeneratedByRelativeProgress = isGenerated
-        // 次要行同样遵循相对进度禁用发光。
-        secondary.syllable.isSustainGlowEnabled = secondaryBaseSustainGlowEnabled && !secondaryGeneratedByRelativeProgress
     }
 
     /**
@@ -338,8 +313,6 @@ class RichLyricLineView(
         enableRelativeProgressHighlight = cfg.enableRelativeProgressHighlight
 
         main.setStyle(LyricLineConfig(cfg, mar, syl, grad, fadingEdgeLength))
-        mainBaseSustainGlowEnabled = syl.enableSustainGlow
-        main.syllable.isSustainGlowEnabled = mainBaseSustainGlowEnabled && !mainGeneratedByRelativeProgress
         if (notifyNeeded) notifyLineChanged()
     }
 
@@ -351,8 +324,5 @@ class RichLyricLineView(
         fadingEdgeLength: Int
     ) {
         secondary.setStyle(LyricLineConfig(cfg, mar, syl, grad, fadingEdgeLength))
-        secondaryBaseSustainGlowEnabled = syl.enableSustainGlow
-        secondary.syllable.isSustainGlowEnabled =
-            secondaryBaseSustainGlowEnabled && !secondaryGeneratedByRelativeProgress
     }
 }

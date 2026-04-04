@@ -17,9 +17,12 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,7 +66,7 @@ enum class InputType {
 @Composable
 fun InputPreference(
     modifier: Modifier = Modifier,
-    sharedPreferences: SharedPreferences,
+    preferences: SharedPreferences,
     key: String,
     title: String,
     defaultValue: String? = null,
@@ -76,7 +79,7 @@ fun InputPreference(
     titleColor: BasicComponentColors = BasicComponentDefaults.titleColor(),
     summary: String? = null,
     summaryColor: BasicComponentColors = BasicComponentDefaults.summaryColor(),
-    leftAction: @Composable (() -> Unit)? = null,
+    startAction: @Composable (() -> Unit)? = null,
     rightActions: @Composable RowScope.() -> Unit = {},
     insideMargin: PaddingValues = BasicComponentDefaults.InsideMargin,
     onClick: (() -> Unit)? = null,
@@ -90,7 +93,7 @@ fun InputPreference(
         defaultValue.substringBefore(".")
     else defaultValue
 
-    val prefValueState = rememberStringPreference(sharedPreferences, key, fixDefaultValue)
+    val prefValueState = rememberStringPreference(preferences, key, fixDefaultValue)
     val currentSummary = summary ?: prefValueState.value
     ?: (fixDefaultValue ?: stringResource(id = R.string.defaultText))
 
@@ -108,7 +111,6 @@ fun InputPreference(
         else -> currentSummary
     }
 
-    // 摘要最多显示 4 行，超出省略号
     val truncatedSummary = if (finalSummary.lines().size > 3) {
         finalSummary.lines().take(4).joinToString("\n") + "..."
     } else finalSummary
@@ -118,7 +120,7 @@ fun InputPreference(
         titleColor = titleColor,
         summary = truncatedSummary,
         summaryColor = summaryColor,
-        startAction = leftAction,
+        startAction = startAction,
         endActions = rightActions,
         modifier = modifier,
         insideMargin = insideMargin,
@@ -142,7 +144,7 @@ fun InputPreference(
             label = label,
             onSave = { newValue ->
                 showDialog = false
-                sharedPreferences.editCommit {
+                preferences.editCommit {
                     if (newValue.isEmpty()) {
                         remove(key)
                         prefValueState.value = null
@@ -151,13 +153,9 @@ fun InputPreference(
                             remove(syncKey)
                         }
                     } else {
-                        val value = when (inputType) {
-                            else -> newValue
-                        }
-
-                        putString(key, value)
+                        putString(key, newValue)
                         for (syncKey in syncKeys) {
-                            putString(syncKey, value)
+                            putString(syncKey, newValue)
                         }
                     }
                 }
@@ -183,7 +181,6 @@ private fun InputPreferenceDialog(
 ) {
     var inputValue by remember { mutableStateOf(initialValue) }
 
-    // STRING 类型专用 TextFieldValue（必须持久保存 selection）
     var textFieldValue by remember {
         mutableStateOf(
             TextFieldValue(
@@ -195,16 +192,15 @@ private fun InputPreferenceDialog(
 
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
+    val scrollState = rememberScrollState()
 
     val isNumberInput = inputType != InputType.STRING
     val hasRangeLimit = isNumberInput && maxValue > minValue
 
-    // 验证输入是否有效
     val isValidInput = remember(inputValue, inputType, minValue, maxValue) {
         validateInput(inputValue, inputType, minValue, maxValue)
     }
 
-    // 范围提示文本
     val hintText = remember(inputValue, hasRangeLimit) {
         if (hasRangeLimit) {
             val currentVal = inputValue.toDoubleOrNull() ?: 0.0
@@ -219,7 +215,6 @@ private fun InputPreferenceDialog(
         keyboardController?.hide()
     }
 
-    // 处理键盘和焦点
     LaunchedEffect(Unit) {
         if (showKeyboard) {
             delay(100)
@@ -233,81 +228,100 @@ private fun InputPreferenceDialog(
         show = remember { mutableStateOf(true) },
         onDismissRequest = { dismiss() }
     ) {
-        Column(modifier = Modifier.imePadding()) {
+        Column(
+            modifier = Modifier
+                .imePadding()
+                .fillMaxWidth()
+        ) {
+            // 滚动区域：包含输入框和提示文本
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false) // 允许缩小，但最大不超过可用空间
+                    .verticalScroll(scrollState)
+            ) {
+                when (inputType) {
+                    InputType.STRING -> {
+                        TextField(
+                            value = textFieldValue,
+                            onValueChange = {
+                                textFieldValue = it
+                                inputValue = it.text
+                            },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Text
+                            ),
+                            // 限制最大高度，防止无限增长，同时允许在内部滚动
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 300.dp)
+                                .focusRequester(focusRequester),
+                            label = label.orEmpty(),
+                            singleLine = false,
+                            maxLines = 10
+                        )
+                    }
 
-            when (inputType) {
+                    InputType.INTEGER -> {
+                        NumberTextField(
+                            value = inputValue,
+                            onValueChange = { inputValue = it },
+                            allowDecimal = false,
+                            allowNegative = minValue < 0,
+                            modifier = Modifier.focusRequester(focusRequester),
+                            autoSelectOnFocus = true,
+                            borderColor = if (isValidInput) {
+                                MiuixTheme.colorScheme.primary
+                            } else {
+                                MiuixTheme.colorScheme.error
+                            },
+                            label = label.orEmpty()
+                        )
+                    }
 
-                InputType.STRING -> {
-                    TextField(
-                        value = textFieldValue,
-                        onValueChange = {
-                            textFieldValue = it
-                            inputValue = it.text
-                        },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Text
-                        ),
-                        modifier = Modifier.focusRequester(focusRequester),
-                        label = label.orEmpty()
-                    )
+                    InputType.DOUBLE -> {
+                        NumberTextField(
+                            value = inputValue,
+                            onValueChange = { inputValue = it },
+                            allowDecimal = true,
+                            allowNegative = minValue < 0,
+                            modifier = Modifier.focusRequester(focusRequester),
+                            autoSelectOnFocus = true,
+                            borderColor = if (isValidInput) {
+                                MiuixTheme.colorScheme.primary
+                            } else {
+                                MiuixTheme.colorScheme.error
+                            },
+                            label = label.orEmpty()
+                        )
+                    }
                 }
 
-                InputType.INTEGER -> {
-                    NumberTextField(
-                        value = inputValue,
-                        onValueChange = { inputValue = it },
-                        allowDecimal = false,
-                        allowNegative = minValue < 0,
-                        modifier = Modifier.focusRequester(focusRequester),
-                        autoSelectOnFocus = true,
-                        borderColor = if (isValidInput) {
-                            MiuixTheme.colorScheme.primary
-                        } else {
-                            MiuixTheme.colorScheme.error
-                        },
-                        label = label.orEmpty()
-                    )
-                }
-
-                InputType.DOUBLE -> {
-                    NumberTextField(
-                        value = inputValue,
-                        onValueChange = { inputValue = it },
-                        allowDecimal = true,
-                        allowNegative = minValue < 0,
-                        modifier = Modifier.focusRequester(focusRequester),
-                        autoSelectOnFocus = true,
-                        borderColor = if (isValidInput) {
-                            MiuixTheme.colorScheme.primary
-                        } else {
-                            MiuixTheme.colorScheme.error
-                        },
-                        label = label.orEmpty()
-                    )
+                if (hintText.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Text(
+                            text = hintText,
+                            fontSize = 13.sp,
+                            color = if (isValidInput) {
+                                BasicComponentDefaults.summaryColor().color(true)
+                            } else {
+                                MiuixTheme.colorScheme.error
+                            }
+                        )
+                    }
                 }
             }
 
-            if (hintText.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(10.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(
-                        text = hintText,
-                        fontSize = 13.sp,
-                        color = if (isValidInput) {
-                            BasicComponentDefaults.summaryColor().color(true)
-                        } else {
-                            MiuixTheme.colorScheme.error
-                        }
-                    )
-                }
-            }
-
+            // 底部操作按钮区域，固定在底部
             Spacer(modifier = Modifier.height(20.dp))
 
-            Row(horizontalArrangement = Arrangement.SpaceBetween) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 TextButton(
                     text = stringResource(id = R.string.cancel),
                     onClick = { dismiss() },
@@ -332,10 +346,6 @@ private fun InputPreferenceDialog(
     }
 }
 
-
-/**
- * 验证输入值是否有效
- */
 private fun validateInput(
     text: String,
     inputType: InputType,
@@ -358,14 +368,9 @@ private fun validateInput(
     }
 }
 
-/**
- * 格式化最终保存的值
- */
 private fun formatFinalValue(text: String, inputType: InputType): String {
     if (text.isEmpty() || inputType == InputType.STRING) {
         return text
     }
-
-    // 格式化数字，去除多余的0和小数点
     return text.toDoubleOrNull()?.formatToString() ?: text
 }

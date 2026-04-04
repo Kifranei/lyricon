@@ -8,7 +8,7 @@ package io.github.proify.lyricon.app.activity.lyric
 
 import android.content.SharedPreferences
 import io.github.proify.lyricon.app.activity.BaseActivity
-import io.github.proify.lyricon.app.updateRemoteLyricStyle
+import io.github.proify.lyricon.app.util.updateRemoteLyricStyle
 
 abstract class AbstractLyricActivity : BaseActivity(),
     SharedPreferences.OnSharedPreferenceChangeListener {

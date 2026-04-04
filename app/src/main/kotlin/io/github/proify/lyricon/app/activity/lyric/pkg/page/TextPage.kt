@@ -7,14 +7,19 @@
 package io.github.proify.lyricon.app.activity.lyric.pkg.page
 
 import android.content.SharedPreferences
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -22,9 +27,13 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import io.github.proify.lyricon.app.LyriconApp.Companion.systemUIChannel
 import io.github.proify.lyricon.app.R
+import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
+import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
+import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
 import io.github.proify.lyricon.app.compose.preference.CheckboxPreference
 import io.github.proify.lyricon.app.compose.preference.InputPreference
 import io.github.proify.lyricon.app.compose.preference.InputType
@@ -35,8 +44,11 @@ import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.TextStyle
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_API_KEY
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.extra.CheckboxLocation
 import top.yukonga.miuix.kmp.extra.SuperDropdown
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -66,12 +78,12 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     .fillMaxWidth(),
             ) {
                 InputPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_size",
                     title = stringResource(R.string.item_text_size),
                     inputType = InputType.DOUBLE,
                     maxValue = 100.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
                 )
                 RectInputPreference(
                     preferences,
@@ -89,24 +101,24 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 )
 
                 InputPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_size_ratio_in_multi_line_mode",
                     title = stringResource(R.string.item_text_size_scale_multi_line),
                     defaultValue = TextStyle.Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE.toString(),
                     inputType = InputType.DOUBLE,
                     minValue = 0.1,
                     maxValue = 1.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
                 )
                 TransitionConfigPreference(preferences)
 
                 InputPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_fading_edge_length",
                     title = stringResource(R.string.item_text_fading_edge_length),
                     inputType = InputType.DOUBLE,
                     maxValue = 100.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
                 SwitchPreference(
                     preferences,
@@ -143,11 +155,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     key = "lyric_style_text_enable_custom_color",
                     defaultValue = TextStyle.Defaults.ENABLE_CUSTOM_TEXT_COLOR
                 )
-                val rainbowColorEnabled = rememberBooleanPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_style_text_enable_rainbow_color",
-                    defaultValue = TextStyle.Defaults.ENABLE_RAINBOW_TEXT_COLOR
-                )
+
                 SwitchPreference(
                     preferences,
                     "lyric_style_text_extract_cover_color",
@@ -179,7 +187,6 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                             preferences.editCommit {
                                 putBoolean("lyric_style_text_enable_custom_color", false)
                                 putBoolean("lyric_style_text_extract_cover_color", true)
-                                putBoolean("lyric_style_text_enable_rainbow_color", false)
                             }
                         }
                     }
@@ -195,23 +202,6 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                             preferences.editCommit {
                                 putBoolean("lyric_style_text_extract_cover_color", false)
                                 putBoolean("lyric_style_text_extract_cover_gradient", false)
-                                putBoolean("lyric_style_text_enable_rainbow_color", false)
-                            }
-                        }
-                    }
-                )
-                SwitchPreference(
-                    preferences,
-                    "lyric_style_text_enable_rainbow_color",
-                    defaultValue = TextStyle.Defaults.ENABLE_RAINBOW_TEXT_COLOR,
-                    title = stringResource(R.string.item_text_enable_rainbow_color),
-                    startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
-                    onCheckedChange = {
-                        if (it) {
-                            preferences.editCommit {
-                                putBoolean("lyric_style_text_enable_custom_color", false)
-                                putBoolean("lyric_style_text_extract_cover_color", false)
-                                putBoolean("lyric_style_text_extract_cover_gradient", false)
                             }
                         }
                     }
@@ -221,14 +211,14 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     "lyric_style_text_rainbow_color_light_mode",
                     title = stringResource(R.string.item_text_color_light_mode),
                     leftAction = { IconActions(painterResource(R.drawable.ic_brightness7)) },
-                    enabled = customColorEnabled.value && !rainbowColorEnabled.value,
+                    enabled = customColorEnabled.value,
                 )
                 TextColorPreference(
                     preferences,
                     "lyric_style_text_rainbow_color_dark_mode",
                     title = stringResource(R.string.item_text_color_dark_mode),
                     leftAction = { IconActions(painterResource(R.drawable.ic_darkmode)) },
-                    enabled = customColorEnabled.value && !rainbowColorEnabled.value,
+                    enabled = customColorEnabled.value,
                 )
             }
         }
@@ -248,19 +238,19 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     .fillMaxWidth(),
             ) {
                 InputPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_typeface",
                     title = stringResource(R.string.item_text_typeface),
-                    leftAction = { IconActions(painterResource(R.drawable.ic_fontdownload)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_fontdownload)) },
                 )
 
                 InputPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_weight",
                     title = stringResource(R.string.item_text_font_weight),
                     inputType = InputType.INTEGER,
                     maxValue = 1000.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_fontdownload)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_fontdownload)) },
                 )
 
                 CheckboxPreference(
@@ -295,33 +285,9 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 0.dp)
                     .fillMaxWidth(),
             ) {
-                val customColorEnabled = rememberBooleanPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_style_text_enable_custom_color",
-                    defaultValue = TextStyle.Defaults.ENABLE_CUSTOM_TEXT_COLOR
-                )
-                val extractCoverColorEnabled = rememberBooleanPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_style_text_extract_cover_color",
-                    defaultValue = TextStyle.Defaults.ENABLE_EXTRACT_COVER_TEXT_COLOR
-                )
-                val extractCoverGradientEnabled = rememberBooleanPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_style_text_extract_cover_gradient",
-                    defaultValue = TextStyle.Defaults.ENABLE_EXTRACT_COVER_TEXT_GRADIENT
-                )
-                val rainbowColorEnabled = rememberBooleanPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_style_text_enable_rainbow_color",
-                    defaultValue = TextStyle.Defaults.ENABLE_RAINBOW_TEXT_COLOR
-                )
-                val colorModeEnabled = customColorEnabled.value
-                        || extractCoverColorEnabled.value
-                        || extractCoverGradientEnabled.value
-                        || rainbowColorEnabled.value
                 SwitchPreference(
                     defaultValue = TextStyle.Defaults.RELATIVE_PROGRESS,
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_relative_progress",
                     title = stringResource(R.string.item_text_relative_progress),
                     summary = stringResource(R.string.item_text_relative_progress_summary),
@@ -329,21 +295,9 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 )
                 SwitchPreference(
                     defaultValue = TextStyle.Defaults.RELATIVE_PROGRESS_HIGHLIGHT,
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_relative_progress_highlight",
                     title = stringResource(R.string.item_text_relative_progress_highlight),
-                    startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
-                )
-                SwitchPreference(
-                    defaultValue = TextStyle.Defaults.SUSTAIN_GLOW_ENABLED,
-                    sharedPreferences = preferences,
-                    key = "lyric_style_text_sustain_glow",
-                    title = stringResource(R.string.item_text_sustain_glow),
-                    summary = if (colorModeEnabled) {
-                        stringResource(R.string.item_text_sustain_glow_color_mode_summary)
-                    } else {
-                        stringResource(R.string.item_text_sustain_glow_color_mode_hint)
-                    },
                     startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
             }
@@ -359,90 +313,80 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     bottom = 10.dp
                 )
             )
+
             Card(
                 modifier = Modifier
                     .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 0.dp)
                     .fillMaxWidth(),
             ) {
-                val hideTranslationInLyricEnabled = rememberBooleanPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_style_text_hide_translation",
-                    defaultValue = false
-                )
                 SwitchPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_translation_enabled",
+                    preferences = preferences,
+                    key = TextStyle.KEY_TEXT_TRANSLATION_DISABLE,
+                    title = stringResource(R.string.item_translation_disable),
+                    startAction = { IconActions(painterResource(R.drawable.ic_visibility_off)) },
+                    onCheckedChange = { _ ->
+//                        if (enabled) {
+//                            preferences.editCommit {
+//                                putBoolean("lyric_style_text_translation_only", false)
+//                            }
+//                        }
+                    }
+                )
+
+                SwitchPreference(
+                    preferences = preferences,
+                    key = TextStyle.KEY_TEXT_TRANSLATION_ONLY,
+                    title = stringResource(R.string.item_translation_only),
+                    startAction = { IconActions(painterResource(R.drawable.translate_24px)) },
+                    onCheckedChange = { _ ->
+//                        if (enabled) {
+//                            preferences.editCommit {
+//                                putBoolean("lyric_style_text_hide_translation", false)
+//                            }
+//                        }
+                    }
+                )
+            }
+
+            Card(
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 0.dp)
+                    .fillMaxWidth(),
+            ) {
+
+                SwitchPreference(
+                    preferences = preferences,
+                    key = TextStyle.KEY_AI_TRANSLATION_ENABLED,
+                    defaultValue = TextStyle.Defaults.AI_TRANSLATION_ENABLED,
                     title = stringResource(R.string.item_translation_enable),
                     startAction = { IconActions(painterResource(R.drawable.translate_24px)) },
                 )
-                SwitchPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_style_text_translation_only",
-                    title = stringResource(R.string.item_translation_display_only),
-                    startAction = { IconActions(painterResource(R.drawable.translate_24px)) },
-                    enabled = !hideTranslationInLyricEnabled.value,
-                    onCheckedChange = { enabled ->
-                        if (enabled) {
-                            preferences.editCommit {
-                                putBoolean("lyric_style_text_hide_translation", false)
-                            }
-                        }
-                    }
-                )
-                SwitchPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_style_text_hide_translation",
-                    title = stringResource(R.string.item_translation_hide_in_lyric),
-                    startAction = { IconActions(painterResource(R.drawable.ic_visibility_off)) },
-                    onCheckedChange = { enabled ->
-                        if (enabled) {
-                            preferences.editCommit {
-                                putBoolean("lyric_style_text_translation_only", false)
-                            }
-                        }
-                    }
-                )
-                TranslationProviderPreference(preferences)
                 TranslationTargetLanguagePreference(preferences)
+
                 TranslationApiKeyPreference(preferences)
                 InputPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_translation_cache_size",
-                    title = stringResource(R.string.item_translation_cache_size),
-                    defaultValue = "5000",
-                    inputType = InputType.INTEGER,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_save)) },
-                )
-                InputPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_translation_ignore_regex",
-                    title = stringResource(R.string.item_translation_ignore_regex),
-                    defaultValue = "^[\\p{Han}\\p{P}\\s]+$",
-                    inputType = InputType.STRING,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_build)) },
-                )
-                InputPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_translation_custom_prompt",
-                    title = stringResource(R.string.item_translation_custom_prompt),
-                    defaultValue = io.github.proify.lyricon.common.Constants.DEFAULT_TRANSLATION_CUSTOM_PROMPT,
-                    inputType = InputType.STRING,
-                    leftAction = { IconActions(painterResource(R.drawable.title_24px)) },
-                )
-                InputPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_translation_openai_model",
+                    preferences = preferences,
+                    key = TextStyle.KEY_AI_TRANSLATION_MODEL,
                     title = stringResource(R.string.item_translation_model),
-                    defaultValue = "gpt-4o-mini",
-                    leftAction = { IconActions(painterResource(R.drawable.psychology_24px)) },
+                    defaultValue = TextStyle.Defaults.AI_TRANSLATION_MODEL,
+                    startAction = { IconActions(painterResource(R.drawable.psychology_24px)) },
                 )
                 InputPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_translation_openai_base_url",
+                    preferences = preferences,
+                    key = TextStyle.KEY_AI_TRANSLATION_BASE_URL,
                     title = stringResource(R.string.item_translation_base_url),
-                    defaultValue = "https://api.openai.com/v1/chat/completions",
-                    leftAction = { IconActions(painterResource(R.drawable.link_24px)) },
+                    defaultValue = TextStyle.Defaults.AI_TRANSLATION_HOST,
+                    startAction = { IconActions(painterResource(R.drawable.link_24px)) },
                 )
+                InputPreference(
+                    preferences = preferences,
+                    key = TextStyle.KEY_AI_TRANSLATION_PROMPT,
+                    title = stringResource(R.string.item_translation_custom_prompt),
+                    defaultValue = TextStyle.Defaults.AI_TRANSLATION_PROMPT,
+                    startAction = { IconActions(painterResource(R.drawable.title_24px)) },
+                )
+
+                ClearTranslationDB()
             }
         }
 
@@ -462,61 +406,61 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     .fillMaxWidth(),
             ) {
                 InputPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_marquee_speed",
                     title = stringResource(R.string.item_text_marquee_speed),
                     defaultValue = TextStyle.Defaults.MARQUEE_SPEED.toString(),
                     inputType = InputType.INTEGER,
                     maxValue = 500.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_speed)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_speed)) },
                 )
                 InputPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_marquee_space",
                     title = stringResource(R.string.item_text_marquee_space),
                     defaultValue = TextStyle.Defaults.MARQUEE_GHOST_SPACING.toString(),
                     inputType = InputType.INTEGER,
                     maxValue = 1000.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_space_bar)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_space_bar)) },
                 )
                 InputPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_marquee_initial_delay",
                     title = stringResource(R.string.item_text_marquee_initial_delay),
                     defaultValue = TextStyle.Defaults.MARQUEE_INITIAL_DELAY.toString(),
                     inputType = InputType.INTEGER,
                     maxValue = 3600000.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_autopause)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_autopause)) },
                     isTimeUnit = true,
                 )
                 InputPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_marquee_loop_delay",
                     title = stringResource(R.string.item_text_marquee_delay),
                     defaultValue = TextStyle.Defaults.MARQUEE_LOOP_DELAY.toString(),
                     inputType = InputType.INTEGER,
                     maxValue = 3600000.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_autopause)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_autopause)) },
                     isTimeUnit = true,
                 )
                 SwitchPreference(
                     defaultValue = TextStyle.Defaults.MARQUEE_REPEAT_UNLIMITED,
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_marquee_repeat_unlimited",
                     title = stringResource(R.string.item_text_marquee_repeat_unlimited),
                     startAction = { IconActions(painterResource(R.drawable.ic_all_inclusive)) },
                 )
                 InputPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_marquee_repeat_count",
                     title = stringResource(R.string.item_text_marquee_repeat_count),
                     inputType = InputType.INTEGER,
                     minValue = 0.0,
                     maxValue = 3600000.0,
-                    leftAction = { IconActions(painterResource(R.drawable.ic_pin)) },
+                    startAction = { IconActions(painterResource(R.drawable.ic_pin)) },
                 )
                 SwitchPreference(
-                    sharedPreferences = preferences,
+                    preferences = preferences,
                     key = "lyric_style_text_marquee_stop_at_end",
                     title = stringResource(R.string.item_text_marquee_stop_at_end),
                     startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
@@ -527,59 +471,61 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
 }
 
 @Composable
-private fun TranslationProviderPreference(preferences: SharedPreferences) {
-    val values = listOf("openai", "gemini", "claude", "deepseek", "qwen")
-    val options = listOf(
-        stringResource(R.string.option_translation_provider_openai),
-        stringResource(R.string.option_translation_provider_gemini),
-        stringResource(R.string.option_translation_provider_claude),
-        stringResource(R.string.option_translation_provider_deepseek),
-        stringResource(R.string.option_translation_provider_qwen),
-    )
-    val current = preferences.getString("lyric_translation_api_provider", "openai") ?: "openai"
-    var selectedIndex by remember(current) {
-        mutableIntStateOf(values.indexOf(current).takeIf { it >= 0 } ?: 0)
-    }
+private fun ClearTranslationDB() {
+    val showDialog = remember { mutableStateOf(false) }
+    SuperDialog(
+        title = stringResource(R.string.alert_dialog_title_translation_clear),
+        summary = stringResource(R.string.alert_dialog_message_translation_clear),
+        show = showDialog,
+        onDismissRequest = { showDialog.value = false }
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            TextButton(
+                text = stringResource(id = R.string.cancel),
+                onClick = { showDialog.value = false },
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(20.dp))
+            TextButton(
+                colors = ButtonDefaults.textButtonColorsPrimary(),
+                text = stringResource(id = R.string.yes),
+                onClick = {
+                    showDialog.value = false
+                    systemUIChannel.put(AppBridgeConstants.REQUEST_CLEAR_TRANSLATION_DB)
+                },
+                modifier = Modifier.weight(1f),
+            )
+        }
 
-    SuperDropdown(
-        startAction = { IconActions(painterResource(R.drawable.smart_toy_24px)) },
-        title = stringResource(R.string.item_translation_api_provider),
-        items = options,
-        selectedIndex = selectedIndex,
-        onSelectedIndexChange = {
-            selectedIndex = it
-            val provider = values[it]
-            preferences.editCommit {
-                putString("lyric_translation_api_provider", provider)
-                putString("lyric_translation_openai_model", defaultModelOf(provider))
-                putString("lyric_translation_openai_base_url", defaultBaseUrlOf(provider))
-            }
+    }
+    SuperArrow(
+        title = stringResource(R.string.item_translation_clear),
+        startAction = { IconActions(painterResource(R.drawable.ic_settings_backup_restore)) },
+        onClick = {
+            showDialog.value = true
         }
     )
 }
 
 @Composable
 private fun TranslationTargetLanguagePreference(preferences: SharedPreferences) {
-    DropdownPreference(
+    val targetLanguageName = TextStyle.Defaults.AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME
+
+    InputPreference(
         preferences = preferences,
-        preferenceKey = "lyric_translation_target_language",
-        defaultValue = "简体中文",
-        options = listOf(
-            stringResource(R.string.option_translation_language_zh_cn),
-            stringResource(R.string.option_translation_language_zh_tw),
-            stringResource(R.string.option_translation_language_en),
-            stringResource(R.string.option_translation_language_ja),
-            stringResource(R.string.option_translation_language_ko),
-        ),
-        values = listOf("简体中文", "繁體中文", "English", "日本語", "한국어"),
+        key = TextStyle.KEY_AI_TRANSLATION_TARGET_LANGUAGE,
+        defaultValue = targetLanguageName,
         title = stringResource(R.string.item_translation_target_language),
-        iconRes = R.drawable.ic_language
+        startAction = { IconActions(painterResource(R.drawable.ic_language)) },
     )
 }
 
 @Composable
 private fun TranslationApiKeyPreference(preferences: SharedPreferences) {
-    val apiKey = rememberStringPreference(preferences, "lyric_translation_openai_api_key", null)
+    val apiKey = rememberStringPreference(preferences, KEY_AI_TRANSLATION_API_KEY, null)
     val summary =
         if (apiKey.value.isNullOrBlank()) {
             stringResource(R.string.item_translation_api_key_not_set)
@@ -588,32 +534,12 @@ private fun TranslationApiKeyPreference(preferences: SharedPreferences) {
         }
 
     InputPreference(
-        sharedPreferences = preferences,
-        key = "lyric_translation_openai_api_key",
+        preferences = preferences,
+        key = KEY_AI_TRANSLATION_API_KEY,
         title = stringResource(R.string.item_translation_api_key),
         summary = summary,
-        leftAction = { IconActions(painterResource(R.drawable.vpn_key_24px)) },
+        startAction = { IconActions(painterResource(R.drawable.vpn_key_24px)) },
     )
-}
-
-private fun defaultModelOf(provider: String): String {
-    return when (provider) {
-        "gemini" -> "gemini-2.0-flash"
-        "claude" -> "claude-3-5-haiku-latest"
-        "deepseek" -> "deepseek-chat"
-        "qwen" -> "qwen-plus"
-        else -> "gpt-4o-mini"
-    }
-}
-
-private fun defaultBaseUrlOf(provider: String): String {
-    return when (provider) {
-        "gemini" -> "https://generativelanguage.googleapis.com/v1beta/models"
-        "claude" -> "https://api.anthropic.com/v1/messages"
-        "deepseek" -> "https://api.deepseek.com/v1/chat/completions"
-        "qwen" -> "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-        else -> "https://api.openai.com/v1/chat/completions"
-    }
 }
 
 @Composable

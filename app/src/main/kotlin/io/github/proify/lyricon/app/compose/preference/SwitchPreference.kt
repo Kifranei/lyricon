@@ -20,7 +20,7 @@ import top.yukonga.miuix.kmp.basic.SwitchDefaults
 
 @Composable
 fun SwitchPreference(
-    sharedPreferences: SharedPreferences,
+    preferences: SharedPreferences,
     key: String,
     defaultValue: Boolean = false,
     onCheckedChange: (Boolean) -> Unit = {},
@@ -37,7 +37,7 @@ fun SwitchPreference(
     holdDownState: Boolean = false,
     enabled: Boolean = true,
 ) {
-    val checked = rememberBooleanPreference(sharedPreferences, key, defaultValue)
+    val checked = rememberBooleanPreference(preferences, key, defaultValue)
     //val hapticFeedback = LocalHapticFeedback.current
 
     SuperSwitch(

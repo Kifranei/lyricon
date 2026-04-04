@@ -248,15 +248,7 @@ open class LyricPlayerView(
         super.removeAllViews()
     }
 
-    private var lastColorHash = -114
     override fun updateColor(primary: IntArray, background: IntArray, highlight: IntArray) {
-        //Log.d(TAG, "updateColor: $primary, $background, $highlight")
-        var hash = primary.contentHashCode()
-        hash = hash * 31 + background.contentHashCode()
-        hash = hash * 31 + highlight.contentHashCode()
-
-        if (lastColorHash == hash) return; lastColorHash = hash
-
         styleConfig.apply {
             this.primary.textColor = primary
             secondary.textColor = primary

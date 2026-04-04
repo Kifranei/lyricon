@@ -19,14 +19,12 @@ object StatusBarViewManager {
         if (_controllers.contains(controller)) return
         _controllers.add(controller)
         controller.onCreate()
-        LyricViewController.notifyLyricVisibilityChanged()
     }
 
     fun remove(controller: StatusBarViewController) {
         if (!_controllers.contains(controller)) return
         _controllers.remove(controller)
         controller.onDestroy()
-        LyricViewController.notifyLyricVisibilityChanged()
     }
 
     inline fun forEach(crossinline block: (StatusBarViewController) -> Unit) {

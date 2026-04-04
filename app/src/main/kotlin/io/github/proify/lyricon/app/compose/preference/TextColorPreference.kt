@@ -35,6 +35,7 @@ import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.RainbowTextColor
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.extra.BottomSheetDefaults
 import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Delete
@@ -106,8 +107,10 @@ private fun TextColorBottomSheet(
     onColorChange: () -> Unit
 ) {
     SuperBottomSheet(
-        show = isVisible,
+        show = isVisible.value,
+        modifier = Modifier,
         title = title,
+        startAction = null,
         endAction = {
             if (textColor.hasCustomColors()) {
                 Row {
@@ -125,22 +128,32 @@ private fun TextColorBottomSheet(
             }
         },
         backgroundColor = MiuixTheme.colorScheme.surface,
+        enableWindowDim = true,
+        cornerRadius = BottomSheetDefaults.cornerRadius,
+        sheetMaxWidth = BottomSheetDefaults.maxWidth,
+        onDismissRequest = { isVisible.value = false },
+        onDismissFinished = null,
+        outsideMargin = BottomSheetDefaults.outsideMargin,
         insideMargin = DpSize(0.dp, 0.dp),
-        onDismissRequest = { isVisible.value = false }
-    ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .overScrollVertical()
-        ) {
-            item("color_settings") {
-                ColorSettingsContent(
-                    textColor = textColor,
-                    onColorChange = onColorChange
-                )
+        defaultWindowInsetsPadding = true,
+        dragHandleColor = BottomSheetDefaults.dragHandleColor(),
+        allowDismiss = true,
+        enableNestedScroll = true,
+        renderInRootScaffold = true,
+        content = {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .overScrollVertical()
+            ) {
+                item("color_settings") {
+                    ColorSettingsContent(
+                        textColor = textColor,
+                        onColorChange = onColorChange
+                    )
+                }
             }
-        }
-    }
+        })
 }
 
 @Composable
