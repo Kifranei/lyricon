@@ -81,6 +81,7 @@
 - [Kanade](https://github.com/rcmiku/Kanade)
 - Sollin Player
 - [QZ Music](https://github.com/lqtmcstudio/QZMusic)
+- Junzi Music
 
 ---
 

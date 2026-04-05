@@ -155,6 +155,11 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     key = "lyric_style_text_enable_custom_color",
                     defaultValue = TextStyle.Defaults.ENABLE_CUSTOM_TEXT_COLOR
                 )
+                val rainbowColorEnabled = rememberBooleanPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_style_text_enable_rainbow_color",
+                    defaultValue = TextStyle.Defaults.ENABLE_RAINBOW_TEXT_COLOR
+                )
 
                 SwitchPreference(
                     preferences,
@@ -187,6 +192,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                             preferences.editCommit {
                                 putBoolean("lyric_style_text_enable_custom_color", false)
                                 putBoolean("lyric_style_text_extract_cover_color", true)
+                                putBoolean("lyric_style_text_enable_rainbow_color", false)
                             }
                         }
                     }
@@ -202,6 +208,23 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                             preferences.editCommit {
                                 putBoolean("lyric_style_text_extract_cover_color", false)
                                 putBoolean("lyric_style_text_extract_cover_gradient", false)
+                                putBoolean("lyric_style_text_enable_rainbow_color", false)
+                            }
+                        }
+                    }
+                )
+                SwitchPreference(
+                    preferences = preferences,
+                    key = "lyric_style_text_enable_rainbow_color",
+                    defaultValue = TextStyle.Defaults.ENABLE_RAINBOW_TEXT_COLOR,
+                    title = stringResource(R.string.item_text_enable_rainbow_color),
+                    startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
+                    onCheckedChange = {
+                        if (it) {
+                            preferences.editCommit {
+                                putBoolean("lyric_style_text_enable_custom_color", false)
+                                putBoolean("lyric_style_text_extract_cover_color", false)
+                                putBoolean("lyric_style_text_extract_cover_gradient", false)
                             }
                         }
                     }
@@ -211,14 +234,14 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     "lyric_style_text_rainbow_color_light_mode",
                     title = stringResource(R.string.item_text_color_light_mode),
                     leftAction = { IconActions(painterResource(R.drawable.ic_brightness7)) },
-                    enabled = customColorEnabled.value,
+                    enabled = customColorEnabled.value && !rainbowColorEnabled.value,
                 )
                 TextColorPreference(
                     preferences,
                     "lyric_style_text_rainbow_color_dark_mode",
                     title = stringResource(R.string.item_text_color_dark_mode),
                     leftAction = { IconActions(painterResource(R.drawable.ic_darkmode)) },
-                    enabled = customColorEnabled.value,
+                    enabled = customColorEnabled.value && !rainbowColorEnabled.value,
                 )
             }
         }
@@ -285,6 +308,30 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 0.dp)
                     .fillMaxWidth(),
             ) {
+                val customColorEnabled = rememberBooleanPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_style_text_enable_custom_color",
+                    defaultValue = TextStyle.Defaults.ENABLE_CUSTOM_TEXT_COLOR
+                )
+                val extractCoverColorEnabled = rememberBooleanPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_style_text_extract_cover_color",
+                    defaultValue = TextStyle.Defaults.ENABLE_EXTRACT_COVER_TEXT_COLOR
+                )
+                val extractCoverGradientEnabled = rememberBooleanPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_style_text_extract_cover_gradient",
+                    defaultValue = TextStyle.Defaults.ENABLE_EXTRACT_COVER_TEXT_GRADIENT
+                )
+                val rainbowColorEnabled = rememberBooleanPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_style_text_enable_rainbow_color",
+                    defaultValue = TextStyle.Defaults.ENABLE_RAINBOW_TEXT_COLOR
+                )
+                val colorModeEnabled = customColorEnabled.value
+                        || extractCoverColorEnabled.value
+                        || extractCoverGradientEnabled.value
+                        || rainbowColorEnabled.value
                 SwitchPreference(
                     defaultValue = TextStyle.Defaults.RELATIVE_PROGRESS,
                     preferences = preferences,
@@ -298,6 +345,25 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_relative_progress_highlight",
                     title = stringResource(R.string.item_text_relative_progress_highlight),
+                    startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
+                )
+                SwitchPreference(
+                    defaultValue = TextStyle.Defaults.SUSTAIN_LIFT_ENABLED,
+                    preferences = preferences,
+                    key = "lyric_style_text_sustain_lift",
+                    title = stringResource(R.string.item_text_sustain_lift),
+                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                )
+                SwitchPreference(
+                    defaultValue = TextStyle.Defaults.SUSTAIN_GLOW_ENABLED,
+                    preferences = preferences,
+                    key = "lyric_style_text_sustain_glow",
+                    title = stringResource(R.string.item_text_sustain_glow),
+                    summary = if (colorModeEnabled) {
+                        stringResource(R.string.item_text_sustain_glow_color_mode_summary)
+                    } else {
+                        stringResource(R.string.item_text_sustain_glow_color_mode_hint)
+                    },
                     startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
             }

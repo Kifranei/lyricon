@@ -11,9 +11,9 @@ plugins {
     id("com.mikepenz.aboutlibraries.plugin.android") version "14.0.0-b03" apply false
 }
 
-extra["appPackageName"] = "io.github.proify.lyricon"
+extra["appPackageName"] = "io.github.kifranei.lyricon.fork"
 extra["appVersionCode"] = 30
-extra["appVersionName"] = "1.0.30-beta1"
+extra["appVersionName"] = "1.0.31-alpha1"
 extra["compileSdkVersion"] = 36
 extra["targetSdkVersion"] = 36
 extra["minSdkVersion"] = 27

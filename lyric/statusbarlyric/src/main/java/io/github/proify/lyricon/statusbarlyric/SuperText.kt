@@ -7,6 +7,7 @@
 package io.github.proify.lyricon.statusbarlyric
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Build
 import android.widget.TextView
@@ -35,6 +36,15 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         private const val TAG = "SuperText"
         private const val DEBUG = false
         private const val MAX_FONT_WEIGHT: Int = 1000
+        private val RAINBOW_COLORS = intArrayOf(
+            Color.parseColor("#FF4D4F"),
+            Color.parseColor("#FF9F43"),
+            Color.parseColor("#FFD93D"),
+            Color.parseColor("#2ED573"),
+            Color.parseColor("#1E90FF"),
+            Color.parseColor("#5352ED"),
+            Color.parseColor("#A55EEA")
+        )
     }
 
     /**
@@ -122,6 +132,12 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             this.syllable.apply {
                 backgroundColor = resolveBgColor(textStyle)
                 highlightColor = resolveHighlightColor(textStyle)
+                enableSustainLift = textStyle.sustainLiftEnabled
+                val colorModeEnabled = textStyle.enableCustomTextColor
+                        || textStyle.enableExtractCoverTextColor
+                        || textStyle.enableExtractCoverTextGradient
+                        || textStyle.enableRainbowTextColor
+                enableSustainGlow = textStyle.sustainGlowEnabled && !colorModeEnabled
             }
 
             this.gradientProgressStyle = textStyle.gradientProgressStyle
@@ -191,29 +207,44 @@ class SuperText(context: Context) : LyricPlayerView(context) {
     }
 
     private fun resolvePrimaryColor(textStyle: TextStyle): IntArray {
+        if (textStyle.enableRainbowTextColor) {
+            return RAINBOW_COLORS
+        }
         val customColor = textStyle.color(currentStatusColor.isLightMode)
         return if (textStyle.enableCustomTextColor && customColor?.normal?.isNotEmpty() == true) {
             customColor.normal
         } else {
-            currentStatusColor.color
+            currentStatusColor.color.takeIf { it.isNotEmpty() } ?: intArrayOf(
+                currentStatusColor.firstColor()
+            )
         }
     }
 
     private fun resolveBgColor(textStyle: TextStyle): IntArray {
+        if (textStyle.enableRainbowTextColor) {
+            return RAINBOW_COLORS.map { it.withAlpha(0.45f) }.toIntArray()
+        }
         val customColor = textStyle.color(currentStatusColor.isLightMode)
         return if (textStyle.enableCustomTextColor && customColor?.background?.isNotEmpty() == true) {
             customColor.background
         } else {
-            currentStatusColor.translucentColor
+            currentStatusColor.translucentColor.takeIf { it.isNotEmpty() } ?: intArrayOf(
+                currentStatusColor.firstColor().withAlpha(0.45f)
+            )
         }
     }
 
     private fun resolveHighlightColor(textStyle: TextStyle): IntArray {
+        if (textStyle.enableRainbowTextColor) {
+            return RAINBOW_COLORS
+        }
         val customColor = textStyle.color(currentStatusColor.isLightMode)
         return if (textStyle.enableCustomTextColor && customColor?.highlight?.isNotEmpty() == true) {
             customColor.highlight
         } else {
-            currentStatusColor.color
+            currentStatusColor.color.takeIf { it.isNotEmpty() } ?: intArrayOf(
+                currentStatusColor.firstColor()
+            )
         }
     }
 
@@ -240,6 +271,11 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             }
             Typeface.create(baseTypeface, styleFlag)
         }
+    }
+
+    private fun Int.withAlpha(ratio: Float): Int {
+        val alpha = (ratio.coerceIn(0f, 1f) * 255).toInt().coerceIn(0, 255)
+        return Color.argb(alpha, Color.red(this), Color.green(this), Color.blue(this))
     }
 
     fun shouldShow(): Boolean {

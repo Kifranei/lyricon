@@ -8,7 +8,6 @@
 
 package io.github.proify.lyricon.xposed.systemui.util
 
-import android.annotation.SuppressLint
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
@@ -25,28 +24,17 @@ import java.util.WeakHashMap
  */
 object XiaomiIslandHooker {
     private const val TAG = "XiaomiIslandHooker"
-    private val TARGET_ID_NAMES = setOf(
-        "island_container",
-        "island_music_container",
-        "music_container",
-        "audio_container",
-        "media_container"
-    )
-    private const val TARGET_CLASS_KEYWORD = "miui.systemui.dynamicisland"
+    private const val TARGET_ID_NAME = "island_container"
 
     private data class ViewState(
         val width: Int,
         val height: Int,
         val visibility: Int,
-        val alpha: Float,
-        val clickable: Boolean,
-        val enabled: Boolean,
-        val focusable: Boolean
+        val alpha: Float
     )
 
     private val islandViews = mutableListOf<WeakReference<View>>()
     private val originalStates = WeakHashMap<View, ViewState>()
-    private val stateLock = Any()
 
     private var hideByLyric = false
     private var lastHideByLyric: Boolean? = null
@@ -57,12 +45,10 @@ object XiaomiIslandHooker {
         unhooks.forEach { it.unhook() }
         unhooks.clear()
         addViewHooked = false
-        synchronized(stateLock) {
-            islandViews.clear()
-            originalStates.clear()
-            hideByLyric = false
-            lastHideByLyric = null
-        }
+        islandViews.clear()
+        originalStates.clear()
+        hideByLyric = false
+        lastHideByLyric = null
 
         if (!isXiaomiHyperOs3OrAbove()) return
 
@@ -82,17 +68,15 @@ object XiaomiIslandHooker {
     }
 
     fun setHideByLyric(shouldHide: Boolean) {
-        val shouldApply = synchronized(stateLock) {
-            hideByLyric = shouldHide
-            if (lastHideByLyric == shouldHide) {
-                // 允许在同状态下重复执行，以修复部分 ROM 下视图重建后的残留隐藏状态
-                !shouldHide
-            } else {
-                lastHideByLyric = shouldHide
-                true
+        hideByLyric = shouldHide
+        if (lastHideByLyric == shouldHide) {
+            // 允许在同状态下重复执行，以修复部分 ROM 下视图重建后的残留隐藏状态
+            if (!shouldHide) {
+                applyStateToTrackedViews(false)
             }
+            return
         }
-        if (!shouldApply) return
+        lastHideByLyric = shouldHide
         applyStateToTrackedViews(shouldHide)
     }
 
@@ -133,7 +117,6 @@ object XiaomiIslandHooker {
             .maxOrNull() ?: 0
     }
 
-    @SuppressLint("PrivateApi")
     private fun getSystemProperty(key: String): String? {
         return runCatching {
             val systemProperties = Class.forName("android.os.SystemProperties")
@@ -143,83 +126,44 @@ object XiaomiIslandHooker {
     }
 
     private fun applyStateToTrackedViews(shouldHide: Boolean) {
-        val snapshot = synchronized(stateLock) {
-            val trackedViews = ArrayList<View>(islandViews.size)
-            val iterator = islandViews.iterator()
-            while (iterator.hasNext()) {
-                val view = iterator.next().get()
-                if (view == null) {
-                    iterator.remove()
-                    continue
-                }
-                trackedViews += view
+        val iterator = islandViews.iterator()
+        while (iterator.hasNext()) {
+            val view = iterator.next().get()
+            if (view == null) {
+                iterator.remove()
+                continue
             }
-            trackedViews
-        }
-
-        snapshot.forEach { view ->
             applyState(view, shouldHide)
         }
     }
 
     private fun tryTrackIslandView(view: View): Boolean {
-        val idName = if (view.id != View.NO_ID) {
-            runCatching { view.resources.getResourceEntryName(view.id) }.getOrNull()
-        } else {
-            null
-        }
-        val normalizedIdName = idName.orEmpty().lowercase()
-        val className = view.javaClass.name.lowercase()
+        if (view.id == View.NO_ID) return false
+        val idName = runCatching {
+            view.resources.getResourceEntryName(view.id)
+        }.getOrNull() ?: return false
+        if (idName != TARGET_ID_NAME) return false
 
-        val matchByExactId = normalizedIdName in TARGET_ID_NAMES
-        val matchByIslandId = normalizedIdName.contains("island")
-                && (normalizedIdName.contains("music")
-                || normalizedIdName.contains("audio")
-                || normalizedIdName.contains("media")
-                || normalizedIdName.contains("icon"))
-        val matchByClass = className.contains(TARGET_CLASS_KEYWORD)
-                || (className.contains("island")
-                && (className.contains("dynamic")
-                || className.contains("music")
-                || className.contains("audio")
-                || className.contains("media")
-                || className.contains("icon")
-                || className.contains("capsule")
-                || className.contains("bubble")))
-
-        if (!matchByExactId && !matchByIslandId && !matchByClass) return false
-
-        val shouldLog = synchronized(stateLock) {
-            val iterator = islandViews.iterator()
-            var exists = false
-            while (iterator.hasNext()) {
-                val tracked = iterator.next().get()
-                if (tracked == null) {
-                    iterator.remove()
-                } else if (tracked === view) {
-                    exists = true
-                }
-            }
-            if (!exists) {
-                islandViews.add(WeakReference(view))
-                true
-            } else {
-                false
+        val iterator = islandViews.iterator()
+        var exists = false
+        while (iterator.hasNext()) {
+            val tracked = iterator.next().get()
+            if (tracked == null) {
+                iterator.remove()
+            } else if (tracked === view) {
+                exists = true
             }
         }
-        if (shouldLog) {
-            YLog.info(
-                tag = TAG,
-                msg = "Tracked island view: id=$idName class=${view.javaClass.name} view=$view"
-            )
+        if (!exists) {
+            islandViews.add(WeakReference(view))
+            YLog.info(tag = TAG, msg = "Tracked island_container: $view")
         }
         return true
     }
 
     private fun trackViewTree(root: View) {
         if (tryTrackIslandView(root)) {
-            val shouldHide = synchronized(stateLock) { hideByLyric }
-            applyState(root, shouldHide)
+            applyState(root, hideByLyric)
         }
         if (root !is ViewGroup) return
         val count = root.childCount
@@ -233,17 +177,12 @@ object XiaomiIslandHooker {
         val lp = view.layoutParams ?: return
 
         if (shouldHide) {
-            synchronized(stateLock) {
-                originalStates[view] = originalStates[view] ?: ViewState(
-                    width = lp.width,
-                    height = lp.height,
-                    visibility = view.visibility,
-                    alpha = view.alpha,
-                    clickable = view.isClickable,
-                    enabled = view.isEnabled,
-                    focusable = view.isFocusable
-                )
-            }
+            originalStates[view] = originalStates[view] ?: ViewState(
+                width = lp.width,
+                height = lp.height,
+                visibility = view.visibility,
+                alpha = view.alpha
+            )
             if (lp.width != 0 || lp.height != 0) {
                 lp.width = 0
                 lp.height = 0
@@ -255,20 +194,11 @@ object XiaomiIslandHooker {
             if (view.visibility != View.GONE) {
                 view.visibility = View.GONE
             }
-            if (view.isClickable) {
-                view.isClickable = false
-            }
-            if (view.isEnabled) {
-                view.isEnabled = false
-            }
-            if (view.isFocusable) {
-                view.isFocusable = false
-            }
             view.requestLayout()
             return
         }
 
-        val originalState = synchronized(stateLock) { originalStates[view] } ?: return
+        val originalState = originalStates[view] ?: return
         if (lp.width != originalState.width || lp.height != originalState.height) {
             lp.width = originalState.width
             lp.height = originalState.height
@@ -280,22 +210,13 @@ object XiaomiIslandHooker {
         if (view.visibility != originalState.visibility) {
             view.visibility = originalState.visibility
         }
-        if (view.isClickable != originalState.clickable) {
-            view.isClickable = originalState.clickable
-        }
-        if (view.isEnabled != originalState.enabled) {
-            view.isEnabled = originalState.enabled
-        }
-        if (view.isFocusable != originalState.focusable) {
-            view.isFocusable = originalState.focusable
-        }
         view.requestLayout()
     }
 
     private class TrackIslandAttachHook : XC_MethodHook() {
         override fun afterHookedMethod(param: MethodHookParam) {
             val view = param.thisObject as? View ?: return
-            trackViewTree(view)
+            XiaomiIslandHooker.trackViewTree(view)
         }
     }
 
@@ -303,9 +224,8 @@ object XiaomiIslandHooker {
         override fun afterHookedMethod(param: MethodHookParam) {
             val view = param.thisObject as? View ?: return
             if (!XiaomiIslandHooker.tryTrackIslandView(view)) return
-            val shouldHide = synchronized(XiaomiIslandHooker.stateLock) { XiaomiIslandHooker.hideByLyric }
-            if (!shouldHide) return
-            XiaomiIslandHooker.applyState(view, shouldHide)
+            if (!XiaomiIslandHooker.hideByLyric) return
+            XiaomiIslandHooker.applyState(view, XiaomiIslandHooker.hideByLyric)
         }
     }
 
@@ -315,14 +235,14 @@ object XiaomiIslandHooker {
         val viewGroupClass = classLoader.loadClass(ViewGroup::class.java.name)
         unhooks.addAll(
             XposedBridge.hookAllMethods(
-                viewGroupClass,
-                "addView",
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val child = param.args.getOrNull(0) as? View ?: return
-                        trackViewTree(child)
-                    }
+            viewGroupClass,
+            "addView",
+            object : XC_MethodHook() {
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    val child = param.args.getOrNull(0) as? View ?: return
+                    trackViewTree(child)
                 }
+            }
             )
         )
     }

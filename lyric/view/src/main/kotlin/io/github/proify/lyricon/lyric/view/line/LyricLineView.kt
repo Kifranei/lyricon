@@ -45,6 +45,7 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
     val textPaint: TextPaint = TextPaintX().apply {
         textSize = 24f.sp
     }
+    private var currentTextColors: IntArray = intArrayOf(Color.BLACK)
 
     var lyric: LyricModel = emptyLyricModel()
         private set
@@ -102,45 +103,9 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         reset()
     }
 
-    private var primaryColor: IntArray = intArrayOf()
-    private var backgroundColor: IntArray = intArrayOf()
-    private var highlightColor: IntArray = intArrayOf()
-
-    private fun updateColorInternal() {
-        if (primaryColor.isNotEmpty()
-            && backgroundColor.isNotEmpty()
-            && highlightColor.isNotEmpty()
-        ) {
-            updateColor(primaryColor, backgroundColor, highlightColor)
-        }
-    }
-
-    // private var lastColorHash = 0
     override fun updateColor(primary: IntArray, background: IntArray, highlight: IntArray) {
-//        var hash = primary.contentHashCode()
-//        hash = hash * 31 + background.contentHashCXode()
-//        hash = hash * 31 + highlight.contentHashCode()
-//
-//        if (hash == lastColorHash) return
-//        lastColorHash = hash
-
-        primaryColor = primary
-        backgroundColor = background
-        highlightColor = highlight
-
-        textPaint.apply {
-            if (primary.isEmpty()) {
-                color = Color.BLACK
-                shader = null
-            } else {
-                color = primary.firstOrNull() ?: Color.BLACK
-                shader = if (primary.size > 1) {
-                    createRainbowShader(primary)
-                } else {
-                    null
-                }
-            }
-        }
+        currentTextColors = primary.copyOf()
+        applyCurrentTextColor()
         syllable.setColor(background, highlight)
         invalidate()
 
@@ -155,20 +120,8 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         textPaint.apply {
             textSize = textConfig.textSize
             typeface = textConfig.typeface
-
-            val textColor = textConfig.textColor
-            if (textColor.isEmpty()) {
-                color = Color.BLACK
-                shader = null
-            } else {
-                color = textConfig.textColor.firstOrNull() ?: Color.RED
-                shader = if (textColor.size > 1) {
-                    createRainbowShader(textColor)
-                } else {
-                    null
-                }
-            }
         }
+        currentTextColors = textConfig.textColor.copyOf()
 
         syllable.setColor(
             syllableConfig.backgroundColor,
@@ -177,6 +130,8 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         syllable.setTextSize(textConfig.textSize)
         syllable.setTypeface(textConfig.typeface)
         syllable.isGradientEnabled = configs.gradientProgressStyle
+        syllable.isSustainLiftEnabled = syllableConfig.enableSustainLift
+        syllable.isSustainGlowEnabled = syllableConfig.enableSustainGlow
 
         marquee.apply {
             ghostSpacing = marqueeConfig.ghostSpacing
@@ -226,15 +181,15 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
     fun refreshModelSizes() {
         lyric.updateSizes(textPaint)
+        applyCurrentTextColor()
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        if (w > 0 && h > 0) {
-            refreshModelSizes()
-            updateColorInternal()
-        }
-    }
+//    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+//        super.onSizeChanged(w, h, oldw, oldh)
+//        if (w > 0 && h > 0) {
+//            refreshModelSizes()
+//        }
+//    }
 
     override fun getLeftFadingEdgeStrength(): Float {
         // 基础检查：文本未溢出或未开启渐隐
@@ -422,8 +377,35 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         }
     }
 
+    private var cachedShader: Shader? = null
+    private var cachedShaderSignature: Int = 0
 
-    private fun createRainbowShader(colors: IntArray): Shader {
+    private fun applyCurrentTextColor() {
+        val colors = currentTextColors
+        if (colors.isEmpty()) {
+            textPaint.color = Color.BLACK
+            textPaint.shader = null
+            return
+        }
+        textPaint.color = colors.firstOrNull() ?: Color.BLACK
+        textPaint.shader = if (colors.size > 1 && lyricWidth > 0f) {
+            getRainbowShader(lyricWidth, colors)
+        } else {
+            null
+        }
+    }
+
+    private fun getRainbowShader(lyricWidth: Float, colors: IntArray): Shader {
+        var sign = 17
+        sign = sign * 31 + lyricWidth.hashCode()
+        sign = sign * 31 + colors.contentHashCode()
+
+        val shaderCache = cachedShader
+        if (shaderCache != null && cachedShaderSignature == sign) {
+            return shaderCache
+        }
+        cachedShaderSignature = sign
+
         val positions = FloatArray(colors.size) { i ->
             i.toFloat() / (colors.size - 1)
         }
@@ -432,6 +414,7 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
             colors, positions,
             Shader.TileMode.CLAMP
         )
+        cachedShader = shader
         return shader
     }
 }
