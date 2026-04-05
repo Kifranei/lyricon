@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.LibraryExtension
+import java.io.File
 
 plugins {
     alias(libs.plugins.android.library)
@@ -9,6 +10,108 @@ plugins {
 val versionCode: Int = rootProject.extra["appVersionCode"] as Int
 val versionName: String = rootProject.extra["appVersionName"] as String
 val buildTime: Long = System.currentTimeMillis()
+
+fun resolveGitDir(projectDir: File): File? {
+    val dotGit = projectDir.resolve(".git")
+    if (dotGit.isDirectory) return dotGit
+    if (!dotGit.isFile) return null
+    val refLine = dotGit.readText().lineSequence().firstOrNull()?.trim().orEmpty()
+    if (!refLine.startsWith("gitdir:")) return null
+    val gitDirPath = refLine.substringAfter("gitdir:").trim()
+    if (gitDirPath.isBlank()) return null
+    val resolved = File(gitDirPath).let { if (it.isAbsolute) it else projectDir.resolve(gitDirPath) }
+    return resolved.takeIf { it.exists() }
+}
+
+fun readHeadRef(gitDir: File?): String {
+    if (gitDir == null) return ""
+    val headFile = gitDir.resolve("HEAD")
+    if (!headFile.isFile) return ""
+    val head = headFile.readText().trim()
+    return if (head.startsWith("ref:")) head.substringAfter("ref:").trim() else ""
+}
+
+fun readHeadBranch(gitDir: File?): String {
+    val ref = readHeadRef(gitDir)
+    if (ref.isBlank()) return ""
+    return ref.removePrefix("refs/heads/")
+}
+
+fun readHeadCommit(gitDir: File?): String {
+    if (gitDir == null) return ""
+    val headFile = gitDir.resolve("HEAD")
+    if (!headFile.isFile) return ""
+    val head = headFile.readText().trim()
+    if (!head.startsWith("ref:")) {
+        return head.take(7)
+    }
+
+    val refPath = head.substringAfter("ref:").trim()
+    if (refPath.isBlank()) return ""
+    val refFile = gitDir.resolve(refPath)
+    if (refFile.isFile) {
+        return refFile.readText().trim().take(7)
+    }
+
+    val packedRefs = gitDir.resolve("packed-refs")
+    if (!packedRefs.isFile) return ""
+    val packed = packedRefs.readLines()
+        .asSequence()
+        .filter { it.isNotBlank() && !it.startsWith("#") && !it.startsWith("^") }
+        .map { it.trim().split(" ", limit = 2) }
+        .firstOrNull { it.size == 2 && it[1] == refPath }
+    return packed?.firstOrNull()?.take(7).orEmpty()
+}
+
+fun readOriginUrl(gitDir: File?): String {
+    if (gitDir == null) return ""
+    val configFile = gitDir.resolve("config")
+    if (!configFile.isFile) return ""
+
+    var inOriginSection = false
+    for (raw in configFile.readLines()) {
+        val line = raw.trim()
+        when {
+            line.startsWith("[") && line.endsWith("]") -> {
+                inOriginSection = line == "[remote \"origin\"]"
+            }
+
+            inOriginSection && line.startsWith("url") -> {
+                val value = line.substringAfter("=", "").trim()
+                if (value.isNotBlank()) return value
+            }
+        }
+    }
+    return ""
+}
+
+fun resolveBuildMeta(propName: String, envName: String, fallback: () -> String): String {
+    val fromProp = providers.gradleProperty(propName).orNull?.trim().orEmpty()
+    if (fromProp.isNotEmpty()) return fromProp
+    val fromEnv = providers.environmentVariable(envName).orNull?.trim().orEmpty()
+    if (fromEnv.isNotEmpty()) return fromEnv
+    return fallback().trim().ifEmpty { "unknown" }
+}
+
+val gitDir = resolveGitDir(rootProject.projectDir)
+val gitRemoteOrigin = readOriginUrl(gitDir)
+val originRepo = Regex("[:/]([^/:]+/[^/]+?)(?:\\.git)?$")
+    .find(gitRemoteOrigin)
+    ?.groupValues
+    ?.getOrNull(1)
+    .orEmpty()
+val originOwner = originRepo.substringBefore('/', missingDelimiterValue = "").ifBlank { "unknown" }
+
+val buildRepo = resolveBuildMeta("lyriconBuildRepo", "LYRICON_BUILD_REPO") { originRepo }
+val buildBranch = resolveBuildMeta("lyriconBuildBranch", "LYRICON_BUILD_BRANCH") {
+    readHeadBranch(gitDir)
+}
+val buildCommit = resolveBuildMeta("lyriconBuildCommit", "LYRICON_BUILD_COMMIT") {
+    readHeadCommit(gitDir)
+}
+val buildAuthor = resolveBuildMeta("lyriconBuildAuthor", "LYRICON_BUILD_AUTHOR") {
+    originOwner
+}
 
 configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.app"
@@ -26,6 +129,10 @@ configure<LibraryExtension> {
         buildConfigField("int", "VERSION_CODE", versionCode.toString())
         buildConfigField("String", "VERSION_NAME", "\"" + versionName + "\"")
         buildConfigField("long", "BUILD_TIME", System.currentTimeMillis().toString())
+        buildConfigField("String", "BUILD_REPO", "\"$buildRepo\"")
+        buildConfigField("String", "BUILD_BRANCH", "\"$buildBranch\"")
+        buildConfigField("String", "BUILD_COMMIT", "\"$buildCommit\"")
+        buildConfigField("String", "BUILD_AUTHOR", "\"$buildAuthor\"")
     }
 
     buildTypes {

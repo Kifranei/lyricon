@@ -53,6 +53,8 @@
     <string name="manager_package_config">管理包配置</string>
     <string name="add_package_config">添加包配置</string>
     <string name="item_app_version">版本</string>
+    <string name="item_build_info">构建信息</string>
+    <string name="item_build_author">构建用户</string>
     <string name="item_build_time">构建时间</string>
     <string name="item_view_on_github">在 Github 上查看</string>
     <string name="item_open_source_license">开放源代码许可</string>
@@ -135,7 +137,9 @@
     <string name="item_base_insertion_after">之后</string>
     <string name="item_base_width">宽度</string>
     <string name="item_base_dynamic_width">歌词宽度跟随歌词长度</string>
+    <string name="item_base_dynamic_width_experimental_summary">实验性功能，开启可能会造成状态栏出现 bug。</string>
     <string name="item_base_dynamic_width_auto_hide_clock">歌词过长时自动隐藏 clock</string>
+    <string name="item_base_dynamic_width_auto_hide_clock_experimental_summary">实验性功能，开启可能会造成状态栏出现 bug；仅在锚点为 clock 且你未手动配置“clock 播放时隐藏”时生效。</string>
     <string name="item_base_dynamic_width_auto_hide_clock_disabled_summary">请先开启“歌词宽度跟随歌词长度”。</string>
     <string name="item_base_dynamic_width_auto_hide_clock_summary">仅在锚点为 clock 且你未手动配置“clock 播放时隐藏”时生效。</string>
     <string name="item_base_dynamic_width_summary">默认关闭。开启后歌词区域会随歌词内容动态变化宽度。</string>

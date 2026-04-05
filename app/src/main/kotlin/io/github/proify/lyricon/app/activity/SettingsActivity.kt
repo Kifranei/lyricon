@@ -129,7 +129,7 @@ class SettingsActivity : BaseActivity() {
                     ThemeSetting(onSettingsApplied)
                 }
             }
-            // 🌟 核心：我们把桌面图标的开关无缝融合在主题设置下方
+            // 桌面图标开关
             item("desktop_icon") {
                 SettingsSectionCard(topPadding = 16.dp) {
                     DesktopIconSetting()
@@ -147,10 +147,10 @@ class SettingsActivity : BaseActivity() {
     private fun DesktopIconSetting() {
         val context = LocalContext.current
         val packageManager = context.packageManager
-        // 指向你在 Manifest 中写的别名
+        // 指向 Manifest 中写的别名
         val aliasName = remember { ComponentName(context, "io.github.proify.lyricon.app.activity.LauncherAlias") }
 
-        // 动态读取系统里这个别名的当前状态，不需要存进 SharedPreferences
+        // 动态读取系统里这个别名的当前状态，无需存进 SharedPreferences
         var showDesktopIcon by remember {
             mutableStateOf(
                 packageManager.getComponentEnabledSetting(aliasName) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED

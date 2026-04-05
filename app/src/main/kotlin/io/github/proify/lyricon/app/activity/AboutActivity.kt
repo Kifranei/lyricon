@@ -77,6 +77,7 @@ class AboutActivity : BaseActivity() {
                         .ofLocalizedDateTime(FormatStyle.MEDIUM)
                         .withLocale(AppLangUtils.getLocale())
                 )
+        val buildInfoSummary = "${BuildConfig.BUILD_REPO}\n${BuildConfig.BUILD_BRANCH} @ ${BuildConfig.BUILD_COMMIT}"
 
         AppToolBarListContainer(
             title = stringResource(id = R.string.activity_about),
@@ -179,6 +180,18 @@ class AboutActivity : BaseActivity() {
                                 BuildConfig.VERSION_CODE.toString(),
                                 BuildConfig.BUILD_TYPE
                             )
+                    )
+
+                    AppBasicComponent(
+                        startAction = { IconActions(painterResource(R.drawable.ic_build)) },
+                        title = stringResource(id = R.string.item_build_info),
+                        summary = buildInfoSummary
+                    )
+
+                    AppBasicComponent(
+                        startAction = { IconActions(painterResource(R.drawable.ic_build)) },
+                        title = stringResource(id = R.string.item_build_author),
+                        summary = BuildConfig.BUILD_AUTHOR
                     )
 
                     AppBasicComponent(

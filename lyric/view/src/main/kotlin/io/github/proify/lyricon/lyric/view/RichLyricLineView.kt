@@ -44,6 +44,10 @@ class RichLyricLineView(
     private var animationTransition: Boolean = false
     private var pendingLine: IRichLyricLine? = null
     private var pendingPosition: Long? = null
+    private var mainBaseSustainGlowEnabled: Boolean = true
+    private var secondaryBaseSustainGlowEnabled: Boolean = true
+    private var isMainGeneratedWords: Boolean = false
+    private var isSecondaryGeneratedWords: Boolean = false
 
     fun beginAnimationTransition() {
         animationTransition = true
@@ -184,7 +188,9 @@ class RichLyricLineView(
 
     private fun setMainLine(source: IRichLyricLine?) {
         if (source == null) {
+            isMainGeneratedWords = false
             main.setLyric(EMPTY_LYRIC_LINE)
+            updateSustainGlowState()
             return
         }
 
@@ -195,6 +201,7 @@ class RichLyricLineView(
         } else source.words
 
         val isGenerated = processedWords !== source.words
+        isMainGeneratedWords = isGenerated
 
         main.setLyric(
             LyricLine(
@@ -210,13 +217,16 @@ class RichLyricLineView(
 
         // 如果是生成的 Word，根据配置决定是否显示逐字高亮效果
         main.syllable.isScrollOnly = isGenerated && !enableRelativeProgressHighlight
+        updateSustainGlowState()
     }
 
     private fun setSecondaryLine(source: IRichLyricLine?) {
         alwaysShowSecondary = false
 
         if (source == null) {
+            isSecondaryGeneratedWords = false
             secondary.apply { setLyric(null); visibleIfChanged = false }
+            updateSustainGlowState()
             return
         }
 
@@ -277,6 +287,8 @@ class RichLyricLineView(
 
         secondary.setLyric(newLine)
         secondary.syllable.isScrollOnly = isGenerated && !enableRelativeProgressHighlight
+        isSecondaryGeneratedWords = isGenerated
+        updateSustainGlowState()
     }
 
     /**
@@ -311,8 +323,10 @@ class RichLyricLineView(
 
         enableRelativeProgress = cfg.enableRelativeProgress
         enableRelativeProgressHighlight = cfg.enableRelativeProgressHighlight
+        mainBaseSustainGlowEnabled = syl.enableSustainGlow
 
         main.setStyle(LyricLineConfig(cfg, mar, syl, grad, fadingEdgeLength))
+        updateSustainGlowState()
         if (notifyNeeded) notifyLineChanged()
     }
 
@@ -323,6 +337,15 @@ class RichLyricLineView(
         grad: Boolean,
         fadingEdgeLength: Int
     ) {
+        secondaryBaseSustainGlowEnabled = syl.enableSustainGlow
         secondary.setStyle(LyricLineConfig(cfg, mar, syl, grad, fadingEdgeLength))
+        updateSustainGlowState()
+    }
+
+    private fun updateSustainGlowState() {
+        // 相对进度构造的整行词节点没有真实逐字边界，禁用发光避免整行泛白
+        main.syllable.isSustainGlowEnabled = mainBaseSustainGlowEnabled && !isMainGeneratedWords
+        secondary.syllable.isSustainGlowEnabled =
+            secondaryBaseSustainGlowEnabled && !isSecondaryGeneratedWords
     }
 }

@@ -65,6 +65,10 @@ class StatusBarViewController(
     private var systemStatusBarColor: SystemStatusBarColor? = null
     private var isClockAutoHiddenByDynamicWidth = false
     private var originalClockVisibilityBeforeDynamicHide: Int? = null
+    private var pullDownFreezeArmed = false
+    private var pullDownStartY = 0f
+    private var isDynamicWidthFrozenByPullDown = false
+    private val pullDownFreezeSlopPx = 8.dp.toFloat()
 
     private val onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         if (clockView == null) {
@@ -82,6 +86,7 @@ class StatusBarViewController(
         lyricView.onPlayingChanged = { playing ->
             if (!playing) {
                 setUserShowClock(false)
+                setDynamicWidthFrozenForPullDown(false)
             }
             updateDynamicWidthClockVisibility()
             LyricViewController.notifyLyricVisibilityChanged()
@@ -113,6 +118,7 @@ class StatusBarViewController(
         lyricDoubleTapDetector = null
         clockDoubleTapDetector = null
         colorMonitorView?.let { ClockColorMonitor.setListener(it, null) }
+        setDynamicWidthFrozenForPullDown(false)
         restoreClockVisibilityFromDynamicWidth()
         LyricViewController.notifyLyricVisibilityChanged()
         YLog.info("Lyric view destroyed for $statusBarView")
@@ -178,6 +184,9 @@ class StatusBarViewController(
         doubleTapSwitchEnabled = basicStyle.doubleTapSwitchClock
         if (!doubleTapSwitchEnabled) {
             setUserShowClock(false)
+        }
+        if (!lyricStyle.basicStyle.dynamicWidthEnabled) {
+            setDynamicWidthFrozenForPullDown(false)
         }
 
         val needUpdateLocation = lastAnchor != basicStyle.anchor
@@ -381,6 +390,7 @@ class StatusBarViewController(
 
         if (statusBarTouchListener == null) {
             statusBarTouchListener = View.OnTouchListener { _, event ->
+                handleDynamicWidthFreezeTouch(event)
                 if (!doubleTapSwitchEnabled || !LyricViewController.isPlaying) return@OnTouchListener false
 
                 if (userShowClock) {
@@ -414,6 +424,47 @@ class StatusBarViewController(
             LyricViewController.refreshLyricTranslationDisplayConfig()
         }
         applyVisibilityRulesNow()
+    }
+
+    private fun shouldFreezeDynamicWidthDuringPullDown(): Boolean {
+        val basicStyle = currentLyricStyle.basicStyle
+        return basicStyle.dynamicWidthEnabled
+                && LyricViewController.isPlaying
+                && lyricView.isAttachedToWindow
+                && lyricView.visibility == View.VISIBLE
+    }
+
+    private fun setDynamicWidthFrozenForPullDown(frozen: Boolean) {
+        if (isDynamicWidthFrozenByPullDown == frozen) return
+        isDynamicWidthFrozenByPullDown = frozen
+        lyricView.setDynamicWidthFrozen(frozen)
+        if (!frozen) {
+            updateDynamicWidthClockVisibility()
+        }
+    }
+
+    private fun handleDynamicWidthFreezeTouch(event: MotionEvent) {
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                pullDownStartY = event.rawY
+                pullDownFreezeArmed = shouldFreezeDynamicWidthDuringPullDown()
+                if (!pullDownFreezeArmed) {
+                    setDynamicWidthFrozenForPullDown(false)
+                }
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                if (!pullDownFreezeArmed || isDynamicWidthFrozenByPullDown) return
+                if (event.rawY - pullDownStartY > pullDownFreezeSlopPx) {
+                    setDynamicWidthFrozenForPullDown(true)
+                }
+            }
+
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                pullDownFreezeArmed = false
+                setDynamicWidthFrozenForPullDown(false)
+            }
+        }
     }
 
     private fun isTouchInside(view: View, event: MotionEvent): Boolean {
@@ -467,6 +518,7 @@ class StatusBarViewController(
             setupDoubleTapHandlers()
         }
         override fun onViewDetachedFromWindow(v: View) {
+            setDynamicWidthFrozenForPullDown(false)
             restoreClockVisibilityFromDynamicWidth()
             LyricViewController.notifyLyricVisibilityChanged()
         }

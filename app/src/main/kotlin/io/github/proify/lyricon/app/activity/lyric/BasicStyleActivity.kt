@@ -161,41 +161,6 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         },
                     )
 
-                    val dynamicWidthEnabled = rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_dynamic_width_enabled",
-                        BasicStyle.Defaults.DYNAMIC_WIDTH_ENABLED
-                    )
-
-                    SwitchPreference(
-                        preferences = preferences,
-                        key = "lyric_style_base_dynamic_width_enabled",
-                        defaultValue = BasicStyle.Defaults.DYNAMIC_WIDTH_ENABLED,
-                        title = stringResource(R.string.item_base_dynamic_width),
-                        summary = stringResource(R.string.item_base_dynamic_width_summary),
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_visibility_off))
-                        },
-                    )
-
-                    SwitchPreference(
-                        preferences = preferences,
-                        key = "lyric_style_base_dynamic_width_auto_hide_clock",
-                        defaultValue = BasicStyle.Defaults.DYNAMIC_WIDTH_AUTO_HIDE_CLOCK,
-                        title = stringResource(R.string.item_base_dynamic_width_auto_hide_clock),
-                        summary = stringResource(
-                            if (dynamicWidthEnabled.value) {
-                                R.string.item_base_dynamic_width_auto_hide_clock_summary
-                            } else {
-                                R.string.item_base_dynamic_width_auto_hide_clock_disabled_summary
-                            }
-                        ),
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_width_normal))
-                        },
-                        enabled = dynamicWidthEnabled.value
-                    )
-
                     if (Utils.isHyperOs3OrAbove) {
                         SwitchPreference(
                             preferences = preferences,
@@ -265,6 +230,49 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                     HideWhenNoLyric()
                     HideWhenNoUpdate()
                     HideWhenKeywords()
+                }
+            }
+
+            item(key = "experimental") {
+                Card(
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                        .fillMaxWidth(),
+                ) {
+                    val dynamicWidthEnabled = rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_dynamic_width_enabled",
+                        BasicStyle.Defaults.DYNAMIC_WIDTH_ENABLED
+                    )
+
+                    SwitchPreference(
+                        preferences = preferences,
+                        key = "lyric_style_base_dynamic_width_enabled",
+                        defaultValue = false,
+                        title = stringResource(R.string.item_base_dynamic_width),
+                        summary = stringResource(R.string.item_base_dynamic_width_experimental_summary),
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_visibility_off))
+                        },
+                    )
+
+                    SwitchPreference(
+                        preferences = preferences,
+                        key = "lyric_style_base_dynamic_width_auto_hide_clock",
+                        defaultValue = false,
+                        title = stringResource(R.string.item_base_dynamic_width_auto_hide_clock),
+                        summary = stringResource(
+                            if (dynamicWidthEnabled.value) {
+                                R.string.item_base_dynamic_width_auto_hide_clock_experimental_summary
+                            } else {
+                                R.string.item_base_dynamic_width_auto_hide_clock_disabled_summary
+                            }
+                        ),
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_width_normal))
+                        },
+                        enabled = dynamicWidthEnabled.value
+                    )
                 }
             }
 

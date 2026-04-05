@@ -348,13 +348,6 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
                 SwitchPreference(
-                    defaultValue = TextStyle.Defaults.SUSTAIN_LIFT_ENABLED,
-                    preferences = preferences,
-                    key = "lyric_style_text_sustain_lift",
-                    title = stringResource(R.string.item_text_sustain_lift),
-                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
-                )
-                SwitchPreference(
                     defaultValue = TextStyle.Defaults.SUSTAIN_GLOW_ENABLED,
                     preferences = preferences,
                     key = "lyric_style_text_sustain_glow",

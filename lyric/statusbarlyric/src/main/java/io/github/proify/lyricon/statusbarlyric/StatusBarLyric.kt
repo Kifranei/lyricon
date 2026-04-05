@@ -32,6 +32,7 @@ import io.github.proify.lyricon.lyric.view.visibleIfChanged
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.NONE
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.SONG
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.TEXT
+import kotlin.math.max
 
 @SuppressLint("ViewConstructor")
 class StatusBarLyric(
@@ -85,6 +86,8 @@ class StatusBarLyric(
     private var currentStyle: LyricStyle = initialStyle
     private var isPlaying: Boolean = false
     private var isOplusCapsuleShowing: Boolean = false
+    private var isDynamicWidthFrozen: Boolean = false
+    private var frozenDynamicWidthPx: Int = 0
 
     var onPlayingChanged: ((Boolean) -> Unit)? = null
 
@@ -311,6 +314,33 @@ class StatusBarLyric(
         logoView.oplusCapsuleShowing = visible
     }
 
+    fun setDynamicWidthFrozen(frozen: Boolean) {
+        val basicStyle = currentStyle.basicStyle
+        if (!basicStyle.dynamicWidthEnabled) {
+            if (isDynamicWidthFrozen || frozenDynamicWidthPx != 0) {
+                isDynamicWidthFrozen = false
+                frozenDynamicWidthPx = 0
+                updateWidthInternal(currentStyle)
+            }
+            return
+        }
+
+        if (frozen) {
+            val targetWidth = resolveCurrentDynamicWidthPx(basicStyle)
+            if (targetWidth <= 0) return
+            if (isDynamicWidthFrozen && frozenDynamicWidthPx == targetWidth) return
+            isDynamicWidthFrozen = true
+            frozenDynamicWidthPx = targetWidth
+            updateWidthInternal(currentStyle)
+            return
+        }
+
+        if (!isDynamicWidthFrozen && frozenDynamicWidthPx == 0) return
+        isDynamicWidthFrozen = false
+        frozenDynamicWidthPx = 0
+        updateWidthInternal(currentStyle)
+    }
+
     // --- 内部逻辑 ---
 
     private fun applyInitialStyle(style: LyricStyle) {
@@ -338,6 +368,10 @@ class StatusBarLyric(
 
     private fun updateLayoutConfig(style: LyricStyle) {
         val basic = style.basicStyle
+        if (!basic.dynamicWidthEnabled) {
+            isDynamicWidthFrozen = false
+            frozenDynamicWidthPx = 0
+        }
         val margins = basic.margins
         val paddings = basic.paddings
 
@@ -367,10 +401,25 @@ class StatusBarLyric(
 
     private fun calculateContainerWidth(basicStyle: BasicStyle): Int {
         return if (basicStyle.dynamicWidthEnabled) {
-            LayoutParams.WRAP_CONTENT
+            if (isDynamicWidthFrozen && frozenDynamicWidthPx > 0) {
+                frozenDynamicWidthPx
+            } else {
+                LayoutParams.WRAP_CONTENT
+            }
         } else {
             calculateTargetWidth(basicStyle).dp
         }
+    }
+
+    private fun resolveCurrentDynamicWidthPx(basicStyle: BasicStyle): Int {
+        var contentWidth = width
+        contentWidth = max(contentWidth, measuredWidth)
+        contentWidth = max(contentWidth, textView.width)
+        contentWidth = max(contentWidth, textView.measuredWidth)
+        if (contentWidth <= 0) {
+            contentWidth = calculateTargetWidth(basicStyle).dp
+        }
+        return contentWidth
     }
 
     private fun updateTextViewWidthMode(basicStyle: BasicStyle) {

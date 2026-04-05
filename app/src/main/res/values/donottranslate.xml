@@ -5,7 +5,7 @@
   -->
 
 <resources>
-    <string name="github_home" translatable="false">https://github.com/proify/lyricon</string>
+    <string name="github_home" translatable="false">https://github.com/Kifranei/lyricon</string>
     <string name="provider_release_home" translatable="false">https://github.com/proify/LyricProvider/releases</string>
 
     <string name="ok" translatable="false">@android:string/ok</string>
