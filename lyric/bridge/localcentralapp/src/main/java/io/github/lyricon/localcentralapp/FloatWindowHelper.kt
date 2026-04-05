@@ -138,7 +138,7 @@ class FloatWindowHelper(private val context: Context) {
     private fun animateToSide() {
         val dm = context.resources.displayMetrics
         val screenWidth = dm.widthPixels
-        val viewWidth = floatingView?.width ?: 0
+        val viewWidth = floatingView.width
         val targetX =
             if (layoutParams.x + viewWidth / 2 > screenWidth / 2) screenWidth - viewWidth else 0
 

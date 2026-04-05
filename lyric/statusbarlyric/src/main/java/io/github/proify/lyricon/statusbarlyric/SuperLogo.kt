@@ -13,6 +13,7 @@ import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
@@ -145,7 +146,7 @@ class SuperLogo(context: Context) : ImageView(context) {
         val padding = strokeWidth / 2
 
         progressPaint.strokeWidth = strokeWidth
-        progressPaint.color = currentStatusColor.color
+        progressPaint.color = currentStatusColor.color.firstOrNull() ?: Color.TRANSPARENT
 
         progressRect.set(padding, padding, width - padding, height - padding)
         canvas.drawArc(progressRect, -90f, 360f * progress, false, progressPaint)
@@ -431,17 +432,17 @@ class SuperLogo(context: Context) : ImageView(context) {
 
         private fun calculateTint(): ColorStateList {
             val logoStyle = lyricStyle?.packageStyle?.logo
-                ?: return ColorStateList.valueOf(currentStatusColor.color)
+                ?: return ColorStateList.valueOf(currentStatusColor.firstColor())
 
             if (!logoStyle.enableCustomColor) {
-                return ColorStateList.valueOf(currentStatusColor.color)
+                return ColorStateList.valueOf(currentStatusColor.firstColor())
             }
 
-            val logoColorConfig = logoStyle.color(currentStatusColor.lightMode)
+            val logoColorConfig = logoStyle.color(currentStatusColor.isLightMode)
             val finalColor = when {
                 logoColorConfig.followTextColor -> resolveFollowTextColor()
                 logoColorConfig.color != 0 -> logoColorConfig.color
-                else -> currentStatusColor.color
+                else -> currentStatusColor.firstColor()
             }
 
             return ColorStateList.valueOf(finalColor)
@@ -450,13 +451,13 @@ class SuperLogo(context: Context) : ImageView(context) {
         private fun resolveFollowTextColor(): Int {
             val textStyle = lyricStyle?.packageStyle?.text
             if (textStyle?.enableCustomTextColor != true) {
-                return currentStatusColor.color
+                return currentStatusColor.firstColor()
             }
-            val textColorConfig = textStyle.color(currentStatusColor.lightMode)
-            return if (textColorConfig != null && textColorConfig.normal.isNotEmpty() == true) {
-                textColorConfig.normal.firstOrNull() ?: currentStatusColor.color
+            val textColorConfig = textStyle.color(currentStatusColor.isLightMode)
+            return if (textColorConfig != null && textColorConfig.normal.isNotEmpty()) {
+                textColorConfig.normal.firstOrNull() ?: currentStatusColor.firstColor()
             } else {
-                currentStatusColor.color
+                currentStatusColor.firstColor()
             }
         }
     }

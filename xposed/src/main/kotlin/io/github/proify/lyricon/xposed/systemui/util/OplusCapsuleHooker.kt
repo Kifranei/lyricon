@@ -73,7 +73,7 @@ object OplusCapsuleHooker {
         if (lastIsShowing != null && lastIsShowing == isShowing) return
 
         lastIsShowing = isShowing
-        listeners.forEach { it.onCapsuleVisibilityChanged(isShowing) }
+        listeners.forEach { it.onColorOsCapsuleVisibilityChanged(isShowing) }
     }
 
     private class SetVisibilityMethodHook : XC_MethodHook() {
@@ -191,6 +191,6 @@ object OplusCapsuleHooker {
     }
 
     interface CapsuleStateChangeListener {
-        fun onCapsuleVisibilityChanged(isShowing: Boolean)
+        fun onColorOsCapsuleVisibilityChanged(isShowing: Boolean)
     }
 }

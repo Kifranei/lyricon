@@ -23,6 +23,10 @@ object AppBackup {
 
     private const val TAG = "BackupManager"
 
+    private val BLACKLIST_KEYS = listOf(
+        "lyric_style_text_ai_translation_api_key"
+    )
+
     fun export(outputStream: OutputStream): Boolean {
         val map = collectAllPrefs()
 
@@ -86,6 +90,8 @@ object AppBackup {
     private fun entriesToJson(entries: Map<String, *>): JSONObject {
         val jo = JSONObject()
         entries.forEach { (k, v) ->
+            if (k in BLACKLIST_KEYS) return@forEach
+
             when (v) {
                 is Set<*> -> jo.put(k, JSONArray(v))
                 else -> jo.put(k, v)
@@ -110,12 +116,14 @@ object AppBackup {
             clear()
             val keys = json.keys()
             while (keys.hasNext()) {
-                val k = keys.next()
-                when (val v = json.opt(k)) {
-                    is Boolean -> putBoolean(k, v)
-                    is String -> putString(k, v)
-                    is Number -> putNumber(k, v)
-                    is JSONArray -> putStringSet(k, jsonArrayToSet(v))
+                val key = keys.next()
+                if (key in BLACKLIST_KEYS) continue
+
+                when (val v = json.opt(key)) {
+                    is Boolean -> putBoolean(key, v)
+                    is String -> putString(key, v)
+                    is Number -> putNumber(key, v)
+                    is JSONArray -> putStringSet(key, jsonArrayToSet(v))
                 }
             }
         }

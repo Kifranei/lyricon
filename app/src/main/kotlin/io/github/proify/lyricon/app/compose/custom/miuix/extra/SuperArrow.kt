@@ -1,5 +1,10 @@
-// Copyright 2025, compose-miuix-ui contributors
-// SPDX-License-Identifier: Apache-2.0
+/*
+ * Copyright 2026 Proify, Tomakino
+ * Licensed under the Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
+@file:Suppress("GrazieInspection")
 
 package io.github.proify.lyricon.app.compose.custom.miuix.extra
 

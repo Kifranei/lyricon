@@ -151,12 +151,12 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
 
 
                     InputPreference(
-                        sharedPreferences = preferences,
+                        preferences = preferences,
                         key = "lyric_style_base_width",
                         title = stringResource(R.string.item_base_width),
                         inputType = InputType.DOUBLE,
                         maxValue = 1000.0,
-                        leftAction = {
+                        startAction = {
                             IconActions(painterResource(R.drawable.ic_width_normal))
                         },
                     )
@@ -168,7 +168,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                     )
 
                     SwitchPreference(
-                        sharedPreferences = preferences,
+                        preferences = preferences,
                         key = "lyric_style_base_dynamic_width_enabled",
                         defaultValue = BasicStyle.Defaults.DYNAMIC_WIDTH_ENABLED,
                         title = stringResource(R.string.item_base_dynamic_width),
@@ -179,7 +179,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                     )
 
                     SwitchPreference(
-                        sharedPreferences = preferences,
+                        preferences = preferences,
                         key = "lyric_style_base_dynamic_width_auto_hide_clock",
                         defaultValue = BasicStyle.Defaults.DYNAMIC_WIDTH_AUTO_HIDE_CLOCK,
                         title = stringResource(R.string.item_base_dynamic_width_auto_hide_clock),
@@ -198,7 +198,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
 
                     if (Utils.isHyperOs3OrAbove) {
                         SwitchPreference(
-                            sharedPreferences = preferences,
+                            preferences = preferences,
                             key = "lyric_style_base_xiaomi_island_temp_hide_enabled",
                             defaultValue = BasicStyle.Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
                             title = stringResource(R.string.item_base_xiaomi_island_temp_hide),
@@ -210,12 +210,12 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                     }
                     if (Utils.isOPlus) {
                         InputPreference(
-                            sharedPreferences = preferences,
+                            preferences = preferences,
                             key = "lyric_style_base_width_in_coloros_capsule_mode",
                             title = stringResource(R.string.item_base_width_color_os_capsule),
                             inputType = InputType.DOUBLE,
                             maxValue = 1000.0,
-                            leftAction = {
+                            startAction = {
                                 IconActions(painterResource(R.drawable.ic_width_normal))
                             },
                         )
@@ -294,13 +294,13 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
         }
 
         InputPreference(
-            sharedPreferences = preferences,
+            preferences = preferences,
             key = "lyric_style_base_no_lyric_hide_timeout",
             title = stringResource(R.string.item_base_timeout_no_lyric),
             inputType = InputType.INTEGER,
             maxValue = 3600000.0,
             summary = hideWhenNoLyricSummary,
-            leftAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+            startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
             isTimeUnit = true,
             formatMultiplier = 1000
         )
@@ -326,13 +326,13 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
         }
 
         InputPreference(
-            sharedPreferences = preferences,
+            preferences = preferences,
             key = "lyric_style_base_no_update_hide_timeout",
             title = stringResource(R.string.item_base_timeout_no_update),
             inputType = InputType.INTEGER,
             maxValue = 3600000.0,
             summary = summary,
-            leftAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+            startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
             isTimeUnit = true,
             formatMultiplier = 1000
         )
@@ -361,13 +361,13 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             }
 
             InputPreference(
-                sharedPreferences = preferences,
+                preferences = preferences,
                 key = "lyric_style_base_keyword_hide_timeout",
                 title = stringResource(R.string.item_base_timeout_keyword_match),
                 inputType = InputType.INTEGER,
                 maxValue = 3600000.0,
                 summary = summary,
-                leftAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+                startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
                 isTimeUnit = true,
                 formatMultiplier = 1000
             )
@@ -384,12 +384,12 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             val summary = keywords
 
             InputPreference(
-                sharedPreferences = preferences,
+                preferences = preferences,
                 key = "lyric_style_base_timeout_hide_keywords",
                 title = stringResource(R.string.item_base_filter_keyword_list),
                 inputType = InputType.STRING,
                 summary = summary,
-                leftAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+                startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
                 label = stringResource(R.string.hint_filter_keyword_input)
             )
         }

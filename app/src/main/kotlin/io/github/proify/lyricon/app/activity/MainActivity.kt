@@ -21,8 +21,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialShapes
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -43,7 +41,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
-import androidx.graphics.shapes.RoundedPolygon
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
@@ -77,6 +74,7 @@ import top.yukonga.miuix.kmp.basic.CardColors
 import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -376,8 +374,7 @@ class MainActivity : BaseActivity() {
                     ColoredIconBox(
                         Modifier,
                         MaterialPalette.Teal.Primary,
-                        R.drawable.ic_android,
-                        MaterialShapes.Sunny
+                        R.drawable.ic_android
                     )
                 },
                 title = stringResource(id = R.string.item_base_lyric_style),
@@ -391,8 +388,7 @@ class MainActivity : BaseActivity() {
                     ColoredIconBox(
                         Modifier.padding(2.dp),
                         MaterialPalette.Orange.Primary,
-                        R.drawable.ic_palette_swatch_variant,
-                        MaterialShapes.Clover8Leaf
+                        R.drawable.ic_palette_swatch_variant
                     )
                 },
                 title = stringResource(id = R.string.item_package_style_manager),
@@ -418,8 +414,7 @@ class MainActivity : BaseActivity() {
                     ColoredIconBox(
                         Modifier,
                         MaterialPalette.Blue.Primary,
-                        R.drawable.ic_extension,
-                        MaterialShapes.Pentagon
+                        R.drawable.ic_extension
                     )
                 },
                 title = stringResource(id = R.string.item_provider_manager),
@@ -446,8 +441,7 @@ class MainActivity : BaseActivity() {
                     ColoredIconBox(
                         Modifier,
                         MaterialPalette.BlueGrey.Primary,
-                        R.drawable.ic_settings,
-                        MaterialShapes.Pill
+                        R.drawable.ic_settings
                     )
                 },
                 title = stringResource(id = R.string.item_app_settings),
@@ -462,8 +456,7 @@ class MainActivity : BaseActivity() {
                     ColoredIconBox(
                         Modifier,
                         MaterialPalette.Green.Primary,
-                        R.drawable.ic_info_fill,
-                        MaterialShapes.Cookie6Sided
+                        R.drawable.ic_info_fill
                     )
                 },
                 title = stringResource(id = R.string.item_about_app),
@@ -480,8 +473,7 @@ class MainActivity : BaseActivity() {
     private fun ColoredIconBox(
         modifier: Modifier = Modifier,
         backgroundColor: Color,
-        iconRes: Int,
-        polygon: RoundedPolygon
+        iconRes: Int
     ) {
         val iconSize = if (viewModel.isMonet) 20.dp else 24.dp
         Box(
@@ -492,7 +484,7 @@ class MainActivity : BaseActivity() {
                     if (viewModel.isMonet) {
                         it.background(
                             MiuixTheme.colorScheme.primary,
-                            polygon.toShape()
+                            CircleShape
                         )
                     } else {
                         it.background(backgroundColor, CircleShape)
@@ -563,29 +555,35 @@ class MainActivity : BaseActivity() {
         )
 
         SuperListPopup(
-            show = showPopup,
+            show = showPopup.value,
+            popupModifier = Modifier,
+            popupPositionProvider = ListPopupDefaults.DropdownPositionProvider,
             alignment = PopupPositionProvider.Align.TopEnd,
-            onDismissRequest = { showPopup.value = false }
-        ) {
-            ListPopupColumn {
-                items.forEachIndexed { index, string ->
-                    DropdownImpl(
-                        text = string,
-                        optionSize = items.size,
-                        isSelected = false,
-                        onSelectedIndexChange = {
-                            if (index == 0) {
-                                onRestartSystemUI()
-                            } else {
-                                onRestartApp()
-                            }
-                            showPopup.value = false
-                        },
-                        index = index
-                    )
+            enableWindowDim = true,
+            onDismissRequest = { showPopup.value = false },
+            maxHeight = null,
+            minWidth = 200.dp,
+            renderInRootScaffold = true,
+            content = {
+                ListPopupColumn {
+                    items.forEachIndexed { index, string ->
+                        DropdownImpl(
+                            text = string,
+                            optionSize = items.size,
+                            isSelected = false,
+                            onSelectedIndexChange = {
+                                if (index == 0) {
+                                    onRestartSystemUI()
+                                } else {
+                                    onRestartApp()
+                                }
+                                showPopup.value = false
+                            },
+                            index = index
+                        )
+                    }
                 }
-            }
-        }
+            })
     }
 
     @Preview(showBackground = true)

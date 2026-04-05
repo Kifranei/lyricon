@@ -85,7 +85,6 @@ class StatusBarLyric(
     private var currentStyle: LyricStyle = initialStyle
     private var isPlaying: Boolean = false
     private var isOplusCapsuleShowing: Boolean = false
-    private var userHideLyric: Boolean = false
 
     var onPlayingChanged: ((Boolean) -> Unit)? = null
 
@@ -100,6 +99,7 @@ class StatusBarLyric(
     private var hasLyricContent: Boolean = false
     private var lyricTimedOut: Boolean = false
     private var currentLyric: String? = null
+    private var isUserHideLyric: Boolean = false
 
     // 主线程调度器
     private val mainHandler: Handler = Handler(context.mainLooper)
@@ -112,6 +112,11 @@ class StatusBarLyric(
         set(value) {
             field = value
             updateVisibility()
+
+            //修复在歌词播放结束时，来回切换StatusBarLyric可见性，导致颜色异常透明问题
+            val old = currentStatusColor
+            setStatusBarColor(StatusColor())
+            setStatusBarColor(old)
         }
 
     // --- 系统 / 辅助组件 ---
@@ -184,8 +189,6 @@ class StatusBarLyric(
 
         textView.setOnHierarchyChangeListener(textHierarchyChangeListener)
         textView.lyricCountChangeListeners += lyricCountChangeListener
-
-
     }
 
     // --- 公开 API ---
@@ -243,8 +246,8 @@ class StatusBarLyric(
                 && !isHideOnLockScreen()
                 && textView.shouldShow()
                 && !lyricTimedOut
-                && !userHideLyric
                 && !isDisabledVisible
+                && !isUserHideLyric
 
         visibleIfChanged = shouldShow
 
@@ -253,8 +256,8 @@ class StatusBarLyric(
     }
 
     fun setUserHideLyric(hide: Boolean) {
-        if (userHideLyric == hide) return
-        userHideLyric = hide
+        if (isUserHideLyric == hide) return
+        isUserHideLyric = hide
         updateVisibility()
     }
 
@@ -280,6 +283,7 @@ class StatusBarLyric(
             pendingSleepData?.position = position
             return
         }
+
         textView.seekTo(position)
         refreshLyricTimeoutState()
     }
@@ -289,6 +293,7 @@ class StatusBarLyric(
             pendingSleepData?.position = position
             return
         }
+
         textView.setPosition(position)
     }
 
@@ -318,8 +323,8 @@ class StatusBarLyric(
     private fun updateLogoLocation() {
         val logoStyle = currentStyle.packageStyle.logo
         val gravity = logoStyle.gravity
-        if (gravity == lastLogoGravity) return
-        lastLogoGravity = gravity
+
+        if (gravity == lastLogoGravity) return; lastLogoGravity = gravity
 
         if (contains(logoView)) removeView(logoView)
         val textIndex = indexOfChild(textView).coerceAtLeast(0)
@@ -381,13 +386,8 @@ class StatusBarLyric(
         textView.layoutParams = lp
     }
 
-    private fun calculateTargetWidth(basicStyle: BasicStyle): Float {
-        return if (isOplusCapsuleShowing) {
-            basicStyle.widthInColorOSCapsuleMode
-        } else {
-            basicStyle.width
-        }
-    }
+    private fun calculateTargetWidth(basicStyle: BasicStyle) =
+        if (isOplusCapsuleShowing) basicStyle.widthInColorOSCapsuleMode else basicStyle.width
 
     private fun ensureMarginLayoutParams(): MarginLayoutParams {
         val lp = layoutParams as? MarginLayoutParams

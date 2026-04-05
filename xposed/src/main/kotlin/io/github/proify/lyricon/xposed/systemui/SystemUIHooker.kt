@@ -22,10 +22,12 @@ import io.github.proify.lyricon.central.BridgeCentral
 import io.github.proify.lyricon.central.provider.player.ActivePlayerDispatcher
 import io.github.proify.lyricon.common.util.ScreenStateMonitor
 import io.github.proify.lyricon.common.util.ViewHierarchyParser
+import io.github.proify.lyricon.xposed.systemui.lyric.AiTranslationManager
+import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager
-import io.github.proify.lyricon.xposed.systemui.setting.LyricPrefs
+import io.github.proify.lyricon.xposed.systemui.util.ClockColorMonitor
 import io.github.proify.lyricon.xposed.systemui.util.CrashDetector
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
 import io.github.proify.lyricon.xposed.systemui.util.OplusCapsuleHooker
@@ -35,14 +37,19 @@ import io.github.proify.lyricon.xposed.systemui.util.ViewVisibilityTracker
 import io.github.proify.lyricon.xposed.systemui.util.XiaomiIslandHooker
 
 object SystemUIHooker : YukiBaseHooker() {
-    private const val TEST_CRASH = false
 
+    private const val TEST_CRASH = false
+    private var isSafeMode = false
+    private var isAppCreated = false
     private var layoutInflaterResult: YukiMemberHookCreator.MemberHookCreator.Result? = null
-    private var safeMode = false
 
     override fun onHook() {
         onAppLifecycle {
-            onCreate { onPreAppCreate() }
+            onCreate {
+                if (isAppCreated) return@onCreate
+                isAppCreated = true
+                onPreAppCreate()
+            }
         }
     }
 
@@ -53,14 +60,14 @@ object SystemUIHooker : YukiBaseHooker() {
         CrashDetector.getInstance(context).apply {
             record()
             if (isContinuousCrash()) {
-                safeMode = true
+                isSafeMode = true
                 YLog.error("检测到连续崩溃，已停止hook")
             }
-            if (safeMode) reset()
+            if (isSafeMode) reset()
         }
 
         initCrashDataChannel()
-        if (!safeMode) onAppCreate()
+        if (!isSafeMode) onAppCreate()
     }
 
     @SuppressLint("DiscouragedApi")
@@ -117,26 +124,34 @@ object SystemUIHooker : YukiBaseHooker() {
                 }
             }
         })
+
+        ClockColorMonitor.hook()
+        AiTranslationManager.init(context)
     }
 
     private fun initDataChannel() {
         val channel = dataChannel
         channel.wait(key = AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE) {
-            StatusBarViewManager.forEach { it.updateLyricStyle(LyricPrefs.getLyricStyle()) }
-            LyricViewController.refreshLyricTranslationDisplayConfig()
-            LyricViewController.notifyLyricVisibilityChanged()
+            LyricViewController.updateLyricViewStyle(LyricPrefs.getLyricStyle())
         }
         channel.wait<String>(key = AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW) { id ->
-            StatusBarViewManager.forEach { it.highlightView(id) }
+            StatusBarViewManager.forEach {
+                it.highlightView(id)
+            }
         }
         channel.wait<String>(key = AppBridgeConstants.REQUEST_VIEW_TREE) {
             StatusBarViewManager.forEach { controller ->
                 val data =
                     json.safeEncode(ViewHierarchyParser.buildNodeTree(controller.statusBarView))
-                        .toByteArray(Charsets.UTF_8).deflate()
+                        .toByteArray(Charsets.UTF_8)
+                        .deflate()
                 channel.put(AppBridgeConstants.REQUEST_VIEW_TREE_CALLBACK, data)
                 return@forEach
             }
+        }
+        channel.wait(key = AppBridgeConstants.REQUEST_CLEAR_TRANSLATION_DB) {
+            AiTranslationManager.clearCache()
+            LyricViewController.notifyTranslationDbChange()
         }
     }
 
@@ -154,9 +169,9 @@ object SystemUIHooker : YukiBaseHooker() {
     }
 
     private fun initCrashDataChannel() {
-        dataChannel.put(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE_CALLBACK, safeMode)
+        dataChannel.put(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE_CALLBACK, isSafeMode)
         dataChannel.wait(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE) {
-            dataChannel.put(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE_CALLBACK, safeMode)
+            dataChannel.put(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE_CALLBACK, isSafeMode)
         }
     }
 }

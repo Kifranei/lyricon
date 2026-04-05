@@ -37,12 +37,13 @@ import io.github.proify.lyricon.app.compose.MaterialPalette
 import io.github.proify.lyricon.app.compose.custom.bonsai.core.node.Node
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
-import io.github.proify.lyricon.app.updateRemoteLyricStyle
 import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.LyricPrefs
+import io.github.proify.lyricon.app.util.updateRemoteLyricStyle
 import io.github.proify.lyricon.common.util.ViewTreeNode
 import io.github.proify.lyricon.lyric.style.VisibilityRule
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.extra.BottomSheetDefaults
 import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -157,19 +158,32 @@ class ViewRulesTreeActivity : ViewTreeActivity() {
         val context = LocalContext.current
 
         SuperBottomSheet(
-            backgroundColor = MiuixTheme.colorScheme.surface,
+            show = show.value,
+            modifier = Modifier,
             title = nodeId,
-            show = show,
+            startAction = null,
+            endAction = null,
+            backgroundColor = MiuixTheme.colorScheme.surface,
+            enableWindowDim = true,
+            cornerRadius = BottomSheetDefaults.cornerRadius,
+            sheetMaxWidth = BottomSheetDefaults.maxWidth,
             onDismissRequest = { show.value = false },
+            onDismissFinished = null,
+            outsideMargin = BottomSheetDefaults.outsideMargin,
             insideMargin = DpSize(16.dp, 0.dp),
-        ) {
-            Card(modifier = Modifier.fillMaxWidth()) {
-                options.forEach { option ->
-                    VisibilityOptionItem(option, selectedMode, onModeSelected, context)
+            defaultWindowInsetsPadding = true,
+            dragHandleColor = BottomSheetDefaults.dragHandleColor(),
+            allowDismiss = true,
+            enableNestedScroll = true,
+            renderInRootScaffold = true,
+            content = {
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    options.forEach { option ->
+                        VisibilityOptionItem(option, selectedMode, onModeSelected, context)
+                    }
                 }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-        }
+                Spacer(modifier = Modifier.height(16.dp))
+            })
     }
 
     @Composable

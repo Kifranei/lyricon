@@ -22,8 +22,8 @@ import com.highcapable.yukihookapi.hook.log.YLog
 import io.github.proify.android.extensions.dp
 import io.github.proify.android.extensions.setColorAlpha
 import io.github.proify.android.extensions.toBitmap
-import io.github.proify.lyricon.common.util.CoverThemeColorExtractor
-import io.github.proify.lyricon.common.util.CoverThemeGradientExtractor
+import io.github.proify.lyricon.colorextractor.palette.ColorExtractor
+import io.github.proify.lyricon.colorextractor.palette.ColorPaletteResult
 import io.github.proify.lyricon.common.util.ResourceMapper
 import io.github.proify.lyricon.common.util.ScreenStateMonitor
 import io.github.proify.lyricon.lyric.style.BasicStyle
@@ -60,13 +60,18 @@ class StatusBarViewController(
     private var lyricDoubleTapDetector: GestureDetector? = null
     private var clockDoubleTapDetector: GestureDetector? = null
     private var statusBarTouchListener: View.OnTouchListener? = null
-
     private var colorMonitorView: View? = null
-    private var coverThemeColors: CoverThemeColorExtractor.ThemeColors? = null
-    private var coverThemeGradientColors: CoverThemeGradientExtractor.ThemeGradientColors? = null
-    private var lastClockColor: Int? = null
+    private var coverColorPaletteResult: ColorPaletteResult? = null
+    private var systemStatusBarColor: SystemStatusBarColor? = null
     private var isClockAutoHiddenByDynamicWidth = false
     private var originalClockVisibilityBeforeDynamicHide: Int? = null
+
+    private val onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
+        if (clockView == null) {
+            setupDoubleTapHandlers()
+        }
+        applyVisibilityRulesNow()
+    }
 
     // --- 生命周期与初始化 ---
     fun onCreate() {
@@ -78,28 +83,16 @@ class StatusBarViewController(
             if (!playing) {
                 setUserShowClock(false)
             }
+            updateDynamicWidthClockVisibility()
+            LyricViewController.notifyLyricVisibilityChanged()
         }
         setupDoubleTapHandlers()
 
-
         val onColorChangeListener = object : OnColorChangeListener {
             override fun onColorChanged(color: Int, darkIntensity: Float) {
-                lyricView.apply {
-                    lastClockColor = color
-                    currentStatusColor.darkIntensity = darkIntensity
-                    if (shouldUseCoverTextColor() && applyCoverStatusColor()) return
-                    setStatusBarColor(currentStatusColor.apply {
-                        this.color = color
-                        this.darkIntensity = darkIntensity
-                        translucentColor = color.setColorAlpha(0.75f)
-                        gradientColors = null
-                        translucentGradientColors = null
-                    })
-                }
+                updateStatusColor(SystemStatusBarColor(color, darkIntensity))
             }
         }
-
-        ClockColorMonitor.hook()
 
         colorMonitorView = getClockView()?.also {
             ClockColorMonitor.setListener(it, onColorChangeListener)
@@ -115,6 +108,10 @@ class StatusBarViewController(
         lyricView.removeOnAttachStateChangeListener(lyricAttachListener)
         ScreenStateMonitor.removeListener(this)
         lyricView.onPlayingChanged = null
+        statusBarTouchListener?.let { statusBarView.setOnTouchListener(null) }
+        statusBarTouchListener = null
+        lyricDoubleTapDetector = null
+        clockDoubleTapDetector = null
         colorMonitorView?.let { ClockColorMonitor.setListener(it, null) }
         restoreClockVisibilityFromDynamicWidth()
         LyricViewController.notifyLyricVisibilityChanged()
@@ -122,6 +119,55 @@ class StatusBarViewController(
     }
 
     // --- 核心业务逻辑 ---
+
+    /**
+     * 更新状态栏颜色，内部决定最终颜色
+     */
+    private fun updateStatusColor(systemStatusBarColor: SystemStatusBarColor) {
+        this.systemStatusBarColor = systemStatusBarColor
+
+        val textStyle = currentLyricStyle.packageStyle.text
+        lyricView.apply {
+            currentStatusColor.apply {
+                this.darkIntensity = systemStatusBarColor.darkIntensity
+
+                val coverColorPaletteResult = coverColorPaletteResult
+                when {
+                    coverColorPaletteResult != null
+                            && textStyle.enableExtractCoverTextColor
+                            && textStyle.enableExtractCoverTextGradient -> {
+                        val themeColors = coverColorPaletteResult
+                            .let { if (isLightMode) it.lightModeColors else it.darkModeColors }
+
+                        val gradient = themeColors.swatches
+
+                        this.color = gradient
+                        this.translucentColor = gradient.map {
+                            it.setColorAlpha(0.75f)
+                        }.toIntArray()
+                    }
+
+                    coverColorPaletteResult != null
+                            && textStyle.enableExtractCoverTextColor -> {
+                        val themeColors = coverColorPaletteResult
+                            .let { if (isLightMode) it.lightModeColors else it.darkModeColors }
+
+                        val primary = themeColors.primary
+
+                        this.color = intArrayOf(primary)
+                        this.translucentColor = intArrayOf(primary.setColorAlpha(0.75f))
+                    }
+
+                    else -> {
+                        this.color = intArrayOf(systemStatusBarColor.color)
+                        this.translucentColor =
+                            intArrayOf(systemStatusBarColor.color.setColorAlpha(0.5f))
+                    }
+                }
+            }
+            setStatusBarColor(currentStatusColor)
+        }
+    }
 
     /**
      * 更新歌词样式及位置，若锚点或顺序变化则重新注入视图
@@ -141,85 +187,26 @@ class StatusBarViewController(
         if (needUpdateLocation) {
             YLog.info("Lyric location changed: ${basicStyle.anchor}, order ${basicStyle.insertionOrder}")
             updateLocation(basicStyle)
-        } else {
-            //YLog.info("Lyric location unchanged: $lastAnchor")
         }
         lyricView.updateStyle(lyricStyle)
-        if (shouldUseCoverTextColor()) {
-            updateCoverThemeColors(lyricView.logoView.coverFile)
-        } else {
-            coverThemeColors = null
-            coverThemeGradientColors = null
-            lastClockColor?.let { color ->
-                lyricView.setStatusBarColor(lyricView.currentStatusColor.apply {
-                    this.color = color
-                    translucentColor = color.setColorAlpha(0.75f)
-                    gradientColors = null
-                    translucentGradientColors = null
-                })
-            }
-        }
+
+        systemStatusBarColor?.let { updateStatusColor(it) }
         updateDynamicWidthClockVisibility()
         LyricViewController.notifyLyricVisibilityChanged()
     }
 
     fun updateCoverThemeColors(coverFile: File?) {
-        if (!shouldUseCoverTextColor()) {
-            coverThemeColors = null
-            coverThemeGradientColors = null
-            return
-        }
-
-        val bitmap = coverFile?.toBitmap(64, 64) ?: return
+        coverColorPaletteResult = null
         try {
-            coverThemeColors = CoverThemeColorExtractor.extract(bitmap)
-            coverThemeGradientColors = if (shouldUseCoverTextGradient()) {
-                CoverThemeGradientExtractor.extract(bitmap)
-            } else {
-                null
+            val bitmap = coverFile?.toBitmap() ?: return
+            ColorExtractor.extractAsync(bitmap) {
+                coverColorPaletteResult = it
+                systemStatusBarColor?.let { updateStatusColor(it) }
+                bitmap.recycle()
             }
-        } finally {
-            bitmap.recycle()
+        } catch (e: Exception) {
+            YLog.error("Failed to extract cover theme colors", e)
         }
-        applyCoverStatusColor()
-    }
-
-    private fun shouldUseCoverTextColor(): Boolean {
-        val textStyle = currentLyricStyle.packageStyle.text
-        return textStyle.enableExtractCoverTextColor && !textStyle.enableCustomTextColor
-    }
-
-    private fun shouldUseCoverTextGradient(): Boolean {
-        val textStyle = currentLyricStyle.packageStyle.text
-        return shouldUseCoverTextColor() && textStyle.enableExtractCoverTextGradient
-    }
-
-    private fun applyCoverStatusColor(): Boolean {
-        val colors = coverThemeColors ?: return false
-        val statusColor = lyricView.currentStatusColor
-        val isLightMode = statusColor.lightMode
-
-        val gradient = coverThemeGradientColors
-            ?.takeIf { shouldUseCoverTextGradient() }
-            ?.let { if (isLightMode) it.lightModeColors else it.darkModeColors }
-            ?.takeIf { it.isNotEmpty() }
-
-        val color = if (isLightMode) colors.lightModeColor else colors.darkModeColor
-
-        lyricView.setStatusBarColor(statusColor.apply {
-            if (gradient != null && gradient.size >= 2) {
-                this.color = gradient.first()
-                translucentColor = this.color.setColorAlpha(0.75f)
-                gradientColors = gradient
-                translucentGradientColors = gradient.map { it.setColorAlpha(0.75f) }.toIntArray()
-            } else {
-                this.color = color
-                translucentColor = color.setColorAlpha(0.75f)
-                gradientColors = null
-                translucentGradientColors = null
-            }
-        })
-        return true
     }
 
     /**
@@ -305,6 +292,12 @@ class StatusBarViewController(
             return
         }
 
+        // 用户手动切到时钟时，强制恢复时钟，避免双击后因动态宽度仍被自动隐藏
+        if (userShowClock) {
+            restoreClockVisibilityFromDynamicWidth()
+            return
+        }
+
         if (!basicStyle.dynamicWidthEnabled
             || !basicStyle.dynamicWidthAutoHideClock
             || basicStyle.anchor != "clock"
@@ -362,6 +355,7 @@ class StatusBarViewController(
             lyricDoubleTapDetector = GestureDetector(
                 context,
                 object : GestureDetector.SimpleOnGestureListener() {
+                    override fun onDown(e: MotionEvent): Boolean = true
                     override fun onDoubleTap(e: MotionEvent): Boolean {
                         if (!doubleTapSwitchEnabled || !LyricViewController.isPlaying) return false
                         setUserShowClock(true)
@@ -375,6 +369,7 @@ class StatusBarViewController(
             clockDoubleTapDetector = GestureDetector(
                 context,
                 object : GestureDetector.SimpleOnGestureListener() {
+                    override fun onDown(e: MotionEvent): Boolean = true
                     override fun onDoubleTap(e: MotionEvent): Boolean {
                         if (!doubleTapSwitchEnabled || !LyricViewController.isPlaying) return false
                         setUserShowClock(false)
@@ -387,6 +382,13 @@ class StatusBarViewController(
         if (statusBarTouchListener == null) {
             statusBarTouchListener = View.OnTouchListener { _, event ->
                 if (!doubleTapSwitchEnabled || !LyricViewController.isPlaying) return@OnTouchListener false
+
+                if (userShowClock) {
+                    // 时钟模式下允许整块区域双击切回歌词，避免 clock 被自动隐藏时无响应
+                    clockDoubleTapDetector?.onTouchEvent(event)
+                    return@OnTouchListener false
+                }
+
                 if (isTouchInside(lyricView, event)) {
                     lyricDoubleTapDetector?.onTouchEvent(event)
                 } else {
@@ -407,18 +409,11 @@ class StatusBarViewController(
         userShowClock = show
         lyricView.setUserHideLyric(show)
         lyricView.updateVisibility()
-        if (show) {
-            visibilityController.applyVisibilityRules(
-                rules = currentLyricStyle.basicStyle.visibilityRules,
-                isPlaying = false
-            )
-        }
         if (!show) {
-            // 恢复歌词时主动重绑一次翻译显示配置，避免副行残留为原文/空行。
+            // 恢复歌词时重绑一次翻译显示，避免只剩原文或副行状态错乱
             LyricViewController.refreshLyricTranslationDisplayConfig()
         }
-        updateDynamicWidthClockVisibility()
-        LyricViewController.notifyLyricVisibilityChanged()
+        applyVisibilityRulesNow()
     }
 
     private fun isTouchInside(view: View, event: MotionEvent): Boolean {
@@ -451,18 +446,10 @@ class StatusBarViewController(
         } ?: YLog.error("Highlight target $idName not found")
     }
 
-    // --- 监听器实现 ---
-
-    private val onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
-        if (clockView == null) {
-            setupDoubleTapHandlers()
-        }
-        applyVisibilityRulesNow()
-    }
-
     private val lyricAttachListener = object : View.OnAttachStateChangeListener {
         override fun onViewAttachedToWindow(v: View) {
             YLog.info("LyricView attached")
+            applyVisibilityRulesNow()
         }
 
         override fun onViewDetachedFromWindow(v: View) {
@@ -476,8 +463,13 @@ class StatusBarViewController(
     }
 
     private val statusBarAttachListener = object : View.OnAttachStateChangeListener {
-        override fun onViewAttachedToWindow(v: View) {}
-        override fun onViewDetachedFromWindow(v: View) {}
+        override fun onViewAttachedToWindow(v: View) {
+            setupDoubleTapHandlers()
+        }
+        override fun onViewDetachedFromWindow(v: View) {
+            restoreClockVisibilityFromDynamicWidth()
+            LyricViewController.notifyLyricVisibilityChanged()
+        }
     }
 
     override fun onScreenOn() {
@@ -511,4 +503,6 @@ class StatusBarViewController(
         (this === other) || (other is StatusBarViewController && statusBarView === other.statusBarView)
 
     override fun hashCode(): Int = 31 * 17 + statusBarView.hashCode()
+
+    data class SystemStatusBarColor(val color: Int, val darkIntensity: Float)
 }
