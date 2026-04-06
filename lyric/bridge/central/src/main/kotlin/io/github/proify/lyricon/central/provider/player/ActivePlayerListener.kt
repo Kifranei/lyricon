@@ -70,5 +70,10 @@ interface ActivePlayerListener {
      */
     fun onDisplayTranslationChanged(isDisplayTranslation: Boolean)
 
-    fun onDisplayRomaChanged(displayRoma: Boolean)
+    /**
+     * 当前活跃播放器的罗马音状态发生变化时回调。
+     *
+     * @param isDisplayRoma 是否显示罗马音
+     */
+    fun onDisplayRomaChanged(isDisplayRoma: Boolean)
 }
