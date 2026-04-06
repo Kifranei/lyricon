@@ -16,6 +16,7 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import java.lang.ref.WeakReference
+import java.util.Collections
 import java.util.WeakHashMap
 
 /**
@@ -34,7 +35,8 @@ object XiaomiIslandHooker {
     )
 
     private val islandViews = mutableListOf<WeakReference<View>>()
-    private val originalStates = WeakHashMap<View, ViewState>()
+    private val islandViewsLock = Any()
+    private val originalStates = Collections.synchronizedMap(WeakHashMap<View, ViewState>())
 
     private var hideByLyric = false
     private var lastHideByLyric: Boolean? = null
@@ -45,7 +47,7 @@ object XiaomiIslandHooker {
         unhooks.forEach { it.unhook() }
         unhooks.clear()
         addViewHooked = false
-        islandViews.clear()
+        synchronized(islandViewsLock) { islandViews.clear() }
         originalStates.clear()
         hideByLyric = false
         lastHideByLyric = null
@@ -126,14 +128,25 @@ object XiaomiIslandHooker {
     }
 
     private fun applyStateToTrackedViews(shouldHide: Boolean) {
-        val iterator = islandViews.iterator()
-        while (iterator.hasNext()) {
-            val view = iterator.next().get()
-            if (view == null) {
-                iterator.remove()
-                continue
-            }
+        val trackedViews = collectTrackedViewsSnapshot()
+        trackedViews.forEach { view ->
             applyState(view, shouldHide)
+        }
+    }
+
+    private fun collectTrackedViewsSnapshot(): List<View> {
+        synchronized(islandViewsLock) {
+            val result = ArrayList<View>(islandViews.size)
+            val iterator = islandViews.iterator()
+            while (iterator.hasNext()) {
+                val view = iterator.next().get()
+                if (view == null) {
+                    iterator.remove()
+                    continue
+                }
+                result.add(view)
+            }
+            return result
         }
     }
 
@@ -144,18 +157,22 @@ object XiaomiIslandHooker {
         }.getOrNull() ?: return false
         if (idName != TARGET_ID_NAME) return false
 
-        val iterator = islandViews.iterator()
         var exists = false
-        while (iterator.hasNext()) {
-            val tracked = iterator.next().get()
-            if (tracked == null) {
-                iterator.remove()
-            } else if (tracked === view) {
-                exists = true
+        synchronized(islandViewsLock) {
+            val iterator = islandViews.iterator()
+            while (iterator.hasNext()) {
+                val tracked = iterator.next().get()
+                if (tracked == null) {
+                    iterator.remove()
+                } else if (tracked === view) {
+                    exists = true
+                }
+            }
+            if (!exists) {
+                islandViews.add(WeakReference(view))
             }
         }
         if (!exists) {
-            islandViews.add(WeakReference(view))
             YLog.info(tag = TAG, msg = "Tracked island_container: $view")
         }
         return true
