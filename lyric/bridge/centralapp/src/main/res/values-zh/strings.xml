@@ -5,6 +5,6 @@
   -->
 
 <resources>
-    <string name="app_name">LyriconService</string>
-    <string name="xposed_description">Lyricon API Service</string>
+    <string name="app_name">词幕服务</string>
+    <string name="xposed_description">词幕API服务</string>
 </resources>

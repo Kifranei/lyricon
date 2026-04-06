@@ -24,9 +24,9 @@ import java.io.File
  * 歌词视图控制器
  *
  * 核心职责：
- * 1. 监听并分发播放器状态（播放/暂停/进度/歌曲变更）。
- * 2. 管理 AI 翻译生命周期，确保异步回调的一致性。
- * 3. 动态响应全局及特定应用的样式配置变更。
+ * 1. 监听并分发播放器状态（播放/暂停/进度/歌曲变更等事件）。
+ * 2. 管理 AI 翻译生命周期，通过版本控制确保异步回调数据的一致性。
+ * 3. 动态响应全局及特定应用的样式配置变更，并同步到底层视图。
  */
 object LyricViewController : ActivePlayerListener, Handler.Callback,
     OplusCapsuleHooker.CapsuleStateChangeListener,
@@ -35,18 +35,17 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     private const val TAG = "LyricViewController"
     private const val DEBUG = true
 
-    // --- Message What Definitions ---
     private const val WHAT_PLAYER_CHANGED = 1
     private const val WHAT_SONG_CHANGED = 2
     private const val WHAT_PLAYBACK_STATE_CHANGED = 3
-    private const val WHAT_POSITION_UPDATE = 4
+    private const val WHAT_POSITION_CHANGED = 4
     private const val WHAT_SEEK_TO = 5
     private const val WHAT_TEXT_RECEIVED = 6
     private const val WHAT_TRANSLATION_TOGGLE = 7
     private const val WHAT_ROMA_TOGGLE = 8
     private const val WHAT_AI_TRANSLATION_FINISHED = 9
 
-    /** 当前是否处于播放状态 */
+    /** 当前播放器是否处于播放中状态 */
     @Volatile
     var isPlaying: Boolean = false
         private set
@@ -56,35 +55,37 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     var activePackage: String = ""
         private set
 
-    /** 当前播放器提供者信息 */
+    /** 当前活跃播放器的提供者信息集合 */
     @Volatile
     var providerInfo: ProviderInfo? = null
         private set
 
-    /** 翻译显示开关状态（由全局/系统广播控制） */
+    /** 翻译显示开关（受全局或系统广播控制） */
     @Volatile
     private var isDisplayTranslation: Boolean = true
 
-    /** 罗马音显示开关状态 */
+    /** 罗马音显示开关（受全局或系统广播控制） */
     @Volatile
     private var isDisplayRoma: Boolean = true
 
-    /** 原始歌曲对象，不包含 AI 翻译结果，用于回退 */
+    /** 原始歌曲数据对象（不包含动态 AI 翻译结果，用于配置变更时的状态回退） */
     @Volatile
     private var rawSong: Song? = null
 
-    /** 当前展示的歌曲对象，可能包含 AI 翻译结果 */
+    /** 当前实际展示的歌曲数据对象（可能已合并 AI 翻译结果） */
     @Volatile
     private var currentSong: Song? = null
 
-    /** 样式配置标识符，用于检测配置是否发生实质性变化 */
-    private var translationSettingSign = ""
+    /** 翻译样式的配置签名，用于检测配置是否发生实质性变更 */
+    private var translationSettingSignature = ""
 
-    /** 歌曲数据版本，用于解决异步翻译回调的竞态问题 */
-    private var songDataVersion: Int = 0
+    /** 歌曲状态版本号，自增用于废弃过期的异步翻译任务回调 */
+    private var songStateVersion: Int = 0
 
+    /** 主线程 UI 消息处理器 */
     private val uiHandler by lazy { Handler(Looper.getMainLooper(), this) }
 
+    /** 记录最近一次应用的歌词样式 */
     private var lastLyricStyle: LyricStyle? = null
 
     init {
@@ -93,14 +94,29 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
         NotificationCoverHelper.registerListener(this)
     }
 
-    // --- ActivePlayerListener Implementation ---
-
     override fun onActiveProviderChanged(providerInfo: ProviderInfo?) {
         uiHandler.obtainMessage(WHAT_PLAYER_CHANGED, providerInfo).sendToTarget()
     }
 
     override fun onSongChanged(song: Song?) {
-        uiHandler.obtainMessage(WHAT_SONG_CHANGED, song).sendToTarget()
+        /**
+         * 根据用户配置的屏蔽词正则过滤歌词行
+         */
+        fun filterBlockedWords(songToProcess: Song?): Song? {
+            val style = LyricPrefs.baseStyle
+            val blockedWordsRegex = style.blockedWordsRegex ?: return songToProcess
+
+            val lyrics = songToProcess?.lyrics?.mapNotNull { line ->
+                val text = line.text
+                if (text.isNullOrEmpty()) return@mapNotNull null
+                if (blockedWordsRegex.containsMatchIn(text)) {
+                    null
+                } else line
+            }
+            return songToProcess?.copy(lyrics = lyrics)
+        }
+        val processedSong = filterBlockedWords(song)
+        uiHandler.obtainMessage(WHAT_SONG_CHANGED, processedSong).sendToTarget()
     }
 
     override fun onPlaybackStateChanged(isPlaying: Boolean) {
@@ -109,9 +125,9 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     }
 
     override fun onPositionChanged(position: Long) {
-        // 进度更新高频触发，移除旧消息以减轻主线程压力
-        uiHandler.removeMessages(WHAT_POSITION_UPDATE)
-        sendLongMessage(WHAT_POSITION_UPDATE, position)
+        // 进度更新高频触发，移除旧消息以减轻主线程队列压力
+        uiHandler.removeMessages(WHAT_POSITION_CHANGED)
+        sendLongMessage(WHAT_POSITION_CHANGED, position)
     }
 
     override fun onSeekTo(position: Long) {
@@ -133,13 +149,13 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
         uiHandler.obtainMessage(WHAT_ROMA_TOGGLE, if (isDisplayRoma) 1 else 0, 0).sendToTarget()
     }
 
-    // --- Core Logic & Handler ---
-
+    /**
+     * 处理由监听器分发至主线程的各类事件消息
+     */
     override fun handleMessage(msg: Message): Boolean {
-        // 1. 全局状态同步：根据消息类型预更新内部变量
         when (msg.what) {
             WHAT_PLAYER_CHANGED -> {
-                songDataVersion++ // 切歌或切换播放器，旧版本失效
+                songStateVersion++
                 rawSong = null
                 currentSong = null
                 val provider = msg.obj as? ProviderInfo
@@ -149,7 +165,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
             }
 
             WHAT_SONG_CHANGED -> {
-                songDataVersion++
+                songStateVersion++
                 val song = msg.obj as? Song
                 rawSong = song
                 currentSong = song
@@ -161,37 +177,37 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
             }
 
             WHAT_AI_TRANSLATION_FINISHED -> {
-                // 仅当版本号匹配时才更新当前歌曲，防止覆盖新切的歌曲
-                if (msg.arg1 == songDataVersion) {
+                if (msg.arg1 == songStateVersion) {
                     (msg.obj as? Song)?.let { currentSong = it }
                 } else return true
             }
         }
 
-        // 2. 任务分发：更新所有已注册的状态栏视图控制器
         dispatchToControllers(msg)
         return true
     }
 
     /**
-     * 将事件分发给所有状态栏控制器，处理 UI 更新
+     * 将解析后的事件具体分发给所有已注册的状态栏视图控制器以驱动 UI 更新
+     *
+     * @param msg 携带状态更新数据的消息对象
      */
     private fun dispatchToControllers(msg: Message) {
         forEachController {
             try {
                 val view = lyricView
                 when (msg.what) {
-                    WHAT_PLAYER_CHANGED -> performPlayerChange(this, msg.obj as? ProviderInfo)
-                    WHAT_SONG_CHANGED -> view.setSong(processSongByStyle(msg.obj as? Song))
+                    WHAT_PLAYER_CHANGED -> resetViewForNewPlayer(this, msg.obj as? ProviderInfo)
+                    WHAT_SONG_CHANGED -> view.setSong(applyTranslationStyleToSong(msg.obj as? Song))
                     WHAT_PLAYBACK_STATE_CHANGED -> view.setPlaying(isPlaying)
-                    WHAT_POSITION_UPDATE -> view.setPosition(unpackLong(msg.arg1, msg.arg2))
+                    WHAT_POSITION_CHANGED -> view.setPosition(unpackLong(msg.arg1, msg.arg2))
                     WHAT_SEEK_TO -> view.seekTo(unpackLong(msg.arg1, msg.arg2))
                     WHAT_TEXT_RECEIVED -> view.setText(msg.obj as? String)
                     WHAT_TRANSLATION_TOGGLE -> refreshTranslationVisibility(view)
                     WHAT_ROMA_TOGGLE -> view.updateDisplayTranslation(displayRoma = isDisplayRoma)
                     WHAT_AI_TRANSLATION_FINISHED -> {
-                        if (msg.arg1 == songDataVersion) {
-                            view.setSong(processSongByStyle(msg.obj as? Song))
+                        if (msg.arg1 == songStateVersion) {
+                            view.setSong(applyTranslationStyleToSong(msg.obj as? Song))
                         }
                     }
                 }
@@ -201,52 +217,58 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
         }
     }
 
-    // --- Style & Configuration Logic ---
-
     /**
-     * 更新歌词视图样式并执行配置变更自适应
+     * 更新歌词视图基础样式并触发相关配置的连锁变更检测
+     *
+     * @param style 新的歌词样式配置
      */
     fun updateLyricViewStyle(style: LyricStyle) {
         lastLyricStyle = style
         forEachController { updateLyricStyle(style) }
-        checkTranslationChange(style)
+        evaluateTranslationSettings(style)
     }
 
     /**
-     * 检查并应用翻译设置变更
-     * 如果设置发生变化，会重新评估是否需要翻译或回退到原始歌曲
+     * 评估翻译相关设置是否发生变更，并在必要时重启翻译任务或重置展示状态
+     *
+     * @param style 包含最新翻译配置规则的样式对象
      */
-    private fun checkTranslationChange(style: LyricStyle) {
+    private fun evaluateTranslationSettings(style: LyricStyle) {
         val textStyle = style.packageStyle.text
-        val currentSign =
+        val currentSignature =
             "${textStyle.isAiTranslationEnable}|${textStyle.isTranslationOnly}|${textStyle.isDisableTranslation}"
 
-        if (translationSettingSign == currentSign) return
-        translationSettingSign = currentSign
+        if (translationSettingSignature == currentSignature) return
+        translationSettingSignature = currentSignature
 
         if (DEBUG) YLog.debug(
             tag = TAG,
             msg = "Translation settings signature changed, re-evaluating..."
         )
 
-        // 设置变化后，基于原始歌曲重新执行任务流
         rawSong?.let { startAiTranslationTask(it) }
 
         forEachController {
-            lyricView.setSong(processSongByStyle(currentSong))
+            lyricView.setSong(applyTranslationStyleToSong(currentSong))
             refreshTranslationVisibility(lyricView)
         }
     }
 
+    /**
+     * 通知翻译数据库已变更，强制使翻译配置签名失效并重新评估
+     */
     fun notifyTranslationDbChange() {
-        translationSettingSign = ""
-        lastLyricStyle?.let { checkTranslationChange(it) }
+        translationSettingSignature = ""
+        lastLyricStyle?.let { evaluateTranslationSettings(it) }
     }
 
     /**
-     * 执行播放器切换逻辑，重置视图状态
+     * 处理播放器源的切换，重置视图数据并加载新播放器的 Logo 与封面
+     *
+     * @param controller 目标状态栏视图控制器
+     * @param provider 新的播放器提供者信息
      */
-    private fun performPlayerChange(controller: StatusBarViewController, provider: ProviderInfo?) {
+    private fun resetViewForNewPlayer(controller: StatusBarViewController, provider: ProviderInfo?) {
         val view = controller.lyricView
         view.setSong(null)
         view.setPlaying(false)
@@ -263,9 +285,12 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     }
 
     /**
-     * 根据当前样式偏好（如“仅显示翻译”）二次加工歌曲数据
+     * 根据当前样式偏好（如“仅显示翻译”）对原歌曲数据进行最终显示前的加工
+     *
+     * @param song 待处理的歌曲对象
+     * @return 经过样式适配处理后的新歌曲对象
      */
-    private fun processSongByStyle(song: Song?): Song? {
+    private fun applyTranslationStyleToSong(song: Song?): Song? {
         val style = LyricPrefs.activePackageStyle
         if (style.text.isTranslationOnly && song != null) {
             return song.deepCopy().copy(
@@ -285,7 +310,9 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     }
 
     /**
-     * 自动刷新翻译内容的可见性
+     * 根据当前全局开关及具体应用的样式设定，刷新翻译层的可见性
+     *
+     * @param view 需要刷新状态的目标歌词视图
      */
     private fun refreshTranslationVisibility(view: StatusBarLyric) {
         val style = LyricPrefs.activePackageStyle
@@ -296,54 +323,67 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     }
 
     /**
-     * 启动 AI 翻译任务。如果条件不满足，则主动同步原始歌曲以恢复状态。
+     * 启动异步 AI 翻译任务
+     * 任务完成后将通过消息机制回传结果，由版本号保证数据有效性
+     *
+     * @param song 需要进行翻译的歌曲对象
      */
     private fun startAiTranslationTask(song: Song) {
-
         val style = LyricPrefs.activePackageStyle
         val configs = style.text.aiTranslationConfigs
 
-        // 校验：如果不满足 AI 翻译条件，立即将 currentSong 同步为原始版本并通知分发
-        if (!isDisplayTranslation || !style.text.isAiTranslationEnable || configs?.isUsable != true) {
-            if (DEBUG) YLog.debug(
-                tag = TAG,
-                msg = "AI Translation requirement not met, falling back to raw song"
-            )
-            uiHandler.obtainMessage(WHAT_AI_TRANSLATION_FINISHED, songDataVersion, 0, song)
-                .sendToTarget()
+        if (!isDisplayTranslation
+            || !style.text.isAiTranslationEnable
+            || configs?.isUsable != true
+            || song.isTranslated()
+        ) {
             return
         }
 
-        val version = songDataVersion
+        val version = songStateVersion
         AiTranslationManager.translateSongIfNeededAsync(song, configs) { translated ->
             uiHandler.obtainMessage(WHAT_AI_TRANSLATION_FINISHED, version, 0, translated)
                 .sendToTarget()
         }
     }
 
-    // --- Internal Utils ---
+    /**
+     * 判断该歌曲是否已包含完整的翻译内容
+     */
+    private fun Song.isTranslated(): Boolean {
+        return lyrics.orEmpty().all {
+            !it.translation.isNullOrBlank()
+        }
+    }
 
+    /**
+     * 拆分 Long 型数值并通过 Handler 发送，避免创建不必要的包装对象
+     */
     private fun sendLongMessage(what: Int, value: Long) {
         uiHandler.obtainMessage(what, (value shr 32).toInt(), (value and 0xFFFFFFFFL).toInt())
             .sendToTarget()
     }
 
+    /**
+     * 还原由两个 Int 组合而成的 Long 型数值
+     */
     private fun unpackLong(high: Int, low: Int): Long =
         (high.toLong() shl 32) or (low.toLong() and 0xFFFFFFFFL)
 
+    /**
+     * 安全地遍历所有注册的状态栏控制器并执行操作
+     */
     private inline fun forEachController(crossinline block: StatusBarViewController.() -> Unit) {
         StatusBarViewManager.forEach {
-            runCatching { it.block() }.onFailure {
+            runCatching { it.block() }.onFailure { error ->
                 YLog.error(
                     tag = TAG,
                     msg = "Controller iteration error",
-                    e = it
+                    e = error
                 )
             }
         }
     }
-
-    // --- Callback Overrides ---
 
     override fun onColorOsCapsuleVisibilityChanged(isShowing: Boolean) {
         forEachController { lyricView.setOplusCapsuleVisibility(isShowing) }

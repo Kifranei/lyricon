@@ -7,6 +7,7 @@
 package io.github.proify.lyricon.lyric.view.line.model
 
 import android.graphics.Paint
+import android.graphics.Rect
 import io.github.proify.lyricon.lyric.model.LyricLine
 import io.github.proify.lyricon.lyric.model.LyricMetadata
 import io.github.proify.lyricon.lyric.model.LyricWord
@@ -29,7 +30,7 @@ data class LyricModel(
     val isPlainText: Boolean = words.isEmpty()
 
     fun updateSizes(paint: Paint) {
-        width = paint.measureText(text)
+        width = getTextFullWidth(paint, text)
         var previous: WordModel? = null
         words.forEach { word ->
             word.updateSizes(previous, paint)

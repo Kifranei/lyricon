@@ -4,7 +4,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-package io.github.lyricon.central.xposed
+package io.github.proify.lyricon.core.xposed
 
 import android.app.Application
 import androidx.annotation.Keep

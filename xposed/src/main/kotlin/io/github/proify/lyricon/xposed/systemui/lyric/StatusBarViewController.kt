@@ -67,7 +67,13 @@ class StatusBarViewController(
         lyricView.onPlayingChanged = { _ -> }
 
         val onColorChangeListener = object : OnColorChangeListener {
+
+            private var colorFingerprint: String? = null
             override fun onColorChanged(color: Int, darkIntensity: Float) {
+                val colorFingerprint = color.toString() + darkIntensity
+                if (colorFingerprint == this.colorFingerprint) return
+                this.colorFingerprint = colorFingerprint
+
                 updateStatusColor(SystemStatusBarColor(color, darkIntensity))
             }
         }

@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "io.github.lyricon.central"
+    namespace = "io.github.proify.lyricon.core"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -13,7 +13,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.lyricon.central"
+        applicationId = "io.github.proify.lyricon.core"
         minSdk = 28
         targetSdk = 36
         versionCode = 1

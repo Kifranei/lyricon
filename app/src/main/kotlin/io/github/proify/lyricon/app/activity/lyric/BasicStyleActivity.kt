@@ -31,7 +31,6 @@ import io.github.proify.lyricon.app.compose.preference.InputPreference
 import io.github.proify.lyricon.app.compose.preference.InputType
 import io.github.proify.lyricon.app.compose.preference.RectInputPreference
 import io.github.proify.lyricon.app.compose.preference.SwitchPreference
-import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.app.util.Utils
@@ -161,13 +160,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         },
                     )
 
-                    val dynamicWidthEnabled = rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_dynamic_width_enabled",
-                        BasicStyle.Defaults.DYNAMIC_WIDTH_ENABLED
-                    )
-
-//                    SwitchPreference(
+                    //                    SwitchPreference(
 //                        preferences = preferences,
 //                        key = "lyric_style_base_dynamic_width_enabled",
 //                        defaultValue = BasicStyle.Defaults.DYNAMIC_WIDTH_ENABLED,
@@ -231,6 +224,16 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                                 Intent(context, ViewRulesTreeActivity::class.java)
                             )
                         }
+                    )
+
+                    InputPreference(
+                        preferences = preferences,
+                        key = "lyric_style_base_blocked_words_regex",
+                        title = stringResource(R.string.item_base_blocked_words_regex),
+                        maxValue = 1000.0,
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_visibility_off))
+                        },
                     )
                 }
             }

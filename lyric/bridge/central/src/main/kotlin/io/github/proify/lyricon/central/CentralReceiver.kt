@@ -33,7 +33,10 @@ internal object CentralReceiver : BroadcastReceiver() {
 
     private const val TAG = "CentralReceiver"
 
-    /** 恢复期持续时间，在此时间内 Provider 会等待 Subscriber 注册 */
+    /**
+     * 恢复期持续时间，在此时间内 Provider 会等待 Subscriber 注册
+     * 应该小于4000ms，因为Provider连接超时时间为4000ms
+     */
     private const val RECOVERY_WINDOW_MS = 3000L
 
     /** 待注册的 Provider Intent 队列 */

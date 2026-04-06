@@ -1,12 +1,13 @@
 <!--suppress ALL -->
+
 <p align="center">
   <img src="resources/logo.svg" width="100" alt="词幕 Logo"/>
 </p>
 
-<h1 align="center">词幕</h1>
+<h1 align="center">词幕 (Lyricon)</h1>
 
 <p align="center">
-  <b>Android 状态栏歌词增强工具</b>
+  <b>基于 Xposed 框架的 Android 状态栏歌词增强工具</b>
 </p>
 
 <p align="center">
@@ -14,7 +15,7 @@
   <a href="https://github.com/tomakino/lyricon/releases"><img src="https://img.shields.io/github/downloads/tomakino/lyricon/total?style=flat&color=orange" alt="Downloads"></a>
   <a href="https://github.com/tomakino/lyricon/commits"><img src="https://img.shields.io/github/last-commit/tomakino/lyricon?style=flat" alt="Last Commit"></a>
   <a href="https://github.com/tomakino/lyricon/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tomakino/lyricon?style=flat" alt="License"></a>
-  <a href="README-English.md"><img src="https://img.shields.io/badge/Document-English-red.svg" alt="EN"></a>
+  <a href="README-EN.md"><img src="https://img.shields.io/badge/Document-English-red.svg" alt="EN"></a>
 </p>
 
 <p align="center">
@@ -23,16 +24,16 @@
 </p>
 
 <p align="center">
-  <img src="resources/z.gif" alt="演示动画" width="600"/>
+  <img src="resources/z.gif" alt="展示动画" width="539"/>
 </p>
 
 ---
 
 ## ✨ 功能特性
 
-- 🎤 **多特征显示** — 支持逐字歌词、翻译及对唱模式，沉浸感十足。
-- 🧩 **模块化扩展** — 通过独立插件实现歌词源无限扩展，轻松适配各种播放器。
-- 🎨 **深度自定义** — 可调整字体、Logo、坐标偏移及动效，打造专属视觉风格。
+- 🎤 **歌词展示** — 支持逐字歌词、翻译显示及对唱模式。
+- 🧩 **模块化设计** — 通过独立插件系统，支持扩展不同播放器的歌词源。
+- 🎨 **视觉自定义** — 支持调整字体样式、Logo 显示、坐标偏移及动画效果。
 
 ---
 
@@ -40,40 +41,43 @@
 
 ### 📋 环境要求
 
-- **系统版本**：Android 8.1 (API 27) 及以上
-- **前置条件**：设备已获取 **Root** 权限，并成功激活 **LSPosed** 框架
+- **系统版本**：Android 8.1 (API 27) 及以上。
+- **前置条件**：设备需获取 **Root** 权限，并安装 **LSPosed**（或兼容的 Xposed）框架。
 
 > [!TIP]
-> 建议配合 LSPosed 最新版本使用，以获得最佳兼容性与稳定性。
+> 为保证功能稳定，建议使用 LSPosed 最新正式版本。
 
 ### ⚙️ 安装与配置
 
-1. **下载主体**：从 [Releases](https://github.com/tomakino/lyricon/releases) 下载并安装词幕客户端。
-2. **激活模块**：在 LSPosed 管理器中启用“词幕”，并确保勾选 **系统界面 (System UI)** 作用域。
-3. **重启生效**：重启系统界面或设备，完成 Hook 注入。
-4. **安装插件**
-   ：根据您使用的音乐播放器，安装对应的 [歌词插件](https://github.com/tomakino/LyricProvider)。
-5. **个性化调节**：打开词幕应用，实时调整位置锚点、宽度与视觉样式。
-6. **开始体验**：播放音乐，享受状态栏歌词的畅快。
+1. **下载核心服务**：从 [GitHub Core](https://github.com/tomakino/lyricon/releases/tag/core) 下载并安装。
+2. **下载主体应用**：从 [Releases](https://github.com/tomakino/lyricon/releases) 下载并安装词幕主体。
+3. **激活模块**：在 LSPosed 管理器中启用“词幕”模块，并勾选 **系统界面 (System UI)** 作用域。
+4. **重启生效**：重启系统界面（System UI）或重启设备以完成 Hook 注入。
+5. **安装插件**：根据使用的音乐播放器，在 [LyricProvider](https://github.com/tomakino/LyricProvider)
+   下载对应插件。
+6. **参数调节**：进入词幕应用，根据实际屏幕情况调整位置锚点、宽度与视觉样式。
+7. **运行测试**：启动音乐播放器并播放音乐，检查状态栏是否正常显示。
 
 ---
 
-## 🧩 插件生态
+## 🧩 生态与支持
 
-| 类别      | 资源链接                                                                                      | 说明           |
-|:--------|:------------------------------------------------------------------------------------------|:-------------|
-| **插件库** | [LyricProvider 仓库](https://github.com/tomakino/LyricProvider)                             | 汇集各大主流音乐平台插件 |
-| **开发者** | [开发文档指南](https://github.com/tomakino/lyricon/blob/master/lyric/bridge/provider/README.md) | 欢迎贡献新播放器适配   |
+| 类别       | 资源链接                                                                                      | 说明              |
+|:---------|:------------------------------------------------------------------------------------------|:----------------|
+| **插件库**  | [LyricProvider 仓库](https://github.com/tomakino/LyricProvider)                             | 包含主流音乐平台的适配插件   |
+| **开发插件** | [开发指南](https://github.com/tomakino/lyricon/blob/master/lyric/bridge/provider/README.md)   | 了解如何开发自定义歌词提供插件 |
+| **订阅接口** | [订阅指南](https://github.com/tomakino/lyricon/blob/master/lyric/bridge/subscriber/README.md) | 第三方应用接入词幕歌词的方法  |
 
 ### 💡 已原生适配的应用
 
 - [**光锥音乐**](https://coneplayer.trantor.ink/)
 - **Flamingo**
-- [BBPlayer](https://bbplayer.roitium.com/)
-- MobiMusic
-- [Kanade](https://github.com/rcmiku/Kanade)
-- Sollin Player
-- [QZ Music](https://github.com/lqtmcstudio/QZMusic)
+- [**BBPlayer**](https://bbplayer.roitium.com/)
+- **MobiMusic**
+- [**Kanade**](https://github.com/rcmiku/Kanade)
+- **Sollin Player**
+- [**QZ Music**](https://github.com/lqtmcstudio/QZMusic)
+
 ---
 
 ## 👥 贡献者
@@ -96,8 +100,8 @@
 
 ---
 
-### 👀 访问趋势
+### 👀 访问统计
 
 <p align="center">
-  <img src="https://count.getloli.com/get/@tomakino_lyricon?theme=minecraft" alt="访客统计" />
+  <img src="https://count.getloli.com/get/@tomakino_lyricon?theme=minecraft" alt="Visitor Count" />
 </p>

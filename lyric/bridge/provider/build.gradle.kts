@@ -8,8 +8,6 @@ plugins {
     id("com.vanniktech.maven.publish")
 }
 
-val version: String = rootProject.extra.get("providerSdkVersion") as String
-
 configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.provider"
     compileSdk {
@@ -56,6 +54,8 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
+
+val version: String = rootProject.extra.get("providerSdkVersion") as String
 
 mavenPublishing {
     coordinates(

@@ -56,8 +56,8 @@ data class TextStyle(
     var isTranslationOnly: Boolean = false,
 
     var isAiTranslationEnable: Boolean = false,
-    var aiTranslationConfigs: AiTranslationConfigs? = null
-) : Parcelable, AbstractStyle() {
+    var aiTranslationConfigs: AiTranslationConfigs? = null,
+    ) : Parcelable, AbstractStyle() {
 
     companion object {
         const val TRANSITION_CONFIG_FAST: String = "fast"

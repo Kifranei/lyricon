@@ -132,9 +132,9 @@ object SystemUIHooker : YukiBaseHooker() {
         initDataChannel()
 
         // 初始化歌词订阅器
-        val lyriconSubscriber = LyriconFactory.createSubscriber(context)
-        lyriconSubscriber.subscribeActivePlayer(LyricViewController)
-        lyriconSubscriber.addConnectionListener(object : ConnectionListener{
+        val subscriber = LyriconFactory.createSubscriber(context)
+        subscriber.subscribeActivePlayer(LyricViewController)
+        subscriber.addConnectionListener(object : ConnectionListener{
             override fun onConnected(subscriber: LyriconSubscriber) {
                 YLog.info("lyriconSubscriber onConnected")
             }
@@ -154,7 +154,7 @@ object SystemUIHooker : YukiBaseHooker() {
         })
         mainCoroutineScope.launch {
             delay(2000)
-            lyriconSubscriber.register()
+            subscriber.register()
         }
 
         // 监听状态栏禁用状态，确保在某些界面（如锁屏、全屏）下正确显示/隐藏
