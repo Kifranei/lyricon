@@ -61,10 +61,10 @@ dependencies {
 
     implementation(project(":lyric:view"))
     implementation(project(":lyric:model"))
-    implementation(project(":lyric:bridge:central"))
-    implementation(project(":lyric:bridge:provider"))
     implementation(project(":lyric:style"))
     implementation(project(":lyric:statusbarlyric"))
+
+    implementation(project(":lyric:bridge:subscriber"))
 
     implementation(libs.openai.client)
     implementation(libs.androidx.palette.ktx)

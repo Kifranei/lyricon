@@ -9,7 +9,7 @@ package io.github.proify.lyricon.central.provider.player
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.provider.ProviderInfo
 
-data class PlayerRecorder(val info: ProviderInfo) {
+data class PlayerRecorder(val providerInfo: ProviderInfo) {
 
     @Volatile
     var lastSong: Song? = null

@@ -61,23 +61,7 @@ internal class RemoteProvider(
         deathRecipient = newDeathRecipient
     }
 
-    /**
-     * 主动销毁当前 Provider。
-     *
-     * 实际的清理逻辑由 [ProviderManager] 统一触发。
-     */
     fun destroy() {
-        ProviderManager.unregister(this)
-    }
-
-    /**
-     * Provider 注销后的回调。
-     *
-     * 负责释放服务实例、解除 Binder 绑定、
-     * 更新内部状态，并通知活跃播放器调度器
-     * 当前 Provider 已失效。
-     */
-    fun onDestroy() {
         service?.destroy()
         service = null
 

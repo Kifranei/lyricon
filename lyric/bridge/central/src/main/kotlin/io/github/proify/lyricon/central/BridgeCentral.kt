@@ -43,7 +43,10 @@ object BridgeCentral {
         ContextCompat.registerReceiver(
             context,
             receiver,
-            IntentFilter(Constants.ACTION_REGISTER_PROVIDER),
+            IntentFilter().apply {
+                addAction(Constants.ACTION_REGISTER_PROVIDER)
+                addAction(Constants.ACTION_REGISTER_SUBSCRIBER)
+            },
             ContextCompat.RECEIVER_EXPORTED
         )
     }

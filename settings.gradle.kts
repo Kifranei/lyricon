@@ -1,5 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
+include(":lyric:bridge:subscriber")
+
+
 pluginManagement {
     repositories {
         mavenLocal()
@@ -35,6 +38,7 @@ include(
 
 include(":lyric:bridge:central")
 include(":lyric:bridge:provider")
+include(":lyric:bridge:centralapp")
 include(":lyric:bridge:localcentralapp")
 
 include(":lyric:model")

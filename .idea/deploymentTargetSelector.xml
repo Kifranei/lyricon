@@ -17,6 +17,9 @@
       <SelectionState runConfigName="lyric.bridge.localcentralapp">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
+      <SelectionState runConfigName="lyric.bridge.centralapp">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
     </selectionStates>
   </component>
 </project>

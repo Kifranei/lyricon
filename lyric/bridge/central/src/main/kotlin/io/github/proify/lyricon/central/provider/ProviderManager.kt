@@ -49,11 +49,9 @@ internal object ProviderManager {
      */
     fun unregister(provider: RemoteProvider) {
         if (providers.remove(provider)) {
-            provider.onDestroy()
+            provider.destroy()
         }
     }
-
-    //fun getProviders(): Set<RemoteProvider> = providers
 
     fun getProvider(providerInfo: ProviderInfo): RemoteProvider? =
         providers.firstOrNull { it.providerInfo == providerInfo }

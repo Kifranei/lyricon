@@ -34,8 +34,24 @@ data class BasicStyle(
     var noUpdateHideTimeout: Int = Defaults.NO_UPDATE_HIDE_TIMEOUT,
     var keywordHideTimeout: Int = Defaults.KEYWORD_HIDE_TIMEOUT,
     var keywordHideMatches: List<String> = Defaults.KEYWORD_HIDE_MATCH,
-    var doubleTapSwitchClock: Boolean = Defaults.DOUBLE_TAP_SWITCH_CLOCK
+
+    var blockedWordsRegexString: String = Defaults.BLOCKED_WORDS_REGEX,
 ) : AbstractStyle(), Parcelable {
+
+    @IgnoredOnParcel
+    @Transient
+    var blockedWordsRegex: Regex? = null
+        get() = if (field == null) {
+            field = try {
+                if (blockedWordsRegexString.isNotBlank())
+                    Regex(blockedWordsRegexString) else null
+            } catch (_: Exception) {
+                null
+            }
+            field
+        } else {
+            field
+        }
 
     @IgnoredOnParcel
     @Transient
@@ -114,10 +130,12 @@ data class BasicStyle(
                 keywordHideMatches = it ?: emptyList()
                 keywordsHidePattern = null
             }
-        doubleTapSwitchClock = preferences.getBoolean(
-            "lyric_style_base_double_tap_switch_clock",
-            Defaults.DOUBLE_TAP_SWITCH_CLOCK
-        )
+
+        blockedWordsRegexString = preferences.getString(
+            "lyric_style_base_blocked_words_regex",
+            Defaults.BLOCKED_WORDS_REGEX
+        ) ?: Defaults.BLOCKED_WORDS_REGEX
+        blockedWordsRegex = null
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -126,7 +144,10 @@ data class BasicStyle(
         editor.putFloat("lyric_style_base_width", width)
         editor.putFloat("lyric_style_base_width_in_coloros_capsule_mode", widthInColorOSCapsuleMode)
         editor.putBoolean("lyric_style_base_dynamic_width_enabled", dynamicWidthEnabled)
-        editor.putBoolean("lyric_style_base_dynamic_width_auto_hide_clock", dynamicWidthAutoHideClock)
+        editor.putBoolean(
+            "lyric_style_base_dynamic_width_auto_hide_clock",
+            dynamicWidthAutoHideClock
+        )
         editor.putBoolean(
             "lyric_style_base_xiaomi_island_temp_hide_enabled",
             xiaomiIslandTempHideEnabled
@@ -148,7 +169,7 @@ data class BasicStyle(
             keywordHideTimeout
         )
         editor.putString("lyric_style_base_timeout_hide_keywords", keywordHideMatches.toJson())
-        editor.putBoolean("lyric_style_base_double_tap_switch_clock", doubleTapSwitchClock)
+        editor.putString("lyric_style_base_blocked_words_regex", blockedWordsRegexString)
     }
 
     object Defaults {
@@ -168,7 +189,7 @@ data class BasicStyle(
         const val NO_UPDATE_HIDE_TIMEOUT = 0
         const val KEYWORD_HIDE_TIMEOUT: Int = 0
         val KEYWORD_HIDE_MATCH: List<String> = listOf()
-        const val DOUBLE_TAP_SWITCH_CLOCK: Boolean = false
+        const val BLOCKED_WORDS_REGEX = ""
     }
 
     companion object {

@@ -16,4 +16,5 @@
         <item>com.android.systemui</item>
         <item>miui.systemui.plugin</item>
     </string-array>
+
 </resources>

@@ -21,7 +21,6 @@ import com.aallam.openai.client.OpenAIConfig
 import com.aallam.openai.client.OpenAIHost
 import io.github.proify.android.extensions.json
 import io.github.proify.lyricon.lyric.model.Song
-import io.github.proify.lyricon.lyric.model.extensions.deepCopy
 import io.github.proify.lyricon.lyric.style.AiTranslationConfigs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -119,22 +118,22 @@ object AiTranslationManager {
     }
 
     private fun applyTranslation(song: Song, transItems: List<TranslationItem>): Song {
-       /// val itemsMap = transItems.associateBy { it.index }
+        /// val itemsMap = transItems.associateBy { it.index }
 
         return song.apply {
-            lyrics = lyrics?.deepCopy()?.mapIndexed { index, line ->
+            lyrics = lyrics?.mapIndexed { index, line ->
 
                 val transItem = transItems.find {
                     it.index == index
                 }
-                val transText = transItem?.trans
+                val transText = transItem?.trans?.trim()
 
                 if (!transText.isNullOrBlank()
                     && line.translation.isNullOrBlank()
-                    && transText.trim().lowercase() != line.text?.trim()?.lowercase()
+                    && transText.lowercase() != line.text?.trim()?.lowercase()
                 ) {
-                    line.copy(translation = transText.trim(), translationWords = null)
-                } else line.copy()
+                    line.copy(translation = transText, translationWords = null)
+                } else line
             }
         }
     }
@@ -195,7 +194,9 @@ object AiTranslationManager {
 
         return try {
             val response = client.chatCompletion(request)
-            val content = response.choices.firstOrNull()?.message?.content ?: return null
+            val content = response.choices.firstOrNull()?.message?.content?.run {
+                AiTranslationConfigs.cleanLlmOutput(this)
+            } ?: return null
             val result = json.decodeFromString<List<TranslationItem>>(content)
 
             result.filter { it.index in requestIndices }

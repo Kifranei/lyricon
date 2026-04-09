@@ -37,6 +37,7 @@ configure<LibraryExtension> {
 
 dependencies {
     implementation(project(":lyric:bridge:provider"))
+    implementation(project(":lyric:bridge:subscriber"))
 
     implementation(libs.androidx.core.ktx)
     testImplementation(libs.junit)

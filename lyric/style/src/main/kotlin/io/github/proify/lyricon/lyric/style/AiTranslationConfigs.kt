@@ -40,33 +40,48 @@ data class AiTranslationConfigs(
     }
 
     companion object {
-        val USER_PROMPT = """
-        歌词翻译准则：
-        1. 语义：保留核心意象与情感，文化专有名词用功能对等表达。
-        2. 韵律：匹配原歌词音节数，根据曲风押韵。
-        3. 风格：根据歌曲背景（流行/说唱/民谣）调整语气。
-        4. 本地化：规避目标文化禁忌。
-    """.trimIndent()
-
         private val BASE_PROMPT = """
-        你是一个专业的音乐翻译家Api。正在为歌曲《{title}》- {artist} 翻译歌词。
-        目标语言：{target}。
-        
-        ## 输入：
-        一个包含索引和原文的 JSON 列表：[{"index": Int, "text": String}]。
-        
-        ## 严格指令：
-        1. 必须保持返回的 "index" 与输入完全一致。
-        2. 严禁合并多行，严禁拆分单行。每一行输入必须对应一行输出（除非无需翻译）。
-        3. 若条目原文无需翻译（如拟声词“Oh~”、专有名词、或已是{target}），请从结果列表中忽略并删除该条目。
-        
-        ## 翻译风格建议：
-        {user_prompt}
-        
-        ## 输出格式：
-        仅返回 JSON 格式，严禁包含任何 Markdown 代码块标签、解释或其它文字。
-        格式：[{"index": Int, "trans": "String"}]
-    """.trimIndent()
+# 角色
+歌词翻译引擎。将 JSON 歌词数组翻译为 TARGET 语言，仅输出合规 JSON。
+
+# 参数
+TARGET={target}
+TITLE={title}
+ARTIST={artist}
+
+# 风格
+{user_prompt}
+
+# 输入 / 输出
+输入：[{"index":Int,"text":String},...]
+输出：[{"index":Int,"trans":String},...]
+- 仅输出 JSON，禁止任何额外内容
+- index 来自输入，唯一，升序
+
+# 规则
+## 省略（满足任一条件则不输出）
+- text 仅含数字/标点/空白/无语义拟声（如 la la、oh）
+- text 已是 TARGET 语言
+
+## 翻译（其余所有行必须输出）
+- 译文语义等效、表达自然、不附注释
+
+## 歧义
+- 无法判断是否为 TARGET 语言 → 必须翻译并输出
+
+# 示例
+输入：[{"index":0,"text":"Hello"},{"index":1,"text":"你好"},{"index":2,"text":"La la"}]
+TARGET=zh-CN
+输出：[{"index":0,"trans":"你好"}]
+""".trimIndent()
+
+        val USER_PROMPT = """
+1. 语义与情感优先，禁止逐词直译。
+2. 译文符合 TARGET 地区规范（繁简/英式美式/葡语标准等），不留源语痕迹。
+3. 俚语/隐喻/文化典故须改写为 TARGET 中功能等效的自然表达。
+4. 同一术语全文统一译法。
+5. 仅输出译文，不附任何解释或括号说明。
+""".trimIndent()
 
         fun getPrompt(
             target: String,
@@ -74,12 +89,18 @@ data class AiTranslationConfigs(
             artist: String,
             userPrompt: String = USER_PROMPT
         ): String {
+            fun escape(s: String) = s.replace("\n", " ").replace("\r", " ")
+
             return BASE_PROMPT
                 .replace("{user_prompt}", userPrompt)
-                .replace("{target}", "\"$target\"")
-                .replace("{title}", title)
-                .replace("{artist}", artist)
-                .trimIndent()
+                .replace("{title}", escape(title))
+                .replace("{artist}", escape(artist))
+                .replace("{target}", escape(target))
+        }
+
+        fun cleanLlmOutput(raw: String): String {
+            val regex = Regex("```(?:json)?\\s*([\\s\\S]*?)```")
+            return regex.find(raw)?.groupValues?.get(1)?.trim() ?: raw.trim()
         }
     }
 }

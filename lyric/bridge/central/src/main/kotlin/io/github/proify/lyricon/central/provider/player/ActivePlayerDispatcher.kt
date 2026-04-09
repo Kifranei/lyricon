@@ -4,6 +4,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+
 package io.github.proify.lyricon.central.provider.player
 
 import android.util.Log
@@ -32,13 +33,15 @@ object ActivePlayerDispatcher : PlayerListener {
 
     private val listeners = CopyOnWriteArraySet<ActivePlayerListener>()
 
-    fun addActivePlayerListener(listener: ActivePlayerListener) {
-        listeners += listener
-    }
+    /**
+     * 添加监听器，如果监听器已存在，则不添加
+     */
+    fun addActivePlayerListener(listener: ActivePlayerListener) = listeners.add(listener)
 
-    fun removeActivePlayerListener(listener: ActivePlayerListener) {
-        listeners -= listener
-    }
+    /**
+     * 移除监听器
+     */
+    fun removeActivePlayerListener(listener: ActivePlayerListener) = listeners.remove(listener)
 
     fun notifyProviderInvalid(provider: ProviderInfo) {
         val shouldNotify = lock.write {
@@ -113,7 +116,7 @@ object ActivePlayerDispatcher : PlayerListener {
         allowDuplicateIfSwitching: Boolean = true,
         crossinline notifier: (ActivePlayerListener) -> Unit
     ) {
-        val recorderInfo = recorder.info
+        val recorderInfo = recorder.providerInfo
         val recorderPlaying = recorder.lastIsPlaying
 
         var isSwitched = false

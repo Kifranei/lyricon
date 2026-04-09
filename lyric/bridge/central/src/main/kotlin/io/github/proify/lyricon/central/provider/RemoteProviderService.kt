@@ -53,6 +53,6 @@ internal class RemoteProviderService(
      * 该调用会触发 Provider 的统一销毁流程。
      */
     override fun disconnect() {
-        provider?.destroy()
+        provider?.let { ProviderManager.unregister(it) }
     }
 }

@@ -31,7 +31,7 @@ import io.github.proify.lyricon.common.util.SVGHelper
 import io.github.proify.lyricon.lyric.style.LogoStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.lyric.style.RectF
-import io.github.proify.lyricon.provider.ProviderLogo
+import io.github.proify.lyricon.subscriber.ProviderLogo
 import java.io.File
 import java.util.WeakHashMap
 import kotlin.math.roundToInt

@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Proify, Tomakino
+ * Licensed under the Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
 package io.github.proify.lyricon.lyric.view.yoyo
 
 import android.view.animation.Interpolator
@@ -33,7 +39,7 @@ object YoYoPresets {
     // region Fade Animations
 
     val Default: Pair<AnimConfig, AnimConfig>
-        get() = FadeOutUp_FadeInUp
+        get() = FadeOutLeft_FadeInRight
 
     val FadeOut_FadeIn: Pair<AnimConfig, AnimConfig>
         get() = pair(
