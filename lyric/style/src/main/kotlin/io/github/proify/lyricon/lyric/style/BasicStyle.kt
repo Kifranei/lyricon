@@ -25,6 +25,7 @@ data class BasicStyle(
     var widthInColorOSCapsuleMode: Float = Defaults.WIDTH_IN_COLOROS_CAPSULE_MODE,
     var dynamicWidthEnabled: Boolean = Defaults.DYNAMIC_WIDTH_ENABLED,
     var dynamicWidthAutoHideClock: Boolean = Defaults.DYNAMIC_WIDTH_AUTO_HIDE_CLOCK,
+    var doubleTapSwitchClock: Boolean = Defaults.DOUBLE_TAP_SWITCH_CLOCK,
     var xiaomiIslandTempHideEnabled: Boolean = Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
     var margins: RectF = Defaults.MARGINS,
     var paddings: RectF = Defaults.PADDINGS,
@@ -88,6 +89,10 @@ data class BasicStyle(
             "lyric_style_base_dynamic_width_auto_hide_clock",
             Defaults.DYNAMIC_WIDTH_AUTO_HIDE_CLOCK
         )
+        doubleTapSwitchClock = preferences.getBoolean(
+            "lyric_style_base_double_tap_switch_clock",
+            Defaults.DOUBLE_TAP_SWITCH_CLOCK
+        )
         xiaomiIslandTempHideEnabled = preferences.getBoolean(
             "lyric_style_base_xiaomi_island_temp_hide_enabled",
             Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED
@@ -149,6 +154,10 @@ data class BasicStyle(
             dynamicWidthAutoHideClock
         )
         editor.putBoolean(
+            "lyric_style_base_double_tap_switch_clock",
+            doubleTapSwitchClock
+        )
+        editor.putBoolean(
             "lyric_style_base_xiaomi_island_temp_hide_enabled",
             xiaomiIslandTempHideEnabled
         )
@@ -181,6 +190,7 @@ data class BasicStyle(
         const val WIDTH_IN_COLOROS_CAPSULE_MODE: Float = 70f
         const val DYNAMIC_WIDTH_ENABLED: Boolean = false
         const val DYNAMIC_WIDTH_AUTO_HIDE_CLOCK: Boolean = false
+        const val DOUBLE_TAP_SWITCH_CLOCK: Boolean = false
         const val XIAOMI_ISLAND_TEMP_HIDE_ENABLED: Boolean = true
         val MARGINS: RectF = RectF()
         val PADDINGS: RectF = RectF()

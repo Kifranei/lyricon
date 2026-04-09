@@ -18,6 +18,7 @@ import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.provider.ProviderInfo
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric
 import io.github.proify.lyricon.statusbarlyric.SuperLogo
+import io.github.proify.lyricon.subscriber.ProviderLogo as SubscriberProviderLogo
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
 import io.github.proify.lyricon.xposed.systemui.util.OplusCapsuleHooker
 import io.github.proify.lyricon.xposed.systemui.util.XiaomiIslandHooker
@@ -306,8 +307,16 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
             val cover = activePackage?.let { NotificationCoverHelper.getCoverFile(it) }
             coverFile = cover
             controller.updateCoverThemeColors(cover)
-            post { providerLogo = provider?.logo }
+            post { providerLogo = provider?.logo?.toSubscriberLogo() }
         }
+    }
+
+    private fun io.github.proify.lyricon.provider.ProviderLogo.toSubscriberLogo(): SubscriberProviderLogo {
+        return SubscriberProviderLogo(
+            data = data,
+            type = type,
+            colorful = colorful
+        )
     }
 
     /**

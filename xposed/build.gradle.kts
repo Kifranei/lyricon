@@ -64,6 +64,8 @@ dependencies {
     implementation(project(":lyric:style"))
     implementation(project(":lyric:statusbarlyric"))
 
+    implementation(project(":lyric:bridge:central"))
+    implementation(project(":lyric:bridge:provider"))
     implementation(project(":lyric:bridge:subscriber"))
 
     implementation(libs.openai.client)
