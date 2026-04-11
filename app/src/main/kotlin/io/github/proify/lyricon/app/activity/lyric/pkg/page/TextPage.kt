@@ -347,6 +347,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     title = stringResource(R.string.item_text_relative_progress_highlight),
                     startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
+                InterludeIndicatorPreference(preferences)
                 SwitchPreference(
                     defaultValue = TextStyle.Defaults.SUSTAIN_GLOW_ENABLED,
                     preferences = preferences,
@@ -672,5 +673,24 @@ private fun TransitionConfigPreference(preferences: SharedPreferences) {
         ),
         title = stringResource(R.string.item_text_transition_config),
         iconRes = R.drawable.ic_speed
+    )
+}
+
+@Composable
+private fun InterludeIndicatorPreference(preferences: SharedPreferences) {
+    DropdownPreference(
+        preferences = preferences,
+        preferenceKey = TextStyle.KEY_TEXT_INTERLUDE_INDICATOR_STYLE,
+        defaultValue = TextStyle.Defaults.INTERLUDE_INDICATOR_STYLE,
+        options = listOf(
+            stringResource(R.string.option_text_interlude_indicator_none),
+            stringResource(R.string.option_text_interlude_indicator_dots)
+        ),
+        values = listOf(
+            TextStyle.InterludeIndicatorStyle.NONE,
+            TextStyle.InterludeIndicatorStyle.DOTS
+        ),
+        title = stringResource(R.string.item_text_interlude_indicator),
+        iconRes = R.drawable.ic_music_note
     )
 }

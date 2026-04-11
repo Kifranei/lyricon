@@ -15,6 +15,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.contains
@@ -55,12 +56,35 @@ class StatusBarLyric(
         eventListener = object : SuperText.EventListener {
             override fun enteringInterludeMode(duration: Long) {
                 logoView.syncProgress(0, duration)
+                setInterludeIndicatorVisible(true, duration)
             }
 
             override fun exitInterludeMode() {
                 logoView.clearProgress()
+                setInterludeIndicatorVisible(false, 0L)
             }
         }
+    }
+
+    val interludeIndicatorView: InterludeIndicatorView = InterludeIndicatorView(context)
+
+    private val contentView: FrameLayout = FrameLayout(context).apply {
+        addView(
+            textView,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.START or Gravity.CENTER_VERTICAL
+            )
+        )
+        addView(
+            interludeIndicatorView,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                Gravity.START or Gravity.CENTER_VERTICAL
+            )
+        )
     }
 
     // --- 对外状态 ---
@@ -103,6 +127,7 @@ class StatusBarLyric(
     private var lyricTimedOut: Boolean = false
     private var currentLyric: String? = null
     private var isUserHideLyric: Boolean = false
+    private var isInterludeIndicatorVisible: Boolean = false
 
     // 主线程调度器
     private val mainHandler: Handler = Handler(context.mainLooper)
@@ -181,7 +206,7 @@ class StatusBarLyric(
         layoutTransition = null
 
         addView(
-            textView,
+            contentView,
             LayoutParams(0, LayoutParams.WRAP_CONTENT).apply {
                 weight = 1f
             }
@@ -202,6 +227,12 @@ class StatusBarLyric(
         logoView.applyStyle(style)
         updateLogoLocation()
         textView.applyStyle(style)
+        interludeIndicatorView.applyStyle(style)
+        if (style.packageStyle.text.interludeIndicatorStyle ==
+            io.github.proify.lyricon.lyric.style.TextStyle.InterludeIndicatorStyle.NONE
+        ) {
+            setInterludeIndicatorVisible(false, 0L)
+        }
         updateLayoutConfig(style)
 
         refreshLyricTimeoutState()
@@ -212,6 +243,7 @@ class StatusBarLyric(
         currentStatusColor = color
         logoView.setStatusBarColor(color)
         textView.setStatusBarColor(color)
+        interludeIndicatorView.setStatusBarColor(color)
     }
 
     private var lastPlaying: Boolean? = null
@@ -228,6 +260,7 @@ class StatusBarLyric(
         onPlayingChanged?.invoke(playing)
 
         if (!playing) {
+            setInterludeIndicatorVisible(false, 0L)
             textView.reset()
         } else {
             when (lyricType) {
@@ -247,7 +280,7 @@ class StatusBarLyric(
     fun updateVisibility() {
         val shouldShow = isPlaying
                 && !isHideOnLockScreen()
-                && textView.shouldShow()
+                && (textView.shouldShow() || isInterludeIndicatorVisible)
                 && !lyricTimedOut
                 && !isDisabledVisible
                 && !isUserHideLyric
@@ -347,6 +380,7 @@ class StatusBarLyric(
         currentStyle = style
         logoView.applyStyle(style)
         textView.applyStyle(style)
+        interludeIndicatorView.applyStyle(style)
         updateLayoutConfig(style)
     }
 
@@ -357,7 +391,7 @@ class StatusBarLyric(
         if (gravity == lastLogoGravity) return; lastLogoGravity = gravity
 
         if (contains(logoView)) removeView(logoView)
-        val textIndex = indexOfChild(textView).coerceAtLeast(0)
+        val textIndex = indexOfChild(contentView).coerceAtLeast(0)
 
         when (gravity) {
             LogoStyle.GRAVITY_START -> addView(logoView, textIndex)
@@ -414,8 +448,8 @@ class StatusBarLyric(
     private fun resolveCurrentDynamicWidthPx(basicStyle: BasicStyle): Int {
         var contentWidth = width
         contentWidth = max(contentWidth, measuredWidth)
-        contentWidth = max(contentWidth, textView.width)
-        contentWidth = max(contentWidth, textView.measuredWidth)
+        contentWidth = max(contentWidth, contentView.width)
+        contentWidth = max(contentWidth, contentView.measuredWidth)
         if (contentWidth <= 0) {
             contentWidth = calculateTargetWidth(basicStyle).dp
         }
@@ -423,7 +457,7 @@ class StatusBarLyric(
     }
 
     private fun updateTextViewWidthMode(basicStyle: BasicStyle) {
-        val lp = (textView.layoutParams as? LayoutParams)
+        val lp = (contentView.layoutParams as? LayoutParams)
             ?: LayoutParams(0, LayoutParams.WRAP_CONTENT)
         if (basicStyle.dynamicWidthEnabled) {
             lp.width = LayoutParams.WRAP_CONTENT
@@ -432,7 +466,20 @@ class StatusBarLyric(
             lp.width = 0
             lp.weight = 1f
         }
-        textView.layoutParams = lp
+        contentView.layoutParams = lp
+    }
+
+    private fun setInterludeIndicatorVisible(visible: Boolean, duration: Long) {
+        if (visible) {
+            val isShown = interludeIndicatorView.show(duration)
+            isInterludeIndicatorVisible = isShown
+            textView.visibleIfChanged = !isShown
+        } else {
+            isInterludeIndicatorVisible = false
+            interludeIndicatorView.hide()
+            textView.visibleIfChanged = true
+        }
+        updateVisibility()
     }
 
     private fun calculateTargetWidth(basicStyle: BasicStyle) =

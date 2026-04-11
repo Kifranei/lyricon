@@ -95,6 +95,9 @@
     <string name="item_text_relative_progress">Enable relative-progress lyrics</string>
     <string name="item_text_relative_progress_summary">If word timing is unavailable, treat the entire line as a single unit.</string>
     <string name="item_text_relative_progress_highlight">Show relative-progress highlight</string>
+    <string name="item_text_interlude_indicator">Interlude waiting style</string>
+    <string name="option_text_interlude_indicator_none">Off</string>
+    <string name="option_text_interlude_indicator_dots">Three dots</string>
     <string name="item_text_color_normal">Normal color</string>
     <string name="item_text_color_background">Background color</string>
     <string name="item_text_color_highlight">Highlight color</string>

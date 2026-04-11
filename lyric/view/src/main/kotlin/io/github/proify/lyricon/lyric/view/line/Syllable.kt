@@ -27,11 +27,11 @@ import kotlin.math.max
 class Syllable(private val view: LyricLineView) {
     companion object {
         private const val SUSTAIN_EFFECT_MIN_DURATION_MS = 420L
-        private const val SUSTAIN_EFFECT_TRIGGER_DELAY_MS = 180L
-        private const val SUSTAIN_EFFECT_TRIGGER_MAX_RATIO = 0.35f
+        private const val SUSTAIN_EFFECT_TRIGGER_DELAY_MS = 260L
+        private const val SUSTAIN_EFFECT_TRIGGER_MAX_RATIO = 0.42f
         private const val SUSTAIN_EFFECT_MAX_GLOW_RADIUS_DP = 3.4f
         private const val SUSTAIN_EFFECT_MAX_GLOW_ALPHA = 160
-        private const val SUSTAIN_EFFECT_RELEASE_DURATION_MS = 170L
+        private const val SUSTAIN_EFFECT_RELEASE_DURATION_MS = 120L
     }
 
     private data class SustainEffectState(
@@ -40,7 +40,8 @@ class Syllable(private val view: LyricLineView) {
         val liftOffsetPx: Float,
         val glowRadiusPx: Float,
         val glowAlpha: Int,
-        val intensity: Float
+        val intensity: Float,
+        val isReleasePhase: Boolean = false
     )
 
     private val backgroundPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
@@ -346,7 +347,8 @@ class Syllable(private val view: LyricLineView) {
             liftOffsetPx = 0f,
             glowRadiusPx = glowRadius,
             glowAlpha = glowAlpha,
-            intensity = intensity
+            intensity = intensity,
+            isReleasePhase = false
         )
     }
 
@@ -382,7 +384,8 @@ class Syllable(private val view: LyricLineView) {
             liftOffsetPx = 0f,
             glowRadiusPx = glowRadius,
             glowAlpha = glowAlpha,
-            intensity = intensity
+            intensity = intensity,
+            isReleasePhase = true
         )
     }
 
@@ -648,6 +651,7 @@ class Syllable(private val view: LyricLineView) {
                 }
 
                 val sustainRanges = sustainEffects
+                    .filterNot { it.isReleasePhase }
                     .mapNotNull {
                         val start = it.startX.coerceAtLeast(0f)
                         val end = it.endX.coerceAtMost(model.width)
@@ -799,7 +803,12 @@ class Syllable(private val view: LyricLineView) {
             val innerStroke = (effect.glowRadiusPx * 0.18f).coerceAtLeast(density * 0.28f)
             val outerAlpha = (effect.glowAlpha * 0.28f * effect.intensity).toInt().coerceIn(0, 255)
             val innerAlpha = (effect.glowAlpha * 0.46f).toInt().coerceIn(0, 255)
-            val coreColor = (0xFF shl 24) or baseColor
+            val coreAlpha = if (effect.isReleasePhase) {
+                (160f * effect.intensity).toInt().coerceIn(0, 255)
+            } else {
+                0xFF
+            }
+            val coreColor = (coreAlpha shl 24) or baseColor
             val drawGlow = isSustainGlowEnabled && effect.glowAlpha > 0
 
             sustainPaint.set(highlightPaint)

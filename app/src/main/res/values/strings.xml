@@ -98,6 +98,9 @@
     <string name="item_text_relative_progress">启用相对进度歌词</string>
     <string name="item_text_relative_progress_summary">当歌词缺少单词数据时，将整行作为单词显示。</string>
     <string name="item_text_relative_progress_highlight">显示相对进度歌词高亮进度</string>
+    <string name="item_text_interlude_indicator">间奏等待样式</string>
+    <string name="option_text_interlude_indicator_none">关闭</string>
+    <string name="option_text_interlude_indicator_dots">三个点</string>
     <string name="item_text_sustain_lift">拉长音上浮效果</string>
     <string name="item_text_sustain_glow">拉长音发光效果</string>
     <string name="item_text_sustain_glow_color_mode_summary">已启用取色模式，发光效果不生效。</string>

@@ -90,6 +90,8 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     private var songDataVersion: Int = 0
     @Volatile
     private var lastPositionUpdateAt: Long = 0L
+    @Volatile
+    private var lastKnownPosition: Long = 0L
 
     private val uiHandler by lazy { Handler(Looper.getMainLooper(), this) }
 
@@ -125,6 +127,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     }
 
     override fun onPositionChanged(position: Long) {
+        lastKnownPosition = position.coerceAtLeast(0L)
         lastPositionUpdateAt = SystemClock.uptimeMillis()
         uiHandler.removeMessages(WHAT_VENDOR_SYNC_TICK)
         uiHandler.sendEmptyMessageDelayed(WHAT_VENDOR_SYNC_TICK, PLAYBACK_ACTIVE_STALE_MS)
@@ -134,6 +137,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
     }
 
     override fun onSeekTo(position: Long) {
+        lastKnownPosition = position.coerceAtLeast(0L)
         lastPositionUpdateAt = SystemClock.uptimeMillis()
         uiHandler.removeMessages(WHAT_VENDOR_SYNC_TICK)
         uiHandler.sendEmptyMessageDelayed(WHAT_VENDOR_SYNC_TICK, PLAYBACK_ACTIVE_STALE_MS)
@@ -169,6 +173,7 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
                 songDataVersion++ // 切歌或切换播放器，旧版本失效
                 rawSong = null
                 currentSong = null
+                lastKnownPosition = 0L
                 val provider = msg.obj as? ProviderInfo
                 providerInfo = provider
                 activePackage = provider?.playerPackageName.orEmpty()
@@ -212,7 +217,13 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
                 val view = lyricView
                 when (msg.what) {
                     WHAT_PLAYER_CHANGED -> performPlayerChange(this, msg.obj as? ProviderInfo)
-                    WHAT_SONG_CHANGED -> view.setSong(processSongByStyle(msg.obj as? Song))
+                    WHAT_SONG_CHANGED -> {
+                        view.setSong(processSongByStyle(msg.obj as? Song))
+                        if (lastKnownPosition > 0L) {
+                            view.seekTo(lastKnownPosition)
+                            view.setPosition(lastKnownPosition)
+                        }
+                    }
                     WHAT_PLAYBACK_STATE_CHANGED -> view.setPlaying(isPlaying)
                     WHAT_POSITION_UPDATE -> view.setPosition(unpackLong(msg.arg1, msg.arg2))
                     WHAT_SEEK_TO -> view.seekTo(unpackLong(msg.arg1, msg.arg2))
@@ -222,6 +233,10 @@ object LyricViewController : ActivePlayerListener, Handler.Callback,
                     WHAT_AI_TRANSLATION_FINISHED -> {
                         if (msg.arg1 == songDataVersion) {
                             view.setSong(processSongByStyle(msg.obj as? Song))
+                            if (lastKnownPosition > 0L) {
+                                view.seekTo(lastKnownPosition)
+                                view.setPosition(lastKnownPosition)
+                            }
                         }
                     }
                 }

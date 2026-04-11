@@ -48,6 +48,7 @@ data class TextStyle(
 
     var relativeProgress: Boolean = Defaults.RELATIVE_PROGRESS,
     var relativeProgressHighlight: Boolean = Defaults.RELATIVE_PROGRESS_HIGHLIGHT,
+    var interludeIndicatorStyle: String = Defaults.INTERLUDE_INDICATOR_STYLE,
     var sustainLiftEnabled: Boolean = Defaults.SUSTAIN_LIFT_ENABLED,
     var sustainGlowEnabled: Boolean = Defaults.SUSTAIN_GLOW_ENABLED,
     var scaleInMultiLine: Float = Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE,
@@ -81,12 +82,18 @@ data class TextStyle(
 
         const val KEY_TEXT_TRANSLATION_ONLY = "lyric_style_text_translation_only"
         const val KEY_TEXT_TRANSLATION_DISABLE = "lyric_style_text_translation_disable"
+        const val KEY_TEXT_INTERLUDE_INDICATOR_STYLE = "lyric_style_text_interlude_indicator_style"
     }
 
     object PlaceholderFormat {
         const val NAME: String = "NameOnly"
         const val NAME_ARTIST: String = "NameAndArtist"
         const val NONE: String = "None"
+    }
+
+    object InterludeIndicatorStyle {
+        const val NONE: String = "none"
+        const val DOTS: String = "dots"
     }
 
     object Defaults {
@@ -105,8 +112,9 @@ data class TextStyle(
         const val TEXT_SIZE_RATIO_IN_MULTI_LINE: Float = 0.86f
         const val RELATIVE_PROGRESS: Boolean = true
         const val RELATIVE_PROGRESS_HIGHLIGHT: Boolean = false
+        const val INTERLUDE_INDICATOR_STYLE: String = InterludeIndicatorStyle.NONE
         const val SUSTAIN_LIFT_ENABLED: Boolean = true
-        const val SUSTAIN_GLOW_ENABLED: Boolean = true
+        const val SUSTAIN_GLOW_ENABLED: Boolean = false
 
         const val TEXT_SIZE: Float = 0f
         val MARGINS: RectF = RectF()
@@ -233,6 +241,10 @@ data class TextStyle(
             "lyric_style_text_relative_progress_highlight",
             Defaults.RELATIVE_PROGRESS_HIGHLIGHT
         )
+        interludeIndicatorStyle = preferences.getString(
+            KEY_TEXT_INTERLUDE_INDICATOR_STYLE,
+            Defaults.INTERLUDE_INDICATOR_STYLE
+        ) ?: Defaults.INTERLUDE_INDICATOR_STYLE
         sustainLiftEnabled = preferences.getBoolean(
             "lyric_style_text_sustain_lift",
             Defaults.SUSTAIN_LIFT_ENABLED
@@ -310,6 +322,10 @@ data class TextStyle(
         editor.putBoolean(
             "lyric_style_text_relative_progress_highlight",
             relativeProgressHighlight
+        )
+        editor.putString(
+            KEY_TEXT_INTERLUDE_INDICATOR_STYLE,
+            interludeIndicatorStyle
         )
         editor.putBoolean("lyric_style_text_sustain_lift", sustainLiftEnabled)
         editor.putBoolean("lyric_style_text_sustain_glow", sustainGlowEnabled)

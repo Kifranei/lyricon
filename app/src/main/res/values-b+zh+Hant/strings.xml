@@ -95,6 +95,9 @@
     <string name="item_text_relative_progress">啟用相對進度歌詞</string>
     <string name="item_text_relative_progress_summary">當歌詞缺少單詞資料時，將整行視為單詞顯示。</string>
     <string name="item_text_relative_progress_highlight">顯示相對進度歌詞高亮進度</string>
+    <string name="item_text_interlude_indicator">間奏等待樣式</string>
+    <string name="option_text_interlude_indicator_none">關閉</string>
+    <string name="option_text_interlude_indicator_dots">三個點</string>
     <string name="item_text_color_normal">正常顏色</string>
     <string name="item_text_color_background">背景顏色</string>
     <string name="item_text_color_highlight">高亮顏色</string>
