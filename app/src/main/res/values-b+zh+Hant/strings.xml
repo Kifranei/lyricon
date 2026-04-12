@@ -118,6 +118,8 @@
     <string name="item_logo_style_app_logo">應用圖示</string>
     <string name="item_logo_style_cover_square">音樂封面（方形）</string>
     <string name="item_logo_style_cover_circle">音樂封面（圓形）</string>
+    <string name="item_logo_base64_icon">Base64 替換圖示</string>
+    <string name="item_logo_base64_icon_summary">適用於未提供圖示的播放器，填寫後優先替換狀態列音樂圖示。</string>
     <string name="item_logo_section_color">顏色</string>
     <string name="item_logo_custom_color">自訂顏色</string>
     <string name="item_logo_color_light">亮色模式顏色</string>

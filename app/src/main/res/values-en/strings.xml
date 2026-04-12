@@ -118,6 +118,8 @@
     <string name="item_logo_style_app_logo">App icon</string>
     <string name="item_logo_style_cover_square">Album art (square)</string>
     <string name="item_logo_style_cover_circle">Album art (circle)</string>
+    <string name="item_logo_base64_icon">Base64 replacement icon</string>
+    <string name="item_logo_base64_icon_summary">Use this for players that do not provide a logo. When set, it overrides the status bar music icon.</string>
     <string name="item_logo_section_color">Color</string>
     <string name="item_logo_custom_color">Custom color</string>
     <string name="item_logo_color_light">Color (light mode)</string>

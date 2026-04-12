@@ -183,6 +183,17 @@ fun LogoPage(
                         }
                     )
                 }
+
+                InputPreference(
+                    preferences = sharedPreferences,
+                    key = "lyric_style_logo_base64_icon",
+                    title = stringResource(R.string.item_logo_base64_icon),
+                    summary = stringResource(R.string.item_logo_base64_icon_summary),
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_music_note))
+                    },
+                    label = "Base64"
+                )
             }
         }
 

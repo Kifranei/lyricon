@@ -19,6 +19,7 @@ import kotlinx.serialization.Serializable
 data class LogoStyle(
     var enable: Boolean = Defaults.ENABLE,
     var style: Int = Defaults.STYLE,
+    var base64Icon: String? = Defaults.BASE64_ICON,
 
     var enableCustomColor: Boolean = Defaults.ENABLE_CUSTOM_COLOR,
     var lightModeColor: LogoColor = Defaults.LIGHT_MODE_COLOR,
@@ -35,6 +36,7 @@ data class LogoStyle(
     override fun onLoad(preferences: SharedPreferences) {
         enable = preferences.getBoolean("lyric_style_logo_enable", Defaults.ENABLE)
         style = preferences.getInt("lyric_style_logo_style", Defaults.STYLE)
+        base64Icon = preferences.getString("lyric_style_logo_base64_icon", Defaults.BASE64_ICON)
 
         enableCustomColor = preferences.getBoolean(
             "lyric_style_logo_enable_custom_color",
@@ -67,6 +69,7 @@ data class LogoStyle(
     override fun onWrite(editor: SharedPreferences.Editor) {
         editor.putBoolean("lyric_style_logo_enable", enable)
         editor.putInt("lyric_style_logo_style", style)
+        editor.putString("lyric_style_logo_base64_icon", base64Icon)
 
         editor.putBoolean("lyric_style_logo_enable_custom_color", enableCustomColor)
         editor.putString("lyric_style_logo_color_light_mode", lightModeColor.toJson())
@@ -86,6 +89,7 @@ data class LogoStyle(
     object Defaults {
         const val ENABLE: Boolean = true
         const val STYLE: Int = STYLE_PROVIDER_LOGO
+        val BASE64_ICON: String? = null
 
         const val ENABLE_CUSTOM_COLOR: Boolean = false
         val LIGHT_MODE_COLOR: LogoColor = LogoColor()

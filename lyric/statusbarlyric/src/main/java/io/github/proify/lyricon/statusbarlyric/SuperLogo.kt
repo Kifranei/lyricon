@@ -12,11 +12,13 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Outline
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
+import android.util.Base64
 import android.util.Log
 import android.view.View
 import android.view.ViewOutlineProvider
@@ -30,6 +32,7 @@ import io.github.proify.android.extensions.visibilityIfChanged
 import io.github.proify.lyricon.common.util.SVGHelper
 import io.github.proify.lyricon.lyric.style.LogoStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
+import io.github.proify.lyricon.lyric.style.TextStyle
 import io.github.proify.lyricon.lyric.style.RectF
 import io.github.proify.lyricon.subscriber.ProviderLogo
 import java.io.File
@@ -60,6 +63,8 @@ class SuperLogo(context: Context) : ImageView(context) {
 
     private var currentStatusColor: StatusColor = StatusColor()
     private var lyricStyle: LyricStyle? = null
+    private var cachedOverrideBitmap: Bitmap? = null
+    private var cachedOverrideSignature: String? = null
 
     // --- 进度条绘制属性 ---
     private var progress: Float = 0f
@@ -299,6 +304,96 @@ class SuperLogo(context: Context) : ImageView(context) {
         }
     }
 
+    private fun loadOverrideBitmap(): Bitmap? {
+        val raw = lyricStyle?.packageStyle?.logo?.base64Icon?.trim().orEmpty()
+        if (raw.isBlank()) {
+            cachedOverrideBitmap = null
+            cachedOverrideSignature = null
+            return null
+        }
+
+        val sanitized = raw.substringAfter("base64,", raw).replace("\\s".toRegex(), "")
+        val width = layoutParams?.width ?: 0
+        val height = layoutParams?.height ?: 0
+        val signature = "${sanitized.hashCode()}_${width}_${height}"
+        if (signature == cachedOverrideSignature && cachedOverrideBitmap != null) {
+            return cachedOverrideBitmap
+        }
+
+        val bitmap = runCatching {
+            val bytes = Base64.decode(sanitized, Base64.DEFAULT)
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        }.getOrNull()
+
+        cachedOverrideBitmap = bitmap
+        cachedOverrideSignature = signature
+        return bitmap
+    }
+
+    private fun shouldForceTint(): Boolean {
+        val style = lyricStyle ?: return false
+        return style.packageStyle.logo.enableCustomColor || style.packageStyle.text.enableRainbowTextColor
+    }
+
+    private fun resolveLogoTintColor(): Int {
+        val style = lyricStyle ?: return currentStatusColor.firstColor()
+        val logoStyle = style.packageStyle.logo
+        val textStyle = style.packageStyle.text
+        if (textStyle.enableRainbowTextColor) {
+            return resolveRainbowTintColor(textStyle)
+        }
+
+        if (!logoStyle.enableCustomColor) {
+            return currentStatusColor.firstColor()
+        }
+
+        val logoColorConfig = logoStyle.color(currentStatusColor.isLightMode)
+        return when {
+            logoColorConfig.followTextColor -> resolveFollowTextColor(textStyle)
+            logoColorConfig.color != 0 -> logoColorConfig.color
+            else -> currentStatusColor.firstColor()
+        }
+    }
+
+    private fun resolveFollowTextColor(textStyle: TextStyle): Int {
+        if (textStyle.enableRainbowTextColor) {
+            return resolveRainbowTintColor(textStyle)
+        }
+        if (!textStyle.enableCustomTextColor) {
+            return currentStatusColor.firstColor()
+        }
+        val textColorConfig = textStyle.color(currentStatusColor.isLightMode)
+        return textColorConfig?.normal?.firstOrNull() ?: currentStatusColor.firstColor()
+    }
+
+    private fun resolveRainbowTintColor(textStyle: TextStyle): Int {
+        val lightMode = currentStatusColor.isLightMode
+        val custom = textStyle.color(lightMode)?.normal
+        return custom?.firstOrNull() ?: defaultRainbowTintColors(lightMode).first()
+    }
+
+    private fun defaultRainbowTintColors(lightMode: Boolean): IntArray = if (lightMode) {
+        intArrayOf(
+            Color.parseColor("#C53A3D"),
+            Color.parseColor("#C06A00"),
+            Color.parseColor("#B28800"),
+            Color.parseColor("#1E8E3E"),
+            Color.parseColor("#1565C0"),
+            Color.parseColor("#3949AB"),
+            Color.parseColor("#7B1FA2")
+        )
+    } else {
+        intArrayOf(
+            Color.parseColor("#FF4D4F"),
+            Color.parseColor("#FF9F43"),
+            Color.parseColor("#FFD93D"),
+            Color.parseColor("#2ED573"),
+            Color.parseColor("#1E90FF"),
+            Color.parseColor("#5352ED"),
+            Color.parseColor("#A55EEA")
+        )
+    }
+
     // region Strategies
 
     /**
@@ -357,7 +452,7 @@ class SuperLogo(context: Context) : ImageView(context) {
             // 提供者 Logo 通常无需裁剪 Outline
             if (outlineProvider != null) outlineProvider = null
 
-            val bitmap = loadProviderBitmap()
+            val bitmap = loadOverrideBitmap() ?: loadProviderBitmap()
             setImageBitmap(bitmap)
             isEffective = bitmap != null
 
@@ -366,9 +461,10 @@ class SuperLogo(context: Context) : ImageView(context) {
         }
 
         override fun onColorUpdate() {
-            imageTintList = when {
-                providerLogo?.colorful == true -> null
-                else -> calculateTint()
+            imageTintList = if (providerLogo?.colorful == true && !shouldForceTint()) {
+                null
+            } else {
+                ColorStateList.valueOf(resolveLogoTintColor())
             }
         }
 
@@ -430,36 +526,6 @@ class SuperLogo(context: Context) : ImageView(context) {
             return bmp
         }
 
-        private fun calculateTint(): ColorStateList {
-            val logoStyle = lyricStyle?.packageStyle?.logo
-                ?: return ColorStateList.valueOf(currentStatusColor.firstColor())
-
-            if (!logoStyle.enableCustomColor) {
-                return ColorStateList.valueOf(currentStatusColor.firstColor())
-            }
-
-            val logoColorConfig = logoStyle.color(currentStatusColor.isLightMode)
-            val finalColor = when {
-                logoColorConfig.followTextColor -> resolveFollowTextColor()
-                logoColorConfig.color != 0 -> logoColorConfig.color
-                else -> currentStatusColor.firstColor()
-            }
-
-            return ColorStateList.valueOf(finalColor)
-        }
-
-        private fun resolveFollowTextColor(): Int {
-            val textStyle = lyricStyle?.packageStyle?.text
-            if (textStyle?.enableCustomTextColor != true) {
-                return currentStatusColor.firstColor()
-            }
-            val textColorConfig = textStyle.color(currentStatusColor.isLightMode)
-            return if (textColorConfig != null && textColorConfig.normal.isNotEmpty()) {
-                textColorConfig.normal.firstOrNull() ?: currentStatusColor.firstColor()
-            } else {
-                currentStatusColor.firstColor()
-            }
-        }
     }
 
     /**
@@ -606,14 +672,20 @@ class SuperLogo(context: Context) : ImageView(context) {
             private set
 
         override fun updateContent() {
-            if (imageTintList != null) imageTintList = null
+            if (imageTintList != null && !shouldForceTint()) imageTintList = null
             if (outlineProvider != null) outlineProvider = null
 
-            val activePackage = activePackage
-            val icon = if (activePackage.isNullOrBlank()) null else getIcon(activePackage)
-
-            setImageDrawable(icon)
-            isEffective = icon != null
+            val overrideBitmap = loadOverrideBitmap()
+            if (overrideBitmap != null) {
+                setImageBitmap(overrideBitmap)
+                isEffective = true
+            } else {
+                val activePackage = activePackage
+                val icon = if (activePackage.isNullOrBlank()) null else getIcon(activePackage)
+                setImageDrawable(icon)
+                isEffective = icon != null
+            }
+            onColorUpdate()
             updateVisibilityState()
         }
 
@@ -632,7 +704,11 @@ class SuperLogo(context: Context) : ImageView(context) {
         }
 
         override fun onColorUpdate() {
-            // App 图标保持原色
+            imageTintList = if (shouldForceTint()) {
+                ColorStateList.valueOf(resolveLogoTintColor())
+            } else {
+                null
+            }
         }
 
         override fun onAttach() {
