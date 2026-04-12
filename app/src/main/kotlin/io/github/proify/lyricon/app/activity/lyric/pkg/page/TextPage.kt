@@ -234,14 +234,14 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     "lyric_style_text_rainbow_color_light_mode",
                     title = stringResource(R.string.item_text_color_light_mode),
                     leftAction = { IconActions(painterResource(R.drawable.ic_brightness7)) },
-                    enabled = customColorEnabled.value && !rainbowColorEnabled.value,
+                    enabled = rainbowColorEnabled.value,
                 )
                 TextColorPreference(
                     preferences,
                     "lyric_style_text_rainbow_color_dark_mode",
                     title = stringResource(R.string.item_text_color_dark_mode),
                     leftAction = { IconActions(painterResource(R.drawable.ic_darkmode)) },
-                    enabled = customColorEnabled.value && !rainbowColorEnabled.value,
+                    enabled = rainbowColorEnabled.value,
                 )
             }
         }

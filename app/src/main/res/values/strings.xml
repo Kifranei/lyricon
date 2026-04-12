@@ -125,6 +125,8 @@
     <string name="item_logo_style_app_logo">应用图标</string>
     <string name="item_logo_style_cover_square">音乐封面（方形）</string>
     <string name="item_logo_style_cover_circle">音乐封面（圆形）</string>
+    <string name="item_logo_base64_icon">Base64 替换图标</string>
+    <string name="item_logo_base64_icon_summary">适用于未提供图标的播放器，填写后优先替换状态栏音乐图标。</string>
     <string name="item_logo_section_color">颜色</string>
     <string name="item_logo_custom_color">自定义颜色</string>
     <string name="item_logo_color_light">亮场景下颜色</string>
