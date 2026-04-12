@@ -6,7 +6,9 @@
 
 package io.github.proify.lyricon.xposed.systemui
 
+import android.app.Application
 import android.annotation.SuppressLint
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.view.doOnAttach
@@ -56,6 +58,13 @@ object SystemUIHooker : YukiBaseHooker() {
     private fun onPreAppCreate() {
         YLog.info("onPreAppCreate")
         val context = appContext ?: return
+        val packageName = context.packageName
+        val processName = currentProcessName()
+
+        if (processName != null && processName != packageName) {
+            YLog.info("Skip SystemUI hook in non-main process: $processName")
+            return
+        }
 
         CrashDetector.getInstance(context).apply {
             record()
@@ -68,6 +77,18 @@ object SystemUIHooker : YukiBaseHooker() {
 
         initCrashDataChannel()
         if (!isSafeMode) onAppCreate()
+    }
+
+    private fun currentProcessName(): String? {
+        return runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                Application.getProcessName()
+            } else {
+                val clazz = Class.forName("android.app.ActivityThread")
+                val method = clazz.getDeclaredMethod("currentProcessName")
+                method.invoke(null) as? String
+            }
+        }.getOrNull()
     }
 
     @SuppressLint("DiscouragedApi")
