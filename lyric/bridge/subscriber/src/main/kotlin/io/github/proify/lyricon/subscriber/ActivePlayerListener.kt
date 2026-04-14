@@ -13,6 +13,7 @@ import io.github.proify.lyricon.lyric.model.Song
  * 用于接收当前正在运行的媒体播放器的元数据、播放状态以及歌词配置变更。
  */
 interface ActivePlayerListener {
+
     /**
      * 当活跃的媒播放器应用发生切换时触发。
      *

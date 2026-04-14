@@ -26,7 +26,10 @@ object ActivePlayerDispatcher : PlayerListener {
     private val lock = ReentrantReadWriteLock()
 
     @Volatile
-    private var activeInfo: ProviderInfo? = null
+    var activeRecorder: PlayerRecorder? = null
+        private set
+
+    private val activeInfo: ProviderInfo? get() = activeRecorder?.providerInfo
 
     @Volatile
     private var activeIsPlaying: Boolean = false
@@ -46,7 +49,7 @@ object ActivePlayerDispatcher : PlayerListener {
     fun notifyProviderInvalid(provider: ProviderInfo) {
         val shouldNotify = lock.write {
             if (activeInfo == provider) {
-                activeInfo = null
+                activeRecorder = null
                 activeIsPlaying = false
                 true
             } else {
@@ -55,7 +58,10 @@ object ActivePlayerDispatcher : PlayerListener {
         }
 
         if (shouldNotify) {
-            broadcast { it.onActiveProviderChanged(null) }
+            broadcast {
+                it.onActiveProviderChanged(null)
+                it.onPlaybackStateChanged(false)
+            }
         }
     }
 
@@ -117,7 +123,7 @@ object ActivePlayerDispatcher : PlayerListener {
         crossinline notifier: (ActivePlayerListener) -> Unit
     ) {
         val recorderInfo = recorder.providerInfo
-        val recorderPlaying = recorder.lastIsPlaying
+        val recorderPlaying = recorder.isPlaying
 
         var isSwitched = false
         var shouldBroadcastOriginal = false
@@ -132,7 +138,7 @@ object ActivePlayerDispatcher : PlayerListener {
                     currentInfo == null || (!activeIsPlaying && recorderPlaying)
 
                 if (canSwitch) {
-                    activeInfo = recorderInfo
+                    activeRecorder = recorder
                     activeIsPlaying = recorderPlaying
                     isSwitched = true
                     shouldBroadcastOriginal = allowDuplicateIfSwitching
@@ -141,7 +147,6 @@ object ActivePlayerDispatcher : PlayerListener {
         }
 
         if (isSwitched) {
-            broadcast { it.onActiveProviderChanged(recorderInfo) }
             syncNewProviderState(recorder)
         }
 
@@ -151,22 +156,28 @@ object ActivePlayerDispatcher : PlayerListener {
     }
 
     private fun syncNewProviderState(recorder: PlayerRecorder) {
-        val playing = activeIsPlaying
-        val lyricType = recorder.lastLyricType
-
         broadcast { listener ->
-            listener.onPlaybackStateChanged(playing)
-
-            when (lyricType) {
-                SONG -> listener.onSongChanged(recorder.lastSong)
-                TEXT -> listener.onSendText(recorder.lastText)
-                NONE -> Unit
-            }
-
-            listener.onDisplayTranslationChanged(recorder.lastIsDisplayTranslation)
-            listener.onDisplayRomaChanged(recorder.lastDisplayRoma)
-            listener.onPositionChanged(recorder.lastPosition)
+            syncNewProviderState(recorder, listener)
         }
+    }
+
+    fun syncNewProviderState(
+        recorder: PlayerRecorder,
+        listener: ActivePlayerListener,
+    ) {
+        listener.onActiveProviderChanged(recorder.providerInfo)
+
+        listener.onPlaybackStateChanged(activeIsPlaying)
+
+        when (recorder.lyricType) {
+            SONG -> listener.onSongChanged(recorder.song)
+            TEXT -> listener.onSendText(recorder.text)
+            NONE -> Unit
+        }
+
+        listener.onDisplayTranslationChanged(recorder.isDisplayTranslation)
+        listener.onDisplayRomaChanged(recorder.isDisplayRoma)
+        listener.onPositionChanged(recorder.position)
     }
 
     private inline fun broadcast(

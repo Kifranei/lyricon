@@ -7,6 +7,8 @@
 package io.github.proify.lyricon.colorextractor.palette
 
 import android.graphics.Bitmap
+import android.graphics.Color
+import io.github.proify.lyricon.colorextractor.palette.ColorExtractorImpl.ThemePalette
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -20,13 +22,14 @@ object ColorExtractor {
     fun extractAsync(bitmap: Bitmap, callback: (ColorPaletteResult?) -> Unit) {
         scope.launch {
 
-            val r = ColorExtractorImpl.extract(bitmap)
+            val r = ColorExtractorImpl.extractThemePalette(bitmap)
             withContext(Dispatchers.Main) {
 
-                fun buildColor(r: List<Int>, isDark: Boolean): ThemeColors {
+                fun buildColor(r: ThemePalette, isDark: Boolean): ThemeColors {
+                    val color = if (isDark) r.onBlackBackground else r.onWhiteBackground
                     return ThemeColors(
-                        primary = ColorExtractorImpl.adaptiveLuminance(r[0], isDark),
-                        swatches = ColorExtractorImpl.adaptiveLuminance(r.toIntArray(), isDark)
+                        primary = color.firstOrNull() ?: Color.BLACK,
+                        swatches = color.toIntArray()
                     )
                 }
 

@@ -115,6 +115,7 @@ val buildAuthor = resolveBuildMeta("lyriconBuildAuthor", "LYRICON_BUILD_AUTHOR")
 
 configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.app"
+
     compileSdk {
         version = release(rootProject.extra.get("compileSdkVersion") as Int) {
             minorApiLevel = 1

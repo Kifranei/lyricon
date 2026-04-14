@@ -47,6 +47,8 @@ configure<LibraryExtension> {
 }
 
 dependencies {
+    //implementation(libs.opencc4j)
+
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.core.ktx)
 
@@ -72,7 +74,7 @@ dependencies {
     implementation(libs.androidx.palette.ktx)
 
     implementation(libs.ktor.client.okhttp)
-    testImplementation(libs.ktor.ktor.client.okhttp)
+    testImplementation(libs.ktor.client.okhttp)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

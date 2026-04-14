@@ -94,9 +94,9 @@ open class LyricPlayerView(
         gravity = Gravity.CENTER_VERTICAL
     }
 
-    // --- 公开 API  ---
     var isDisplayTranslation = true
         private set
+
     var isDisplayRoma = true
         private set
 
@@ -104,14 +104,11 @@ open class LyricPlayerView(
         set(value) {
             isTextMode = false
             if (value != null) {
-                val curFirstLine = activeLyricLines.firstOrNull()
+                val firstActiveLine = activeLyricLines.firstOrNull()
                 val isExitingPlaceholder =
-                    curFirstLine.isTitleLine() && getSongTitle(value) == curFirstLine?.text
+                    firstActiveLine.isTitleLine() && getSongTitle(value) == firstActiveLine?.text
 
-                if (!isExitingPlaceholder) {
-                    // 直接更新TimingNavigator即可
-                    reset()
-                }
+                if (!isExitingPlaceholder) reset()
 
                 val newSong = fillGapAtStart(value)
                 var previous: RichLyricLineModel? = null
@@ -122,7 +119,24 @@ open class LyricPlayerView(
                         previous = this
                     }
                 }
+
                 timingNavigator = TimingNavigator(lineModelList?.toTypedArray() ?: emptyArray())
+
+                //当歌词加载完成时，更新之前占位符的时间数据
+                if (isExitingPlaceholder && firstActiveLine.isTitleLine()) {
+                    val line = lineModelList?.firstOrNull()
+                    if (line != null && line.isTitleLine()) {
+                        activeLyricLines[0] = line
+                        val view = getChildAtOrNull(0)
+                        if (view != null && view is RichLyricLineView) {
+                            if (view.line.isTitleLine() && view.line != line) {
+                                view.line?.end = line.end
+                                view.line?.duration = line.duration
+                            }
+                        }
+                    }
+                }
+
             } else {
                 reset()
                 lineModelList = null
@@ -273,6 +287,7 @@ open class LyricPlayerView(
      * 更新播放时间位置，并同步各行视图进度。主入口。
      */
     private fun updatePosition(position: Long, seekTo: Boolean = false) {
+
         if (isTextMode) return
 
         tempFoundActiveLines.clear()

@@ -10,6 +10,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
+import java.util.Locale
 
 @Serializable
 @Parcelize
@@ -41,38 +42,23 @@ data class AiTranslationConfigs(
 
     companion object {
         private val BASE_PROMPT = """
-# 角色
-歌词翻译引擎。将 JSON 歌词数组翻译为 TARGET 语言，仅输出合规 JSON。
+你是一个专业的音乐翻译家 Api，正在为歌曲《{title}》 - {artist} 翻译歌词。
+目标语言：{target}。
 
-# 参数
-TARGET={target}
-TITLE={title}
-ARTIST={artist}
+## 输入
+一个包含索引和原文的 JSON 列表：[{"index": Int, "text": String}]
 
-# 风格
+## 严格指令
+1. 必须保持返回的 "index" 与输入完全一致。
+2. 严禁合并多行，严禁拆分单行。每一行输入最多对应一行输出。
+3. 若条目原文无需翻译，例如拟声词、纯符号、专有名词或已是 {target}，请直接忽略该条目，不要输出。
+4. 仅返回 JSON，严禁包含 Markdown 代码块、解释或其它文字。
+
+## 翻译风格建议
 {user_prompt}
 
-# 输入 / 输出
-输入：[{"index":Int,"text":String},...]
-输出：[{"index":Int,"trans":String},...]
-- 仅输出 JSON，禁止任何额外内容
-- index 来自输入，唯一，升序
-
-# 规则
-## 省略（满足任一条件则不输出）
-- text 仅含数字/标点/空白/无语义拟声（如 la la、oh）
-- text 已是 TARGET 语言
-
-## 翻译（其余所有行必须输出）
-- 译文语义等效、表达自然、不附注释
-
-## 歧义
-- 无法判断是否为 TARGET 语言 → 必须翻译并输出
-
-# 示例
-输入：[{"index":0,"text":"Hello"},{"index":1,"text":"你好"},{"index":2,"text":"La la"}]
-TARGET=zh-CN
-输出：[{"index":0,"trans":"你好"}]
+## 输出格式
+[{"index": Int, "trans": "String"}]
 """.trimIndent()
 
         val USER_PROMPT = """
@@ -96,6 +82,19 @@ TARGET=zh-CN
                 .replace("{title}", escape(title))
                 .replace("{artist}", escape(artist))
                 .replace("{target}", escape(target))
+        }
+
+        fun defaultTargetLanguage(locale: Locale = Locale.getDefault()): String {
+            val language = locale.language.lowercase(Locale.ROOT)
+            val script = locale.script.lowercase(Locale.ROOT)
+            val country = locale.country.lowercase(Locale.ROOT)
+            return when {
+                language == "zh" && (script == "hant" || country in setOf("tw", "hk", "mo")) -> "繁體中文"
+                language == "zh" -> "简体中文"
+                language == "ja" -> "日本語"
+                language == "ko" -> "한국어"
+                else -> "English"
+            }
         }
 
         fun cleanLlmOutput(raw: String): String {

@@ -330,9 +330,20 @@ class SuperLogo(context: Context) : ImageView(context) {
         return bitmap
     }
 
-    private fun shouldForceTint(): Boolean {
+    private fun hasBase64Override(): Boolean {
+        return !lyricStyle?.packageStyle?.logo?.base64Icon?.trim().isNullOrBlank()
+    }
+
+    private fun shouldForceProviderTint(): Boolean {
         val style = lyricStyle ?: return false
-        return style.packageStyle.logo.enableCustomColor || style.packageStyle.text.enableRainbowTextColor
+        return hasBase64Override()
+                || style.packageStyle.logo.enableCustomColor
+                || style.packageStyle.text.enableRainbowTextColor
+    }
+
+    private fun shouldForceAppTint(): Boolean {
+        val style = lyricStyle ?: return false
+        return hasBase64Override() || style.packageStyle.logo.enableCustomColor
     }
 
     private fun resolveLogoTintColor(): Int {
@@ -461,7 +472,7 @@ class SuperLogo(context: Context) : ImageView(context) {
         }
 
         override fun onColorUpdate() {
-            imageTintList = if (providerLogo?.colorful == true && !shouldForceTint()) {
+            imageTintList = if (providerLogo?.colorful == true && !shouldForceProviderTint()) {
                 null
             } else {
                 ColorStateList.valueOf(resolveLogoTintColor())
@@ -672,7 +683,7 @@ class SuperLogo(context: Context) : ImageView(context) {
             private set
 
         override fun updateContent() {
-            if (imageTintList != null && !shouldForceTint()) imageTintList = null
+            if (imageTintList != null && !shouldForceAppTint()) imageTintList = null
             if (outlineProvider != null) outlineProvider = null
 
             val overrideBitmap = loadOverrideBitmap()
@@ -704,7 +715,7 @@ class SuperLogo(context: Context) : ImageView(context) {
         }
 
         override fun onColorUpdate() {
-            imageTintList = if (shouldForceTint()) {
+            imageTintList = if (shouldForceAppTint()) {
                 ColorStateList.valueOf(resolveLogoTintColor())
             } else {
                 null

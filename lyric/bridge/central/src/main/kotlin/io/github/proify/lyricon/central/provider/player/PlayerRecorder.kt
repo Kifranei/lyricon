@@ -12,33 +12,33 @@ import io.github.proify.lyricon.provider.ProviderInfo
 data class PlayerRecorder(val providerInfo: ProviderInfo) {
 
     @Volatile
-    var lastSong: Song? = null
+    var song: Song? = null
         set(value) {
             field = value
-            lastLyricType = LyricType.SONG
+            lyricType = LyricType.SONG
         }
 
     @Volatile
-    var lastIsPlaying: Boolean = false
+    var isPlaying: Boolean = false
 
     @Volatile
-    var lastPosition: Long = -1
+    var position: Long = -1
 
     @Volatile
-    var lastText: String? = null
+    var text: String? = null
         set(value) {
             field = value
-            lastLyricType = LyricType.TEXT
+            lyricType = LyricType.TEXT
         }
 
     @Volatile
-    var lastIsDisplayTranslation: Boolean = false
+    var isDisplayTranslation: Boolean = false
 
     @Volatile
-    var lastDisplayRoma = false
+    var isDisplayRoma = false
 
     @Volatile
-    var lastLyricType: LyricType = LyricType.NONE
+    var lyricType: LyricType = LyricType.NONE
         private set
 
     enum class LyricType {

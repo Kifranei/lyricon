@@ -238,9 +238,8 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         return if (textStyle.enableCustomTextColor && customColor?.background?.isNotEmpty() == true) {
             customColor.background
         } else {
-            currentStatusColor.translucentColor.takeIf { it.isNotEmpty() } ?: intArrayOf(
-                currentStatusColor.firstColor().withAlpha(0.45f)
-            )
+            val alpha = if (currentStatusColor.isLightMode) 0.62f else 0.42f
+            intArrayOf(currentStatusColor.firstColor().withAlpha(alpha))
         }
     }
 
@@ -301,7 +300,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
 
     private fun defaultRainbowTextColor(lightMode: Boolean): RainbowTextColor {
         val normal = if (lightMode) LIGHT_MODE_RAINBOW_COLORS else RAINBOW_COLORS
-        val bgAlpha = if (lightMode) 0.26f else 0.45f
+        val bgAlpha = if (lightMode) 0.44f else 0.45f
         return RainbowTextColor(
             normal = normal,
             background = normal.map { it.withAlpha(bgAlpha) }.toIntArray(),

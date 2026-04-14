@@ -562,7 +562,7 @@ private fun ClearTranslationDB() {
 
     }
     SuperArrow(
-        title = stringResource(R.string.item_translation_clear),
+        title = stringResource(R.string.item_translation_clear_db),
         startAction = { IconActions(painterResource(R.drawable.ic_settings_backup_restore)) },
         onClick = {
             showDialog.value = true

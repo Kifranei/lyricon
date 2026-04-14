@@ -77,12 +77,13 @@ internal class ActivePlayerListenerDispatcher : IActivePlayerListener.Stub() {
     fun unregisterActivePlayerListener(listener: ActivePlayerListener) = listeners.remove(listener)
 
     @OptIn(ExperimentalSerializationApi::class)
-    override fun onActiveProviderChanged(providerInfo: ByteArray) {
-        val providerInfo = runCatching {
+    override fun onActiveProviderChanged(providerInfo: ByteArray?) {
+
+        val providerInfo = if (providerInfo != null) runCatching {
             json.decodeFromStream<ProviderInfo>(providerInfo.inputStream())
         }.onFailure {
             Log.e(TAG, "ProviderInfo decoding failed", it)
-        }.getOrNull()
+        }.getOrNull() else null
 
         forEachListener { it.onActiveProviderChanged(providerInfo) }
     }
