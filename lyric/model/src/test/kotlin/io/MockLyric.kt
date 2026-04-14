@@ -1,3 +1,9 @@
+/*
+ * Copyright 2026 Proify, Tomakino
+ * Licensed under the Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
+ */
+
 @file:Suppress("SameParameterValue")
 
 package io
@@ -16,8 +22,8 @@ class TimingNavigatorBenchmark {
 
     @Test
     fun runComparativeBenchmark() {
-        val totalItems = 20000
-        val iterations = 10
+        val totalItems = 100000
+        val iterations = 5
         val random = Random()
 
         // 构造测试数据

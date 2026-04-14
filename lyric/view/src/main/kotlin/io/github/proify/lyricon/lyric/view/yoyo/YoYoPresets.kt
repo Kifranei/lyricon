@@ -50,7 +50,7 @@ object YoYoPresets {
     val FadeOutLeft_FadeInRight: Pair<AnimConfig, AnimConfig>
         get() = pair(
             Techniques.FadeOutLeft, 300L, FastOutLinearInInterpolator(),
-            Techniques.FadeInRight, 450L, OvershootInterpolator(1.5f)
+            Techniques.FadeInRight, 450L, OvershootInterpolator(1.6f)
         )
 
     val FadeOutLeft_FadeInUp: Pair<AnimConfig, AnimConfig>
@@ -74,7 +74,7 @@ object YoYoPresets {
     val FadeOutRight_FadeInLeft: Pair<AnimConfig, AnimConfig>
         get() = pair(
             Techniques.FadeOutRight, 300L, FastOutLinearInInterpolator(),
-            Techniques.FadeInLeft, 450L, OvershootInterpolator(1.5f)
+            Techniques.FadeInLeft, 450L, OvershootInterpolator(1.6f)
         )
 
     val FadeOutRight_FadeInUp: Pair<AnimConfig, AnimConfig>

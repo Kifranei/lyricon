@@ -51,17 +51,15 @@
 
 ### ⚙️ Installation & Setup
 
-1. **Download Core Service**: Get it from
-   the [GitHub Core Release](https://github.com/tomakino/lyricon/releases/tag/core).
-2. **Download Main App**: Get the Lyricon app
+1. **Download Main App**: Get the Lyricon app
    from [Releases](https://github.com/tomakino/lyricon/releases).
-3. **Activate Module**: Enable "Lyricon" in the LSPosed manager and ensure the **System UI** scope
+2. **Activate Module**: Enable "Lyricon" in the LSPosed manager and ensure the **System UI** scope
    is checked.
-4. **Apply Changes**: Restart System UI or reboot your device to complete the Hook injection.
-5. **Install Plugins**: Download the corresponding plugin for your music player
+3. **Apply Changes**: Restart System UI or reboot your device to complete the Hook injection.
+4. **Install Plugins**: Download the corresponding plugin for your music player
    from [LyricProvider](https://github.com/tomakino/LyricProvider).
-6. **Configuration**: Open the Lyricon app to adjust position anchors, width, and visual styles.
-7. **Enjoy**: Play music and check your status bar for live lyrics.
+5. **Configuration**: Open the Lyricon app to adjust position anchors, width, and visual styles.
+6. **Enjoy**: Play music and check your status bar for live lyrics.
 
 ---
 

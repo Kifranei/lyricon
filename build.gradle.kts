@@ -8,15 +8,15 @@ plugins {
     alias(libs.plugins.ksp) apply false
     id("com.vanniktech.maven.publish") version "0.36.0" apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
-    id("com.mikepenz.aboutlibraries.plugin.android") version "14.0.0-b03" apply false
+    id("com.mikepenz.aboutlibraries.plugin.android") version "14.0.1" apply false
 }
 
 extra["appPackageName"] = "io.github.kifranei.lyricon.fork"
 extra["appVersionCode"] = 31
 extra["appVersionName"] = "1.0.31-alpha3"
 extra["compileSdkVersion"] = 36
-extra["targetSdkVersion"] = 36
-extra["minSdkVersion"] = 27
+extra["targetSdkVersion"] = 37
+extra["minSdkVersion"] = 28
 
 extra["providerSdkVersion"] = "0.1.69"
 extra["subscriberSdkVersion"] = "0.1.69"

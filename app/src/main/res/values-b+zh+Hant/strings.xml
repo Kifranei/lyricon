@@ -177,11 +177,23 @@
     <string name="item_translation_api_key">API Key</string>
     <string name="item_translation_model">模型</string>
     <string name="item_translation_base_url">介面地址</string>
+    <string name="item_translation_custom_prompt">自定義提示詞</string>
     <string name="item_translation_only">僅顯示翻譯</string>
+    <string name="alert_dialog_message_translation_clear">此操作將清空資料庫，請確認是否繼續？</string>
     <string name="item_translation_disable">不顯示翻譯</string>
     <string name="item_translation_api_key_set">已配置</string>
     <string name="item_translation_api_key_not_set">未配置</string>
     <string name="option_translation_provider_openai">OpenAI</string>
     <string name="add_color">添加</string>
     <string name="delete_current_color">刪除當前顏色</string>
+    <string name="item_translation_clear_db">清空資料庫</string>
+    <string name="alert_dialog_title_translation_clear">清空資料庫</string>
+    <string name="item_base_blocked_words_regex">歌詞屏蔽正則</string>
+    <string name="item_core_service_disable">禁用內置服務</string>
+    <string name="item_core_service_disable_summary">如果你安裝了外置詞幕服務，請禁用內置服務。需重啟系統界面。</string>
+
+    <string name="item_base_chinese_conversion_title">中文簡繁轉換</string>
+    <string name="item_base_chinese_conv_off">保持原樣</string>
+    <string name="item_base_chinese_conv_simplified">轉換為簡体</string>
+    <string name="item_base_chinese_conv_traditional">轉換為繁體</string>
 </resources>

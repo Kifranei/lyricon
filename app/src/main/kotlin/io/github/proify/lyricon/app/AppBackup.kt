@@ -14,6 +14,7 @@ import io.github.proify.android.extensions.getWorldReadableSharedPreferences
 import io.github.proify.android.extensions.inflate
 import io.github.proify.lyricon.app.bridge.AppBridge
 import io.github.proify.lyricon.app.util.editCommit
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_API_KEY
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.InputStream
@@ -24,7 +25,7 @@ object AppBackup {
     private const val TAG = "BackupManager"
 
     private val BLACKLIST_KEYS = listOf(
-        "lyric_style_text_ai_translation_api_key"
+        KEY_AI_TRANSLATION_API_KEY
     )
 
     fun export(outputStream: OutputStream): Boolean {

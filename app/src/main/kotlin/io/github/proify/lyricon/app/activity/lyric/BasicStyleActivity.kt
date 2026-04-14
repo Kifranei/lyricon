@@ -197,8 +197,20 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                             )
                         }
                     )
+                    InputPreference(
+                        preferences = preferences,
+                        key = "lyric_style_base_blocked_words_regex",
+                        title = stringResource(R.string.item_base_blocked_words_regex),
+                        maxValue = 1000.0,
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_visibility_off))
+                        }
+                    )
+
+                    ChineseConversionPreference()
                 }
             }
+
 
             item(key = "visibility") {
                 Card(
@@ -404,6 +416,48 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
 
         SecondsInput()
         RegexInput()
+    }
+
+    @Composable
+    private fun ChineseConversionPreference() {
+        // 读取当前保存的模式，默认为 OFF (0)
+        val currentMode = preferences.getInt(
+            "lyric_style_base_chinese_conversion_mode",
+            BasicStyle.Defaults.CHINESE_CONVERSION_MODE
+        )
+
+        // 定义常量与 UI 索引的映射关系
+        val modeOptions = listOf(
+            BasicStyle.CHINESE_CONVERSION_OFF,
+            BasicStyle.CHINESE_CONVERSION_SIMPLIFIED,
+            BasicStyle.CHINESE_CONVERSION_TRADITIONAL
+        )
+
+        val selectedIndex = remember(currentMode) {
+            val index = modeOptions.indexOf(currentMode)
+            mutableIntStateOf(if (index != -1) index else 0)
+        }
+
+        val entries = listOf(
+            SpinnerEntry(title = stringResource(R.string.item_base_chinese_conv_off)),
+            SpinnerEntry(title = stringResource(R.string.item_base_chinese_conv_simplified)),
+            SpinnerEntry(title = stringResource(R.string.item_base_chinese_conv_traditional)),
+        )
+
+        SuperSpinner(
+            startAction = {
+                IconActions(painterResource(R.drawable.translate_24px))
+            },
+            title = stringResource(R.string.item_base_chinese_conversion_title),
+            items = entries,
+            selectedIndex = selectedIndex.intValue,
+            onSelectedIndexChange = { index ->
+                selectedIndex.intValue = index
+                preferences.editCommit {
+                    putInt("lyric_style_base_chinese_conversion_mode", modeOptions[index])
+                }
+            }
+        )
     }
 
     @Preview(showBackground = true)

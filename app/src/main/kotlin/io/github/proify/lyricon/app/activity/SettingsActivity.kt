@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.proify.android.extensions.defaultSharedPreferences
 import io.github.proify.lyricon.app.AppBackup
 import io.github.proify.lyricon.app.LyriconApp
 import io.github.proify.lyricon.app.R
@@ -34,6 +35,7 @@ import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperSwitch
+import io.github.proify.lyricon.app.compose.preference.SwitchPreference
 import io.github.proify.lyricon.app.event.SettingChangedEvent
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.AppThemeUtils
@@ -129,10 +131,14 @@ class SettingsActivity : BaseActivity() {
                     ThemeSetting(onSettingsApplied)
                 }
             }
-            // 桌面图标开关
             item("desktop_icon") {
                 SettingsSectionCard(topPadding = 16.dp) {
                     DesktopIconSetting()
+                }
+            }
+            item("core_service") {
+                SettingsSectionCard(topPadding = 16.dp) {
+                    CoreServiceSetting()
                 }
             }
             item("backup") {
@@ -147,10 +153,8 @@ class SettingsActivity : BaseActivity() {
     private fun DesktopIconSetting() {
         val context = LocalContext.current
         val packageManager = context.packageManager
-        // 指向 Manifest 中写的别名
         val aliasName = remember { ComponentName(context, "io.github.proify.lyricon.app.activity.LauncherAlias") }
 
-        // 动态读取系统里这个别名的当前状态，无需存进 SharedPreferences
         var showDesktopIcon by remember {
             mutableStateOf(
                 packageManager.getComponentEnabledSetting(aliasName) != PackageManager.COMPONENT_ENABLED_STATE_DISABLED
@@ -175,11 +179,25 @@ class SettingsActivity : BaseActivity() {
                     state,
                     PackageManager.DONT_KILL_APP
                 )
-                
+
                 if (!isChecked) {
                     Toast.makeText(context, "桌面图标已隐藏，可能需要稍等片刻或重启桌面生效", Toast.LENGTH_SHORT).show()
                 }
             }
+        )
+    }
+
+    @Composable
+    private fun CoreServiceSetting() {
+        val context = LocalContext.current
+
+        SwitchPreference(
+            preferences = context.defaultSharedPreferences,
+            key = "core_service_disable",
+            defaultValue = false,
+            startAction = { IconActions(painterResource(R.drawable.ic_core_bear)) },
+            title = stringResource(R.string.item_core_service_disable),
+            summary = stringResource(R.string.item_core_service_disable_summary),
         )
     }
 

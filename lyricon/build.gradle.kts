@@ -57,7 +57,7 @@ configure<ApplicationExtension> {
 
     splits {
         abi {
-            isEnable = true
+            isEnable = false
             reset()
             include("armeabi-v7a", "arm64-v8a")
         }

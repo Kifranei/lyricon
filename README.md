@@ -49,14 +49,13 @@
 
 ### ⚙️ 安装与配置
 
-1. **下载核心服务**：从 [GitHub Core](https://github.com/tomakino/lyricon/releases/tag/core) 下载并安装。
-2. **下载主体应用**：从 [Releases](https://github.com/tomakino/lyricon/releases) 下载并安装词幕主体。
-3. **激活模块**：在 LSPosed 管理器中启用“词幕”模块，并勾选 **系统界面 (System UI)** 作用域。
-4. **重启生效**：重启系统界面（System UI）或重启设备以完成 Hook 注入。
-5. **安装插件**：根据使用的音乐播放器，在 [LyricProvider](https://github.com/tomakino/LyricProvider)
+1. **下载主体应用**：从 [Releases](https://github.com/tomakino/lyricon/releases) 下载并安装词幕主体。
+2. **激活模块**：在 LSPosed 管理器中启用“词幕”模块，并勾选 **系统界面 (System UI)** 作用域。
+3. **重启生效**：重启系统界面（System UI）或重启设备以完成 Hook 注入。
+4. **安装插件**：根据使用的音乐播放器，在 [LyricProvider](https://github.com/tomakino/LyricProvider)
    下载对应插件。
-6. **参数调节**：进入词幕应用，根据实际屏幕情况调整位置锚点、宽度与视觉样式。
-7. **运行测试**：启动音乐播放器并播放音乐，检查状态栏是否正常显示。
+5. **参数调节**：进入词幕应用，根据实际屏幕情况调整位置锚点、宽度与视觉样式。
+6. **运行测试**：启动音乐播放器并播放音乐，检查状态栏是否正常显示。
 
 ---
 
@@ -77,6 +76,8 @@
 - [**Kanade**](https://github.com/rcmiku/Kanade)
 - **Sollin Player**
 - [**QZ Music**](https://github.com/lqtmcstudio/QZMusic)
+
+#### 已适配了但没有你的播放器？请[提交 issue](https://github.com/tomakino/lyricon/issues)。
 
 ---
 

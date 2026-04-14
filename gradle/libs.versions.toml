@@ -1,113 +1,126 @@
 [versions]
-aboutlibrariesCore = "13.2.1"
+# Gradle / Kotlin / KSP
 agp = "9.1.0"
-backdrop = "1.0.6"
-capsuleAndroid = "2.1.1-patch2"
-kotlin = "2.3.20"
 jetbrainsKotlinJvm = "2.3.20"
+kotlin = "2.3.20"
 ksp = "2.3.4"
-coreKtx = "1.17.0"
+
+# AndroidX Base
+activity = "1.13.0"
 appcompat = "1.7.1"
-browser = "1.9.0"
+browser = "1.10.0"
+constraintlayout = "2.2.1"
+coreKtx = "1.18.0"
 interpolator = "1.0.0"
-ktorClientOkhttpVersion = "3.4.2"
-ktorClientOkhttp = "3.4.2"
 lifecycle = "2.10.0"
-activityCompose = "1.12.4"
-composeBom = "2026.02.01"
-composeFoundation = "1.10.5"
-composeUiGraphics = "1.10.5"
+
+# AndroidX Compose
+activityCompose = "1.13.0"
+composeBom = "2026.03.01"
+composeFoundation = "1.10.6"
+composeUiGraphics = "1.10.6"
+navigationCompose = "2.9.7"
+opencc4j = "1.14.0"
+remoteCreationCore = "1.0.0-alpha08"
+
+# Material
+material = "1.13.0"
+material3 = "1.5.0-alpha17"
 materialColorUtilitiesAndroid = "5.0.0-alpha07"
 materialIconsCore = "1.7.8"
-material = "1.13.0"
-accompanistDrawablePainter = "0.37.3"
-lottieCompose = "6.7.1"
-haze = "1.7.2"
-kotlinxSerializationJson = "1.10.0"
-junit4 = "4.13.2"
-androidxJunit = "1.3.0"
-espresso = "3.7.0"
-bonsai = "1.2.0"
-miuixAndroid = "0.8.8"
-miuixIcons = "0.8.8"
-navigationCompose = "2.9.7"
-openaiClient = "4.1.0"
 paletteKtx = "+"
+
+# Network / Logic / Serialization
+kotlinxSerializationJson = "1.10.0"
+ktor = "3.4.2"
+openaiClient = "4.1.0"
+
+# UI Extensions / Third Party
+aboutlibrariesCore = "13.2.1"
+accompanistDrawablePainter = "0.37.3"
+androidsvg = "1.4"
+backdrop = "1.0.6"
+bonsai = "1.2.0"
+capsuleAndroid = "2.1.1-patch2"
+haze = "1.7.2"
+lottieCompose = "6.7.1"
+miuixAndroid = "0.8.8"
+# 暂时保留到0.8.8，因为新版本的gradle版本过高
+#noinspection NewerVersionAvailable
+miuixIcons = "0.8.8"
+
+# Hook / Reflection
+kavaref = "1.0.2"
 xposed = "82"
 yukihookapi = "1.3.1"
-kavaref = "1.0.2"
-androidsvg = "1.4"
-remoteCreationCore = "1.0.0-alpha05"
-activity = "1.12.4"
-constraintlayout = "2.2.1"
-material3 = "1.5.0-alpha15"
+
+# Testing
+androidxJunit = "1.3.0"
+espresso = "3.7.0"
+junit4 = "4.13.2"
 
 [libraries]
-# ===== AndroidX =====
-aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutlibrariesCore" }
+# ===== AndroidX Base =====
+androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-appcompat-resources = { module = "androidx.appcompat:appcompat-resources", version.ref = "appcompat" }
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-interpolator = { group = "androidx.interpolator", name = "interpolator", version.ref = "interpolator" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
-androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 
-# ===== Compose =====
+# ===== AndroidX Compose =====
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "composeFoundation" }
 androidx-compose-foundation-layout = { module = "androidx.compose.foundation:foundation-layout", version.ref = "composeFoundation" }
+androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "materialIconsCore" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
+androidx-compose-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "composeUiGraphics" }
-androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
-androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
-androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "materialIconsCore" }
-
-# ===== Material =====
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 androidx-palette-ktx = { module = "androidx.palette:palette-ktx", version.ref = "paletteKtx" }
-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttp" }
-ktor-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktorClientOkhttpVersion" }
+
+# ===== Material =====
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-
-# ===== 动画 / UI 扩展 =====
-accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablePainter" }
-lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
-chrisbanes-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
-backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
-capsule-android = { module = "com.mocharealm.gaze:capsule-android", version.ref = "capsuleAndroid" }
-
-# ===== KotlinX =====
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-
-# ===== 测试 =====
-junit = { group = "junit", name = "junit", version.ref = "junit4" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
-
-# ===== 第三方 / 框架 =====
-bonsai-core = { module = "cafe.adriel.bonsai:bonsai-core", version.ref = "bonsai" }
 material-color-utilities-android = { module = "com.materialkolor:material-color-utilities-android", version.ref = "materialColorUtilitiesAndroid" }
-miuix-android = { module = "top.yukonga.miuix.kmp:miuix-android", version.ref = "miuixAndroid" }
+
+# ===== Network / Logic / Serialization =====
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 openai-client = { module = "com.aallam.openai:openai-client", version.ref = "openaiClient" }
 
-# ===== Hook / 反射 =====
+# ===== UI Extensions / Third Party =====
+aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutlibrariesCore" }
+accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablePainter" }
+androidsvg = { module = "com.caverock:androidsvg-aar", version.ref = "androidsvg" }
+backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
+bonsai-core = { module = "cafe.adriel.bonsai:bonsai-core", version.ref = "bonsai" }
+capsule-android = { module = "com.mocharealm.gaze:capsule-android", version.ref = "capsuleAndroid" }
+chrisbanes-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
+miuix-android = { module = "top.yukonga.miuix.kmp:miuix-android", version.ref = "miuixAndroid" }
 miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons", version.ref = "miuixIcons" }
+
+# ===== Hook / Reflection =====
+kavaref-core = { module = "com.highcapable.kavaref:kavaref-core", version.ref = "kavaref" }
+kavaref-extension = { module = "com.highcapable.kavaref:kavaref-extension", version.ref = "kavaref" }
+opencc4j = { module = "com.github.houbb:opencc4j", version.ref = "opencc4j" }
 xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed" }
 yukihookapi-api = { module = "com.highcapable.yukihookapi:api", version.ref = "yukihookapi" }
 yukihookapi-ksp-xposed = { module = "com.highcapable.yukihookapi:ksp-xposed", version.ref = "yukihookapi" }
-kavaref-core = { module = "com.highcapable.kavaref:kavaref-core", version.ref = "kavaref" }
-kavaref-extension = { module = "com.highcapable.kavaref:kavaref-extension", version.ref = "kavaref" }
 
-# ===== 图形 =====
-androidsvg = { module = "com.caverock:androidsvg-aar", version.ref = "androidsvg" }
-androidx-compose-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
-androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
-androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+# ===== Testing =====
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxJunit" }
+junit = { group = "junit", name = "junit", version.ref = "junit4" }
 
 [plugins]
 # ===== Android =====
@@ -115,8 +128,8 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 
 # ===== Kotlin =====
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
-# ===== KSP =====
+# ===== Other =====
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

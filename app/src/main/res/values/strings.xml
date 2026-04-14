@@ -76,7 +76,6 @@
     <string name="item_text_color">颜色</string>
     <string name="item_text_extract_cover_color">提取封面颜色</string>
     <string name="item_text_extract_cover_gradient">提取封面渐变色</string>
-    <string name="item_text_enable_rainbow_color">启用歌词彩虹渐变</string>
     <string name="item_text_enable_custom_color">自定义颜色</string>
     <string name="item_text_color_light_mode">亮场景下颜色</string>
     <string name="item_text_color_dark_mode">暗场景下颜色</string>
@@ -98,10 +97,10 @@
     <string name="item_text_relative_progress">启用相对进度歌词</string>
     <string name="item_text_relative_progress_summary">当歌词缺少单词数据时，将整行作为单词显示。</string>
     <string name="item_text_relative_progress_highlight">显示相对进度歌词高亮进度</string>
+    <string name="item_text_enable_rainbow_color">启用歌词彩虹渐变</string>
     <string name="item_text_interlude_indicator">间奏等待样式</string>
     <string name="option_text_interlude_indicator_none">关闭</string>
     <string name="option_text_interlude_indicator_dots">三个点</string>
-    <string name="item_text_sustain_lift">拉长音上浮效果</string>
     <string name="item_text_sustain_glow">拉长音发光效果</string>
     <string name="item_text_sustain_glow_color_mode_summary">已启用取色模式，发光效果不生效。</string>
     <string name="item_text_sustain_glow_color_mode_hint">开启取色模式（封面取色/封面渐变/彩虹色/自定义颜色）时不生效。</string>
@@ -188,7 +187,7 @@
     <string name="item_translation_base_url">接口地址</string>
     <string name="item_translation_custom_prompt">自定义提示词</string>
     <string name="item_translation_only">使用翻译代替歌词</string>
-    <string name="item_translation_clear">清空数据库</string>
+    <string name="item_translation_clear_db">清空数据库</string>
     <string name="alert_dialog_title_translation_clear">清空数据库</string>
     <string name="alert_dialog_message_translation_clear">此操作将清空数据库，请确认是否继续？</string>
 
@@ -198,4 +197,12 @@
     <string name="option_translation_provider_openai">OpenAI</string>
     <string name="add_color">添加</string>
     <string name="delete_current_color">删除当前颜色</string>
+    <string name="item_base_blocked_words_regex">歌词屏蔽正则</string>
+    <string name="item_core_service_disable">禁用内置服务</string>
+    <string name="item_core_service_disable_summary">如果你安装了外置词幕服务，请禁用内置服务。需重启系统界面。</string>
+
+    <string name="item_base_chinese_conversion_title">中文简繁转换</string>
+    <string name="item_base_chinese_conv_off">保持原样</string>
+    <string name="item_base_chinese_conv_simplified">转换为简体</string>
+    <string name="item_base_chinese_conv_traditional">转换为繁体</string>
 </resources>

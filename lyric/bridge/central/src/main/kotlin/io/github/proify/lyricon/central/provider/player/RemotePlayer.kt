@@ -154,7 +154,7 @@ internal class RemotePlayer(
 
                     while (isActive) {
                         val pos = computeCurrentPosition()
-                        recorder.lastPosition = pos
+                        recorder.position = pos
                         playerListener.safeNotify {
                             onPositionChanged(recorder, pos)
                         }
@@ -191,7 +191,7 @@ internal class RemotePlayer(
     }
 
     override fun onScreenOn() {
-        if (recorder.lastIsPlaying) {
+        if (recorder.isPlaying) {
             startPositionUpdate()
         }
     }
@@ -210,7 +210,7 @@ internal class RemotePlayer(
 
         if (positionUpdateInterval != newInterval) {
             positionUpdateInterval = newInterval
-            if (recorder.lastIsPlaying) {
+            if (recorder.isPlaying) {
                 stopPositionUpdate()
                 startPositionUpdate()
             }
@@ -232,7 +232,7 @@ internal class RemotePlayer(
             }
 
             val normalized = song?.normalize()
-            recorder.lastSong = normalized
+            recorder.song = normalized
             playerListener.safeNotify {
                 onSongChanged(recorder, normalized)
             }
@@ -245,8 +245,8 @@ internal class RemotePlayer(
         isState2Enabled.set(false)
         lastPlaybackState = null
 
-        if (recorder.lastIsPlaying != isPlaying) {
-            recorder.lastIsPlaying = isPlaying
+        if (recorder.isPlaying != isPlaying) {
+            recorder.isPlaying = isPlaying
             playerListener.safeNotify {
                 onPlaybackStateChanged(recorder, isPlaying)
             }
@@ -278,8 +278,8 @@ internal class RemotePlayer(
         isState2Enabled.set(true)
         lastPlaybackState = state
 
-        if (recorder.lastIsPlaying != isPlaying) {
-            recorder.lastIsPlaying = isPlaying
+        if (recorder.isPlaying != isPlaying) {
+            recorder.isPlaying = isPlaying
             playerListener.safeNotify {
                 onPlaybackStateChanged(recorder, isPlaying)
             }
@@ -296,7 +296,7 @@ internal class RemotePlayer(
         if (released.get()) return
 
         val safe = position.coerceAtLeast(0L)
-        recorder.lastPosition = safe
+        recorder.position = safe
         playerListener.safeNotify {
             onSeekTo(recorder, safe)
         }
@@ -305,7 +305,7 @@ internal class RemotePlayer(
     override fun sendText(text: String?) {
         if (released.get()) return
 
-        recorder.lastText = text
+        recorder.text = text
         playerListener.safeNotify {
             onSendText(recorder, text)
         }
@@ -314,7 +314,7 @@ internal class RemotePlayer(
     override fun setDisplayTranslation(isDisplayTranslation: Boolean) {
         if (released.get()) return
 
-        recorder.lastIsDisplayTranslation = isDisplayTranslation
+        recorder.isDisplayTranslation = isDisplayTranslation
         playerListener.safeNotify {
             onDisplayTranslationChanged(recorder, isDisplayTranslation)
         }
@@ -323,19 +323,21 @@ internal class RemotePlayer(
     override fun setDisplayRoma(isDisplayRoma: Boolean) {
         if (released.get()) return
 
-        recorder.lastDisplayRoma = isDisplayRoma
+        recorder.isDisplayRoma = isDisplayRoma
         playerListener.safeNotify {
             onDisplayRomaChanged(recorder, isDisplayRoma)
         }
     }
 
-    override fun getPositionMemory(): SharedMemory? =
-        positionSharedMemory
+    override fun getPositionMemory(): SharedMemory? = positionSharedMemory
 
     private inline fun PlayerListener.safeNotify(
         crossinline block: PlayerListener.() -> Unit
     ) {
-        runCatching { block() }
-            .onFailure { Log.e(TAG, "Listener notify failed", it) }
+        try {
+            block()
+        } catch (e: Exception) {
+            Log.e(TAG, "safeNotify: ", e)
+        }
     }
 }
