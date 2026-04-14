@@ -101,7 +101,8 @@ data class TextStyle(
         const val TRANSLATION_DISABLE: Boolean = false
         const val AI_TRANSLATION_ENABLED: Boolean = false
         const val AI_TRANSLATION_PROVIDER = "openai"
-        val AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME: String get() = Locale.getDefault().displayLanguage
+        val AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME: String
+            get() = AiTranslationConfigs.defaultTargetLanguage(Locale.getDefault())
         const val AI_TRANSLATION_HOST: String = "https://api.openai.com/v1"
         val AI_TRANSLATION_MODEL: String = AiTranslationProvider.OPENAI.model
         val AI_TRANSLATION_PROMPT: String = AiTranslationConfigs.USER_PROMPT

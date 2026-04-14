@@ -118,11 +118,8 @@ object AiTranslationManager {
     }
 
     private fun applyTranslation(song: Song, transItems: List<TranslationItem>): Song {
-        /// val itemsMap = transItems.associateBy { it.index }
-
         return song.apply {
             lyrics = lyrics?.mapIndexed { index, line ->
-
                 val transItem = transItems.find {
                     it.index == index
                 }
@@ -130,7 +127,8 @@ object AiTranslationManager {
 
                 if (!transText.isNullOrBlank()
                     && line.translation.isNullOrBlank()
-                    && transText.lowercase() != line.text?.trim()?.lowercase()
+                    && !isEquivalentTranslation(line.text, transText)
+                    && !isSameLanguageDuplicate(line.text, transText)
                 ) {
                     line.copy(translation = transText, translationWords = null)
                 } else line
@@ -179,15 +177,24 @@ object AiTranslationManager {
     ): List<TranslationItem>? {
         if (configs.apiKey.isNullOrBlank()) return null
 
+        val targetLanguage = configs.targetLanguage?.takeIf { it.isNotBlank() }
+            ?.trim()
+            ?: defaultTranslationTargetLanguage()
+        val filteredPayload = texts.mapIndexedNotNull { index, text ->
+            val normalized = text.trim()
+            if (shouldSkipTranslation(normalized, targetLanguage)) null
+            else RequestItem(index = index, text = normalized)
+        }
+        if (filteredPayload.isEmpty()) return null
+
         val client = getOpenAIClient(configs)
-        val requestIndices = texts.indices.toSet()
-        val payload = texts.mapIndexed { index, s -> RequestItem(index = index, text = s) }
+        val requestIndices = filteredPayload.map { it.index }.toSet()
 
         val request = ChatCompletionRequest(
             model = ModelId(configs.model.orEmpty()),
             messages = listOf(
                 ChatMessage(ChatRole.System, buildSystemPrompt(configs, song)),
-                ChatMessage(ChatRole.User, json.encodeToString(payload))
+                ChatMessage(ChatRole.User, json.encodeToString(filteredPayload))
             ),
             responseFormat = ChatResponseFormat.JsonObject
         )
@@ -208,7 +215,7 @@ object AiTranslationManager {
 
     private fun buildSystemPrompt(configs: AiTranslationConfigs, song: Song?): String {
         val target = configs.targetLanguage?.takeIf { it.isNotBlank() }
-            ?: Locale.getDefault().displayLanguage
+            ?: defaultTranslationTargetLanguage()
         val title = song?.name ?: "Unknown Track"
         val artist = song?.artist ?: "Unknown Artist"
         val prompt = (configs.prompt.takeIf { it.isNotBlank() } ?: DEFAULT_PROMPT)
@@ -238,6 +245,97 @@ object AiTranslationManager {
                 } else null
             }
         }.getOrNull()
+    }
+
+    private fun defaultTranslationTargetLanguage(): String =
+        AiTranslationConfigs.defaultTargetLanguage(Locale.getDefault())
+
+    private fun shouldSkipTranslation(source: String, targetLanguage: String): Boolean {
+        if (source.isBlank()) return true
+        val compact = normalizeTextForComparison(source)
+        if (compact.isBlank()) return true
+        if (compact.matches(Regex("^[\\d\\p{Punct}\\s]+$"))) return true
+
+        return when {
+            isChineseTarget(targetLanguage) && isLikelyChinese(source) -> true
+            isJapaneseTarget(targetLanguage) && isLikelyJapanese(source) -> true
+            isKoreanTarget(targetLanguage) && isLikelyKorean(source) -> true
+            isEnglishTarget(targetLanguage) && isLikelyEnglish(source) -> true
+            else -> false
+        }
+    }
+
+    private fun isEquivalentTranslation(source: String?, translated: String): Boolean {
+        val normalizedSource = normalizeTextForComparison(source)
+        val normalizedTranslated = normalizeTextForComparison(translated)
+        return normalizedSource.isNotBlank() && normalizedSource == normalizedTranslated
+    }
+
+    private fun isSameLanguageDuplicate(source: String?, translated: String): Boolean {
+        if (source.isNullOrBlank()) return false
+        return when {
+            isLikelyChinese(source) && isLikelyChinese(translated) ->
+                normalizeTextForComparison(source) == normalizeTextForComparison(translated)
+
+            isLikelyJapanese(source) && isLikelyJapanese(translated) ->
+                normalizeTextForComparison(source) == normalizeTextForComparison(translated)
+
+            isLikelyKorean(source) && isLikelyKorean(translated) ->
+                normalizeTextForComparison(source) == normalizeTextForComparison(translated)
+
+            isLikelyEnglish(source) && isLikelyEnglish(translated) ->
+                normalizeTextForComparison(source) == normalizeTextForComparison(translated)
+
+            else -> false
+        }
+    }
+
+    private fun normalizeTextForComparison(text: String?): String {
+        return text
+            .orEmpty()
+            .trim()
+            .lowercase(Locale.ROOT)
+            .replace(Regex("\\s+"), "")
+            .replace(Regex("[\\p{Punct}，。！？；：“”‘’、·…—～（）《》〈〉【】『』「」]"), "")
+    }
+
+    private fun isChineseTarget(targetLanguage: String): Boolean {
+        val normalized = targetLanguage.lowercase(Locale.ROOT)
+        return normalized.contains("中文")
+                || normalized.contains("汉语")
+                || normalized.contains("漢語")
+                || normalized.contains("chinese")
+                || normalized.startsWith("zh-")
+                || normalized == "zh"
+    }
+
+    private fun isJapaneseTarget(targetLanguage: String): Boolean {
+        val normalized = targetLanguage.lowercase(Locale.ROOT)
+        return normalized.contains("日本語") || normalized.contains("日语") || normalized.contains("japanese") || normalized.startsWith("ja")
+    }
+
+    private fun isKoreanTarget(targetLanguage: String): Boolean {
+        val normalized = targetLanguage.lowercase(Locale.ROOT)
+        return normalized.contains("한국어") || normalized.contains("韩语") || normalized.contains("korean") || normalized.startsWith("ko")
+    }
+
+    private fun isEnglishTarget(targetLanguage: String): Boolean {
+        val normalized = targetLanguage.lowercase(Locale.ROOT)
+        return normalized.contains("english") || normalized.contains("英语") || normalized.startsWith("en")
+    }
+
+    private fun isLikelyChinese(text: String): Boolean =
+        Regex("[\\u4E00-\\u9FFF]").containsMatchIn(text)
+
+    private fun isLikelyJapanese(text: String): Boolean =
+        Regex("[\\u3040-\\u30FF]").containsMatchIn(text)
+
+    private fun isLikelyKorean(text: String): Boolean =
+        Regex("[\\uAC00-\\uD7AF]").containsMatchIn(text)
+
+    private fun isLikelyEnglish(text: String): Boolean {
+        val latin = Regex("[A-Za-z]").findAll(text).count()
+        return latin >= 3 && latin >= text.count { !it.isWhitespace() } / 2
     }
 
     private suspend fun saveToDb(key: String, items: List<TranslationItem>) {
