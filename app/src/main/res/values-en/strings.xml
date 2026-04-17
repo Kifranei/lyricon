@@ -101,6 +101,7 @@
     <string name="item_text_interlude_indicator">Interlude waiting style</string>
     <string name="option_text_interlude_indicator_none">Off</string>
     <string name="option_text_interlude_indicator_dots">Three dots</string>
+    <string name="item_text_sustain_lift">Character float effect</string>
     <string name="item_text_sustain_glow">Sustain glow effect</string>
     <string name="item_text_sustain_glow_color_mode_summary">Glow effect is unavailable when color mode is enabled.</string>
     <string name="item_text_sustain_glow_color_mode_hint">Disabled when cover color, cover gradient, rainbow color, or custom color is enabled.</string>

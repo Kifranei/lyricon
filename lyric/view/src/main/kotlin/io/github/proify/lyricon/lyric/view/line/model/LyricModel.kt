@@ -25,12 +25,29 @@ data class LyricModel(
     var width: Float = 0f
         private set
 
+    /**
+     * 文本左侧 bearing（px），负值表示字形向左延伸超出 x=0。
+     * 用于 clipRect 左边界的补偿，避免首字符左侧被裁剪。
+     */
+    var textLeftBearing: Float = 0f
+        private set
+
+    /**
+     * 左侧 bearing 补偿（px），始终 >= 0。
+     * 当 textLeftBearing < 0 时，此值 = abs(textLeftBearing)，
+     * 用于将整体绘制向右偏移，避免字形超出 View 左边界被裁剪。
+     */
+    var textLeftBearingPadding: Float = 0f
+        private set
+
     val wordText: String by lazy { words.toText() }
     val wordTimingNavigator: TimingNavigator<WordModel> by lazy { TimingNavigator(words.toTypedArray()) }
     val isPlainText: Boolean = words.isEmpty()
 
     fun updateSizes(paint: Paint) {
-        width = getTextFullWidth(paint, text)
+        textLeftBearing = computeLeftBearing(paint, text)
+        textLeftBearingPadding = maxOf(0f, -textLeftBearing)
+        width = getTextFullWidth(paint, text) + textLeftBearingPadding
         var previous: WordModel? = null
         words.forEach { word ->
             word.updateSizes(previous, paint)
@@ -40,18 +57,39 @@ data class LyricModel(
 
     /**
      * 获取文字绘制所需的实际宽度
+     * 额外添加一个像素的右侧 padding，防止最后一个字符的
+     * 字形（如 italic 斜体或带重音符号的字符）被裁剪
      */
     private fun getTextFullWidth(paint: Paint, text: String): Float {
         val measureWidth = paint.measureText(text)
         val bounds = Rect()
         paint.getTextBounds(text, 0, text.length, bounds)
 
-        // 如果 bounds.right 大于 measureWidth，说明文字向右侧溢出了
-        return if (bounds.right > measureWidth) {
+        // 取 measureWidth 和 bounds.right 的较大值，再加 1px 安全边距
+        val rawWidth = if (bounds.right > measureWidth) {
             bounds.right.toFloat()
         } else {
             measureWidth
         }
+        return rawWidth + 1f
+    }
+
+    /**
+     * 计算文本的最大负 left bearing。
+     * 某些字体（如 italic、带重音符号的字形）的 bounds.left < 0，
+     * 表示字形向左延伸超出 drawText 的 x 坐标。
+     * 返回负值（或 0），用于 clipRect 左边界补偿。
+     */
+    private fun computeLeftBearing(paint: Paint, text: String): Float {
+        val bounds = Rect()
+        var minLeft = 0f
+        for (i in text.indices) {
+            paint.getTextBounds(text, i, i + 1, bounds)
+            if (bounds.left < minLeft) {
+                minLeft = bounds.left.toFloat()
+            }
+        }
+        return minLeft
     }
 }
 

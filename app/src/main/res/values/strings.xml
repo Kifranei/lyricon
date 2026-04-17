@@ -101,6 +101,7 @@
     <string name="item_text_interlude_indicator">间奏等待样式</string>
     <string name="option_text_interlude_indicator_none">关闭</string>
     <string name="option_text_interlude_indicator_dots">三个点</string>
+    <string name="item_text_sustain_lift">逐字上浮效果</string>
     <string name="item_text_sustain_glow">拉长音发光效果</string>
     <string name="item_text_sustain_glow_color_mode_summary">已启用取色模式，发光效果不生效。</string>
     <string name="item_text_sustain_glow_color_mode_hint">开启取色模式（封面取色/封面渐变/彩虹色/自定义颜色）时不生效。</string>
