@@ -8,5 +8,6 @@
 -keep class io.github.proify.lyricon.xposed.** { *; }
 -keep class com.highcapable.** { *; }
 
-#opencc4j
--keep class com.github.houbb.** { *; }
+#
+##opencc4j
+#-keep class com.github.houbb.** { *; }

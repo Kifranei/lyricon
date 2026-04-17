@@ -45,7 +45,7 @@ class MarqueeTestActivity : AppCompatActivity() {
 
         binding.line.setLyric(LyricLine(text = "哈基米叮咚鸡胖宝宝踩踩背搞核酸"))
         binding.line.post {
-            binding.line.startMarquee()
+            binding.line.reqStartMarquee()
         }
     }
 }

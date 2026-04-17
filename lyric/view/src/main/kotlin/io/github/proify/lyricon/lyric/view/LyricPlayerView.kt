@@ -120,22 +120,16 @@ open class LyricPlayerView(
                     }
                 }
 
-                timingNavigator = TimingNavigator(lineModelList?.toTypedArray() ?: emptyArray())
+//                if (isExitingPlaceholder) {
+//                    val firstLine = lineModelList?.firstOrNull()
+//                    if (firstLine != null && firstLine.isTitleLine()) {
+//                        activeLyricLines[0] = firstLine
+//                        val child = getChildAtOrNull(0) as? RichLyricLineView
+//                        child?.rawLine = firstLine
+//                    }
+//                }
 
-                //当歌词加载完成时，更新之前占位符的时间数据
-                if (isExitingPlaceholder && firstActiveLine.isTitleLine()) {
-                    val line = lineModelList?.firstOrNull()
-                    if (line != null && line.isTitleLine()) {
-                        activeLyricLines[0] = line
-                        val view = getChildAtOrNull(0)
-                        if (view != null && view is RichLyricLineView) {
-                            if (view.line.isTitleLine() && view.line != line) {
-                                view.line?.end = line.end
-                                view.line?.duration = line.duration
-                            }
-                        }
-                    }
-                }
+                timingNavigator = TimingNavigator(lineModelList?.toTypedArray() ?: emptyArray())
 
             } else {
                 reset()
@@ -182,11 +176,11 @@ open class LyricPlayerView(
             if (styleConfig.enableAnim && preset != null) {
                 animateUpdate(preset) {
                     textRecycleLineView.line = line
-                    textRecycleLineView.post { textRecycleLineView.tryStartMarquee() }
+                    textRecycleLineView.requestStartMarquee()
                 }
             } else {
                 textRecycleLineView.line = line
-                textRecycleLineView.post { textRecycleLineView.tryStartMarquee() }
+                textRecycleLineView.requestStartMarquee()
             }
 
             lyricCountChangeListeners.forEach {
@@ -287,7 +281,6 @@ open class LyricPlayerView(
      * 更新播放时间位置，并同步各行视图进度。主入口。
      */
     private fun updatePosition(position: Long, seekTo: Boolean = false) {
-
         if (isTextMode) return
 
         tempFoundActiveLines.clear()
@@ -338,20 +331,25 @@ open class LyricPlayerView(
 
                     animateUpdate(preset!!) {
                         recycleView.endAnimationTransition()
-                        recycleView.tryStartMarquee()
+                        recycleView.requestStartMarquee()
+
                         updateViewsVisibility()
                     }
                 } else {
                     activeLyricLines[0] = newLine
                     recycleView.line = newLine
-                    recycleView.tryStartMarquee()
+
+                    recycleView.requestStartMarquee()
                 }
             }
         } else {
             viewsToRemoveTemp.forEach { removeView(it); activeLyricLines.remove(it.line) }
             viewsToAddTemp.forEach { line ->
                 activeLyricLines.add(line)
-                createDoubleLineView(line).also { autoAddView(it); it.tryStartMarquee() }
+                createDoubleLineView(line).also {
+                    autoAddView(it)
+                    it.requestStartMarquee()
+                }
             }
         }
 
@@ -585,7 +583,10 @@ open class LyricPlayerView(
     @Suppress("UnnecessaryVariable")
     fun fillGapAtStart(origin: Song): Song {
         val song = origin
-        val title = getSongTitle(song) ?: return song
+        val title = getSongTitle(song)
+        if (title.isNullOrBlank()) {
+            return origin
+        }
         val lyrics = song.lyrics?.toMutableList() ?: mutableListOf()
 
         if (lyrics.isEmpty()) {

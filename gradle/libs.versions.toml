@@ -1,6 +1,6 @@
 [versions]
 # Gradle / Kotlin / KSP
-agp = "9.1.0"
+agp = "9.1.1"
 jetbrainsKotlinJvm = "2.3.20"
 kotlin = "2.3.20"
 ksp = "2.3.4"
@@ -26,20 +26,15 @@ remoteCreationCore = "1.0.0-alpha08"
 # Material
 material = "1.13.0"
 material3 = "1.5.0-alpha17"
-materialColorUtilitiesAndroid = "5.0.0-alpha07"
 materialIconsCore = "1.7.8"
-paletteKtx = "+"
 
 # Network / Logic / Serialization
-kotlinxSerializationJson = "1.10.0"
-ktor = "3.4.2"
-openaiClient = "4.1.0"
+kotlinxSerializationJson = "1.11.0"
 
 # UI Extensions / Third Party
-aboutlibrariesCore = "13.2.1"
+aboutlibrariesCore = "14.0.1"
 accompanistDrawablePainter = "0.37.3"
 androidsvg = "1.4"
-backdrop = "1.0.6"
 bonsai = "1.2.0"
 capsuleAndroid = "2.1.1-patch2"
 haze = "1.7.2"
@@ -86,22 +81,17 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
-androidx-palette-ktx = { module = "androidx.palette:palette-ktx", version.ref = "paletteKtx" }
 
 # ===== Material =====
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-material-color-utilities-android = { module = "com.materialkolor:material-color-utilities-android", version.ref = "materialColorUtilitiesAndroid" }
 
 # ===== Network / Logic / Serialization =====
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
-openai-client = { module = "com.aallam.openai:openai-client", version.ref = "openaiClient" }
 
 # ===== UI Extensions / Third Party =====
 aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutlibrariesCore" }
 accompanist-drawablepainter = { module = "com.google.accompanist:accompanist-drawablepainter", version.ref = "accompanistDrawablePainter" }
 androidsvg = { module = "com.caverock:androidsvg-aar", version.ref = "androidsvg" }
-backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
 bonsai-core = { module = "cafe.adriel.bonsai:bonsai-core", version.ref = "bonsai" }
 capsule-android = { module = "com.mocharealm.gaze:capsule-android", version.ref = "capsuleAndroid" }
 chrisbanes-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }

@@ -139,7 +139,7 @@ object LyricPrefs {
     /* ---------------- lyric style ---------------- */
 
     fun getLyricStyle(packageName: String? = null): LyricStyle {
-        if (packageName == null) {
+        if (packageName.isNullOrBlank()) {
             return LyricStyle(baseStyle, activePackageStyle)
         }
         return LyricStyle(

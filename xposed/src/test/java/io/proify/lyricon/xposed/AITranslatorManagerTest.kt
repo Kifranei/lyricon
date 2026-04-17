@@ -8,7 +8,7 @@ package io.proify.lyricon.xposed
 
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.style.AiTranslationConfigs
-import io.github.proify.lyricon.xposed.systemui.lyric.AiTranslationManager
+import io.github.proify.lyricon.xposed.systemui.util.AITranslator
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
@@ -19,7 +19,7 @@ import org.junit.Test
  * 2. 语境关联（前后句是否押韵或语义连贯）
  * 3. 知名音乐 Benchmark 模仿能力
  */
-class AiTranslationManagerTest {
+class AITranslatorManagerTest {
 
     @Test
     fun testLyricTranslation(): Unit = runBlocking {
@@ -48,7 +48,7 @@ class AiTranslationManagerTest {
 
         println("--- Starting Translation Request ---")
 
-        val result = AiTranslationManager.doOpenAiRequest(
+        val result = AITranslator.doOpenAiRequest(
             configs = configs,
             song = mockSong,
             texts = testLyrics
