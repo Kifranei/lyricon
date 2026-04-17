@@ -41,6 +41,8 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
     init {
         isHorizontalFadingEdgeEnabled = true
         setFadingEdgeLength(10.dp)
+        clipToOutline = false
+        outlineProvider = null
     }
 
     val textPaint: TextPaint = TextPaintX().apply {
@@ -133,6 +135,7 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         syllable.isGradientEnabled = configs.gradientProgressStyle
         syllable.isSustainLiftEnabled = syllableConfig.enableSustainLift
         syllable.isSustainGlowEnabled = syllableConfig.enableSustainGlow
+        syllable.isCharFloatAnimationEnabled = syllableConfig.enableSustainLift
 
         marquee.apply {
             ghostSpacing = marqueeConfig.ghostSpacing
@@ -176,7 +179,7 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
             }
             syllable.updateProgress(position)
 
-            if (syllable.isPlaying && !syllable.isFinished) {
+            if ((syllable.isPlaying && !syllable.isFinished) || syllable.isCharAnimActive) {
                 animationDriver.startIfNoRunning()
             }
         } else if (isMarqueeMode()) {
@@ -378,6 +381,9 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
                 if (isPlayFinished() || (syllable.isScrollOnly && !isOverflow)) {
                     syllable.onFrameUpdate(frameTimeNanos)
                     postInvalidateOnAnimation()
+                    if (syllable.isCharAnimActive) {
+                        Choreographer.getInstance().postFrameCallback(this)
+                    }
                     return
                 }
             }

@@ -98,6 +98,7 @@
     <string name="item_text_interlude_indicator">間奏等待樣式</string>
     <string name="option_text_interlude_indicator_none">關閉</string>
     <string name="option_text_interlude_indicator_dots">三個點</string>
+    <string name="item_text_sustain_lift">逐字上浮效果</string>
     <string name="item_text_color_normal">正常顏色</string>
     <string name="item_text_color_background">背景顏色</string>
     <string name="item_text_color_highlight">高亮顏色</string>

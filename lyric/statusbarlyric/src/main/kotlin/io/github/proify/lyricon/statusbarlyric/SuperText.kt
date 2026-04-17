@@ -142,7 +142,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             this.syllable.apply {
                 backgroundColor = resolveBgColor(textStyle)
                 highlightColor = resolveHighlightColor(textStyle)
-                enableSustainLift = false
+                enableSustainLift = textStyle.sustainLiftEnabled
                 val colorModeEnabled = textStyle.enableCustomTextColor
                         || textStyle.enableExtractCoverTextColor
                         || textStyle.enableExtractCoverTextGradient

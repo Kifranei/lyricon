@@ -32,6 +32,7 @@ class Syllable(private val view: LyricLineView) {
         private const val SUSTAIN_EFFECT_MAX_GLOW_RADIUS_DP = 3.4f
         private const val SUSTAIN_EFFECT_MAX_GLOW_ALPHA = 160
         private const val SUSTAIN_EFFECT_RELEASE_DURATION_MS = 120L
+
     }
 
     private data class SustainEffectState(
@@ -53,6 +54,7 @@ class Syllable(private val view: LyricLineView) {
     private val textRenderer = LineTextRenderer()
     private val progressAnimator = ProgressAnimator()
     private val scrollController = ScrollController()
+    private val charAnimator = CharAnimator()
 
     var lastPosition = Long.MIN_VALUE
         private set
@@ -99,10 +101,31 @@ class Syllable(private val view: LyricLineView) {
             renderDelegate.invalidate()
         }
 
+    var isCharFloatAnimationEnabled: Boolean = true
+        set(value) {
+            field = value
+            if (!value) {
+                charAnimator.reset()
+            }
+        }
+
+    var isSharpenEnabled: Boolean = false
+        set(value) {
+            field = value
+            renderDelegate.invalidate()
+        }
+
+    var sharpenIntensity: Float = 1.0f
+        set(value) {
+            field = value.coerceIn(0.1f, 2.0f)
+            renderDelegate.invalidate()
+        }
+
     val textSize: Float get() = backgroundPaint.textSize
     val isStarted: Boolean get() = progressAnimator.hasStarted
     val isPlaying: Boolean get() = progressAnimator.isAnimating
     val isFinished: Boolean get() = progressAnimator.hasFinished
+    val isCharAnimActive: Boolean get() = charAnimator.hasActiveAnimation
 
     init {
         updateLayoutMetrics()
@@ -124,10 +147,8 @@ class Syllable(private val view: LyricLineView) {
 
     fun setColor(background: IntArray, highlight: IntArray) {
         if (background.isEmpty() || highlight.isEmpty()) return
-        if (!rainbowColor.background.contentEquals(background) || !rainbowColor.highlight.contentEquals(
-                highlight
-            )
-        ) {
+
+        if (!rainbowColor.background.contentEquals(background) || !rainbowColor.highlight.contentEquals(highlight)) {
             backgroundPaint.color = background[0]
             highlightPaint.color = highlight[0]
             rainbowColor.background = background
@@ -166,6 +187,7 @@ class Syllable(private val view: LyricLineView) {
     fun reset() {
         progressAnimator.reset()
         scrollController.reset(view)
+        charAnimator.reset()
         lastPosition = Long.MIN_VALUE
         resetSustainState()
         renderDelegate.onHighlightUpdate(0f)
@@ -173,6 +195,9 @@ class Syllable(private val view: LyricLineView) {
     }
 
     fun seek(position: Long) {
+        // 重置字符动画，确保进度条拖动时动画状态干净
+        charAnimator.reset()
+        
         val currentWord = view.lyric.wordTimingNavigator.first(position)
         val targetWidth = calculateCurrentWidth(position)
         progressAnimator.jumpTo(targetWidth)
@@ -180,6 +205,10 @@ class Syllable(private val view: LyricLineView) {
         renderDelegate.onHighlightUpdate(targetWidth)
         resetSustainState()
         renderDelegate.onSustainEffectUpdate(buildSustainEffects(currentWord, position))
+        
+        // 清除字符动画状态
+        renderDelegate.onCharAnimUpdate(null, null)
+        
         lastPosition = position
         notifyProgressUpdate()
     }
@@ -220,17 +249,35 @@ class Syllable(private val view: LyricLineView) {
             renderDelegate.onHighlightUpdate(progressAnimator.currentWidth)
         }
 
-        if (progressUpdated || releaseSustainWord != null) {
+        // 更新字符动画（仅在启用时）
+        var charAnimUpdated = false
+        if (isCharFloatAnimationEnabled) {
+            // 即使 lastPosition 对应的 word 为 null，也需要让下沉动画自然完成
+            val currentWord = view.lyric.wordTimingNavigator.first(lastPosition)
+            charAnimUpdated = charAnimator.update(currentWord, lastPosition)
+        }
+
+        if (progressUpdated || releaseSustainWord != null || charAnimUpdated) {
             renderDelegate.onSustainEffectUpdate(
                 buildSustainEffects(
                     view.lyric.wordTimingNavigator.first(lastPosition),
                     lastPosition
                 )
             )
+            // 传递字符动画状态给渲染器（当前和上一个）
+            if (isCharFloatAnimationEnabled) {
+                renderDelegate.onCharAnimUpdate(
+                    charAnimator.getActiveAnimation(),
+                    charAnimator.getPreviousAnimation()
+                )
+            } else {
+                renderDelegate.onCharAnimUpdate(null, null)
+            }
+            
             if (progressUpdated) {
                 notifyProgressUpdate()
             }
-            return progressUpdated || releaseSustainWord != null
+            return progressUpdated || releaseSustainWord != null || charAnimUpdated
         }
 
         return progressUpdated
@@ -302,9 +349,11 @@ class Syllable(private val view: LyricLineView) {
         val releaseEffect = buildReleaseSustainEffect()
         if (releaseEffect == null && activeEffect == null) return emptyList()
 
-        return buildList(2) {
-            releaseEffect?.let { add(it) }
-            activeEffect?.let { add(it) }
+        // 优先使用活跃效果，避免重影
+        return when {
+            activeEffect != null -> listOf(activeEffect)
+            releaseEffect != null -> listOf(releaseEffect)
+            else -> emptyList()
         }
     }
 
@@ -495,6 +544,7 @@ class Syllable(private val view: LyricLineView) {
         fun onLayout(width: Int, height: Int, overflow: Boolean)
         fun onHighlightUpdate(highlightWidth: Float)
         fun onSustainEffectUpdate(effects: List<SustainEffectState>)
+        fun onCharAnimUpdate(currentAnim: CharAnimator.CharAnimState?, previousAnim: CharAnimator.CharAnimState?)
         fun invalidate()
         fun draw(canvas: Canvas, scrollX: Float)
     }
@@ -507,6 +557,9 @@ class Syllable(private val view: LyricLineView) {
         private var overflow = false
         private var highlightWidth = 0f
         private var sustainEffects: List<SustainEffectState> = emptyList()
+        private var currentCharAnim: CharAnimator.CharAnimState? = null
+        private var previousCharAnim: CharAnimator.CharAnimState? = null
+        
         override fun onLayout(width: Int, height: Int, overflow: Boolean) {
             this@SoftwareRenderer.width = width; this@SoftwareRenderer.height =
                 height; this@SoftwareRenderer.overflow = overflow
@@ -520,6 +573,11 @@ class Syllable(private val view: LyricLineView) {
             sustainEffects = effects
         }
 
+        override fun onCharAnimUpdate(currentAnim: CharAnimator.CharAnimState?, previousAnim: CharAnimator.CharAnimState?) {
+            currentCharAnim = currentAnim
+            previousCharAnim = previousAnim
+        }
+
         override fun invalidate() {}
         override fun draw(canvas: Canvas, scrollX: Float) {
             textRenderer.draw(
@@ -531,6 +589,8 @@ class Syllable(private val view: LyricLineView) {
                 overflow,
                 highlightWidth,
                 sustainEffects,
+                currentCharAnim,
+                previousCharAnim,
                 isGradientEnabled,
                 isOnlyScrollMode,
                 backgroundPaint,
@@ -550,6 +610,8 @@ class Syllable(private val view: LyricLineView) {
         private var overflow = false
         private var highlightWidth = 0f
         private var sustainEffects: List<SustainEffectState> = emptyList()
+        private var currentCharAnim: CharAnimator.CharAnimState? = null
+        private var previousCharAnim: CharAnimator.CharAnimState? = null
         private var isDirty = true
         override fun invalidate() {
             isDirty = true
@@ -559,10 +621,8 @@ class Syllable(private val view: LyricLineView) {
             if (this@HardwareRenderer.width != width || this@HardwareRenderer.height != height || this@HardwareRenderer.overflow != overflow) {
                 this@HardwareRenderer.width = width; this@HardwareRenderer.height =
                     height; this@HardwareRenderer.overflow = overflow
-                renderNode.setPosition(
-                    0, 0, this@HardwareRenderer.width,
-                    this@HardwareRenderer.height
-                )
+                // RenderNode 位置不变，因为 clipToBounds = false 允许内容超出边界
+                renderNode.setPosition(0, 0, this@HardwareRenderer.width, this@HardwareRenderer.height)
                 isDirty = true
             }
         }
@@ -580,6 +640,14 @@ class Syllable(private val view: LyricLineView) {
             }
         }
 
+        override fun onCharAnimUpdate(currentAnim: CharAnimator.CharAnimState?, previousAnim: CharAnimator.CharAnimState?) {
+            if (currentCharAnim != currentAnim || previousCharAnim != previousAnim) {
+                currentCharAnim = currentAnim
+                previousCharAnim = previousAnim
+                isDirty = true
+            }
+        }
+
         override fun draw(canvas: Canvas, scrollX: Float) {
             if (isDirty) {
                 val rc = renderNode.beginRecording(width, height)
@@ -592,6 +660,8 @@ class Syllable(private val view: LyricLineView) {
                     overflow,
                     highlightWidth,
                     sustainEffects,
+                    currentCharAnim,
+                    previousCharAnim,
                     isGradientEnabled,
                     isOnlyScrollMode,
                     backgroundPaint,
@@ -636,14 +706,17 @@ class Syllable(private val view: LyricLineView) {
             canvas: Canvas, model: LyricModel, viewWidth: Int, viewHeight: Int,
             scrollX: Float, isOverflow: Boolean, highlightWidth: Float,
             sustainEffects: List<SustainEffectState>,
+            currentCharAnim: CharAnimator.CharAnimState?,
+            previousCharAnim: CharAnimator.CharAnimState?,
             useGradient: Boolean, scrollOnly: Boolean, bgPaint: TextPaint,
             hlPaint: TextPaint, normPaint: TextPaint
         ) {
             val y = (viewHeight / 2f) + baselineOffset
             canvas.withSave {
+                val leftBearingPadding = model.textLeftBearingPadding
                 val xOffset =
                     if (isOverflow) scrollX else if (model.isAlignedRight) viewWidth - model.width else 0f
-                translate(xOffset, 0f)
+                translate(xOffset + leftBearingPadding, 0f)
 
                 if (scrollOnly) {
                     canvas.drawText(model.wordText, 0f, y, normPaint)
@@ -667,60 +740,84 @@ class Syllable(private val view: LyricLineView) {
                     bgPaint.shader = null
                 }
 
+                val allExclusions = mutableListOf<Pair<Float, Float>>()
+                if (hasSustain && useGradient) {
+                    allExclusions.addAll(sustainRanges)
+                }
+                
+                currentCharAnim?.let { anim ->
+                    val word = anim.word
+                    val isActive = anim.phase != CharAnimator.AnimPhase.IDLE && !anim.isFinished
+                    if (anim.charIndex in word.chars.indices && isActive) {
+                        val charStart = word.charStartPositions[anim.charIndex]
+                        val charEnd = word.charEndPositions[anim.charIndex]
+                        allExclusions.add(charStart to charEnd)
+                    }
+                }
+                
+                previousCharAnim?.let { anim ->
+                    val word = anim.word
+                    val isActive = anim.phase != CharAnimator.AnimPhase.IDLE && !anim.isFinished
+                    if (anim.charIndex in word.chars.indices && isActive) {
+                        val charStart = word.charStartPositions[anim.charIndex]
+                        val charEnd = word.charEndPositions[anim.charIndex]
+                        allExclusions.add(charStart to charEnd)
+                    }
+                }
+
                 val backgroundLeft = if (useGradient) 0f else highlightWidth
-                drawTextWithOptionalExclusion(
+                
+                drawTextWithCharacterOffset(
                     canvas = canvas,
-                    text = model.wordText,
+                    model = model,
                     y = y,
                     paint = bgPaint,
                     clipLeft = backgroundLeft,
                     clipRight = model.width,
-                    exclusions = if (hasSustain && useGradient) sustainRanges else emptyList(),
+                    exclusions = allExclusions,
+                    currentCharAnim = currentCharAnim,
+                    previousCharAnim = previousCharAnim,
                     viewHeight = viewHeight
                 )
 
                 // 2. 绘制高亮层
                 if (highlightWidth > 0f) {
-                    if (useGradient) {
-                        // 羽化模式：通过 ComposeShader 结合【固定比例彩虹】+【随进度移动的透明遮罩】
-                        val baseShader = if (isRainbowHighlight) {
-                            getOrCreateRainbowShader(model.width, rainbowColor.highlight)
-                        } else {
-                            // 单色高亮转为 Shader 方便混合
-                            LinearGradient(
-                                0f,
-                                0f,
-                                model.width,
-                                0f,
-                                hlPaint.color,
-                                hlPaint.color,
-                                Shader.TileMode.CLAMP
-                            )
-                        }
-
-                        val maskShader = getOrCreateAlphaMaskShader(model.width, highlightWidth)
-                        hlPaint.shader =
-                            ComposeShader(baseShader, maskShader, PorterDuff.Mode.DST_IN)
-                    } else {
-                        // 非羽化模式：直接裁剪，颜色位置天然正确
-                        if (isRainbowHighlight) {
-                            hlPaint.shader =
+                    canvas.withSave {
+                        clipRect(0f, 0f, highlightWidth, viewHeight.toFloat())
+                        
+                        if (useGradient) {
+                            val baseShader = if (isRainbowHighlight) {
                                 getOrCreateRainbowShader(model.width, rainbowColor.highlight)
+                            } else {
+                                LinearGradient(
+                                    0f, 0f, model.width, 0f,
+                                    hlPaint.color, hlPaint.color,
+                                    Shader.TileMode.CLAMP
+                                )
+                            }
+                            val maskShader = getOrCreateAlphaMaskShader(model.width, highlightWidth)
+                            hlPaint.shader = ComposeShader(baseShader, maskShader, PorterDuff.Mode.DST_IN)
                         } else {
-                            hlPaint.shader = null
+                            if (isRainbowHighlight) {
+                                hlPaint.shader = getOrCreateRainbowShader(model.width, rainbowColor.highlight)
+                            } else {
+                                hlPaint.shader = null
+                            }
                         }
+                        
+                        drawTextWithCharacterOffset(
+                            canvas = canvas,
+                            model = model,
+                            y = y,
+                            paint = hlPaint,
+                            clipLeft = 0f,
+                            clipRight = highlightWidth,
+                            exclusions = allExclusions,
+                            currentCharAnim = currentCharAnim,
+                            previousCharAnim = previousCharAnim,
+                            viewHeight = viewHeight
+                        )
                     }
-
-                    drawTextWithOptionalExclusion(
-                        canvas = canvas,
-                        text = model.wordText,
-                        y = y,
-                        paint = hlPaint,
-                        clipLeft = 0f,
-                        clipRight = highlightWidth,
-                    exclusions = if (hasSustain) sustainRanges else emptyList(),
-                    viewHeight = viewHeight
-                )
                 }
 
                 sustainEffects.forEach { effect ->
@@ -733,8 +830,142 @@ class Syllable(private val view: LyricLineView) {
                         highlightPaint = hlPaint
                     )
                 }
+                
+                // 3. 绘制字符动画（先绘制上一个字符的下沉动画，再绘制当前字符的上浮动画）
+                // 跳过已完成的动画（isFinished），已完成字符由静态层渲染
+                previousCharAnim?.let { anim ->
+                    if (!anim.isFinished) {
+                        drawCharAnimation(
+                            canvas = canvas,
+                            model = model,
+                            y = y,
+                            viewHeight = viewHeight,
+                            charAnim = anim,
+                            highlightWidth = highlightWidth,
+                            highlightPaint = hlPaint,
+                            backgroundPaint = bgPaint
+                        )
+                    }
+                }
+                
+                currentCharAnim?.let { anim ->
+                    if (!anim.isFinished) {
+                        drawCharAnimation(
+                            canvas = canvas,
+                            model = model,
+                            y = y,
+                            viewHeight = viewHeight,
+                            charAnim = anim,
+                            highlightWidth = highlightWidth,
+                            highlightPaint = hlPaint,
+                            backgroundPaint = bgPaint
+                        )
+                    }
+                }
             }
         }
+
+        private fun drawTextWithCharacterOffset(
+            canvas: Canvas,
+            model: LyricModel,
+            y: Float,
+            paint: TextPaint,
+            clipLeft: Float,
+            clipRight: Float,
+            exclusions: List<Pair<Float, Float>>,
+            currentCharAnim: CharAnimator.CharAnimState?,
+            previousCharAnim: CharAnimator.CharAnimState?,
+            viewHeight: Int
+        ) {
+            val safeLeft = minOf(clipLeft, model.textLeftBearing)
+            val safeRight = clipRight.coerceAtLeast(safeLeft)
+            if (safeRight <= safeLeft) return
+            
+            data class AnimCharInfo(
+                val word: WordModel,
+                val charIndex: Int,
+                val charStart: Float,
+                val charEnd: Float,
+                val pushDistance: Float
+            )
+            
+            val animChars = mutableListOf<AnimCharInfo>()
+            
+            currentCharAnim?.let { anim ->
+                val word = anim.word
+                val isActive = anim.phase != CharAnimator.AnimPhase.IDLE && !anim.isFinished
+                if (anim.charIndex in word.chars.indices && isActive) {
+                    val charStart = word.charStartPositions[anim.charIndex]
+                    val charEnd = word.charEndPositions[anim.charIndex]
+                    val charWidth = charEnd - charStart
+                    val pushDistance = charWidth * (anim.currentScale - 1f) / 2f
+                    
+                    animChars.add(AnimCharInfo(
+                        word = word,
+                        charIndex = anim.charIndex,
+                        charStart = charStart,
+                        charEnd = charEnd,
+                        pushDistance = pushDistance
+                    ))
+                }
+            }
+            
+            previousCharAnim?.let { anim ->
+                val word = anim.word
+                val isActive = anim.phase != CharAnimator.AnimPhase.IDLE && !anim.isFinished
+                if (anim.charIndex in word.chars.indices && isActive) {
+                    val charStart = word.charStartPositions[anim.charIndex]
+                    val charEnd = word.charEndPositions[anim.charIndex]
+                    val charWidth = charEnd - charStart
+                    val pushDistance = charWidth * (anim.currentScale - 1f) / 2f
+                    
+                    animChars.add(AnimCharInfo(
+                        word = word,
+                        charIndex = anim.charIndex,
+                        charStart = charStart,
+                        charEnd = charEnd,
+                        pushDistance = pushDistance
+                    ))
+                }
+            }
+            
+            if (animChars.isEmpty()) {
+                drawTextWithOptionalExclusion(canvas, model.wordText, y, paint, safeLeft, safeRight, exclusions, viewHeight, model.textLeftBearing)
+                return
+            }
+            
+            canvas.withSave {
+                clipRect(safeLeft, 0f, safeRight, viewHeight.toFloat())
+                
+                model.words.forEach { word ->
+                    for (i in word.chars.indices) {
+                        val charStart = word.charStartPositions[i]
+                        val charEnd = word.charEndPositions[i]
+                        
+                        val isExcluded = exclusions.any { ex -> charStart >= ex.first && charEnd <= ex.second }
+                        if (isExcluded) continue
+                        
+                        var charOffset = 0f
+                        
+                        for (animInfo in animChars) {
+                            if (animInfo.word != word) continue
+                            if (i > animInfo.charIndex) {
+                                charOffset += animInfo.pushDistance
+                            }
+                        }
+                        
+                        val adjustedStart = charStart + charOffset
+                        val adjustedEnd = charEnd + charOffset
+                        
+                        if (adjustedEnd >= safeLeft && adjustedStart <= safeRight) {
+                            val charText = word.chars[i].toString()
+                            drawText(charText, charStart + charOffset, y, paint)
+                        }
+                    }
+                }
+            }
+        }
+
 
         private fun drawTextWithOptionalExclusion(
             canvas: Canvas,
@@ -744,9 +975,10 @@ class Syllable(private val view: LyricLineView) {
             clipLeft: Float,
             clipRight: Float,
             exclusions: List<Pair<Float, Float>>,
-            viewHeight: Int
+            viewHeight: Int,
+            leftBearing: Float = 0f
         ) {
-            val safeLeft = clipLeft.coerceAtLeast(0f)
+            val safeLeft = minOf(clipLeft, leftBearing)
             val safeRight = clipRight.coerceAtLeast(safeLeft)
             if (safeRight <= safeLeft) return
 
@@ -797,7 +1029,12 @@ class Syllable(private val view: LyricLineView) {
             if (clipEnd <= clipStart) return
 
             val baseColor = (rainbowColor.highlight.firstOrNull() ?: highlightPaint.color) and 0x00FFFFFF
-            val glowRgb = blendToWhite(baseColor, 0.22f)
+            val t = 0.22f
+            val glowRgb = (
+                ((Color.red(baseColor) + (255 - Color.red(baseColor)) * t).toInt().coerceIn(0, 255) shl 16) or
+                ((Color.green(baseColor) + (255 - Color.green(baseColor)) * t).toInt().coerceIn(0, 255) shl 8) or
+                ((Color.blue(baseColor) + (255 - Color.blue(baseColor)) * t).toInt().coerceIn(0, 255))
+            )
             val density = view.resources.displayMetrics.density
             val outerStroke = (effect.glowRadiusPx * 0.3f).coerceAtLeast(density * 0.38f)
             val innerStroke = (effect.glowRadiusPx * 0.18f).coerceAtLeast(density * 0.28f)
@@ -838,12 +1075,100 @@ class Syllable(private val view: LyricLineView) {
             }
         }
 
-        private fun blendToWhite(rgb: Int, ratio: Float): Int {
-            val t = ratio.coerceIn(0f, 1f)
-            val r = ((Color.red(rgb) * (1f - t)) + (255f * t)).toInt().coerceIn(0, 255)
-            val g = ((Color.green(rgb) * (1f - t)) + (255f * t)).toInt().coerceIn(0, 255)
-            val b = ((Color.blue(rgb) * (1f - t)) + (255f * t)).toInt().coerceIn(0, 255)
-            return (r shl 16) or (g shl 8) or b
+        /**
+         * 绘制字符动画
+         * 上浮阶段：从静态层排除，动画层施加偏移/缩放
+         * 悬浮阶段：从静态层排除，动画层施加偏移/缩放（含呼吸脉动）
+         * 下沉阶段：从静态层排除，动画层施加偏移/缩放（由 CharAnimator 提前结束避免过冲）
+         * 已完成（isFinished）的字符不应调用此方法，由静态层渲染
+         *
+         * 关键：动画层统一使用 clipRect + 单色 paint 渲染。
+         * 不使用 ComposeShader，因为 canvas 的 translate+scale 变换会使
+         * ComposeShader 的坐标偏移，导致渐变遮罩位置错误。
+         */
+        private fun drawCharAnimation(
+            canvas: Canvas,
+            model: LyricModel,
+            y: Float,
+            viewHeight: Int,
+            charAnim: CharAnimator.CharAnimState,
+            highlightWidth: Float,
+            highlightPaint: TextPaint,
+            backgroundPaint: TextPaint
+        ) {
+            if (charAnim.isFinished) return
+            
+            val word = charAnim.word
+            val charIndex = charAnim.charIndex
+            
+            if (charIndex !in word.chars.indices) return
+            
+            val charStart = word.charStartPositions[charIndex]
+            val charEnd = word.charEndPositions[charIndex]
+            if (charEnd <= charStart) return
+            
+            val charText = word.chars[charIndex].toString()
+            val charWidth = charEnd - charStart
+
+            val isInHighlight = charStart < highlightWidth
+            val crossesHighlight = isInHighlight && charEnd > highlightWidth
+
+            val charCenterX = (charStart + charEnd) / 2f
+            val density = view.resources.displayMetrics.density
+            val floatOffsetPx = charAnim.currentOffset * density
+
+            if (crossesHighlight) {
+                val clipLeft = minOf(0f, model.textLeftBearing)
+                canvas.withSave {
+                    clipRect(clipLeft, 0f, highlightWidth, viewHeight.toFloat())
+                    translate(0f, y)
+                    translate(0f, -floatOffsetPx)
+                    scale(charAnim.currentScale, charAnim.currentScale, charCenterX, 0f)
+                    val hlP = TextPaint(highlightPaint)
+                    hlP.shader = null
+                    if (isRainbowHighlight) {
+                        hlP.shader = getOrCreateRainbowShader(model.width, rainbowColor.highlight)
+                    }
+                    drawText(charText, charStart, 0f, hlP)
+                }
+                canvas.withSave {
+                    clipRect(highlightWidth, 0f, model.width, viewHeight.toFloat())
+                    translate(0f, y)
+                    translate(0f, -floatOffsetPx)
+                    scale(charAnim.currentScale, charAnim.currentScale, charCenterX, 0f)
+                    val bgP = TextPaint(backgroundPaint)
+                    bgP.shader = null
+                    if (isRainbowBackground) {
+                        bgP.shader = getOrCreateRainbowShader(model.width, rainbowColor.background)
+                    }
+                    drawText(charText, charStart, 0f, bgP)
+                }
+            } else {
+                canvas.withSave {
+                    translate(0f, y)
+                    translate(0f, -floatOffsetPx)
+                    scale(charAnim.currentScale, charAnim.currentScale, charCenterX, 0f)
+
+                    val basePaint = if (isInHighlight) TextPaint(highlightPaint) else TextPaint(backgroundPaint)
+                    basePaint.shader = null
+                    if (isInHighlight && isRainbowHighlight) {
+                        basePaint.shader = getOrCreateRainbowShader(model.width, rainbowColor.highlight)
+                    } else if (!isInHighlight && isRainbowBackground) {
+                        basePaint.shader = getOrCreateRainbowShader(model.width, rainbowColor.background)
+                    }
+
+                    drawText(charText, charStart, 0f, basePaint)
+                }
+            }
+        }
+
+        private fun blendColors(color1: Int, color2: Int, ratio: Float): Int {
+            val inverseRatio = 1f - ratio
+            val a = (Color.alpha(color1) * inverseRatio + Color.alpha(color2) * ratio).toInt()
+            val r = (Color.red(color1) * inverseRatio + Color.red(color2) * ratio).toInt()
+            val g = (Color.green(color1) * inverseRatio + Color.green(color2) * ratio).toInt()
+            val b = (Color.blue(color1) * inverseRatio + Color.blue(color2) * ratio).toInt()
+            return Color.argb(a, r, g, b)
         }
 
         /**
