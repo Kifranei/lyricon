@@ -14,25 +14,31 @@ package io.github.proify.lyricon.xposed.systemui.util
 object ChineseConverter {
 
     /**
-     * 繁体转简体 (同步)
+     * 繁体转简体
      * 注意：由于涉及字典 IO 操作，不建议在 UI 线程处理长文本
      */
     fun String.toSimplified(): String {
         return this
-//        if (this.isEmpty()) return this
+//        if (isEmpty() || isBlank()) return this
+//
 //        return try {
 //            ZhConverterUtil.toSimple(this)
 //        } catch (_: Exception) {
-//            this // 转换失败则返回原字符串
+//            this
 //        }
     }
 
     /**
-     * 简体转繁体 (同步)
+     * 简体转繁体
      */
     fun String.toTraditional(): String {
         return this
-//        if (this.isEmpty()) return this
-//        return ZhConverterUtil.toTraditional(this)
+//        if (isEmpty() || isBlank()) return this
+//
+//        return try {
+//            ZhConverterUtil.toTraditional(this)
+//        } catch (_: Exception) {
+//            this
+//        }
     }
 }

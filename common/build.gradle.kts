@@ -67,8 +67,6 @@ dependencies {
     implementation(libs.androidsvg)
     api(libs.kotlinx.serialization.json)
     api(libs.androidx.core.ktx)
-    implementation(libs.androidx.palette.ktx)
-    implementation(libs.material.color.utilities.android)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

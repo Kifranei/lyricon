@@ -142,10 +142,10 @@ data class BasicStyle(
         ) ?: Defaults.BLOCKED_WORDS_REGEX
         blockedWordsRegex = null
 
-//        chineseConversionMode = preferences.getInt(
-//            "lyric_style_base_chinese_conversion_mode",
-//            Defaults.CHINESE_CONVERSION_MODE
-//        )
+        chineseConversionMode = preferences.getInt(
+            "lyric_style_base_chinese_conversion_mode",
+            Defaults.CHINESE_CONVERSION_MODE
+        )
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {

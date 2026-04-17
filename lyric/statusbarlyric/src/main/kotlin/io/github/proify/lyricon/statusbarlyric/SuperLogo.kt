@@ -80,7 +80,7 @@ class SuperLogo(context: Context) : ImageView(context) {
         private const val DEFAULT_ROTATION_DURATION_MS = 12_000L
         private const val TEXT_SIZE_MULTIPLIER = 1.2f
         private const val DEFAULT_TEXT_SIZE_DP = 14
-        private const val SQUIRCLE_CORNER_RADIUS_DP = 4
+        private val SQUIRCLE_CORNER_RADIUS_DP by lazy { 3.dp.toFloat() }
         const val VIEW_TAG: String = "lyricon:logo_view"
         const val TAG = "SuperLogo"
     }
@@ -562,7 +562,7 @@ class SuperLogo(context: Context) : ImageView(context) {
                 isEffective = false
                 lastFileSignature = null
             } else {
-                val signature = coverFile.lastModified().toString()
+                val signature = coverFile.lastModified().toString() + coverFile.length()
 
                 // 只有文件变动或未初始化时才重新加载
                 if (signature != lastFileSignature || drawable == null) {
@@ -630,7 +630,7 @@ class SuperLogo(context: Context) : ImageView(context) {
                             0,
                             view.width,
                             view.height,
-                            SQUIRCLE_CORNER_RADIUS_DP.dp.toFloat()
+                            SQUIRCLE_CORNER_RADIUS_DP
                         )
                     }
                 }

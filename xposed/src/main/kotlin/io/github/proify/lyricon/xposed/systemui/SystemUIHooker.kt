@@ -28,11 +28,12 @@ import io.github.proify.lyricon.common.util.ViewHierarchyParser
 import io.github.proify.lyricon.subscriber.ConnectionListener
 import io.github.proify.lyricon.subscriber.LyriconFactory
 import io.github.proify.lyricon.subscriber.LyriconSubscriber
-import io.github.proify.lyricon.xposed.systemui.lyric.AiTranslationManager
+import io.github.proify.lyricon.xposed.systemui.lyric.LyricDataHub
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager
+import io.github.proify.lyricon.xposed.systemui.util.AITranslator
 import io.github.proify.lyricon.xposed.systemui.util.ClockColorMonitor
 import io.github.proify.lyricon.xposed.systemui.util.CrashDetector
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
@@ -64,6 +65,8 @@ object SystemUIHooker : YukiBaseHooker() {
     }
 
     override fun onHook() {
+        if (!isMainProcess()) return
+
         onAppLifecycle {
             onCreate {
                 if (isAppCreated) return@onCreate
@@ -72,6 +75,8 @@ object SystemUIHooker : YukiBaseHooker() {
             }
         }
     }
+
+    private fun isMainProcess() = processName == packageName
 
     /**
      * 应用创建前的准备工作，包含崩溃检测逻辑
@@ -167,7 +172,7 @@ object SystemUIHooker : YukiBaseHooker() {
         })
 
         ClockColorMonitor.hook()
-        AiTranslationManager.init(context)
+        AITranslator.init(context)
         SystemUIMediaHooker.init(context)
     }
 
@@ -177,13 +182,13 @@ object SystemUIHooker : YukiBaseHooker() {
         if (!coreServiceDisable) {
             BridgeCentral.initialize(appContext!!)
             BridgeCentral.sendBootCompleted()
-        }else{
+        } else {
             YLog.info("已禁用内置核心服务")
         }
 
         val subscriber = LyriconFactory.createSubscriber(appContext!!)
 
-        subscriber.subscribeActivePlayer(LyricViewController)
+        subscriber.subscribeActivePlayer(LyricDataHub)
         subscriber.addConnectionListener(object : ConnectionListener {
             override fun onConnected(subscriber: LyriconSubscriber) {
                 YLog.info("lyriconSubscriber onConnected")
@@ -215,7 +220,7 @@ object SystemUIHooker : YukiBaseHooker() {
         val channel = dataChannel
         // 样式更新请求
         channel.wait(key = AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE) {
-            LyricViewController.updateLyricViewStyle(LyricPrefs.getLyricStyle())
+            LyricViewController.applyConfigurationUpdate(LyricPrefs.getLyricStyle())
         }
         // 视图高亮请求
         channel.wait<String>(key = AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW) { id ->
@@ -234,8 +239,9 @@ object SystemUIHooker : YukiBaseHooker() {
         }
         // 清除翻译缓存请求
         channel.wait(key = AppBridgeConstants.REQUEST_CLEAR_TRANSLATION_DB) {
-            AiTranslationManager.clearCache()
-            LyricViewController.notifyTranslationDbChange()
+            AITranslator.clearCache {
+                LyricDataHub.reprocessCurrentSong()
+            }
         }
     }
 

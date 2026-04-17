@@ -18,8 +18,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.remember
@@ -28,12 +26,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.custom.bonsai.core.node.Node
 import io.github.proify.lyricon.app.compose.custom.bonsai.core.tree.Tree
 import io.github.proify.lyricon.app.compose.custom.bonsai.core.tree.extension.ExpandableTree
@@ -53,7 +52,7 @@ data class BonsaiScope<T>(
 )
 
 data class BonsaiStyle<T>(
-    val toggleIcon: NodeIcon<T> = { rememberVectorPainter(Icons.AutoMirrored.Rounded.KeyboardArrowRight) },
+    val toggleIcon: NodeIcon<T> = { painterResource(R.drawable.keyboard_arrow_right_24px) },
     val toggleIconSize: Dp = 16.dp,
     val toggleIconColorFilter: ColorFilter? = null,
     val toggleShape: Shape = CircleShape,

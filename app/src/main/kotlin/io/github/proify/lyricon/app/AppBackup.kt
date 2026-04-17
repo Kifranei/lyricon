@@ -8,7 +8,6 @@ package io.github.proify.lyricon.app
 
 import android.content.SharedPreferences
 import android.util.Log
-import io.github.proify.android.extensions.defaultSharedPreferencesName
 import io.github.proify.android.extensions.deflate
 import io.github.proify.android.extensions.getWorldReadableSharedPreferences
 import io.github.proify.android.extensions.inflate
@@ -67,13 +66,10 @@ object AppBackup {
     private fun collectAllPrefs(): Map<String, Map<String, *>> {
         val app = LyriconApp.get()
         val dir = AppBridge.getPreferenceDirectory(app)
-        val defaultName = app.defaultSharedPreferencesName
-
         val result = mutableMapOf<String, Map<String, *>>()
 
-        //跳过默认
-        val files = dir.listFiles { f ->
-            f.isFile && f.extension == "xml" && f.nameWithoutExtension != defaultName
+                val files = dir.listFiles { f ->
+            f.isFile && f.extension == "xml"
         } ?: return emptyMap()
 
         files.forEach { file ->
