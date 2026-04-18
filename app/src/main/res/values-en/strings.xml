@@ -58,6 +58,9 @@
     <string name="item_build_time">Build time</string>
     <string name="item_view_on_github">View on GitHub</string>
     <string name="item_open_source_license">Open-source licenses</string>
+    <string name="item_open_source_license_summary">View project dependencies and license information</string>
+    <string name="section_about_info">Info</string>
+    <string name="section_about_project">Project</string>
     <string name="section_music_apps">Music apps</string>
     <string name="section_other_apps">Other apps</string>
     <string name="option_language_follow_system">Follow system</string>
