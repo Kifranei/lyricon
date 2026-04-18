@@ -158,10 +158,12 @@ object SystemUIHooker : YukiBaseHooker() {
     }
 
     private fun initLyriconService() {
+        val context = appContext ?: return
         val defaultSp = XSharedPreferences(PackageNames.APPLICATION)
         val coreServiceDisable = defaultSp.getBoolean("core_service_disable", false)
+
         if (!coreServiceDisable) {
-            BridgeCentral.initialize(appContext!!)
+            BridgeCentral.initialize(context)
             BridgeCentral.sendBootCompleted()
         } else {
             YLog.info("已禁用内置核心服务")
@@ -170,6 +172,7 @@ object SystemUIHooker : YukiBaseHooker() {
         val subscriber = LyriconFactory.createSubscriber(appContext!!)
 
         subscriber.subscribeActivePlayer(LyricDataHub)
+
         subscriber.addConnectionListener(object : ConnectionListener {
             override fun onConnected(subscriber: LyriconSubscriber) {
                 YLog.info("lyriconSubscriber onConnected")

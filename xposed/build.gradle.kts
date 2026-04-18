@@ -1,3 +1,4 @@
+
 import com.android.build.api.dsl.LibraryExtension
 
 plugins {
@@ -46,6 +47,10 @@ configure<LibraryExtension> {
     }
 }
 
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     //implementation(libs.opencc4j)
 
@@ -67,11 +72,6 @@ dependencies {
     implementation(project(":lyric:statusbarlyric"))
 
     implementation(project(":lyric:bridge:central"))
-
-    //implementation(libs.openai.client)
-
-    //implementation(libs.ktor.client.okhttp)
-    //testImplementation(libs.ktor.client.okhttp)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
