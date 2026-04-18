@@ -56,6 +56,9 @@
     <string name="item_build_time">建置時間</string>
     <string name="item_view_on_github">在 Github 上查看</string>
     <string name="item_open_source_license">開放原始碼授權</string>
+    <string name="item_open_source_license_summary">查看專案依賴與授權資訊</string>
+    <string name="section_about_info">資訊</string>
+    <string name="section_about_project">項目</string>
     <string name="section_music_apps">相關</string>
     <string name="section_other_apps">其他</string>
     <string name="option_language_follow_system">跟隨系統</string>
