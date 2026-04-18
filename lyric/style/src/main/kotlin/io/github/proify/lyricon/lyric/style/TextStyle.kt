@@ -57,7 +57,7 @@ data class TextStyle(
 
     var isAiTranslationEnable: Boolean = false,
     var aiTranslationConfigs: AiTranslationConfigs? = null,
-    ) : Parcelable, AbstractStyle() {
+) : Parcelable, AbstractStyle() {
 
     companion object {
         const val TRANSITION_CONFIG_FAST: String = "fast"
@@ -89,10 +89,20 @@ data class TextStyle(
     object Defaults {
         const val TRANSLATION_ONLY: Boolean = false
         const val TRANSLATION_DISABLE: Boolean = false
+
         const val AI_TRANSLATION_ENABLED: Boolean = false
-        const val AI_TRANSLATION_PROVIDER = "openai"
-        val AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME: String get() = Locale.getDefault().displayLanguage
-        const val AI_TRANSLATION_HOST: String = "https://api.openai.com/v1"
+        val AI_TRANSLATION_PROVIDER = AiTranslationProvider.OPENAI.provider
+        val AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME: String
+            get() = Locale.forLanguageTag(Locale.getDefault().toLanguageTag()).getDisplayLanguage(
+                Locale.getDefault()
+            )
+        val AI_TRANSLATION_HOST: String by lazy {
+            val p = AiTranslationProvider.entries.find {
+                it.provider == AI_TRANSLATION_PROVIDER
+            }
+            p?.url.orEmpty()
+        }
+
         val AI_TRANSLATION_MODEL: String = AiTranslationProvider.OPENAI.model
         val AI_TRANSLATION_PROMPT: String = AiTranslationConfigs.USER_PROMPT
 

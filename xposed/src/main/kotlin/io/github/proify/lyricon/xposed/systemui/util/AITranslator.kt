@@ -164,8 +164,11 @@ object AITranslator {
     ): List<TranslationItem>? = withContext(Dispatchers.IO) {
         if (configs.apiKey.isNullOrBlank()) return@withContext null
 
-        val baseUrl = configs.baseUrl?.removeSuffix("/") ?: "https://api.openai.com/v1"
-        val apiUrl = "$baseUrl/chat/completions"
+        val baseUrl = configs.baseUrl
+            ?.removeSuffix("/")
+            ?: "https://api.openai.com/v1"
+        val apiUrl =
+            if (baseUrl.endsWith("/chat/completions")) baseUrl else "$baseUrl/chat/completions"
 
         val payload = texts.mapIndexed { index, s -> RequestItem(index = index, text = s) }
         val requestIndices = texts.indices.toSet()

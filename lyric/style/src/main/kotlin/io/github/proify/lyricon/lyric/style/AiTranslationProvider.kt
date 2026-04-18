@@ -10,6 +10,6 @@ enum class AiTranslationProvider(val provider: String, val model: String, val ur
     OPENAI(
         "openai",
         "gpt-4o-mini",
-        "https://api.openai.com/v1/chat/completions"
+        "https://api.openai.com/v1"
     ),
 }

@@ -68,7 +68,8 @@ object LyricViewController : ActivePlayerListener,
      * 注：此方法可能会被调用两次（Pre-processing 后一次，Post-processing 全部完成后一次）
      */
     override fun onSongChanged(song: Song?) {
-        if (DEBUG) YLog.debug(tag = TAG, msg = "Rendering UI for song: ${song?.name ?: "None"}")
+        if (DEBUG) YLog.debug(tag = TAG, msg = "Song changed: $song")
+
         updateAllControllers {
             lyricView.setSong(song)
             refreshTranslationVisibility(lyricView)
@@ -76,6 +77,11 @@ object LyricViewController : ActivePlayerListener,
     }
 
     override fun onActiveProviderChanged(providerInfo: ProviderInfo?) {
+        if (DEBUG) YLog.debug(
+            tag = TAG,
+            msg = "Active provider changed: ${providerInfo?.playerPackageName}"
+        )
+
         this.activePackage = providerInfo?.playerPackageName.orEmpty()
         LyricPrefs.activePackageName = this.activePackage
 
@@ -85,6 +91,8 @@ object LyricViewController : ActivePlayerListener,
     }
 
     override fun onPlaybackStateChanged(isPlaying: Boolean) {
+        if (DEBUG) YLog.debug(tag = TAG, msg = "Playback state changed: $isPlaying")
+
         this.isPlaying = isPlaying
         updateAllControllers { lyricView.setPlaying(isPlaying) }
     }
@@ -94,19 +102,27 @@ object LyricViewController : ActivePlayerListener,
     }
 
     override fun onSeekTo(position: Long) {
+        if (DEBUG) YLog.debug(tag = TAG, msg = "Seek to: $position")
+
         updateAllControllers { lyricView.seekTo(position) }
     }
 
     override fun onReceiveText(text: String?) {
+        if (DEBUG) YLog.debug(tag = TAG, msg = "Receive text: $text")
+
         updateAllControllers { lyricView.setText(text) }
     }
 
     override fun onDisplayTranslationChanged(isDisplayTranslation: Boolean) {
+        if (DEBUG) YLog.debug(tag = TAG, msg = "Display translation changed: $isDisplayTranslation")
+
         this.isDisplayTranslation = isDisplayTranslation
         updateAllControllers { refreshTranslationVisibility(lyricView) }
     }
 
     override fun onDisplayRomaChanged(isDisplayRoma: Boolean) {
+        if (DEBUG) YLog.debug(tag = TAG, msg = "Display Roma changed: $isDisplayRoma")
+
         this.isDisplayRoma = isDisplayRoma
         updateAllControllers { lyricView.updateDisplayTranslation(displayRoma = isDisplayRoma) }
     }
