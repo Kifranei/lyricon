@@ -45,12 +45,12 @@ import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.launchBrowser
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import java.time.Instant
@@ -197,7 +197,7 @@ class AboutActivity : BaseActivity() {
                 ) {
                     val githubHome = stringResource(id = R.string.github_home)
 
-                    SuperArrow(
+                    ArrowPreference(
                         startAction = { IconActions(painterResource(R.drawable.ic_github)) },
                         title = stringResource(id = R.string.item_view_on_github),
                         onClick = {
@@ -207,7 +207,7 @@ class AboutActivity : BaseActivity() {
                         }
                     )
 
-                    SuperArrow(
+                    ArrowPreference(
                         startAction = { IconActions(painterResource(R.drawable.ic_license)) },
                         title = stringResource(id = R.string.item_open_source_license),
                         onClick = {

@@ -9,7 +9,9 @@ configure<ApplicationExtension> {
     namespace = rootProject.extra["appPackageName"] as String
 
     compileSdk {
-        version = release(rootProject.extra.get("compileSdkVersion") as Int)
+        version = release(rootProject.extra.get("compileSdkVersion") as Int) {
+           /// minorApiLevel = 1
+        }
     }
 
     defaultConfig {

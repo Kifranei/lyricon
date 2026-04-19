@@ -6,11 +6,11 @@
 
 @file:Suppress("unused")
 
-package io.github.proify.lyricon.xposed.systemui.util
+package io.github.proify.lyricon.xposed.systemui.hook
 
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
-import io.github.proify.lyricon.xposed.log.YLog
+import io.github.proify.lyricon.xposed.logger.YLog
 import java.util.concurrent.CopyOnWriteArraySet
 
 /**

@@ -8,7 +8,7 @@ package io.github.proify.lyricon.xposed
 
 import android.app.Application
 
-abstract class BaseHooker {
+abstract class PackageHooker {
     private lateinit var packageHelper: PackageHelper
 
     val packageName: String get() = packageHelper.packageName

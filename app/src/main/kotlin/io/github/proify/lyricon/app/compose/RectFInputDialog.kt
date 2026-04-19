@@ -51,7 +51,7 @@ fun RectFInputDialog(
 
     SuperDialog(
         title = title,
-        show = show,
+        show = show.value,
         onDismissRequest = { dismiss() }
     ) {
 

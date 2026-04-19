@@ -10,7 +10,7 @@ import android.app.Application
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
-import io.github.proify.lyricon.xposed.log.YLog
+import io.github.proify.lyricon.xposed.logger.YLog
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.atomic.AtomicBoolean
 

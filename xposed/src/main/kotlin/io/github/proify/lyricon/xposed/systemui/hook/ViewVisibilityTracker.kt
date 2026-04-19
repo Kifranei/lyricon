@@ -3,19 +3,18 @@
  * Licensed under the Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0
  */
-@file:Suppress("unused")
 
-package io.github.proify.lyricon.xposed.systemui.util
+package io.github.proify.lyricon.xposed.systemui.hook
 
 import android.view.View
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedHelpers
-import io.github.proify.lyricon.xposed.log.YLog
+import io.github.proify.lyricon.xposed.logger.YLog
 import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 视图可见性追踪器
- * * 该工具通过 Hook [View.setFlags] 方法来追踪和管理视图的原始可见性状态。
+ * * 该工具通过 Hook [android.view.View.setFlags] 方法来追踪和管理视图的原始可见性状态。
  * 使用原生 Xposed API 实现，不依赖第三方 Hook 框架。
  */
 object ViewVisibilityTracker {

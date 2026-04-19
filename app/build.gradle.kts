@@ -12,8 +12,11 @@ val buildTime: Long = System.currentTimeMillis()
 
 configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.app"
-
-    compileSdk = (rootProject.extra.get("compileSdkVersion") as Int)
+    compileSdk {
+        version = release(rootProject.extra.get("compileSdkVersion") as Int) {
+           // minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         minSdk = rootProject.extra.get("minSdkVersion") as Int
@@ -56,6 +59,8 @@ dependencies {
     // --- 第三方 UI 库 ---
     implementation(libs.miuix.android)
     implementation(libs.miuix.icons)
+    implementation(libs.miuix.preference)
+
     implementation(libs.aboutlibraries.core)
     implementation(libs.accompanist.drawablepainter)
     implementation(libs.chrisbanes.haze)

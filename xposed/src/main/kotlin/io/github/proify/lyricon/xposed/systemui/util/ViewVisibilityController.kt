@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.core.view.forEach
 import io.github.proify.lyricon.common.util.ResourceMapper
 import io.github.proify.lyricon.lyric.style.VisibilityRule
+import io.github.proify.lyricon.xposed.systemui.hook.ViewVisibilityTracker
 
 /**
  * 视图可见性控制器

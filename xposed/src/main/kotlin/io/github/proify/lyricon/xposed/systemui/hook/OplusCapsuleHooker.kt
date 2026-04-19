@@ -6,7 +6,7 @@
 
 @file:Suppress("unused")
 
-package io.github.proify.lyricon.xposed.systemui.util
+package io.github.proify.lyricon.xposed.systemui.hook
 
 import android.annotation.SuppressLint
 import android.os.Handler

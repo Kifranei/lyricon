@@ -33,13 +33,11 @@ import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
-import io.github.proify.lyricon.app.compose.preference.CheckboxPreference
+import io.github.proify.lyricon.app.compose.custom.miuix.preference.CheckboxPreference
 import io.github.proify.lyricon.app.compose.preference.InputPreference
 import io.github.proify.lyricon.app.compose.preference.InputType
 import io.github.proify.lyricon.app.compose.preference.RectInputPreference
-import io.github.proify.lyricon.app.compose.preference.SwitchPreference
 import io.github.proify.lyricon.app.compose.preference.TextColorPreference
 import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
@@ -51,8 +49,10 @@ import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.extra.CheckboxLocation
-import top.yukonga.miuix.kmp.extra.SuperDropdown
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.CheckboxLocation
+import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Composable
@@ -122,12 +122,17 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     maxValue = 100.0,
                     startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
+
+                var isGradientProgressStyleEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_style_text_gradient_progress_style",
+                    defaultValue = TextStyle.Defaults.ENABLE_GRADIENT_PROGRESS_STYLE
+                )
                 SwitchPreference(
-                    preferences,
-                    "lyric_style_text_gradient_progress_style",
-                    defaultValue = TextStyle.Defaults.ENABLE_GRADIENT_PROGRESS_STYLE,
+                    checked = isGradientProgressStyleEnabled,
                     title = stringResource(R.string.item_text_fading_style),
                     startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
+                    onCheckedChange = { isGradientProgressStyleEnabled = it }
                 )
                 PlaceholderFormatPreference(preferences)
             }
@@ -147,24 +152,24 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 0.dp)
                     .fillMaxWidth(),
             ) {
-                val extractCoverColorEnabled = rememberBooleanPreference(
-                    sharedPreferences = preferences,
-                    key = "lyric_style_text_extract_cover_color",
-                    defaultValue = TextStyle.Defaults.ENABLE_EXTRACT_COVER_TEXT_COLOR
-                )
+
                 val customColorEnabled = rememberBooleanPreference(
                     sharedPreferences = preferences,
                     key = "lyric_style_text_enable_custom_color",
                     defaultValue = TextStyle.Defaults.ENABLE_CUSTOM_TEXT_COLOR
                 )
 
+                var isExtractCoverColorEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_style_text_extract_cover_color",
+                    defaultValue = TextStyle.Defaults.ENABLE_EXTRACT_COVER_TEXT_COLOR
+                )
                 SwitchPreference(
-                    preferences,
-                    "lyric_style_text_extract_cover_color",
-                    defaultValue = TextStyle.Defaults.ENABLE_EXTRACT_COVER_TEXT_COLOR,
+                    checked = isExtractCoverColorEnabled,
                     title = stringResource(R.string.item_text_extract_cover_color),
                     startAction = { IconActions(painterResource(R.drawable.colorize_24px)) },
                     onCheckedChange = {
+                        isExtractCoverColorEnabled = it
                         if (it) {
                             preferences.editCommit {
                                 putBoolean("lyric_style_text_enable_custom_color", false)
@@ -177,14 +182,19 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                         }
                     }
                 )
+                var isExtractCoverGradientEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_style_text_extract_cover_gradient",
+                    defaultValue = TextStyle.Defaults.ENABLE_EXTRACT_COVER_TEXT_GRADIENT
+                )
                 SwitchPreference(
-                    preferences,
-                    "lyric_style_text_extract_cover_gradient",
-                    defaultValue = TextStyle.Defaults.ENABLE_EXTRACT_COVER_TEXT_GRADIENT,
+                    checked = isExtractCoverGradientEnabled,
                     title = stringResource(R.string.item_text_extract_cover_gradient),
                     startAction = { IconActions(painterResource(R.drawable.format_paint_24px)) },
-                    enabled = extractCoverColorEnabled.value,
+                    enabled = isExtractCoverColorEnabled,
                     onCheckedChange = {
+                        isExtractCoverGradientEnabled = it
+
                         if (it) {
                             preferences.editCommit {
                                 putBoolean("lyric_style_text_enable_custom_color", false)
@@ -193,13 +203,18 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                         }
                     }
                 )
+
+                var isCustomColorEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
+                    key = "lyric_style_text_enable_custom_color",
+                    defaultValue = TextStyle.Defaults.ENABLE_CUSTOM_TEXT_COLOR
+                )
                 SwitchPreference(
-                    preferences,
-                    "lyric_style_text_enable_custom_color",
-                    defaultValue = TextStyle.Defaults.ENABLE_CUSTOM_TEXT_COLOR,
+                    checked = isCustomColorEnabled,
                     title = stringResource(R.string.item_text_enable_custom_color),
                     startAction = { IconActions(painterResource(R.drawable.ic_palette)) },
                     onCheckedChange = {
+                        isCustomColorEnabled = it
                         if (it) {
                             preferences.editCommit {
                                 putBoolean("lyric_style_text_extract_cover_color", false)
@@ -255,20 +270,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     startAction = { IconActions(painterResource(R.drawable.ic_fontdownload)) },
                 )
 
-                CheckboxPreference(
-                    preferences,
-                    key = "lyric_style_text_typeface_bold",
-                    title = stringResource(R.string.item_text_typeface_bold),
-                    startActions = { IconActions(painterResource(R.drawable.ic_formatbold)) },
-                    checkboxLocation = CheckboxLocation.End
-                )
-                CheckboxPreference(
-                    preferences,
-                    key = "lyric_style_text_typeface_italic",
-                    title = stringResource(R.string.item_text_typeface_italic),
-                    startActions = { IconActions(painterResource(R.drawable.ic_format_italic)) },
-                    checkboxLocation = CheckboxLocation.End
-                )
+                TypefaceCompose(preferences)
             }
         }
 
@@ -287,18 +289,27 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 0.dp)
                     .fillMaxWidth(),
             ) {
-                SwitchPreference(
-                    defaultValue = TextStyle.Defaults.RELATIVE_PROGRESS,
-                    preferences = preferences,
+                var isRelativeProgressEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_relative_progress",
+                    defaultValue = TextStyle.Defaults.RELATIVE_PROGRESS
+                )
+                SwitchPreference(
+                    checked = isRelativeProgressEnabled,
+                    onCheckedChange = { isRelativeProgressEnabled = it },
                     title = stringResource(R.string.item_text_relative_progress),
                     summary = stringResource(R.string.item_text_relative_progress_summary),
                     startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
                 )
-                SwitchPreference(
-                    defaultValue = TextStyle.Defaults.RELATIVE_PROGRESS_HIGHLIGHT,
-                    preferences = preferences,
+
+                var isRelativeProgressHighlightEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_relative_progress_highlight",
+                    defaultValue = TextStyle.Defaults.RELATIVE_PROGRESS_HIGHLIGHT
+                )
+                SwitchPreference(
+                    checked = isRelativeProgressHighlightEnabled,
+                    onCheckedChange = { isRelativeProgressHighlightEnabled = it },
                     title = stringResource(R.string.item_text_relative_progress_highlight),
                     startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
@@ -321,31 +332,32 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 0.dp)
                     .fillMaxWidth(),
             ) {
-                SwitchPreference(
-                    preferences = preferences,
+
+                var isTranslationDisableEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
                     key = TextStyle.KEY_TEXT_TRANSLATION_DISABLE,
+                    defaultValue = TextStyle.Defaults.TRANSLATION_DISABLE
+                )
+                SwitchPreference(
+                    checked = isTranslationDisableEnabled,
                     title = stringResource(R.string.item_translation_disable),
                     startAction = { IconActions(painterResource(R.drawable.ic_visibility_off)) },
-                    onCheckedChange = { _ ->
-//                        if (enabled) {
-//                            preferences.editCommit {
-//                                putBoolean("lyric_style_text_translation_only", false)
-//                            }
-//                        }
+                    onCheckedChange = {
+                        isTranslationDisableEnabled = it
                     }
                 )
 
-                SwitchPreference(
-                    preferences = preferences,
+                var isTranslationOnlyEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
                     key = TextStyle.KEY_TEXT_TRANSLATION_ONLY,
+                    defaultValue = TextStyle.Defaults.TRANSLATION_ONLY
+                )
+                SwitchPreference(
+                    checked = isTranslationOnlyEnabled,
                     title = stringResource(R.string.item_translation_only),
                     startAction = { IconActions(painterResource(R.drawable.translate_24px)) },
-                    onCheckedChange = { _ ->
-//                        if (enabled) {
-//                            preferences.editCommit {
-//                                putBoolean("lyric_style_text_hide_translation", false)
-//                            }
-//                        }
+                    onCheckedChange = {
+                        isTranslationOnlyEnabled = it
                     }
                 )
             }
@@ -356,10 +368,14 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     .fillMaxWidth(),
             ) {
 
-                SwitchPreference(
-                    preferences = preferences,
+                var isAiTranslationEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
                     key = TextStyle.KEY_AI_TRANSLATION_ENABLED,
-                    defaultValue = TextStyle.Defaults.AI_TRANSLATION_ENABLED,
+                    defaultValue = TextStyle.Defaults.AI_TRANSLATION_ENABLED
+                )
+                SwitchPreference(
+                    checked = isAiTranslationEnabled,
+                    onCheckedChange = { isAiTranslationEnabled = it },
                     title = stringResource(R.string.item_translation_enable),
                     startAction = { IconActions(painterResource(R.drawable.translate_24px)) },
                 )
@@ -445,10 +461,15 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     startAction = { IconActions(painterResource(R.drawable.ic_autopause)) },
                     isTimeUnit = true,
                 )
-                SwitchPreference(
-                    defaultValue = TextStyle.Defaults.MARQUEE_REPEAT_UNLIMITED,
-                    preferences = preferences,
+
+                var isMarqueeRepeatUnlimited by rememberBooleanPreference(
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_repeat_unlimited",
+                    defaultValue = TextStyle.Defaults.MARQUEE_REPEAT_UNLIMITED
+                )
+                SwitchPreference(
+                    checked = isMarqueeRepeatUnlimited,
+                    onCheckedChange = { isMarqueeRepeatUnlimited = it },
                     title = stringResource(R.string.item_text_marquee_repeat_unlimited),
                     startAction = { IconActions(painterResource(R.drawable.ic_all_inclusive)) },
                 )
@@ -461,9 +482,15 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     maxValue = 3600000.0,
                     startAction = { IconActions(painterResource(R.drawable.ic_pin)) },
                 )
-                SwitchPreference(
-                    preferences = preferences,
+
+                var isMarqueeStopAtEnd by rememberBooleanPreference(
+                    sharedPreferences = preferences,
                     key = "lyric_style_text_marquee_stop_at_end",
+                    defaultValue = TextStyle.Defaults.MARQUEE_STOP_AT_END
+                )
+                SwitchPreference(
+                    checked = isMarqueeStopAtEnd,
+                    onCheckedChange = { isMarqueeStopAtEnd = it },
                     title = stringResource(R.string.item_text_marquee_stop_at_end),
                     startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
                 )
@@ -472,13 +499,14 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
     }
 }
 
+
 @Composable
 private fun ClearTranslationDB() {
     val showDialog = remember { mutableStateOf(false) }
     SuperDialog(
         title = stringResource(R.string.alert_dialog_title_translation_clear),
         summary = stringResource(R.string.alert_dialog_message_translation_clear),
-        show = showDialog,
+        show = showDialog.value,
         onDismissRequest = { showDialog.value = false }
     ) {
         Row(
@@ -506,7 +534,7 @@ private fun ClearTranslationDB() {
         }
 
     }
-    SuperArrow(
+    ArrowPreference(
         title = stringResource(R.string.item_translation_clear_db),
         startAction = { IconActions(painterResource(R.drawable.ic_settings_backup_restore)) },
         onClick = {
@@ -563,7 +591,7 @@ private fun <T> DropdownPreference(
             ?: 0)
     }
 
-    SuperDropdown(
+    OverlayDropdownPreference(
         startAction = { IconActions(painterResource(iconRes)) },
         title = title,
         items = options,
@@ -618,5 +646,35 @@ private fun TransitionConfigPreference(preferences: SharedPreferences) {
         ),
         title = stringResource(R.string.item_text_transition_config),
         iconRes = R.drawable.ic_speed
+    )
+
+
+}
+
+@Composable
+private fun TypefaceCompose(preferences: SharedPreferences) {
+    var isTypefaceBoldEnabled by rememberBooleanPreference(
+        sharedPreferences = preferences,
+        key = "lyric_style_text_typeface_bold",
+        defaultValue = false
+    )
+    var isTypefaceItalicEnabled by rememberBooleanPreference(
+        sharedPreferences = preferences,
+        key = "lyric_style_text_typeface_italic",
+        defaultValue = false
+    )
+    CheckboxPreference(
+        checked = isTypefaceBoldEnabled,
+        title = stringResource(R.string.item_text_typeface_bold),
+        startActions = { IconActions(painterResource(R.drawable.ic_formatbold)) },
+        checkboxLocation = CheckboxLocation.End,
+        onCheckedChange = { isTypefaceBoldEnabled = it }
+    )
+    CheckboxPreference(
+        checked = isTypefaceItalicEnabled,
+        title = stringResource(R.string.item_text_typeface_italic),
+        startActions = { IconActions(painterResource(R.drawable.ic_format_italic)) },
+        checkboxLocation = CheckboxLocation.End,
+        onCheckedChange = { isTypefaceItalicEnabled = it }
     )
 }

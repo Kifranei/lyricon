@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -26,12 +28,10 @@ import androidx.compose.ui.unit.dp
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import io.github.proify.lyricon.app.compose.preference.InputPreference
 import io.github.proify.lyricon.app.compose.preference.InputType
 import io.github.proify.lyricon.app.compose.preference.LogoColorPreference
 import io.github.proify.lyricon.app.compose.preference.RectInputPreference
-import io.github.proify.lyricon.app.compose.preference.SwitchPreference
 import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberIntPreference
 import io.github.proify.lyricon.app.util.Utils
@@ -41,7 +41,9 @@ import io.github.proify.lyricon.lyric.style.LogoStyle
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.SpinnerEntry
-import top.yukonga.miuix.kmp.extra.SuperSpinner
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
+import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Composable
@@ -70,14 +72,20 @@ fun LogoPage(
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
             ) {
-                SwitchPreference(
+                var enable by rememberBooleanPreference(
                     sharedPreferences,
                     "lyric_style_logo_enable",
-                    defaultValue = LogoStyle.Defaults.ENABLE,
+                    LogoStyle.Defaults.ENABLE
+                )
+                SwitchPreference(
+                    checked = enable,
                     startAction = {
                         IconActions(painterResource(R.drawable.ic_music_note))
                     },
-                    title = stringResource(R.string.item_logo_enable)
+                    title = stringResource(R.string.item_logo_enable),
+                    onCheckedChange = {
+                        enable = it
+                    }
                 )
                 InputPreference(
                     preferences = sharedPreferences,
@@ -117,10 +125,16 @@ fun LogoPage(
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 ) {
-                    SwitchPreference(
+                    var hideInColorOsCapsuleMode by rememberBooleanPreference(
                         sharedPreferences,
                         "lyric_style_logo_hide_in_coloros_capsule_mode",
-                        defaultValue = LogoStyle.Defaults.HIDE_IN_COLOROS_CAPSULE_MODE,
+                        LogoStyle.Defaults.HIDE_IN_COLOROS_CAPSULE_MODE
+                    )
+                    SwitchPreference(
+                        checked = hideInColorOsCapsuleMode,
+                        onCheckedChange = {
+                            hideInColorOsCapsuleMode = it
+                        },
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_visibility_off))
                         },
@@ -170,7 +184,7 @@ fun LogoPage(
                 val checkedIndex = styleValues.indexOf(logoStyle.value)
 
                 styleNameRes.forEachIndexed { index, resId ->
-                    SuperCheckbox(
+                    CheckboxPreference(
                         title = stringResource(resId),
                         checked = checkedIndex == index,
                         onCheckedChange = {
@@ -208,8 +222,10 @@ fun LogoPage(
                     defaultValue = LogoStyle.Defaults.ENABLE_CUSTOM_COLOR
                 )
                 SwitchPreference(
-                    sharedPreferences,
-                    "lyric_style_logo_enable_custom_color",
+                    checked = customColorEnabled.value,
+                    onCheckedChange = {
+                        customColorEnabled.value = it
+                    },
                     title = stringResource(R.string.item_logo_custom_color),
                     startAction = {
                         IconActions(painterResource(R.drawable.ic_palette))
@@ -270,7 +286,7 @@ private fun LogoGravity(sharedPreferences: SharedPreferences) {
         }
     }
 
-    SuperSpinner(
+    OverlaySpinnerPreference(
         startAction = {
             IconActions(painterResource(R.drawable.ic_stack))
         },

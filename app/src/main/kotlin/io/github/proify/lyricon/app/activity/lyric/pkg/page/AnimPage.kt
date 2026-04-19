@@ -24,12 +24,13 @@ import androidx.compose.ui.unit.dp
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
-import io.github.proify.lyricon.app.compose.preference.SwitchPreference
+import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.lyric.style.AnimStyle
 import io.github.proify.lyricon.lyric.view.yoyo.YoYoPresets
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
 @Composable
@@ -64,10 +65,17 @@ fun AnimPage(
                         .padding(start = 16.dp, end = 16.dp)
                         .fillMaxWidth(),
                 ) {
-                    SwitchPreference(
+                    var enable by rememberBooleanPreference(
                         sharedPreferences,
                         "lyric_style_anim_enable",
-                        defaultValue = AnimStyle.Defaults.ENABLE,
+                        AnimStyle.Defaults.ENABLE
+                    )
+
+                    SwitchPreference(
+                        checked = enable,
+                        onCheckedChange = {
+                            enable = it
+                        },
                         startAction = {
                             IconActions(painterResource(R.drawable.masked_transitions_24px))
                         },
@@ -84,7 +92,7 @@ fun AnimPage(
                 ) {
                     val context = LocalContext.current
                     keys.forEach { key ->
-                        SuperCheckbox(
+                        CheckboxPreference(
                             title = YoYoTranslates.getLabel(context, key),
                             checked = selectedId == key,
                             onCheckedChange = {

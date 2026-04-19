@@ -12,9 +12,10 @@ configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.provider"
     compileSdk {
         version = release(rootProject.extra.get("compileSdkVersion") as Int) {
-            minorApiLevel = 1
+           // minorApiLevel = 1
         }
     }
+
 
     defaultConfig {
         minSdk = 21

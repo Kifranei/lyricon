@@ -4,6 +4,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
+@file:Suppress("unused")
+
 package io.github.proify.lyricon.app.bridge
 
 import android.content.BroadcastReceiver
@@ -12,7 +14,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import androidx.core.content.ContextCompat
-import androidx.core.os.bundleOf
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -167,8 +168,8 @@ object LyriconBridge {
         fun key(key: String) = apply { this.key = key }
 
         /** 设置数据载体 */
-        fun payload(vararg pairs: Pair<String, Any?>) = apply {
-            this.data = bundleOf(*pairs)
+        fun payload(bundle: Bundle) = apply {
+            this.data = bundle
         }
 
         /** 发送单向指令（不关心返回） */

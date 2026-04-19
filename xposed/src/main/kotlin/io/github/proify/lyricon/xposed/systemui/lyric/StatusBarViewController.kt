@@ -26,8 +26,8 @@ import io.github.proify.lyricon.common.util.ScreenStateMonitor
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric
-import io.github.proify.lyricon.xposed.log.YLog
-import io.github.proify.lyricon.xposed.systemui.util.ClockColorMonitor
+import io.github.proify.lyricon.xposed.logger.YLog
+import io.github.proify.lyricon.xposed.systemui.hook.ClockColorMonitor
 import io.github.proify.lyricon.xposed.systemui.util.OnColorChangeListener
 import io.github.proify.lyricon.xposed.systemui.util.ViewVisibilityController
 import java.io.File
@@ -255,6 +255,8 @@ class StatusBarViewController(
         StatusBarLyric(context, style, getClockView() as? TextView)
 
     fun highlightView(idName: String?) {
+        YLog.info(TAG, "Highlighting view id:$idName")
+
         lastHighlightView?.background = null
         if (idName.isNullOrBlank()) return
 
@@ -309,7 +311,7 @@ class StatusBarViewController(
     }
 
     override fun equals(other: Any?): Boolean =
-        (this === other) || (other is StatusBarViewController && statusBarView === other.statusBarView)
+        (this === other) || (other is StatusBarViewController && statusBarView == other.statusBarView)
 
     override fun hashCode(): Int = 31 * 17 + statusBarView.hashCode()
 

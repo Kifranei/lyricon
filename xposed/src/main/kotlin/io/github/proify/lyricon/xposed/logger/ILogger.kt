@@ -4,7 +4,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-package io.github.proify.lyricon.xposed.log
+package io.github.proify.lyricon.xposed.logger
 
 interface ILogger {
     fun v(tag: String? = null, message: String? = null)

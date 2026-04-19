@@ -36,10 +36,9 @@ bonsai = "1.2.0"
 capsuleAndroid = "2.1.1-patch2"
 haze = "1.7.2"
 lottieCompose = "6.7.1"
-miuixAndroid = "0.8.8"
-# 暂时保留到0.8.8，因为新版本的gradle版本过高
-#noinspection NewerVersionAvailable
-miuixIcons = "0.8.8"
+miuixUI = "0.9.0"
+miuixIcons = "0.9.0"
+miuixPreference = "0.9.0"
 
 # Hook / Reflection
 xposed = "82"
@@ -86,10 +85,12 @@ bonsai-core = { module = "cafe.adriel.bonsai:bonsai-core", version.ref = "bonsai
 capsule-android = { module = "com.mocharealm.gaze:capsule-android", version.ref = "capsuleAndroid" }
 chrisbanes-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
-miuix-android = { module = "top.yukonga.miuix.kmp:miuix-android", version.ref = "miuixAndroid" }
-miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons", version.ref = "miuixIcons" }
+miuix-android = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuixUI" }
+miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference-android", version.ref = "miuixPreference" }
+miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons-android", version.ref = "miuixIcons" }
 
 # ===== Hook / Reflection =====
+#noinspection UnusedVersionCatalogEntry
 opencc4j = { module = "com.github.houbb:opencc4j", version.ref = "opencc4j" }
 xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed" }
 
@@ -108,4 +109,5 @@ jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrai
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
 # ===== Other =====
+#noinspection UnusedVersionCatalogEntry
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

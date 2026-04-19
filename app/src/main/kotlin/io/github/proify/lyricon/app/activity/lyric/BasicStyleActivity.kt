@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -26,11 +27,10 @@ import androidx.compose.ui.unit.dp
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.IconActions
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.preference.InputPreference
 import io.github.proify.lyricon.app.compose.preference.InputType
 import io.github.proify.lyricon.app.compose.preference.RectInputPreference
-import io.github.proify.lyricon.app.compose.preference.SwitchPreference
+import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.app.util.Utils
@@ -38,7 +38,9 @@ import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SpinnerEntry
-import top.yukonga.miuix.kmp.extra.SuperSpinner
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 
 class BasicLyricStyleActivity : AbstractLyricActivity() {
     private val preferences by lazy { LyricPrefs.basicStylePrefs }
@@ -76,7 +78,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         BasicStyle.Defaults.ANCHOR
                     )
 
-                    SuperArrow(
+                    ArrowPreference(
                         title = stringResource(R.string.item_base_anchor),
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_locationon))
@@ -112,7 +114,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         }
                     }
 
-                    SuperSpinner(
+                    OverlaySpinnerPreference(
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_stack))
                         },
@@ -214,7 +216,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         )
                     }
 
-                    SuperArrow(
+                    ArrowPreference(
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_visibility))
                         },
@@ -236,7 +238,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         }
                     )
 
-                   // ChineseConversionPreference()
+                    // ChineseConversionPreference()
                 }
             }
 
@@ -247,10 +249,14 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         .fillMaxWidth(),
                 ) {
 
-                    SwitchPreference(
+                    var isHideOnLockScreenEnabled by rememberBooleanPreference(
                         preferences,
                         "lyric_style_base_hide_on_lock_screen",
-                        defaultValue = BasicStyle.Defaults.HIDE_ON_LOCK_SCREEN,
+                        BasicStyle.Defaults.HIDE_ON_LOCK_SCREEN
+                    )
+                    SwitchPreference(
+                        checked = isHideOnLockScreenEnabled,
+                        onCheckedChange = { isHideOnLockScreenEnabled = it },
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_visibility_off))
                         },
@@ -430,7 +436,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             SpinnerEntry(title = stringResource(R.string.item_base_chinese_conv_traditional)),
         )
 
-        SuperSpinner(
+        OverlaySpinnerPreference(
             startAction = {
                 IconActions(painterResource(R.drawable.translate_24px))
             },

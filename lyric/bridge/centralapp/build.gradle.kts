@@ -1,21 +1,22 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.ksp)
     kotlin("plugin.serialization") version "2.1.21"
 }
 
 android {
     namespace = "io.github.proify.lyricon.core"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
+        version = release(rootProject.extra.get("compileSdkVersion") as Int) {
+            //minorApiLevel = 1
         }
     }
+
 
     defaultConfig {
         applicationId = "io.github.proify.lyricon.core"
         minSdk = 28
-        targetSdk = 36
+        targetSdk = rootProject.extra["targetSdkVersion"] as Int
+
         versionCode = 2
         versionName = "1.0.1"
 

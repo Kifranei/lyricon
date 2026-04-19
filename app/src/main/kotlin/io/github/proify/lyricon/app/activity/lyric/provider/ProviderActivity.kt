@@ -71,9 +71,9 @@ import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.extra.SuperListPopup
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.More
+import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -283,7 +283,7 @@ class LyricProviderActivity : BaseActivity() {
                     )
                 }
 
-                SuperListPopup(
+                OverlayListPopup(
                     show = showPopup.value,
                     popupModifier = Modifier,
                     popupPositionProvider = ListPopupDefaults.DropdownPositionProvider,

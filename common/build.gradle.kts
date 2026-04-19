@@ -25,10 +25,11 @@ plugins {
 configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.common"
     compileSdk {
-        version = release(rootProject.extra.get("compileSdkVersion") as Int){
-            minorApiLevel = 1
+        version = release(rootProject.extra.get("compileSdkVersion") as Int) {
+           // minorApiLevel = 1
         }
     }
+
 
     defaultConfig {
         minSdk = rootProject.extra.get("minSdkVersion") as Int

@@ -6,13 +6,10 @@
 
 package io.github.proify.lyricon.xposed.systemui
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.core.view.doOnAttach
-import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XSharedPreferences
-import de.robv.android.xposed.XposedHelpers
 import io.github.proify.android.extensions.deflate
 import io.github.proify.android.extensions.json
 import io.github.proify.android.extensions.safeEncode
@@ -25,22 +22,22 @@ import io.github.proify.lyricon.common.util.ViewHierarchyParser
 import io.github.proify.lyricon.subscriber.ConnectionListener
 import io.github.proify.lyricon.subscriber.LyriconFactory
 import io.github.proify.lyricon.subscriber.LyriconSubscriber
-import io.github.proify.lyricon.xposed.BaseHooker
-import io.github.proify.lyricon.xposed.log.YLog
+import io.github.proify.lyricon.xposed.PackageHooker
+import io.github.proify.lyricon.xposed.logger.YLog
+import io.github.proify.lyricon.xposed.systemui.hook.ClockColorMonitor
+import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
+import io.github.proify.lyricon.xposed.systemui.hook.StatusBarDisableHooker
+import io.github.proify.lyricon.xposed.systemui.hook.StatusBarViewResolver
+import io.github.proify.lyricon.xposed.systemui.hook.ViewVisibilityTracker
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricDataHub
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager
 import io.github.proify.lyricon.xposed.systemui.util.AITranslator
-import io.github.proify.lyricon.xposed.systemui.util.ClockColorMonitor
 import io.github.proify.lyricon.xposed.systemui.util.CrashDetector
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
-import io.github.proify.lyricon.xposed.systemui.util.OplusCapsuleHooker
-import io.github.proify.lyricon.xposed.systemui.util.StatusBarDisableHooker
-import io.github.proify.lyricon.xposed.systemui.util.StatusBarDisableHooker.OnStatusBarDisableListener
-import io.github.proify.lyricon.xposed.systemui.util.SystemUIMediaHooker
-import io.github.proify.lyricon.xposed.systemui.util.ViewVisibilityTracker
+import io.github.proify.lyricon.xposed.systemui.util.SystemUIMediaUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -51,7 +48,7 @@ import kotlinx.coroutines.launch
  * SystemUI Hook 入口对象
  * 负责状态栏视图注入、第三方逻辑初始化及跨进程通信绑定
  */
-object SystemUIHooker : BaseHooker() {
+object SystemUIHooker : PackageHooker() {
     private const val TAG = "SystemUIHooker"
 
     private const val TEST_CRASH = false
@@ -119,28 +116,12 @@ object SystemUIHooker : BaseHooker() {
             return
         }
 
+        StatusBarViewResolver.subscribe {
+            YLog.info(TAG, "New status bar view resolved $it")
+            addStatusBarView(it)
+        }
+
         initialize()
-
-        @SuppressLint("DiscouragedApi")
-        val statusBarLayoutId =
-            context.resources.getIdentifier("status_bar", "layout", context.packageName)
-
-        XposedHelpers.findAndHookMethod(
-            "android.view.LayoutInflater",
-            context.classLoader,
-            "inflate",
-            Int::class.java,
-            ViewGroup::class.java,
-            Boolean::class.java,
-            object : XC_MethodHook() {
-                override fun afterHookedMethod(param: MethodHookParam?) {
-                    if (param?.args?.get(0) != statusBarLayoutId) return
-
-                    val result = param.result as? ViewGroup
-                    result?.let { addStatusBarView(it) }
-                }
-            }
-        )
     }
 
     /**
@@ -159,7 +140,8 @@ object SystemUIHooker : BaseHooker() {
         initLyriconService()
 
         StatusBarDisableHooker.inject(context.classLoader)
-        StatusBarDisableHooker.addListener(object : OnStatusBarDisableListener {
+        StatusBarDisableHooker.addListener(object :
+            StatusBarDisableHooker.OnStatusBarDisableListener {
             private var lastDisableStateChanged: Boolean? = null
 
             override fun onDisableStateChanged(shouldHide: Boolean, animate: Boolean) {
@@ -171,7 +153,8 @@ object SystemUIHooker : BaseHooker() {
 
         ClockColorMonitor.hook()
         AITranslator.init(context)
-        SystemUIMediaHooker.init(context)
+        SystemUIMediaUtils.init(context)
+        StatusBarViewResolver.init(context)
     }
 
     private fun initLyriconService() {
@@ -224,10 +207,10 @@ object SystemUIHooker : BaseHooker() {
             }
 
             onCommand(AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW) {
-                YLog.info(TAG, "App requested view highlight")
-
                 val id = it.getString("id")
-                StatusBarViewManager.forEach { it.highlightView(id) }
+                YLog.info(TAG, "App requested view highlight id: $id")
+
+                StatusBarViewManager.forEachOnMainThread { it.highlightView(id) }
             }
 
             onQuery(AppBridgeConstants.REQUEST_VIEW_TREE) {

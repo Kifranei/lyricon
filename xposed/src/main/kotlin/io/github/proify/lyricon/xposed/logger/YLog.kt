@@ -6,7 +6,7 @@
 
 @file:Suppress("unused")
 
-package io.github.proify.lyricon.xposed.log
+package io.github.proify.lyricon.xposed.logger
 
 import android.util.Log
 import de.robv.android.xposed.XposedBridge

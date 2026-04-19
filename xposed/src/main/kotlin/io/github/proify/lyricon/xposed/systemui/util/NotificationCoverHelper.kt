@@ -129,7 +129,7 @@ object NotificationCoverHelper {
 
     fun initialize() {
         if (!isInitialized.compareAndSet(false, true)) return
-        SystemUIMediaHooker.registerListener(object : SystemUIMediaHooker.MediaControllerCallback {
+        SystemUIMediaUtils.registerListener(object : SystemUIMediaUtils.MediaControllerCallback {
             override fun onMediaChanged(controller: MediaController, metadata: MediaMetadata) {
                 val pkg = controller.packageName ?: return
                 getMCM(pkg).onMediaChanged(metadata)

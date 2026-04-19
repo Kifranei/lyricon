@@ -49,7 +49,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.SwipeableItem
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
+import io.github.proify.lyricon.app.compose.custom.miuix.preference.CheckboxPreference
 import io.github.proify.lyricon.app.util.LyricPrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -61,10 +61,9 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.extra.BottomSheetDefaults
-import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.AddCircle
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -374,7 +373,7 @@ private fun PackageSwitchSheetContent(
     val packageItems = state.configureds
     val showState = remember { mutableStateOf(true) }
 
-    SuperBottomSheet(
+    OverlayBottomSheet(
         show = showState.value,
         modifier = Modifier,
         title = stringResource(R.string.manager_package_config),
@@ -393,21 +392,11 @@ private fun PackageSwitchSheetContent(
             }
         },
         backgroundColor = MiuixTheme.colorScheme.surface,
-        enableWindowDim = true,
-        cornerRadius = BottomSheetDefaults.cornerRadius,
-        sheetMaxWidth = BottomSheetDefaults.maxWidth,
         onDismissRequest = {
             showState.value = false
             callbacks.onDismiss()
         },
-        onDismissFinished = null,
-        outsideMargin = BottomSheetDefaults.outsideMargin,
         insideMargin = DpSize(0.dp, 0.dp),
-        defaultWindowInsetsPadding = true,
-        dragHandleColor = BottomSheetDefaults.dragHandleColor(),
-        allowDismiss = true,
-        enableNestedScroll = true,
-        renderInRootScaffold = true,
         content = {
             LazyColumn(
                 modifier =
@@ -549,7 +538,7 @@ private fun PackageListItem(
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
         ) {
-            SuperCheckbox(
+            CheckboxPreference(
                 startActions = {
                     AsyncAppIcon(
                         application = state.item.applicationInfo,

@@ -5,8 +5,8 @@ plugins {
 android {
     namespace = "io.github.proify.lyricon.statusbarlyric"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
+        version = release(rootProject.extra.get("compileSdkVersion") as Int){
+           // minorApiLevel = 1
         }
     }
 

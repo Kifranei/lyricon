@@ -6,24 +6,25 @@
 
 package io.github.proify.lyricon.xposed.systemui.lyric
 
+import android.os.Handler
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric
 import io.github.proify.lyricon.statusbarlyric.SuperLogo
 import io.github.proify.lyricon.subscriber.ActivePlayerListener
 import io.github.proify.lyricon.subscriber.ProviderInfo
-import io.github.proify.lyricon.xposed.log.YLog
+import io.github.proify.lyricon.xposed.logger.YLog
+import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
+import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager.MAIN_LOOPER
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
-import io.github.proify.lyricon.xposed.systemui.util.OplusCapsuleHooker
 import java.io.File
 
 /**
- * 歌词视图控制器 (UI 表现层)
- *
- * 职责：
- * 1. 订阅 [LyricDataHub] 分发的已加工歌词数据并驱动 UI 刷新。
- * 2. 处理 SystemUI 特有的视图逻辑（如 Logo 颜色提取、Visibility 协调）。
- * 3. 监听外部配置变更并通知调度中心重走加工流程。
+ * 歌词视图核心控制器 (Lyric View Controller)
+ * * 负责接收播放器状态、歌曲信息及系统 UI 变更，并将数据分发至所有已注册的状态栏控制器。
+ * 实现了 [ActivePlayerListener]、[OplusCapsuleHooker.CapsuleStateChangeListener] 等核心接口。
+ * * @author Tomakino
+ * @since 2026
  */
 object LyricViewController : ActivePlayerListener,
     OplusCapsuleHooker.CapsuleStateChangeListener,
@@ -32,56 +33,65 @@ object LyricViewController : ActivePlayerListener,
     private const val TAG = "LyricViewController"
     private const val DEBUG = true
 
-    /** 当前播放状态缓存 */
+    /** 当前播放状态，线程安全可见 */
     @Volatile
     var isPlaying: Boolean = false
         private set
 
-    /** 当前激活的播放器包名 */
+    /** 当前活跃播放器的包名 */
     @Volatile
     var activePackage: String = ""
         private set
 
-    /** 翻译显示开关状态 */
+    /** 是否显示翻译内容 */
     @Volatile
     private var isDisplayTranslation: Boolean = true
 
-    /** 罗马音显示开关状态 */
+    /** 是否显示罗马音内容 */
     @Volatile
     private var isDisplayRoma: Boolean = true
 
+    /** 当前歌曲的逻辑播放进度（毫秒） */
+    @Volatile
+    private var currentLogicPosition: Long = 0
+
+    /** 用于处理 UI 刷新任务的 Handler */
+    private val mainHandler by lazy { Handler(MAIN_LOOPER) }
+
+    /** * 高频进度更新任务。
+     * 使用单例 Runnable 减少 GC 压力，仅在进度变更时由主线程调度。
+     */
+    private val frameUpdater = Runnable {
+        val controllers = StatusBarViewManager.controllers
+        for (i in controllers.indices) {
+            controllers[i].lyricView.setPosition(currentLogicPosition)
+        }
+    }
+
     init {
-        if (DEBUG) YLog.debug(tag = TAG, msg = "Initializing LyricViewController...")
-
-        // 注册到数据调度中心
+        if (DEBUG) YLog.debug(TAG, "Initializing LyricViewController...")
+        // 注册数据总线、系统钩子及封面更新监听
         LyricDataHub.addListener(this)
-
-        // 注册系统级 UI 状态监听
         OplusCapsuleHooker.registerListener(this)
         NotificationCoverHelper.registerListener(this)
     }
 
-    // --- ActivePlayerListener 实现 (数据驱动 UI) ---
-
     /**
-     * 当加工完毕的歌词数据到达时触发渲染
-     * 注：此方法可能会被调用两次（Pre-processing 后一次，Post-processing 全部完成后一次）
+     * 当歌曲发生切换时回调。
+     * @param song 新歌曲对象，若停止播放则为 null
      */
     override fun onSongChanged(song: Song?) {
-        if (DEBUG) YLog.debug(tag = TAG, msg = "Song changed: $song")
-
         updateAllControllers {
             lyricView.setSong(song)
             refreshTranslationVisibility(lyricView)
         }
     }
 
+    /**
+     * 当活跃播放源发生切换时回调（如从网易云切换至 QQ 音乐）。
+     * @param providerInfo 播放器信息
+     */
     override fun onActiveProviderChanged(providerInfo: ProviderInfo?) {
-        if (DEBUG) YLog.debug(
-            tag = TAG,
-            msg = "Active provider changed: ${providerInfo?.playerPackageName}"
-        )
-
         this.activePackage = providerInfo?.playerPackageName.orEmpty()
         LyricPrefs.activePackageName = this.activePackage
 
@@ -90,63 +100,74 @@ object LyricViewController : ActivePlayerListener,
         }
     }
 
+    /**
+     * 播放状态变更回调（播放/暂停）。
+     * @param isPlaying 播放状态
+     */
     override fun onPlaybackStateChanged(isPlaying: Boolean) {
-        if (DEBUG) YLog.debug(tag = TAG, msg = "Playback state changed: $isPlaying")
-
+        if (this.isPlaying == isPlaying) return
         this.isPlaying = isPlaying
         updateAllControllers { lyricView.setPlaying(isPlaying) }
     }
 
+    /**
+     * 播放进度正常步进时的回调（通常每秒触发）。
+     * @param position 当前逻辑时间戳
+     */
     override fun onPositionChanged(position: Long) {
-        updateAllControllers { lyricView.setPosition(position) }
+        this.currentLogicPosition = position
+        // 进度更新极其频繁，直接 post 到 Handler
+        mainHandler.post(frameUpdater)
     }
 
+    /**
+     * 用户手动调整进度（Seek）时的回调。
+     * @param position 目标时间戳
+     */
     override fun onSeekTo(position: Long) {
-        if (DEBUG) YLog.debug(tag = TAG, msg = "Seek to: $position")
-
+        this.currentLogicPosition = position
         updateAllControllers { lyricView.seekTo(position) }
     }
 
+    /**
+     * 接收到纯文本歌词时的回调（通常用于未匹配到 Lrc 的情况）。
+     * @param text 歌词文本内容
+     */
     override fun onReceiveText(text: String?) {
-        if (DEBUG) YLog.debug(tag = TAG, msg = "Receive text: $text")
-
         updateAllControllers { lyricView.setText(text) }
     }
 
+    /**
+     * 翻译显示开关状态变更。
+     * @param isDisplayTranslation 是否开启
+     */
     override fun onDisplayTranslationChanged(isDisplayTranslation: Boolean) {
-        if (DEBUG) YLog.debug(tag = TAG, msg = "Display translation changed: $isDisplayTranslation")
-
         this.isDisplayTranslation = isDisplayTranslation
         updateAllControllers { refreshTranslationVisibility(lyricView) }
     }
 
+    /**
+     * 罗马音显示开关状态变更。
+     * @param isDisplayRoma 是否开启
+     */
     override fun onDisplayRomaChanged(isDisplayRoma: Boolean) {
-        if (DEBUG) YLog.debug(tag = TAG, msg = "Display Roma changed: $isDisplayRoma")
-
         this.isDisplayRoma = isDisplayRoma
         updateAllControllers { lyricView.updateDisplayTranslation(displayRoma = isDisplayRoma) }
     }
 
-    // --- 业务配置变更 API ---
-
     /**
-     * 应用新的歌词样式配置
-     * 当用户在设置页面修改了颜色、字体、翻译开关、繁简模式等，应调用此方法。
-     *
-     * @param style 最新的样式配置对象
+     * 应用全局配置更新（如字体颜色、阴影等样式变更）。
+     * @param style 新的歌词样式配置
      */
     fun applyConfigurationUpdate(style: LyricStyle) {
-        // 1. 同步非内容类的 UI 样式（如颜色、大小、边距）
         updateAllControllers { updateLyricStyle(style) }
-
-        // 2. 通知数据中心重走流水线（处理内容层面的变更，如繁简切换、AI 开关）
         LyricDataHub.reprocessCurrentSong()
     }
 
-    // --- 内部 UI 辅助逻辑 ---
-
     /**
-     * 当切换播放器源时，重置所有视图状态并刷新 Logo 封面
+     * 针对新播放器重置视图状态。
+     * @param controller 具体的控制器实例
+     * @param provider 播放源信息
      */
     private fun resetViewForNewPlayer(
         controller: StatusBarViewController,
@@ -155,56 +176,60 @@ object LyricViewController : ActivePlayerListener,
         val view = controller.lyricView
         view.setSong(null)
         view.setPlaying(false)
-
-        // 加载当前包名的特定样式
         controller.updateLyricStyle(LyricPrefs.getLyricStyle())
         view.updateVisibility()
 
-        // 更新 Logo 与封面
         view.logoView.apply {
-            val activePackage = provider?.playerPackageName.orEmpty()
-            this.activePackage = activePackage
-
-            val cover = if (activePackage.isBlank()) null else NotificationCoverHelper.getCoverFile(
-                activePackage
-            )
+            val pkg = provider?.playerPackageName.orEmpty()
+            this.activePackage = pkg
+            val cover = if (pkg.isBlank()) null else NotificationCoverHelper.getCoverFile(pkg)
             this.coverFile = cover
             controller.updateCoverThemeColors(cover)
+            // Logo 加载涉及位图操作，通过 post 确保在 UI 线程执行
             post { this.providerLogo = provider?.logo }
         }
     }
 
     /**
-     * 根据全局开关和当前包名配置刷新翻译行的可见性
+     * 根据当前用户配置和样式决定翻译行的显示状态。
+     * @param view 状态栏歌词视图
      */
     private fun refreshTranslationVisibility(view: StatusBarLyric) {
         val style = LyricPrefs.activePackageStyle
         val shouldShow = isDisplayTranslation &&
                 !style.text.isDisableTranslation &&
                 !style.text.isTranslationOnly
-
         view.updateDisplayTranslation(displayTranslation = shouldShow)
     }
 
     /**
-     * 遍历所有状态栏实例并确保在 UI 线程执行
+     * 核心分发方法：在主线程遍历所有控制器并执行操作。
+     * @param block 需要在每个控制器上执行的逻辑
      */
     private inline fun updateAllControllers(crossinline block: StatusBarViewController.() -> Unit) {
-        StatusBarViewManager.forEach { controller ->
+        StatusBarViewManager.forEachOnMainThread { controller ->
             runCatching {
-                controller.lyricView.post { controller.block() }
+                controller.block()
             }.onFailure { e ->
-                YLog.error(tag = TAG, msg = "Dispatch UI update failed", e = e)
+                YLog.error(TAG, "UI Update distribution error", e)
             }
         }
     }
 
-    // --- 系统事件回调实现 ---
-
+    /**
+     * Oplus (ColorOS) 胶囊状态变更监听。
+     * 用于在系统胶囊出现时自动隐藏歌词，避免遮挡。
+     * @param isShowing 胶囊是否正在显示
+     */
     override fun onColorOsCapsuleVisibilityChanged(isShowing: Boolean) {
         updateAllControllers { lyricView.setOplusCapsuleVisibility(isShowing) }
     }
 
+    /**
+     * 专辑封面更新回调。
+     * @param packageName 触发更新的播放器包名
+     * @param coverFile 封面文件对象
+     */
     override fun onCoverUpdated(packageName: String, coverFile: File) {
         if (packageName != activePackage) return
         updateAllControllers {

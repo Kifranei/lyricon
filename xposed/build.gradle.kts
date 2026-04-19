@@ -10,7 +10,7 @@ configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.xposed"
     compileSdk {
         version = release(rootProject.extra.get("compileSdkVersion") as Int) {
-            minorApiLevel = 1
+         //   minorApiLevel = 1
         }
     }
 
