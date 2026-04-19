@@ -44,7 +44,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.proify.lyricon.app.R
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
+import io.github.proify.lyricon.app.compose.custom.miuix.preference.CheckboxPreference
 import io.github.proify.lyricon.app.util.LyricPrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,10 +57,10 @@ import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.SmallTitle
-import top.yukonga.miuix.kmp.extra.BottomSheetDefaults
-import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Search
+import top.yukonga.miuix.kmp.layout.BottomSheetDefaults
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -152,25 +152,14 @@ fun PackageSelectionBottomSheet(
         }
     }
 
-    SuperBottomSheet(
+    OverlayBottomSheet(
         show = show.value,
         modifier = Modifier,
         title = stringResource(R.string.add_package_config),
-        startAction = null,
-        endAction = null,
         backgroundColor = MiuixTheme.colorScheme.surface,
-        enableWindowDim = true,
-        cornerRadius = BottomSheetDefaults.cornerRadius,
-        sheetMaxWidth = BottomSheetDefaults.maxWidth,
         onDismissRequest = { show.value = false },
-        onDismissFinished = null,
         outsideMargin = BottomSheetDefaults.outsideMargin,
         insideMargin = DpSize(0.dp, 0.dp),
-        defaultWindowInsetsPadding = true,
-        dragHandleColor = BottomSheetDefaults.dragHandleColor(),
-        allowDismiss = true,
-        enableNestedScroll = true,
-        renderInRootScaffold = true,
         content = {
             Column {
                 PackageSearchBar(
@@ -265,7 +254,7 @@ private fun PackageSelectionItem(
                 .padding(horizontal = 16.dp, vertical = 0.dp)
                 .fillMaxWidth(),
     ) {
-        SuperCheckbox(
+        CheckboxPreference(
             startActions = {
                 AsyncAppIcon(
                     application = item.applicationInfo,

@@ -5,15 +5,16 @@ plugins {
 android {
     namespace = "io.github.lyricon.localcentralapp"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
+        version = release(rootProject.extra.get("compileSdkVersion") as Int) {
+           // minorApiLevel = 1
         }
     }
+
 
     defaultConfig {
         applicationId = "io.github.lyricon.localcentralapp"
         minSdk = 28
-        targetSdk = 36
+        targetSdk = rootProject.extra["targetSdkVersion"] as Int
         versionCode = 1
         versionName = "1.0"
 

@@ -36,6 +36,9 @@ object LyricDataHub : ActivePlayerListener {
     /** 当前执行中的流水线任务 */
     private var activePipelineJob: Job? = null
 
+    /** 当前活动的提供者信息 */
+    private var providerInfo: ProviderInfo? = null
+
     fun addListener(listener: ActivePlayerListener) {
         listeners.add(listener)
     }
@@ -117,6 +120,7 @@ object LyricDataHub : ActivePlayerListener {
     }
 
     override fun onActiveProviderChanged(providerInfo: ProviderInfo?) {
+        this.providerInfo = providerInfo
         listeners.forEach { it.onActiveProviderChanged(providerInfo) }
     }
 }

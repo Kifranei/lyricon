@@ -17,7 +17,7 @@ import android.media.session.PlaybackState
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import io.github.proify.lyricon.xposed.systemui.util.SystemUIMediaHooker.updateCallbackRegistrations
+import io.github.proify.lyricon.xposed.systemui.util.SystemUIMediaUtils.updateCallbackRegistrations
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
 
@@ -29,7 +29,7 @@ import java.util.concurrent.CopyOnWriteArraySet
  * @author Tomakino
  * @since 2026-04-13
  */
-object SystemUIMediaHooker {
+object SystemUIMediaUtils {
 
     /** 日志标识 */
     private const val TAG: String = "SystemUIMediaHooker"

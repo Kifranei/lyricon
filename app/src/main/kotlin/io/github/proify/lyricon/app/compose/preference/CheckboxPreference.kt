@@ -42,17 +42,12 @@ fun CheckboxPreference(
     enabled: Boolean = true,
 ) {
     val checked = rememberBooleanPreference(sharedPreferences, key, defaultValue)
-
     val hapticFeedback = LocalHapticFeedback.current
-
     SuperCheckbox(
         title = title,
         checked = checked.value,
         onCheckedChange = {
-            hapticFeedback.performHapticFeedback(
-                if (it) HapticFeedbackType.ToggleOn
-                else HapticFeedbackType.ToggleOff
-            )
+            hapticFeedback.performHapticFeedback(if (it) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff)
             checked.value = it
             onCheckedChange?.invoke(it)
         },

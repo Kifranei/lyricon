@@ -24,12 +24,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import io.github.proify.lyricon.app.LyriconApp.Companion.systemUIChannel
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
+import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
@@ -43,6 +44,7 @@ import io.github.proify.lyricon.app.compose.preference.TextColorPreference
 import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.app.util.editCommit
+import io.github.proify.lyricon.common.PackageNames
 import io.github.proify.lyricon.lyric.style.TextStyle
 import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_API_KEY
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -539,11 +541,12 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
 
 @Composable
 private fun ClearTranslationDB() {
+    val context = LocalContext.current
     val showDialog = remember { mutableStateOf(false) }
     SuperDialog(
         title = stringResource(R.string.alert_dialog_title_translation_clear),
         summary = stringResource(R.string.alert_dialog_message_translation_clear),
-        show = showDialog,
+        show = showDialog.value,
         onDismissRequest = { showDialog.value = false }
     ) {
         Row(
@@ -561,7 +564,11 @@ private fun ClearTranslationDB() {
                 text = stringResource(id = R.string.yes),
                 onClick = {
                     showDialog.value = false
-                    systemUIChannel.put(AppBridgeConstants.REQUEST_CLEAR_TRANSLATION_DB)
+                    LyriconBridge
+                        .with(context)
+                        .to(PackageNames.SYSTEM_UI)
+                        .key(AppBridgeConstants.REQUEST_CLEAR_TRANSLATION_DB)
+                        .send()
                 },
                 modifier = Modifier.weight(1f),
             )

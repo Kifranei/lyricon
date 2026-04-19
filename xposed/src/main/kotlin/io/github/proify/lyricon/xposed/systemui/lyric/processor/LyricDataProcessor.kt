@@ -6,11 +6,11 @@
 
 package io.github.proify.lyricon.xposed.systemui.lyric.processor
 
-import com.highcapable.yukihookapi.hook.log.YLog
 import io.github.proify.lyricon.lyric.model.LyricWord
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
+import io.github.proify.lyricon.xposed.logger.YLog
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
 import io.github.proify.lyricon.xposed.systemui.util.ChineseConverter.toSimplified
 import io.github.proify.lyricon.xposed.systemui.util.ChineseConverter.toTraditional

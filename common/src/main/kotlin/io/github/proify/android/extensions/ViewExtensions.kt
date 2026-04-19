@@ -17,6 +17,5 @@ var View.visibilityIfChanged: Int
         if (visibility != value) visibility = value
     }
 
-
 fun ViewGroup.getChildAtOrNull(index: Int): View? =
     if (childCount > index) getChildAt(index) else null

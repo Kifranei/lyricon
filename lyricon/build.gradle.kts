@@ -9,7 +9,9 @@ configure<ApplicationExtension> {
     namespace = rootProject.extra["appPackageName"] as String
 
     compileSdk {
-        version = release(rootProject.extra.get("compileSdkVersion") as Int)
+        version = release(rootProject.extra.get("compileSdkVersion") as Int) {
+           /// minorApiLevel = 1
+        }
     }
 
     defaultConfig {
@@ -55,9 +57,9 @@ configure<ApplicationExtension> {
 
     splits {
         abi {
-            isEnable = false
+            isEnable = true
             reset()
-            include("armeabi-v7a", "arm64-v8a")
+            include("arm64-v8a")
         }
     }
     defaultConfig {
@@ -71,6 +73,14 @@ configure<ApplicationExtension> {
             )
         }
     }
+
+    packaging {
+        dex {
+            //强制压缩Dex
+            useLegacyPackaging = true
+        }
+    }
+
 }
 
 dependencies {

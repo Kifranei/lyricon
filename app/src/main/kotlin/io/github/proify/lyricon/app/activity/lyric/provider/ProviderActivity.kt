@@ -6,13 +6,12 @@
 
 package io.github.proify.lyricon.app.activity.lyric.provider
 
-import android.icu.text.Collator
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +21,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -63,6 +61,7 @@ import io.github.proify.lyricon.app.util.LaunchBrowserCompose
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
@@ -72,14 +71,17 @@ import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.extra.SuperListPopup
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.More
+import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
-import java.util.Locale
 
+/**
+ * 歌词提供者管理界面
+ * 采用响应式扁平结构渲染，避免复杂的嵌套重排。
+ */
 class LyricProviderActivity : BaseActivity() {
 
     private val viewModel: LyricProviderViewModel by viewModels()
@@ -91,99 +93,116 @@ class LyricProviderActivity : BaseActivity() {
 
     @Composable
     private fun LyricProviderContent() {
-        val uiState by viewModel.uiState.collectAsState()
+        val groupedModules by viewModel.groupedModules.collectAsState()
         val otherLabel = stringResource(R.string.other)
 
-        val groupedModules by remember(uiState.modules, otherLabel) {
-            derivedStateOf {
-                val collator = Collator.getInstance(Locale.getDefault())
-                val rawCategories = ModuleHelper.categorizeModules(uiState.modules, otherLabel)
-
-                rawCategories.map { category ->
-                    category.copy(items = category.items.sortedBy { it.label })
-                }.sortedWith { c1, c2 ->
-                    when {
-                        c1.name == c2.name -> 0
-                        c1.name == otherLabel -> 1
-                        c2.name == otherLabel -> -1
-                        else -> collator.compare(c1.name, c2.name)
-                    }
-                }
-            }
-        }
-
-        var isListVisible by remember { mutableStateOf(false) }
-        LaunchedEffect(uiState.modules) {
-            if (uiState.modules.isNotEmpty()) isListVisible = true
-        }
-
-        val showEmpty by remember {
-            derivedStateOf { uiState.modules.isEmpty() && !uiState.isLoading }
+        // 生命周期挂载时请求数据，确保只请求一次
+        LaunchedEffect(Unit) {
+            viewModel.loadProviders(otherLabel)
         }
 
         AppToolBarListContainer(
             title = getString(R.string.activity_lyric_provider),
             canBack = true,
-            showEmpty = showEmpty,
-            empty = {
-                EmptyStateView(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .overScrollVertical(),
-                    noQueryPermission = viewModel.noQueryPermission
-                )
-            },
+            // 关闭外层容器的空视图管理，由 LazyColumn 内部根据状态精细控制
+            showEmpty = false,
             actions = { DisplayOptionsAction() }
         ) {
-            if (uiState.isLoading && uiState.modules.isEmpty()) return@AppToolBarListContainer
+            // 状态 1: 加载中 (受延迟策略保护，不会瞬间闪现)
+            if (viewModel.showLoading && groupedModules.isEmpty()) {
+                item(key = "state_loading") {
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        LoadingStateView()
+                    }
+                }
+                return@AppToolBarListContainer
+            }
 
-            groupedModules.forEach { category ->
-                // 渲染分类标题
+            // 状态 2: 空视图 (加载完成且无数据)
+            if (!viewModel.showLoading && groupedModules.isEmpty()) {
+                item(key = "state_empty") {
+                    Box(
+                        modifier = Modifier.fillParentMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        EmptyStateView(
+                            modifier = Modifier,
+                            noQueryPermission = viewModel.noQueryPermission
+                        )
+                    }
+                }
+                return@AppToolBarListContainer
+            }
+
+            // 状态 3: 正常数据渲染
+            groupedModules.forEachIndexed { index, category ->
                 if (category.name.isNotBlank()) {
                     item(key = "header_${category.name}") {
-                        AnimatedVisibility(
-                            visible = isListVisible,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            Column {
-                                SmallTitle(
-                                    text = category.name,
-                                    insideMargin = PaddingValues(start = 28.dp, end = 28.dp)
-                                )
-                                Spacer(modifier = Modifier.height(10.dp))
-                            }
-                        }
+                        SmallTitle(
+                            text = category.name,
+                            modifier = Modifier.animateItem(),
+                            insideMargin = PaddingValues(
+                                start = 28.dp,
+                                end = 28.dp,
+                                top = if (index > 0) 16.dp else 8.dp,
+                                bottom = 8.dp
+                            )
+                        )
                     }
                 }
 
-                // 渲染分类下的应用卡片
                 itemsIndexed(
                     items = category.items,
-                    key = { _, item -> item.packageInfo.packageName }
-                ) { _, item ->
-                    AnimatedVisibility(
-                        visible = isListVisible,
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        Column {
-                            ModuleCard(
-                                module = item,
-                                showTags = viewModel.listStyle == ViewMode.FULL
+                    key = { _, it -> it.packageInfo.packageName }
+                ) { index, module ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = if (index > 0) 16.dp else 0.dp)
+                            .animateItem(
+                                placementSpec = spring(stiffness = Spring.StiffnessLow)
                             )
-                            Spacer(modifier = Modifier.height(16.dp))
-                        }
+                    ) {
+                        ModuleCard(
+                            module = module,
+                            showTags = viewModel.listStyle == ViewMode.FULL
+                        )
                     }
                 }
             }
 
-            item(key = "bottom_spacer") {
-                Spacer(modifier = Modifier.height(4.dp))
-            }
+            item(key = "footer_spacer") { Spacer(modifier = Modifier.height(16.dp)) }
         }
     }
 
+    /**
+     * 专属加载动画视图组件
+     */
+    @Composable
+    private fun LoadingStateView(modifier: Modifier = Modifier) {
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(80.dp),
+            )
+//            Spacer(modifier = Modifier.height(16.dp))
+//            Text(
+//                text = stringResource(R.string.loading),
+//                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+//                fontSize = 14.sp
+//            )
+        }
+    }
+
+    /**
+     * 列表为空时的视图展示
+     */
     @Composable
     private fun EmptyStateView(modifier: Modifier, noQueryPermission: Boolean = false) {
         Column(
@@ -200,10 +219,19 @@ class LyricProviderActivity : BaseActivity() {
                 iterations = LottieConstants.IterateForever
             )
             Spacer(modifier = Modifier.height(24.dp))
-            Text(stringResource(if (noQueryPermission) R.string.no_query_app_permission else R.string.no_provider_available))
+            Text(
+                text = stringResource(
+                    if (noQueryPermission) R.string.no_query_app_permission
+                    else R.string.no_provider_available
+                ),
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+            )
         }
     }
 
+    /**
+     * 顶部工具栏行为与配置项
+     */
     @Composable
     private fun DisplayOptionsAction() {
         val context = LocalContext.current
@@ -255,7 +283,7 @@ class LyricProviderActivity : BaseActivity() {
                     )
                 }
 
-                SuperListPopup(
+                OverlayListPopup(
                     show = showPopup.value,
                     popupModifier = Modifier,
                     popupPositionProvider = ListPopupDefaults.DropdownPositionProvider,
@@ -281,11 +309,15 @@ class LyricProviderActivity : BaseActivity() {
                                 )
                             }
                         }
-                    })
+                    }
+                )
             }
         }
     }
 
+    /**
+     * 单个提供者卡片渲染
+     */
     @Composable
     private fun ModuleCard(module: LyricModule, showTags: Boolean) {
         val titleColor = BasicComponentDefaults.titleColor()
@@ -351,17 +383,21 @@ class LyricProviderActivity : BaseActivity() {
                         modifier = Modifier.padding(top = 10.dp),
                         text = module.description,
                         fontSize = MiuixTheme.textStyles.body2.fontSize,
-                        color = summaryColor.color(true)
+                        color = summaryColor.color(true),
                     )
                 }
 
-                if (module.tags.isNotEmpty() && showTags) {
+                // 配合 AnimatedVisibility，使状态切换时高度平滑过渡而非瞬间拉伸
+                AnimatedVisibility(visible = module.tags.isNotEmpty() && showTags) {
                     ModuleTagsFlow(module.tags)
                 }
             }
         }
     }
 
+    /**
+     * 流式布局渲染模块标签
+     */
     @OptIn(ExperimentalLayoutApi::class)
     @Composable
     private fun ModuleTagsFlow(tags: List<ModuleTag>) {

@@ -38,13 +38,11 @@ fun SwitchPreference(
     enabled: Boolean = true,
 ) {
     val checked = rememberBooleanPreference(preferences, key, defaultValue)
-    //val hapticFeedback = LocalHapticFeedback.current
-
     SuperSwitch(
         checked = checked.value,
         onCheckedChange = {
             checked.value = it
-            onCheckedChange.invoke(it)
+            onCheckedChange(it)
         },
         title = title,
         titleColor = titleColor,
@@ -57,6 +55,6 @@ fun SwitchPreference(
         modifier = modifier,
         insideMargin = insideMargin,
         holdDownState = holdDownState,
-        enabled = enabled
+        enabled = enabled,
     )
 }

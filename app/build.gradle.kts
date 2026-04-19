@@ -102,25 +102,15 @@ val originRepo = Regex("[:/]([^/:]+/[^/]+?)(?:\\.git)?$")
     .orEmpty()
 val originOwner = originRepo.substringBefore('/', missingDelimiterValue = "").ifBlank { "unknown" }
 
-val buildRepo = resolveBuildMeta("lyriconBuildRepo", "LYRICON_BUILD_REPO") { originRepo }
-val buildBranch = resolveBuildMeta("lyriconBuildBranch", "LYRICON_BUILD_BRANCH") {
-    readHeadBranch(gitDir)
-}
-val buildCommit = resolveBuildMeta("lyriconBuildCommit", "LYRICON_BUILD_COMMIT") {
-    readHeadCommit(gitDir)
-}
-val buildAuthor = resolveBuildMeta("lyriconBuildAuthor", "LYRICON_BUILD_AUTHOR") {
-    originOwner
-}
 
 configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.app"
-
     compileSdk {
         version = release(rootProject.extra.get("compileSdkVersion") as Int) {
-            minorApiLevel = 1
+           // minorApiLevel = 1
         }
     }
+
     defaultConfig {
         minSdk = rootProject.extra.get("minSdkVersion") as Int
 
@@ -128,12 +118,8 @@ configure<LibraryExtension> {
         consumerProguardFiles("consumer-rules.pro")
 
         buildConfigField("int", "VERSION_CODE", versionCode.toString())
-        buildConfigField("String", "VERSION_NAME", "\"" + versionName + "\"")
-        buildConfigField("long", "BUILD_TIME", System.currentTimeMillis().toString())
-        buildConfigField("String", "BUILD_REPO", "\"$buildRepo\"")
-        buildConfigField("String", "BUILD_BRANCH", "\"$buildBranch\"")
-        buildConfigField("String", "BUILD_COMMIT", "\"$buildCommit\"")
-        buildConfigField("String", "BUILD_AUTHOR", "\"$buildAuthor\"")
+        buildConfigField("String", "VERSION_NAME", "\"$versionName\"")
+        buildConfigField("long", "BUILD_TIME", "${buildTime}L")
     }
 
     buildTypes {
@@ -150,61 +136,61 @@ configure<LibraryExtension> {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
     buildFeatures {
         buildConfig = true
     }
 }
 
 dependencies {
+    // --- 模块依赖 ---
     implementation(project(":bridge"))
     implementation(project(":common"))
     implementation(project(":lyric:style"))
     implementation(project(":lyric:view"))
-    implementation(libs.aboutlibraries.core)
 
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.androidx.core.ktx)
-
+    // --- 第三方 UI 库 ---
     implementation(libs.miuix.android)
     implementation(libs.miuix.icons)
+    implementation(libs.miuix.preference)
+    implementation(libs.miuix.blur)
 
+    implementation(libs.aboutlibraries.core)
     implementation(libs.accompanist.drawablepainter)
-    implementation(libs.androidx.browser)
     implementation(libs.chrisbanes.haze)
     implementation(libs.bonsai.core)
-    //implementation(libs.androidx.compose.material.icons.core)
-
     implementation(libs.capsule.android)
     implementation(libs.lottie.compose) {
         exclude(group = "androidx.appcompat", module = "appcompat")
     }
 
-    // Xposed
-    implementation(libs.yukihookapi.api)
-    implementation(libs.kavaref.core)
-    implementation(libs.kavaref.extension)
-
-   // implementation(libs.androidx.navigation.compose)
-
+    // --- 核心逻辑与 AndroidX ---
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.browser)
+    implementation(libs.androidx.appcompat.resources)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+
+    // --- Jetpack Compose (通过 BOM 管理) ---
+    implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.foundation)
-    implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.compose.foundation) // 包含了 foundation-layout
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.remote.creation.core)
-    implementation(libs.androidx.appcompat.resources)
 
+    // 仅在必要时保留此 alpha/特定组件
+    implementation(libs.androidx.compose.remote.creation.core)
+
+    // --- 单元测试 ---
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 
+    // --- 调试工具 ---
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

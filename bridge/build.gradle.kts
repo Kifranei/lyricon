@@ -24,9 +24,10 @@ configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.app.bridge"
     compileSdk {
         version = release(rootProject.extra.get("compileSdkVersion") as Int) {
-            minorApiLevel = 1
+           // minorApiLevel = 1
         }
     }
+
 
     defaultConfig {
         minSdk = rootProject.extra.get("minSdkVersion") as Int
@@ -48,12 +49,16 @@ configure<LibraryExtension> {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    buildFeatures {
+        buildConfig = true
+        aidl = true
+    }
 }
 
 dependencies {
     implementation(project(":common"))
     implementation(libs.androidx.core.ktx)
-    implementation(libs.yukihookapi.api)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

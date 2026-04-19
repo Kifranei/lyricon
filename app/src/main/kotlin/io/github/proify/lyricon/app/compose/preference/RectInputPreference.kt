@@ -16,11 +16,11 @@ import io.github.proify.android.extensions.formatToString
 import io.github.proify.android.extensions.fromJsonOrNull
 import io.github.proify.android.extensions.toJson
 import io.github.proify.lyricon.app.compose.RectFInputDialog
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.RectF
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
+import top.yukonga.miuix.kmp.preference.ArrowPreference
 
 @Composable
 fun RectInputPreference(
@@ -63,7 +63,7 @@ fun RectInputPreference(
         )
     }
 
-    SuperArrow(
+    ArrowPreference(
         title = title,
         titleColor = titleColor,
         summary = currentSummary,

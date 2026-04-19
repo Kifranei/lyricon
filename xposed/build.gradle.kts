@@ -1,8 +1,8 @@
+
 import com.android.build.api.dsl.LibraryExtension
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.ksp)
     kotlin("plugin.serialization") version "2.1.21"
 }
 
@@ -10,7 +10,7 @@ configure<LibraryExtension> {
     namespace = "io.github.proify.lyricon.xposed"
     compileSdk {
         version = release(rootProject.extra.get("compileSdkVersion") as Int) {
-            minorApiLevel = 1
+         //   minorApiLevel = 1
         }
     }
 
@@ -47,33 +47,20 @@ configure<LibraryExtension> {
 }
 
 dependencies {
-    //implementation(libs.opencc4j)
-
-    implementation(libs.kotlinx.serialization.json)
-    implementation(libs.androidx.core.ktx)
-
-    implementation(libs.yukihookapi.api)
-    implementation(libs.kavaref.core)
-    implementation(libs.kavaref.extension)
-    compileOnly(libs.xposed.api)
-    ksp(libs.yukihookapi.ksp.xposed)
-
     implementation(project(":bridge"))
     implementation(project(":common"))
-
     implementation(project(":lyric:view"))
     implementation(project(":lyric:model"))
     implementation(project(":lyric:style"))
     implementation(project(":lyric:statusbarlyric"))
-
     implementation(project(":lyric:bridge:central"))
     implementation(project(":lyric:bridge:provider"))
     implementation(project(":lyric:bridge:subscriber"))
 
-    //implementation(libs.openai.client)
-
-    //implementation(libs.ktor.client.okhttp)
-    //testImplementation(libs.ktor.client.okhttp)
+    //implementation(libs.opencc4j)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.core.ktx)
+    compileOnly(libs.xposed.api)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -6,18 +6,15 @@
 package io.github.proify.lyricon.app
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageInfo
 import androidx.core.content.pm.PackageInfoCompat
-import com.highcapable.yukihookapi.hook.factory.dataChannel
-import com.highcapable.yukihookapi.hook.xposed.application.ModuleApplication
-import com.highcapable.yukihookapi.hook.xposed.channel.YukiHookDataChannel
 import io.github.proify.lyricon.app.util.AppLangUtils
-import io.github.proify.lyricon.common.PackageNames
 import io.github.proify.lyricon.common.util.safe
 
-class LyriconApp : ModuleApplication() {
+class LyriconApp : Application() {
 
     init {
         instance = this
@@ -46,10 +43,6 @@ class LyriconApp : ModuleApplication() {
             )
         }
         val versionCode: Long by lazy { PackageInfoCompat.getLongVersionCode(packageInfo) }
-
-        val systemUIChannel: YukiHookDataChannel.NameSpace by lazy {
-            instance.dataChannel(packageName = PackageNames.SYSTEM_UI)
-        }
 
         private var _safeMode: Boolean = false
 

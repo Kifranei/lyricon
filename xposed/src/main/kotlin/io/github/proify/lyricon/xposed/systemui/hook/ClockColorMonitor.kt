@@ -4,7 +4,7 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  */
 
-package io.github.proify.lyricon.xposed.systemui.util
+package io.github.proify.lyricon.xposed.systemui.hook
 
 import android.annotation.SuppressLint
 import android.content.res.ColorStateList
@@ -13,6 +13,7 @@ import android.widget.TextView
 import androidx.core.graphics.ColorUtils
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
+import io.github.proify.lyricon.xposed.systemui.util.OnColorChangeListener
 import java.lang.reflect.Member
 import java.util.WeakHashMap
 
