@@ -89,19 +89,19 @@ class Syllable(private val view: LyricLineView) {
             renderDelegate.invalidate()
         }
 
-    var isSustainLiftEnabled: Boolean = true
+    var isSustainLiftEnabled: Boolean = false
         set(value) {
             field = value
             renderDelegate.invalidate()
         }
 
-    var isSustainGlowEnabled: Boolean = true
+    var isSustainGlowEnabled: Boolean = false
         set(value) {
             field = value
             renderDelegate.invalidate()
         }
 
-    var isCharFloatAnimationEnabled: Boolean = true
+    var isCharFloatAnimationEnabled: Boolean = false
         set(value) {
             field = value
             if (!value) {
