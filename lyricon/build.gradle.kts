@@ -32,9 +32,7 @@ configure<ApplicationExtension> {
     }
 
     buildTypes {
-        getByName("debug") {
-            signingConfig = signingConfigs.getByName("release")
-        }
+        getByName("debug")
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true

@@ -102,8 +102,8 @@ data class MainTextConfig(
 data class DefaultSyllableConfig(
     override var highlightColor: IntArray = intArrayOf(Color.WHITE),
     override var backgroundColor: IntArray = intArrayOf(Color.GRAY),
-    override var enableSustainLift: Boolean = true,
-    override var enableSustainGlow: Boolean = true,
+    override var enableSustainLift: Boolean = false,
+    override var enableSustainGlow: Boolean = false,
 ) : SyllableConfig {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

@@ -114,7 +114,7 @@ data class TextStyle(
         const val RELATIVE_PROGRESS: Boolean = true
         const val RELATIVE_PROGRESS_HIGHLIGHT: Boolean = false
         const val INTERLUDE_INDICATOR_STYLE: String = InterludeIndicatorStyle.NONE
-        const val SUSTAIN_LIFT_ENABLED: Boolean = true
+        const val SUSTAIN_LIFT_ENABLED: Boolean = false
         const val SUSTAIN_GLOW_ENABLED: Boolean = false
 
         const val TEXT_SIZE: Float = 0f
@@ -148,8 +148,16 @@ data class TextStyle(
         const val ENABLE_GRADIENT_PROGRESS_STYLE: Boolean = true
     }
 
-    fun color(lightMode: Boolean): RainbowTextColor? =
-        if (lightMode) lightModeRainbowColor else darkModeRainbowColor
+    fun color(lightMode: Boolean): RainbowTextColor? {
+        val preferred = if (lightMode) lightModeRainbowColor else darkModeRainbowColor
+        if (preferred?.hasColors() == true) return preferred
+
+        val fallback = if (lightMode) darkModeRainbowColor else lightModeRainbowColor
+        return fallback?.takeIf { it.hasColors() }
+    }
+
+    private fun RainbowTextColor.hasColors(): Boolean =
+        normal.isNotEmpty() || background.isNotEmpty() || highlight.isNotEmpty()
 
     override fun onLoad(preferences: SharedPreferences) {
         textSize = preferences.getFloat("lyric_style_text_size", Defaults.TEXT_SIZE)
