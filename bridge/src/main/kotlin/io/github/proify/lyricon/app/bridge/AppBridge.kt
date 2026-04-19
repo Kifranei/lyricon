@@ -10,7 +10,6 @@ package io.github.proify.lyricon.app.bridge
 
 import android.content.Context
 import androidx.annotation.Keep
-import com.highcapable.yukihookapi.YukiHookAPI
 import io.github.proify.lyricon.common.Constants
 import java.io.File
 
@@ -21,18 +20,10 @@ import java.io.File
 object AppBridge {
 
     @Keep
-    fun isModuleActive(): Boolean =
-        runCatching {
-            YukiHookAPI.Status.isXposedModuleActive
-        }.getOrDefault(false)
+    fun isModuleActive(): Boolean = false
 
     @Keep
-    fun getFrameworkInfo(): FrameworkInfo? = null
-
-    @Keep
-    fun getPreferenceDirectory(context: Context): File {
-        return context.dataDir.resolve("shared_prefs")
-    }
+    fun getPreferenceDirectory(context: Context): File = context.dataDir.resolve("shared_prefs")
 
     object LyricStylePrefs {
         const val DEFAULT_PACKAGE_NAME: String = Constants.APP_PACKAGE_NAME

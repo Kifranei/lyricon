@@ -10,6 +10,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.os.Build
+import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Spacer
@@ -30,21 +31,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
-import io.github.proify.lyricon.app.LyriconApp.Companion.systemUIChannel
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
+import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.compose.MaterialPalette
 import io.github.proify.lyricon.app.compose.custom.bonsai.core.node.Node
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.app.util.updateRemoteLyricStyle
+import io.github.proify.lyricon.common.PackageNames
 import io.github.proify.lyricon.common.util.ViewTreeNode
 import io.github.proify.lyricon.lyric.style.VisibilityRule
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.extra.BottomSheetDefaults
-import top.yukonga.miuix.kmp.extra.SuperBottomSheet
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class ViewRulesTreeActivity : ViewTreeActivity() {
@@ -85,7 +86,13 @@ class ViewRulesTreeActivity : ViewTreeActivity() {
     }
 
     private fun highlightView(id: String) {
-        systemUIChannel.put(AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW, id)
+        LyriconBridge.with(this)
+            .to(PackageNames.SYSTEM_UI)
+            .key(AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW)
+            .payload(Bundle().apply {
+                putString("id", id)
+            })
+            .send()
     }
 
     @Composable
@@ -157,25 +164,13 @@ class ViewRulesTreeActivity : ViewTreeActivity() {
 
         val context = LocalContext.current
 
-        SuperBottomSheet(
+        OverlayBottomSheet(
             show = show.value,
             modifier = Modifier,
             title = nodeId,
-            startAction = null,
-            endAction = null,
             backgroundColor = MiuixTheme.colorScheme.surface,
-            enableWindowDim = true,
-            cornerRadius = BottomSheetDefaults.cornerRadius,
-            sheetMaxWidth = BottomSheetDefaults.maxWidth,
             onDismissRequest = { show.value = false },
-            onDismissFinished = null,
-            outsideMargin = BottomSheetDefaults.outsideMargin,
             insideMargin = DpSize(16.dp, 0.dp),
-            defaultWindowInsetsPadding = true,
-            dragHandleColor = BottomSheetDefaults.dragHandleColor(),
-            allowDismiss = true,
-            enableNestedScroll = true,
-            renderInRootScaffold = true,
             content = {
                 Card(modifier = Modifier.fillMaxWidth()) {
                     options.forEach { option ->
@@ -193,7 +188,7 @@ class ViewRulesTreeActivity : ViewTreeActivity() {
         onModeSelected: (Int) -> Unit,
         context: Context
     ) {
-        SuperCheckbox(
+        CheckboxPreference(
             title = stringResource(option.titleRes),
             checked = selectedMode == option.mode,
             onCheckedChange = { isChecked ->

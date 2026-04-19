@@ -30,10 +30,10 @@ import io.github.proify.android.extensions.toJson
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.color.ColorBox
 import io.github.proify.lyricon.app.compose.color.ColorPaletteDialog
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperCheckbox
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.LogoColor
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
 
 @Composable
 fun LogoColorPreference(
@@ -70,7 +70,7 @@ fun LogoColorPreference(
                 modifier = Modifier.clip(shape),
             ) {
                 var isChecked by remember(logoColor) { mutableStateOf(logoColor.followTextColor) }
-                SuperCheckbox(
+                CheckboxPreference(
                     insideMargin = PaddingValues(horizontal = 16.dp),
                     title = stringResource(R.string.option_logo_color_follow_text),
                     checked = isChecked,
@@ -84,7 +84,7 @@ fun LogoColorPreference(
         }
     )
 
-    SuperArrow(
+    ArrowPreference(
         title = title,
         summary = if (logoColor.followTextColor) stringResource(R.string.option_logo_color_follow_text) else null,
         startAction = leftAction,

@@ -45,9 +45,9 @@ import dev.chrisbanes.haze.rememberHazeState
 import io.github.proify.android.extensions.inflate
 import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.LyriconApp
-import io.github.proify.lyricon.app.LyriconApp.Companion.systemUIChannel
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
+import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.compose.BlurTopAppBar
 import io.github.proify.lyricon.app.compose.LuckLoadingIndicator
 import io.github.proify.lyricon.app.compose.NavigationBackIcon
@@ -61,13 +61,13 @@ import io.github.proify.lyricon.app.compose.custom.bonsai.core.tree.TreeScope
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.MiuixScrollBehavior
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
 import io.github.proify.lyricon.app.compose.theme.AppTheme
+import io.github.proify.lyricon.common.PackageNames
 import io.github.proify.lyricon.common.util.ViewTreeNode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromStream
@@ -77,8 +77,6 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
-import kotlin.coroutines.resume
-import kotlin.coroutines.resumeWithException
 
 abstract class ViewTreeActivity : AbstractLyricActivity() {
 
@@ -103,43 +101,28 @@ abstract class ViewTreeActivity : AbstractLyricActivity() {
     abstract fun resetSettings()
 
     class ViewTreeRepository {
-        private var cachedTree: ViewTreeNode? = null
-
-        suspend fun getViewTree(): Result<ViewTreeNode> {
-            return try {
-                val tree = fetchViewTreeFromChannel()
-                cachedTree = tree
-                Result.success(tree)
-            } catch (e: Exception) {
-                Result.failure(e)
-            }
-        }
 
         @OptIn(ExperimentalSerializationApi::class)
-        private suspend fun fetchViewTreeFromChannel(): ViewTreeNode =
-            suspendCancellableCoroutine { continuation ->
-                systemUIChannel.wait<ByteArray>(
-                    key = AppBridgeConstants.REQUEST_VIEW_TREE_CALLBACK
-                ) { compressedData ->
-                    try {
-                        val jsonData = compressedData
-                            .inflate()
-                        if (BuildConfig.DEBUG) Log.d(
-                            "ViewTreeActivity",
-                            "jsonData: ${jsonData.toString(Charsets.UTF_8)}"
-                        )
-                        val viewTreeNode = Json.decodeFromStream(
-                            ViewTreeNode.serializer(),
-                            jsonData.inputStream()
-                        )
-                        continuation.resume(viewTreeNode)
-                    } catch (e: Exception) {
-                        continuation.resumeWithException(e)
-                    }
-                }
+        suspend fun getViewTree(): Result<ViewTreeNode> = runCatching {
+            val response = LyriconBridge.with(LyriconApp.get())
+                .to(PackageNames.SYSTEM_UI)
+                .key(AppBridgeConstants.REQUEST_VIEW_TREE)
+                .await()
 
-                systemUIChannel.put(AppBridgeConstants.REQUEST_VIEW_TREE)
+            val compressedData = response.getByteArray("result")
+                ?: throw IllegalStateException("Received empty data from Bridge")
+
+            val jsonData = compressedData.inflate()
+
+            if (BuildConfig.DEBUG) {
+                Log.d("ViewTreeActivity", "Decoded JSON: ${jsonData.toString(Charsets.UTF_8)}")
             }
+
+            Json.decodeFromStream(
+                ViewTreeNode.serializer(),
+                jsonData.inputStream()
+            )
+        }
     }
 
     abstract class ViewTreeViewModel : ViewModel() {
@@ -175,10 +158,11 @@ abstract class ViewTreeActivity : AbstractLyricActivity() {
                         }
                     }
                     .onFailure { error ->
+                        Log.e("ViewTreeActivity", "Failed to load view tree", error)
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                error = error.message
+                                error = error.localizedMessage
                             )
                         }
                     }

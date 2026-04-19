@@ -11,10 +11,10 @@ package io.github.proify.lyricon.xposed.systemui.util
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
-import com.highcapable.yukihookapi.hook.log.YLog
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
+import io.github.proify.lyricon.xposed.logger.YLog
 import java.lang.ref.WeakReference
 import java.util.Collections
 import java.util.WeakHashMap

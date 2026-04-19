@@ -43,7 +43,6 @@ import io.github.proify.android.extensions.formatToString
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.NumberTextField
 import io.github.proify.lyricon.app.compose.color
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.TimeFormatter
@@ -55,6 +54,7 @@ import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 enum class InputType {
@@ -115,7 +115,7 @@ fun InputPreference(
         finalSummary.lines().take(4).joinToString("\n") + "..."
     } else finalSummary
 
-    SuperArrow(
+    ArrowPreference(
         title = title,
         titleColor = titleColor,
         summary = truncatedSummary,
@@ -223,9 +223,10 @@ private fun InputPreferenceDialog(
         }
     }
 
+    var show by remember { mutableStateOf(true) }
     SuperDialog(
         title = title,
-        show = remember { mutableStateOf(true) },
+        show = show,
         onDismissRequest = { dismiss() }
     ) {
         Column(

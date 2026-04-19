@@ -32,7 +32,6 @@ data class ProviderInfo(
         return providerPackageName == other.providerPackageName
                 && playerPackageName == other.playerPackageName
                 && processName == other.processName
-
     }
 
     override fun hashCode(): Int {

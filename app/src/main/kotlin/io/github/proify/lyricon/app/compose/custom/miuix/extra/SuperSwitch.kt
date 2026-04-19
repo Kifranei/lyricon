@@ -23,24 +23,6 @@ import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.SwitchColors
 import top.yukonga.miuix.kmp.basic.SwitchDefaults
 
-/**
- * A switch with a title and a summary.
- *
- * @param checked The checked state of the [SuperSwitch].
- * @param onCheckedChange The callback when the checked state of the [SuperSwitch] is changed.
- * @param title The title of the [SuperSwitch].
- * @param modifier The modifier to be applied to the [SuperSwitch].
- * @param titleColor The color of the title.
- * @param summary The summary of the [SuperSwitch].
- * @param summaryColor The color of the summary.
- * @param startAction The [Composable] content that on the start side of the [SuperSwitch].
- * @param endActions The [Composable] content on the end side of the [SuperSwitch].
- * @param bottomAction The [Composable] content at the bottom of the [SuperSwitch].
- * @param switchColors The [SwitchColors] of the [SuperSwitch].
- * @param insideMargin The margin inside the [SuperSwitch].
- * @param holdDownState Used to determine whether it is in the pressed state.
- * @param enabled Whether the [SuperSwitch] is clickable.
- */
 @Composable
 @NonRestartableComposable
 fun SuperSwitch(
@@ -79,37 +61,22 @@ fun SuperSwitch(
             ) {
                 endActions()
             }
-            SuperSwitchEndActions(
+            Switch(
                 checked = checked,
                 onCheckedChange = currentOnCheckedChange,
                 enabled = enabled,
-                switchColors = switchColors,
+                colors = switchColors,
             )
         },
         bottomAction = bottomAction,
         onClick = {
-            val checked = !checked
-            currentOnCheckedChange.takeIf { enabled }?.invoke(checked)
+            val next = !checked
+            currentOnCheckedChange.takeIf { enabled }?.invoke(next)
             hapticFeedback.performHapticFeedback(
-                if (enabled) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff
+                if (enabled) HapticFeedbackType.ToggleOn else HapticFeedbackType.ToggleOff,
             )
         },
         holdDownState = holdDownState,
         enabled = enabled,
-    )
-}
-
-@Composable
-private fun SuperSwitchEndActions(
-    checked: Boolean,
-    onCheckedChange: ((Boolean) -> Unit)?,
-    enabled: Boolean,
-    switchColors: SwitchColors,
-) {
-    Switch(
-        checked = checked,
-        onCheckedChange = onCheckedChange,
-        enabled = enabled,
-        colors = switchColors,
     )
 }

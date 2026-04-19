@@ -36,21 +36,6 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.basic.ArrowRight
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * A arrow with a title and a summary.
- *
- * @param title The title of the [SuperArrow].
- * @param titleColor The color of the title.
- * @param summary The summary of the [SuperArrow].
- * @param summaryColor The color of the summary.
- * @param startAction The [Composable] content that on the start side of the [SuperArrow].
- * @param endActions The [Composable] content on the end side of the [SuperArrow].
- * @param bottomAction The [Composable] content at the bottom of the [SuperArrow].
- * @param modifier The modifier to be applied to the [SuperArrow].
- * @param insideMargin The margin inside the [SuperArrow].
- * @param holdDownState Used to determine whether it is in the pressed state.
- * @param enabled Whether the [SuperArrow] is clickable.
- */
 @Composable
 @NonRestartableComposable
 fun SuperArrow(
@@ -84,9 +69,7 @@ fun SuperArrow(
             ) {
                 endActions()
             }
-            SuperArrowEndAction(
-                enabled = enabled,
-            )
+            SuperArrowEndAction(enabled = enabled)
         },
         bottomAction = bottomAction,
         onClick = onClick,
@@ -96,9 +79,7 @@ fun SuperArrow(
 }
 
 @Composable
-private fun RowScope.SuperArrowEndAction(
-    enabled: Boolean,
-) {
+private fun RowScope.SuperArrowEndAction(enabled: Boolean) {
     val actionColors = SuperArrowDefaults.endActionColors()
     val tintFilter by remember(enabled, actionColors) {
         derivedStateOf { ColorFilter.tint(actionColors.color(enabled = enabled)) }
@@ -118,9 +99,6 @@ private fun RowScope.SuperArrowEndAction(
 }
 
 object SuperArrowDefaults {
-    /**
-     * The default color of the arrow.
-     */
     @Composable
     fun endActionColors() = EndActionColors(
         color = MiuixTheme.colorScheme.onSurfaceVariantActions,

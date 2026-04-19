@@ -8,8 +8,9 @@ package io.github.proify.lyricon.app.util
 
 import android.util.Log
 import io.github.proify.lyricon.app.LyriconApp
-import io.github.proify.lyricon.app.LyriconApp.Companion.systemUIChannel
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
+import io.github.proify.lyricon.app.bridge.LyriconBridge
+import io.github.proify.lyricon.common.PackageNames
 
 fun updateRemoteLyricStyle() {
     fun getCallSourceMethod(): String {
@@ -17,5 +18,9 @@ fun updateRemoteLyricStyle() {
         return if (stackTrace.size > 3) "${stackTrace[3].className}.${stackTrace[3].methodName}" else "Unknown"
     }
     Log.d(LyriconApp.TAG, "updateRemoteLyricStyle called from ${getCallSourceMethod()}")
-    systemUIChannel.put(AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE)
+
+    LyriconBridge.with(LyriconApp.get())
+        .to(PackageNames.SYSTEM_UI)
+        .key(AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE)
+        .send()
 }

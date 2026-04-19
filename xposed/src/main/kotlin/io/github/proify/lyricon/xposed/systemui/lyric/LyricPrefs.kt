@@ -67,7 +67,6 @@ object LyricPrefs {
             return field
         }
 
-
     val activePackageStyle
         get() = run {
             val pkg = activePackageName

@@ -19,8 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -31,24 +29,6 @@ import top.yukonga.miuix.kmp.basic.CheckboxColors
 import top.yukonga.miuix.kmp.basic.CheckboxDefaults
 import top.yukonga.miuix.kmp.extra.CheckboxLocation
 
-/**
- * A checkbox with a title and a summary.
- *
- * @param title The title of the [SuperCheckbox].
- * @param checked The checked state of the [SuperCheckbox].
- * @param onCheckedChange The callback when the checked state of the [SuperCheckbox] is changed.
- * @param modifier The modifier to be applied to the [SuperCheckbox].
- * @param titleColor The color of the title.
- * @param summary The summary of the [SuperCheckbox].
- * @param summaryColor The color of the summary.
- * @param checkboxColors The [CheckboxColors] of the [SuperCheckbox].
- * @param endActions The [Composable] content that on the end side of the [SuperCheckbox].
- * @param checkboxLocation The location of checkbox, [CheckboxLocation.Start] or [CheckboxLocation.End].
- * @param bottomAction The [Composable] content at the bottom of the [SuperCheckbox].
- * @param insideMargin The margin inside the [SuperCheckbox].
- * @param holdDownState Used to determine whether it is in the pressed state.
- * @param enabled Whether the [SuperCheckbox] is clickable.
- */
 @Composable
 @NonRestartableComposable
 fun SuperCheckbox(
@@ -71,15 +51,13 @@ fun SuperCheckbox(
     val currentOnCheckedChange by rememberUpdatedState(onCheckedChange)
     val startAction = if (checkboxLocation == CheckboxLocation.Start) {
         @Composable {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                SuperCheckboxStartAction(
-                    checked = checked,
-                    onCheckedChange = currentOnCheckedChange,
+            Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(
+                    state = ToggleableState(checked),
+                    onClick = if (currentOnCheckedChange != null) ({ currentOnCheckedChange?.invoke(!checked) }) else null,
+                    modifier = Modifier.padding(end = 8.dp),
+                    colors = checkboxColors,
                     enabled = enabled,
-                    checkboxColors = checkboxColors,
                 )
                 if (startActions != null) {
                     Spacer(modifier = Modifier.width(5.dp))
@@ -88,13 +66,8 @@ fun SuperCheckbox(
             }
         }
     } else {
-        if (startActions != null) {
-            @Composable {
-                startActions()
-            }
-        } else null
+        if (startActions != null) ({ startActions() }) else null
     }
-    val hapticFeedback = LocalHapticFeedback.current
 
     BasicComponent(
         modifier = modifier,
@@ -114,50 +87,17 @@ fun SuperCheckbox(
                 endActions()
             }
             if (checkboxLocation == CheckboxLocation.End) {
-                SuperCheckboxEndAction(
-                    checked = checked,
-                    onCheckedChange = currentOnCheckedChange,
+                Checkbox(
+                    state = ToggleableState(checked),
+                    onClick = if (currentOnCheckedChange != null) ({ currentOnCheckedChange?.invoke(!checked) }) else null,
+                    colors = checkboxColors,
                     enabled = enabled,
-                    checkboxColors = checkboxColors,
                 )
             }
         },
         bottomAction = bottomAction,
-        onClick = {
-            val checked = !checked
-            currentOnCheckedChange.takeIf { enabled }?.invoke(checked)
-            hapticFeedback.performHapticFeedback(HapticFeedbackType.ContextClick)
-        },
+        onClick = { currentOnCheckedChange.takeIf { enabled }?.invoke(!checked) },
         holdDownState = holdDownState,
         enabled = enabled,
     )
-}
-
-@Composable
-private fun SuperCheckboxStartAction(
-    checked: Boolean,
-    onCheckedChange: ((Boolean) -> Unit)?,
-    enabled: Boolean,
-    checkboxColors: CheckboxColors,
-) {
-    Checkbox(
-        state = ToggleableState(value = checked), onClick = if (onCheckedChange != null) {
-            { onCheckedChange(!checked) }
-        } else null, modifier = Modifier
-            .padding(end = 8.dp),
-        colors = checkboxColors,
-        enabled = enabled)
-}
-
-@Composable
-private fun SuperCheckboxEndAction(
-    checked: Boolean,
-    onCheckedChange: ((Boolean) -> Unit)?,
-    enabled: Boolean,
-    checkboxColors: CheckboxColors,
-) {
-    Checkbox(
-        state = ToggleableState(value = checked), onClick = if (onCheckedChange != null) {
-            { onCheckedChange(!checked) }
-        } else null, modifier = Modifier, colors = checkboxColors, enabled = enabled)
 }

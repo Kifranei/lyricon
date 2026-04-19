@@ -50,11 +50,10 @@ import top.yukonga.miuix.kmp.basic.ColorPalette
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
-import top.yukonga.miuix.kmp.extra.BottomSheetDefaults
-import top.yukonga.miuix.kmp.extra.SuperBottomSheet
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.AddCircle
 import top.yukonga.miuix.kmp.icon.extended.Delete
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.theme.LocalContentColor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -113,11 +112,10 @@ fun MultiColorEditPaletteDialog(
         }
     }
 
-    SuperBottomSheet(
+    OverlayBottomSheet (
         show = show.value,
         modifier = Modifier,
         title = title,
-        startAction = null,
         endAction = {
             IconButton(onClick = {
                 onDelete()
@@ -130,19 +128,7 @@ fun MultiColorEditPaletteDialog(
                 )
             }
         },
-        backgroundColor = BottomSheetDefaults.backgroundColor(),
-        enableWindowDim = true,
-        cornerRadius = BottomSheetDefaults.cornerRadius,
-        sheetMaxWidth = BottomSheetDefaults.maxWidth,
         onDismissRequest = { dismiss() },
-        onDismissFinished = null,
-        outsideMargin = BottomSheetDefaults.outsideMargin,
-        insideMargin = BottomSheetDefaults.insideMargin,
-        defaultWindowInsetsPadding = true,
-        dragHandleColor = BottomSheetDefaults.dragHandleColor(),
-        allowDismiss = true,
-        enableNestedScroll = true,
-        renderInRootScaffold = true,
         content = {
             LazyColumn(
                 modifier = Modifier

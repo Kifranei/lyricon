@@ -7,20 +7,16 @@
 package io.github.proify.lyricon.xposed.systemui
 
 import android.app.Application
-import android.annotation.SuppressLint
 import android.os.Build
-import android.view.LayoutInflater
+import android.os.Bundle
 import android.view.ViewGroup
 import androidx.core.view.doOnAttach
-import com.highcapable.kavaref.KavaRef.Companion.resolve
-import com.highcapable.yukihookapi.hook.core.YukiMemberHookCreator
-import com.highcapable.yukihookapi.hook.entity.YukiBaseHooker
-import com.highcapable.yukihookapi.hook.log.YLog
 import de.robv.android.xposed.XSharedPreferences
 import io.github.proify.android.extensions.deflate
 import io.github.proify.android.extensions.json
 import io.github.proify.android.extensions.safeEncode
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
+import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.central.BridgeCentral
 import io.github.proify.lyricon.common.PackageNames
 import io.github.proify.lyricon.common.util.ScreenStateMonitor
@@ -28,21 +24,22 @@ import io.github.proify.lyricon.common.util.ViewHierarchyParser
 import io.github.proify.lyricon.subscriber.ConnectionListener
 import io.github.proify.lyricon.subscriber.LyriconFactory
 import io.github.proify.lyricon.subscriber.LyriconSubscriber
+import io.github.proify.lyricon.xposed.PackageHooker
+import io.github.proify.lyricon.xposed.logger.YLog
+import io.github.proify.lyricon.xposed.systemui.hook.ClockColorMonitor
+import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
+import io.github.proify.lyricon.xposed.systemui.hook.StatusBarDisableHooker
+import io.github.proify.lyricon.xposed.systemui.hook.StatusBarViewResolver
+import io.github.proify.lyricon.xposed.systemui.hook.ViewVisibilityTracker
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricDataHub
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager
 import io.github.proify.lyricon.xposed.systemui.util.AITranslator
-import io.github.proify.lyricon.xposed.systemui.util.ClockColorMonitor
 import io.github.proify.lyricon.xposed.systemui.util.CrashDetector
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
-import io.github.proify.lyricon.xposed.systemui.util.OplusCapsuleHooker
-import io.github.proify.lyricon.xposed.systemui.util.StatusBarDisableHooker
-import io.github.proify.lyricon.xposed.systemui.util.StatusBarDisableHooker.OnStatusBarDisableListener
-import io.github.proify.lyricon.xposed.systemui.util.SystemUIMediaHooker
-import io.github.proify.lyricon.xposed.systemui.util.ViewVisibilityTracker
-import io.github.proify.lyricon.xposed.systemui.util.XiaomiIslandHooker
+import io.github.proify.lyricon.xposed.systemui.util.SystemUIMediaUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -53,57 +50,70 @@ import kotlinx.coroutines.launch
  * SystemUI Hook 入口对象
  * 负责状态栏视图注入、第三方逻辑初始化及跨进程通信绑定
  */
-object SystemUIHooker : YukiBaseHooker() {
+object SystemUIHooker : PackageHooker() {
+    private const val TAG = "SystemUIHooker"
 
     private const val TEST_CRASH = false
     private var isSafeMode = false
     private var isAppCreated = false
-    private var layoutInflaterResult: YukiMemberHookCreator.MemberHookCreator.Result? = null
 
     private val mainCoroutineScope by lazy {
         CoroutineScope(Dispatchers.Main + SupervisorJob())
     }
 
     override fun onHook() {
-        if (!isMainProcess()) return
+        YLog.info(TAG, "onHook")
 
-        onAppLifecycle {
-            onCreate {
-                if (isAppCreated) return@onCreate
-                isAppCreated = true
-                onPreAppCreate()
+        if (!isMainProcess()) {
+            YLog.info(TAG, "Not main process, do nothing")
+            return
+        }
+
+        doOnAppCreated {
+            if (isAppCreated) {
+                YLog.info(TAG, "App already created, do nothing")
+                return@doOnAppCreated
             }
+            isAppCreated = true
+            YLog.info(TAG, "App created $it")
+            onPreLoad()
         }
     }
-
-    private fun isMainProcess() = processName == packageName
 
     /**
      * 应用创建前的准备工作，包含崩溃检测逻辑
      */
-    private fun onPreAppCreate() {
-        YLog.info("onPreAppCreate")
-        val context = appContext ?: return
+    private fun onPreLoad() {
+        YLog.info(TAG, "onPreLoad")
+
+        val context = appContext
+        if (context == null) {
+            YLog.info(TAG, "App context not available")
+            return
+        }
+
         val packageName = context.packageName
         val processName = currentProcessName()
-
         if (processName != null && processName != packageName) {
-            YLog.info("Skip SystemUI hook in non-main process: $processName")
+            YLog.info(TAG, "Skip SystemUI hook in non-main process: $processName")
             return
         }
 
         CrashDetector.getInstance(context).apply {
             record()
-            // 检测到多次连续崩溃时进入安全模式，停止后续注入
             if (isContinuousCrash()) {
                 isSafeMode = true
-                YLog.error("检测到连续崩溃，已停止hook")
+                YLog.error(TAG, "检测到连续崩溃，已停止hook")
             }
             if (isSafeMode) reset()
         }
 
         initCrashDataChannel()
-        if (!isSafeMode) onAppCreate()
+        if (!isSafeMode) {
+            onAppCreate()
+        } else {
+            YLog.info(TAG, "Safe mode enabled, app create skipped")
+        }
     }
 
     private fun currentProcessName(): String? {
@@ -117,44 +127,32 @@ object SystemUIHooker : YukiBaseHooker() {
             }
         }.getOrNull()
     }
-    @SuppressLint("DiscouragedApi")
+
     private fun onAppCreate() {
-        YLog.info("onAppCreate")
-        val context = appContext ?: return
+        YLog.info(TAG, "onAppCreate")
+        val context = appContext
+        if (context == null) {
+            YLog.info(TAG, "App context not available")
+            return
+        }
+
+        StatusBarViewResolver.subscribe {
+            YLog.info(TAG, "New status bar view resolved $it")
+            addStatusBarView(it)
+        }
 
         initialize()
-
-        // 获取状态栏布局资源 ID
-        val statusBarLayoutId =
-            context.resources.getIdentifier("status_bar", "layout", context.packageName)
-
-        // Hook 布局加载器，在状态栏布局填充后注入自定义视图
-        layoutInflaterResult = LayoutInflater::class.resolve()
-            .firstMethod {
-                name = "inflate"; parameters(
-                Int::class.java,
-                ViewGroup::class.java,
-                Boolean::class.java
-            )
-            }
-            .hook {
-                after {
-                    if (args(0).int() != statusBarLayoutId) return@after
-                    result<ViewGroup>()?.let { addStatusBarView(it) }
-                }
-            }
     }
 
     /**
      * 在App onCreate完成时进行各类辅助工具和监控器的初始化
      */
     private fun initialize() {
-        YLog.info("onInit")
+        YLog.info(TAG, "onInit")
         val context = appContext ?: return
 
         ScreenStateMonitor.initialize(context)
         OplusCapsuleHooker.initialize(context.classLoader)
-        XiaomiIslandHooker.initialize(context.classLoader)
         NotificationCoverHelper.initialize()
         ViewVisibilityTracker.initialize(context.classLoader)
         initDataChannel()
@@ -162,8 +160,10 @@ object SystemUIHooker : YukiBaseHooker() {
         initLyriconService()
 
         StatusBarDisableHooker.inject(context.classLoader)
-        StatusBarDisableHooker.addListener(object : OnStatusBarDisableListener {
+        StatusBarDisableHooker.addListener(object :
+            StatusBarDisableHooker.OnStatusBarDisableListener {
             private var lastDisableStateChanged: Boolean? = null
+
             override fun onDisableStateChanged(shouldHide: Boolean, animate: Boolean) {
                 if (lastDisableStateChanged == shouldHide) return
                 lastDisableStateChanged = shouldHide
@@ -173,37 +173,41 @@ object SystemUIHooker : YukiBaseHooker() {
 
         ClockColorMonitor.hook()
         AITranslator.init(context)
-        SystemUIMediaHooker.init(context)
+        SystemUIMediaUtils.init(context)
+        StatusBarViewResolver.init(context)
     }
 
     private fun initLyriconService() {
+        val context = appContext ?: return
         val defaultSp = XSharedPreferences(PackageNames.APPLICATION)
         val coreServiceDisable = defaultSp.getBoolean("core_service_disable", false)
+
         if (!coreServiceDisable) {
-            BridgeCentral.initialize(appContext!!)
+            BridgeCentral.initialize(context)
             BridgeCentral.sendBootCompleted()
         } else {
-            YLog.info("已禁用内置核心服务")
+            YLog.info(TAG, "已禁用内置核心服务")
         }
 
         val subscriber = LyriconFactory.createSubscriber(appContext!!)
 
         subscriber.subscribeActivePlayer(LyricDataHub)
+
         subscriber.addConnectionListener(object : ConnectionListener {
             override fun onConnected(subscriber: LyriconSubscriber) {
-                YLog.info("lyriconSubscriber onConnected")
+                YLog.info(TAG, "lyriconSubscriber onConnected")
             }
 
             override fun onReconnected(subscriber: LyriconSubscriber) {
-                YLog.info("lyriconSubscriber onReconnected")
+                YLog.info(TAG, "lyriconSubscriber onReconnected")
             }
 
             override fun onDisconnected(subscriber: LyriconSubscriber) {
-                YLog.info("lyriconSubscriber onDisconnected")
+                YLog.info(TAG, "lyriconSubscriber onDisconnected")
             }
 
             override fun onConnectTimeout(subscriber: LyriconSubscriber) {
-                YLog.info("lyriconSubscriber onConnectTimeout")
+                YLog.info(TAG, "lyriconSubscriber onConnectTimeout")
             }
 
         })
@@ -213,34 +217,41 @@ object SystemUIHooker : YukiBaseHooker() {
         }
     }
 
-    /**
-     * 初始化 DataChannel 通信隧道，处理来自 App 进程的控制请求
-     */
     private fun initDataChannel() {
-        val channel = dataChannel
-        // 样式更新请求
-        channel.wait(key = AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE) {
-            LyricViewController.applyConfigurationUpdate(LyricPrefs.getLyricStyle())
-        }
-        // 视图高亮请求
-        channel.wait<String>(key = AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW) { id ->
-            StatusBarViewManager.forEach { it.highlightView(id) }
-        }
-        // 获取视图树请求（用于调试或布局分析）
-        channel.wait<String>(key = AppBridgeConstants.REQUEST_VIEW_TREE) {
-            StatusBarViewManager.forEach { controller ->
+        val context = appContext ?: return
+        LyriconBridge.routing(context) {
+            onCommand(AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE) {
+                YLog.info(TAG, "App requested lyric style update")
+
+                LyricViewController.applyConfigurationUpdate(LyricPrefs.getLyricStyle())
+            }
+
+            onCommand(AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW) {
+                val id = it.getString("id")
+                YLog.info(TAG, "App requested view highlight id: $id")
+
+                StatusBarViewManager.forEachOnMainThread { it.highlightView(id) }
+            }
+
+            onQuery(AppBridgeConstants.REQUEST_VIEW_TREE) {
+                YLog.info(TAG, "App requested view tree")
+
+                val controller = StatusBarViewManager.controllers.firstOrNull() ?: return@onQuery
+
                 val data =
                     json.safeEncode(ViewHierarchyParser.buildNodeTree(controller.statusBarView))
                         .toByteArray(Charsets.UTF_8)
                         .deflate()
-                channel.put(AppBridgeConstants.REQUEST_VIEW_TREE_CALLBACK, data)
-                return@forEach
+
+                YLog.info(TAG, "View tree reply data: ${data.size}")
+
+                reply(Bundle().apply {
+                    putByteArray("result", data)
+                })
             }
-        }
-        // 清除翻译缓存请求
-        channel.wait(key = AppBridgeConstants.REQUEST_CLEAR_TRANSLATION_DB) {
-            AITranslator.clearCache {
-                LyricDataHub.reprocessCurrentSong()
+
+            onCommand(AppBridgeConstants.REQUEST_CLEAR_TRANSLATION_DB) {
+                AITranslator.clearCache { LyricDataHub.reprocessCurrentSong() }
             }
         }
     }
@@ -252,18 +263,9 @@ object SystemUIHooker : YukiBaseHooker() {
         view.doOnAttach {
             val controller = StatusBarViewController(view, LyricPrefs.getLyricStyle())
             StatusBarViewManager.add(controller)
-            view.addOnAttachStateChangeListener(object : android.view.View.OnAttachStateChangeListener {
-                override fun onViewAttachedToWindow(v: android.view.View) = Unit
-
-                override fun onViewDetachedFromWindow(v: android.view.View) {
-                    StatusBarViewManager.remove(controller)
-                    v.removeOnAttachStateChangeListener(this)
-                }
-            })
 
             val isFirst = StatusBarViewManager.controllers.size == 1
             if (isFirst) {
-                BridgeCentral.sendBootCompleted()
                 if (TEST_CRASH) view.postDelayed({ error("test crash") }, 3000)
             }
         }
@@ -273,9 +275,13 @@ object SystemUIHooker : YukiBaseHooker() {
      * 初始化崩溃相关的通信频道
      */
     private fun initCrashDataChannel() {
-        dataChannel.put(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE_CALLBACK, isSafeMode)
-        dataChannel.wait(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE) {
-            dataChannel.put(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE_CALLBACK, isSafeMode)
+        val context = appContext ?: return
+        LyriconBridge.routing(context) {
+            onQuery(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE) {
+                reply(Bundle().apply {
+                    putBoolean("result", isSafeMode)
+                })
+            }
         }
     }
 }

@@ -7,21 +7,18 @@ plugins {
 
 configure<ApplicationExtension> {
     namespace = "io.github.proify.lyricon.lyric_test"
-
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
+        version = release(rootProject.extra.get("compileSdkVersion") as Int) {
+            //minorApiLevel = 1
         }
     }
 
     defaultConfig {
         applicationId = "io.github.proify.lyricon.lyric_test"
         minSdk = 33
-        //noinspection OldTargetApi
-        targetSdk = 35
+        targetSdk = rootProject.extra["targetSdkVersion"] as Int
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -46,11 +43,12 @@ configure<ApplicationExtension> {
 }
 
 dependencies {
-    //noinspection UseTomlInstead
+    //noinspection GradleDependency,UseTomlInstead
     implementation("androidx.media3:media3-exoplayer:1.9.2")
     implementation("androidx.media3:media3-exoplayer-dash:1.9.2")
     implementation("androidx.media3:media3-ui:1.9.2")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.10.0")
+    //noinspection NewerVersionAvailable
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 
     implementation(project(":lyric:view"))

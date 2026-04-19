@@ -3,7 +3,7 @@
 agp = "9.1.1"
 jetbrainsKotlinJvm = "2.3.20"
 kotlin = "2.3.20"
-ksp = "2.3.4"
+ksp = "2.3.6"
 
 # AndroidX Base
 activity = "1.13.0"
@@ -18,15 +18,12 @@ lifecycle = "2.10.0"
 activityCompose = "1.13.0"
 composeBom = "2026.03.01"
 composeFoundation = "1.10.6"
-composeUiGraphics = "1.10.6"
-navigationCompose = "2.9.7"
 opencc4j = "1.14.0"
 remoteCreationCore = "1.0.0-alpha08"
 
 # Material
 material = "1.13.0"
 material3 = "1.5.0-alpha17"
-materialIconsCore = "1.7.8"
 
 # Network / Logic / Serialization
 kotlinxSerializationJson = "1.11.0"
@@ -39,15 +36,12 @@ bonsai = "1.2.0"
 capsuleAndroid = "2.1.1-patch2"
 haze = "1.7.2"
 lottieCompose = "6.7.1"
-miuixAndroid = "0.8.8"
-# 暂时保留到0.8.8，因为新版本的gradle版本过高
-#noinspection NewerVersionAvailable
-miuixIcons = "0.8.8"
+miuixUI = "0.9.0"
+miuixIcons = "0.9.0"
+miuixPreference = "0.9.0"
 
 # Hook / Reflection
-kavaref = "1.0.2"
 xposed = "82"
-yukihookapi = "1.3.1"
 
 # Testing
 androidxJunit = "1.3.0"
@@ -70,19 +64,14 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "composeFoundation" }
-androidx-compose-foundation-layout = { module = "androidx.compose.foundation:foundation-layout", version.ref = "composeFoundation" }
-androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "materialIconsCore" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 androidx-compose-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
-androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "composeUiGraphics" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
 
-# ===== Material =====
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 # ===== Network / Logic / Serialization =====
@@ -96,16 +85,15 @@ bonsai-core = { module = "cafe.adriel.bonsai:bonsai-core", version.ref = "bonsai
 capsule-android = { module = "com.mocharealm.gaze:capsule-android", version.ref = "capsuleAndroid" }
 chrisbanes-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
-miuix-android = { module = "top.yukonga.miuix.kmp:miuix-android", version.ref = "miuixAndroid" }
-miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons", version.ref = "miuixIcons" }
+miuix-android = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuixUI" }
+miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference-android", version.ref = "miuixPreference" }
+miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons-android", version.ref = "miuixIcons" }
+miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur", version.ref = "miuixUI" }
 
 # ===== Hook / Reflection =====
-kavaref-core = { module = "com.highcapable.kavaref:kavaref-core", version.ref = "kavaref" }
-kavaref-extension = { module = "com.highcapable.kavaref:kavaref-extension", version.ref = "kavaref" }
+#noinspection UnusedVersionCatalogEntry
 opencc4j = { module = "com.github.houbb:opencc4j", version.ref = "opencc4j" }
 xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed" }
-yukihookapi-api = { module = "com.highcapable.yukihookapi:api", version.ref = "yukihookapi" }
-yukihookapi-ksp-xposed = { module = "com.highcapable.yukihookapi:ksp-xposed", version.ref = "yukihookapi" }
 
 # ===== Testing =====
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
@@ -122,4 +110,5 @@ jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrai
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
 # ===== Other =====
+#noinspection UnusedVersionCatalogEntry
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
