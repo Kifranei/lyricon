@@ -13,6 +13,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -279,4 +280,37 @@ fun IconActions(
 
 fun BasicComponentColors.color(enabled: Boolean): Color {
     return if (enabled) color else disabledColor
+}
+
+@Composable
+fun ColoredIconBox(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color,
+    iconRes: Int,
+    isMonet: Boolean = false
+) {
+    val iconSize = if (isMonet) 20.dp else 24.dp
+    androidx.compose.foundation.layout.Box(
+        modifier = modifier
+            .padding(end = 16.dp)
+            .size(40.dp)
+            .let {
+                if (isMonet) {
+                    it.background(
+                        top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.primary,
+                        androidx.compose.foundation.shape.CircleShape
+                    )
+                } else {
+                    it.background(backgroundColor, androidx.compose.foundation.shape.CircleShape)
+                }
+            },
+        contentAlignment = androidx.compose.ui.Alignment.Center,
+    ) {
+        androidx.compose.material3.Icon(
+            painter = androidx.compose.ui.res.painterResource(id = iconRes),
+            modifier = Modifier.size(iconSize),
+            tint = androidx.compose.ui.graphics.Color.White,
+            contentDescription = null
+        )
+    }
 }

@@ -191,4 +191,17 @@
     <string name="item_base_chinese_conv_off">Disabled</string>
     <string name="item_base_chinese_conv_simplified">To Simplified Chinese</string>
     <string name="item_base_chinese_conv_traditional">To Traditional Chinese</string>
+
+    <!-- UI Redesign Strings -->
+    <string name="tab_home">Home</string>
+    <string name="tab_config">Configuration</string>
+    <string name="tab_provider">Providers</string>
+    <string name="tab_settings">Settings</string>
+    
+    <string name="home_info_app_version">App Version</string>
+    <string name="home_info_android_version">Android Version</string>
+    <string name="item_floating_bottom_bar">Floating Bottom Bar</string>
+    <string name="item_summary_floating_bottom_bar">Enable to use floating style bottom navigation bar</string>
+    <string name="item_liquid_glass">Liquid Glass</string>
+    <string name="item_summary_liquid_glass">Visual enhancement for floating bottom bar</string>
 </resources>

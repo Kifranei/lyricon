@@ -192,4 +192,17 @@
     <string name="item_base_chinese_conv_off">保持原样</string>
     <string name="item_base_chinese_conv_simplified">转换为简体</string>
     <string name="item_base_chinese_conv_traditional">转换为繁体</string>
+    <!-- UI Redesign Strings -->
+    <string name="tab_home">主页</string>
+    <string name="tab_config">配置</string>
+    <string name="tab_provider">提供者</string>
+    <string name="tab_settings">设置</string>
+    
+    <string name="home_info_app_version">软件版本</string>
+    <string name="home_info_android_version">安卓版本</string>
+
+    <string name="item_floating_bottom_bar">悬浮底栏</string>
+    <string name="item_summary_floating_bottom_bar">开启以启用悬浮风格的底部导航栏</string>
+    <string name="item_liquid_glass">液态玻璃</string>
+    <string name="item_summary_liquid_glass">开启悬浮底栏后的特效增强</string>
 </resources>

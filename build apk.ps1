@@ -1,0 +1,1 @@
+$env:RELEASE_STORE_FILE='C:\Users\Croilan\Documents\CodeX Spaces\lyricon\release.jks'; $env:RELEASE_STORE_PASSWORD='kidn0x1'; $env:RELEASE_KEY_ALIAS='release'; $env:RELEASE_KEY_PASSWORD='kidn0x1'; .\gradlew.bat :lyricon:assembleRelease --no-daemon
