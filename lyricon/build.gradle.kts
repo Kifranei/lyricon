@@ -45,7 +45,9 @@ configure<ApplicationExtension> {
                 "en",
                 "zh-rCN",
                 "zh-rTW",
-                "zh-rHK"
+                "zh-rHK",
+                "b+zh+Hans",
+                "b+zh+Hant"
             )
         }
     }
