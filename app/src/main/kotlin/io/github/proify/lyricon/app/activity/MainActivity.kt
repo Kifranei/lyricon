@@ -13,15 +13,12 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
@@ -29,22 +26,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Color.Companion.White
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.foundation.layout.fillMaxSize
-import top.yukonga.miuix.kmp.basic.NavigationBarItem
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
@@ -53,16 +43,13 @@ import io.github.proify.android.extensions.defaultSharedPreferences
 import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.LyriconApp
 import io.github.proify.lyricon.app.R
-import io.github.proify.lyricon.app.activity.lyric.BasicLyricStyleActivity
-import io.github.proify.lyricon.app.activity.lyric.pkg.PackageStyleActivity
-import io.github.proify.lyricon.app.activity.lyric.provider.LyricProviderActivity
 import io.github.proify.lyricon.app.bridge.AppBridge
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.app.bridge.LyriconBridge
-import io.github.proify.lyricon.app.compose.AppToolBarListContainer
-import io.github.proify.lyricon.app.compose.EmojiInfiniteQueuePlayer
-import io.github.proify.lyricon.app.compose.MaterialPalette
-import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
+import io.github.proify.lyricon.app.compose.LocalFloatingBottomBarEnabled
+import io.github.proify.lyricon.app.compose.LocalLiquidGlassEnabled
+import io.github.proify.lyricon.app.compose.MainBottomBar
+import io.github.proify.lyricon.app.compose.MainBottomBarItem
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
 import io.github.proify.lyricon.app.event.SettingChangedEvent
 import io.github.proify.lyricon.app.util.AppThemeUtils
@@ -73,22 +60,10 @@ import io.github.proify.lyricon.app.util.restartApp
 import io.github.proify.lyricon.common.PackageNames
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.BasicComponentColors
-import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.CardColors
-import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.ListPopupColumn
-import top.yukonga.miuix.kmp.basic.ListPopupDefaults
-import top.yukonga.miuix.kmp.basic.PopupPositionProvider
-import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Refresh
-import top.yukonga.miuix.kmp.overlay.OverlayListPopup
-import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import top.yukonga.miuix.kmp.utils.PressFeedbackType
 
 class MainActivity : BaseActivity() {
 
@@ -200,72 +175,62 @@ class MainActivity : BaseActivity() {
         val sharedPreferences = remember { context.defaultSharedPreferences }
         var selectedIndex by remember { mutableStateOf(0) }
         var isFloating by remember { mutableStateOf(sharedPreferences.getBoolean("enable_floating_nav_bar", false)) }
+        var isLiquidGlass by remember { mutableStateOf(sharedPreferences.getBoolean("enable_liquid_glass", false)) }
         val isMonet = model?.isMonet == true
 
         val bottomBarContent: @Composable () -> Unit = {
             val items = listOf(
-                Pair(stringResource(R.string.tab_home), androidx.compose.ui.graphics.vector.ImageVector.vectorResource(id = R.drawable.ic_android)),
-                Pair(stringResource(R.string.tab_config), androidx.compose.ui.graphics.vector.ImageVector.vectorResource(id = R.drawable.ic_palette_swatch_variant)),
-                Pair(stringResource(R.string.tab_provider), androidx.compose.ui.graphics.vector.ImageVector.vectorResource(id = R.drawable.ic_extension)),
-                Pair(stringResource(R.string.tab_settings), androidx.compose.ui.graphics.vector.ImageVector.vectorResource(id = R.drawable.ic_settings))
+                MainBottomBarItem(stringResource(R.string.tab_home), ImageVector.vectorResource(id = R.drawable.ic_android)),
+                MainBottomBarItem(stringResource(R.string.tab_config), ImageVector.vectorResource(id = R.drawable.ic_palette_swatch_variant)),
+                MainBottomBarItem(stringResource(R.string.tab_provider), ImageVector.vectorResource(id = R.drawable.ic_extension)),
+                MainBottomBarItem(stringResource(R.string.tab_settings), ImageVector.vectorResource(id = R.drawable.ic_settings))
             )
 
-            if (isFloating) {
-                Box(
-                    modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    top.yukonga.miuix.kmp.basic.FloatingNavigationBar {
-                        items.forEachIndexed { index, pair ->
-                            top.yukonga.miuix.kmp.basic.FloatingNavigationBarItem(
-                                selected = selectedIndex == index,
-                                onClick = { selectedIndex = index },
-                                icon = pair.second,
-                                label = pair.first
-                            )
-                        }
-                    }
-                }
-            } else {
-                top.yukonga.miuix.kmp.basic.NavigationBar {
-                    items.forEachIndexed { index, pair ->
-                        NavigationBarItem(
-                            selected = selectedIndex == index,
-                            onClick = { selectedIndex = index },
-                            icon = pair.second,
-                            label = pair.first
-                        )
-                    }
-                }
-            }
+            MainBottomBar(
+                items = items,
+                selectedIndex = selectedIndex,
+                onSelected = { selectedIndex = it }
+            )
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            when (selectedIndex) {
-                0 -> io.github.proify.lyricon.app.ui.tabs.HomeTab(
-                    model = model!!,
-                    actions = {
-                        val showPopup = remember { mutableStateOf(false) }
-                        Box(modifier = Modifier.padding(end = 14.dp)) {
-                            IconButton(onClick = { showPopup.value = true }) {
-                                Icon(
-                                    modifier = Modifier.size(24.dp),
-                                    imageVector = MiuixIcons.Refresh,
-                                    contentDescription = stringResource(id = R.string.action_restart),
-                                    tint = MiuixTheme.colorScheme.onSurface
-                                )
+        CompositionLocalProvider(
+            LocalFloatingBottomBarEnabled provides isFloating,
+            LocalLiquidGlassEnabled provides (isFloating && isLiquidGlass)
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                when (selectedIndex) {
+                    0 -> io.github.proify.lyricon.app.ui.tabs.HomeTab(
+                        model = model!!,
+                        actions = {
+                            val showPopup = remember { mutableStateOf(false) }
+                            Box(modifier = Modifier.padding(end = 14.dp)) {
+                                IconButton(onClick = { showPopup.value = true }) {
+                                    Icon(
+                                        modifier = Modifier.size(24.dp),
+                                        imageVector = MiuixIcons.Refresh,
+                                        contentDescription = stringResource(id = R.string.action_restart),
+                                        tint = MiuixTheme.colorScheme.onSurface
+                                    )
+                                }
+                                RestartMenuPopup(showPopup, onRestartSystemUI, onRestartApp)
                             }
-                            RestartMenuPopup(showPopup, onRestartSystemUI, onRestartApp)
-                        }
-                    },
-                    bottomBar = bottomBarContent
-                )
-                1 -> io.github.proify.lyricon.app.ui.tabs.ConfigPage(isMonet, bottomBarContent)
-                2 -> io.github.proify.lyricon.app.ui.tabs.ProviderPage(bottomBar = bottomBarContent)
-                3 -> io.github.proify.lyricon.app.ui.tabs.SettingsPage(bottomBar = bottomBarContent)
-            }
-            if (model?.showRestartFailDialog?.value == true) {
-                RestartFailDialog(model.showRestartFailDialog)
+                        },
+                        bottomBar = {}
+                    )
+                    1 -> io.github.proify.lyricon.app.ui.tabs.ConfigPage(isMonet, bottomBar = {})
+                    2 -> io.github.proify.lyricon.app.ui.tabs.ProviderPage(bottomBar = {})
+                    3 -> io.github.proify.lyricon.app.ui.tabs.SettingsPage(bottomBar = {})
+                }
+                if (model?.showRestartFailDialog?.value == true) {
+                    RestartFailDialog(model.showRestartFailDialog)
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    bottomBarContent()
+                }
             }
         }
     }

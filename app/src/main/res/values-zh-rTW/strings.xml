@@ -54,8 +54,10 @@
     <string name="add_package_config">新增套件配置</string>
     <string name="item_app_version">版本</string>
     <string name="item_build_time">建置時間</string>
+    <string name="item_build_type">建置類型</string>
     <string name="item_view_on_github">在 Github 上查看</string>
     <string name="item_open_source_license">開放原始碼授權</string>
+    <string name="item_project">項目</string>
     <string name="section_music_apps">相關</string>
     <string name="section_other_apps">其他</string>
     <string name="option_language_follow_system">跟隨系統</string>
