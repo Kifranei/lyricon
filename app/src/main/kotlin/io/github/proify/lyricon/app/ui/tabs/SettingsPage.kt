@@ -106,7 +106,7 @@ fun SettingsPage(bottomBar: @Composable () -> Unit = {}) {
             SettingsSectionCard(topPadding = 16.dp) {
                 ThemeSetting(restartSelf)
                 HorizontalDivider(modifier = Modifier.padding(start = 54.dp, end = 26.dp), color = MiuixTheme.colorScheme.surfaceVariant)
-                FloatingBarAndLiquidGlassSetting()
+                FloatingBarSetting()
             }
         }
 
@@ -168,21 +168,13 @@ private fun CoreServiceSetting() {
 }
 
 @Composable
-private fun FloatingBarAndLiquidGlassSetting() {
+private fun FloatingBarSetting() {
     val context = LocalContext.current
     val sharedPreferences = remember { context.defaultSharedPreferences }
-    
-    // 悬浮底栏设置
+
     var floatingBarEnabled by rememberBooleanPreference(
         sharedPreferences,
         "enable_floating_nav_bar",
-        false
-    )
-    
-    // 液态玻璃设置
-    var liquidGlassEnabled by rememberBooleanPreference(
-        sharedPreferences,
-        "enable_liquid_glass",
         false
     )
 
@@ -191,25 +183,8 @@ private fun FloatingBarAndLiquidGlassSetting() {
         startAction = { IconActions(painterResource(R.drawable.ic_extension)) },
         title = stringResource(R.string.item_floating_bottom_bar),
         summary = stringResource(R.string.item_summary_floating_bottom_bar),
-        onCheckedChange = { isChecked ->
-            floatingBarEnabled = isChecked
-            if (!isChecked) {
-                liquidGlassEnabled = false
-            }
-            EventBus.post(SettingChangedEvent)
-        }
-    )
-    
-    HorizontalDivider(modifier = Modifier.padding(start = 54.dp, end = 26.dp), color = MiuixTheme.colorScheme.surfaceVariant)
-
-    SwitchPreference(
-        checked = liquidGlassEnabled,
-        startAction = { IconActions(painterResource(R.drawable.ic_palette)) },
-        title = stringResource(R.string.item_liquid_glass),
-        summary = stringResource(R.string.item_summary_liquid_glass),
-        enabled = floatingBarEnabled,
         onCheckedChange = {
-            liquidGlassEnabled = it
+            floatingBarEnabled = it
             EventBus.post(SettingChangedEvent)
         }
     )

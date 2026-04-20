@@ -201,6 +201,10 @@
     
     <string name="home_info_app_version">軟體版本</string>
     <string name="home_info_android_version">安卓版本</string>
+    <string name="home_section_status">狀態</string>
+    <string name="home_section_system_info">系統資訊</string>
+    <string name="home_info_device">設備</string>
+    <string name="home_info_system_build">系統構建</string>
 
     <string name="item_floating_bottom_bar">懸浮底欄</string>
     <string name="item_summary_floating_bottom_bar">開啟以啟用懸浮風格的底部導覽列</string>

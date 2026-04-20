@@ -47,7 +47,6 @@ import io.github.proify.lyricon.app.bridge.AppBridge
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.compose.LocalFloatingBottomBarEnabled
-import io.github.proify.lyricon.app.compose.LocalLiquidGlassEnabled
 import io.github.proify.lyricon.app.compose.MainBottomBar
 import io.github.proify.lyricon.app.compose.MainBottomBarItem
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
@@ -175,7 +174,6 @@ class MainActivity : BaseActivity() {
         val sharedPreferences = remember { context.defaultSharedPreferences }
         var selectedIndex by remember { mutableStateOf(0) }
         var isFloating by remember { mutableStateOf(sharedPreferences.getBoolean("enable_floating_nav_bar", false)) }
-        var isLiquidGlass by remember { mutableStateOf(sharedPreferences.getBoolean("enable_liquid_glass", false)) }
         val isMonet = model?.isMonet == true
 
         val bottomBarContent: @Composable () -> Unit = {
@@ -194,8 +192,7 @@ class MainActivity : BaseActivity() {
         }
 
         CompositionLocalProvider(
-            LocalFloatingBottomBarEnabled provides isFloating,
-            LocalLiquidGlassEnabled provides (isFloating && isLiquidGlass)
+            LocalFloatingBottomBarEnabled provides isFloating
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 when (selectedIndex) {

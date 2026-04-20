@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -30,8 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.kyant.backdrop.drawBackdrop
 import com.kyant.backdrop.effects.blur
-import com.kyant.backdrop.effects.lens
-import com.kyant.backdrop.effects.vibrancy
 import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.NavigationBar
@@ -96,13 +95,13 @@ fun MainBottomBar(
                         label = "main_bottom_bar_selected",
                     )
                     val pillColor = MiuixTheme.colorScheme.primary.copy(
-                        alpha = if (LocalLiquidGlassEnabled.current) 0.16f else 0.10f,
+                        alpha = 0.10f,
                     )
 
                     Box(
                         modifier = Modifier
                             .weight(1f)
-                            .defaultMinSize(minWidth = 70.dp)
+                            .defaultMinSize(minWidth = 64.dp)
                             .clip(RoundedCornerShape(24.dp))
                             .background(pillColor.copy(alpha = pillColor.alpha * progress.value))
                             .clickable(
@@ -110,15 +109,15 @@ fun MainBottomBar(
                                 indication = null,
                                 onClick = { onSelected(index) },
                             )
-                            .padding(horizontal = 8.dp, vertical = 10.dp),
+                            .padding(horizontal = 6.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(3.dp),
                         ) {
                             Icon(
-                                modifier = Modifier.size(20.dp),
+                                modifier = Modifier.size(18.dp),
                                 imageVector = item.icon,
                                 contentDescription = item.label,
                                 tint = if (selected) {
@@ -129,7 +128,7 @@ fun MainBottomBar(
                             )
                             Text(
                                 text = item.label,
-                                fontSize = 12.sp,
+                                fontSize = 11.sp,
                                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                                 color = if (selected) {
                                     MiuixTheme.colorScheme.onSurface
@@ -155,22 +154,25 @@ private fun FloatingGlassBar(
     content: @Composable () -> Unit,
 ) {
     val backdrop = LocalBottomBarBackdrop.current
-    val liquidGlass = LocalLiquidGlassEnabled.current
-    val surface = MiuixTheme.colorScheme.surfaceContainer
-    val glassAlpha = if (CurrentThemeConfigs.isDark) 0.52f else 0.40f
+    val isDark = CurrentThemeConfigs.isDark
+    val surface = if (isDark) {
+        MiuixTheme.colorScheme.surface.copy(alpha = 0.94f)
+    } else {
+        MiuixTheme.colorScheme.surfaceContainer
+    }
+    val glassAlpha = if (isDark) 0.74f else 0.40f
+    val chromeTint = if (isDark) {
+        Color.Black.copy(alpha = 0.18f)
+    } else {
+        Color.White.copy(alpha = 0.12f)
+    }
 
     val decorated = if (backdrop != null) {
         modifier.drawBackdrop(
             backdrop = backdrop,
             shape = { shape },
             effects = {
-                if (liquidGlass) {
-                    vibrancy()
-                    blur(8.dp.toPx())
-                    lens(22.dp.toPx(), 22.dp.toPx())
-                } else {
-                    blur(6.dp.toPx())
-                }
+                blur(6.dp.toPx())
             },
             onDrawSurface = {
                 drawRect(surface.copy(alpha = glassAlpha))
@@ -183,10 +185,7 @@ private fun FloatingGlassBar(
     Box(
         modifier = decorated
             .clip(shape)
-            .background(
-                Color.White.copy(alpha = if (CurrentThemeConfigs.isDark) 0.04f else 0.12f),
-                shape,
-            )
+            .background(chromeTint, shape)
             .padding(1.dp),
     ) {
         Box(

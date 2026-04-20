@@ -4,25 +4,23 @@ import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.proify.lyricon.app.BuildConfig
@@ -46,7 +44,7 @@ fun HomeTab(
         title = stringResource(R.string.tab_home),
         actions = actions,
         canBack = false,
-        bottomBar = bottomBar
+        bottomBar = bottomBar,
     ) {
         item("status_card") {
             val safeMode = model.safeMode.value
@@ -85,10 +83,11 @@ private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean) {
         else -> Color(0xFF36D167)
     }
 
-    val iconVector = if (isActive && !safeMode) 
-        androidx.compose.ui.graphics.vector.ImageVector.vectorResource(id = R.drawable.ic_check_circle) 
-    else 
-        androidx.compose.ui.graphics.vector.ImageVector.vectorResource(id = R.drawable.ic_sentiment_dissatisfied)
+    val iconVector = if (isActive && !safeMode) {
+        ImageVector.vectorResource(id = R.drawable.ic_check_circle)
+    } else {
+        ImageVector.vectorResource(id = R.drawable.ic_sentiment_dissatisfied)
+    }
 
     Card(
         modifier = Modifier
@@ -98,33 +97,32 @@ private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean) {
             .height(140.dp),
         colors = CardDefaults.defaultColors(color = cardColor),
         pressFeedbackType = PressFeedbackType.Tilt,
-        onClick = {}
+        onClick = {},
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .offset(x = 38.dp, y = 45.dp),
-                contentAlignment = Alignment.BottomEnd
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 14.dp, bottom = 6.dp),
             ) {
                 Icon(
-                    modifier = Modifier.size(170.dp),
+                    modifier = Modifier.size(138.dp),
                     imageVector = iconVector,
                     tint = iconColor,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(16.dp),
             ) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
                     text = titleText,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MiuixTheme.colorScheme.onSurface
+                    color = MiuixTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -132,7 +130,7 @@ private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean) {
                     text = summaryText,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
             }
         }
@@ -145,22 +143,35 @@ private fun SystemInfoCard() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+            .padding(bottom = 16.dp),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(16.dp),
         ) {
             InfoText(
                 title = stringResource(R.string.home_info_app_version),
                 content = "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
-                bottomPadding = 24.dp
+                bottomPadding = 24.dp,
             )
             InfoText(
                 title = stringResource(R.string.home_info_android_version),
-                content = "Android ${Build.VERSION.RELEASE} (SDK ${Build.VERSION.SDK_INT})",
-                bottomPadding = 0.dp
+                content = "Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})",
+                bottomPadding = 24.dp,
+            )
+            InfoText(
+                title = stringResource(R.string.home_info_device),
+                content = listOf(Build.MANUFACTURER, Build.MODEL)
+                    .filter { it.isNotBlank() }
+                    .joinToString(" ")
+                    .ifBlank { Build.DEVICE },
+                bottomPadding = 24.dp,
+            )
+            InfoText(
+                title = stringResource(R.string.home_info_system_build),
+                content = Build.DISPLAY.ifBlank { Build.ID },
+                bottomPadding = 0.dp,
             )
         }
     }
@@ -170,18 +181,18 @@ private fun SystemInfoCard() {
 private fun InfoText(
     title: String,
     content: String,
-    bottomPadding: androidx.compose.ui.unit.Dp
+    bottomPadding: Dp,
 ) {
     Text(
         text = title,
         fontSize = MiuixTheme.textStyles.headline1.fontSize,
         fontWeight = FontWeight.Medium,
-        color = MiuixTheme.colorScheme.onSurface
+        color = MiuixTheme.colorScheme.onSurface,
     )
     Text(
         text = content,
         fontSize = MiuixTheme.textStyles.body2.fontSize,
         color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
-        modifier = Modifier.padding(top = 2.dp, bottom = bottomPadding)
+        modifier = Modifier.padding(top = 2.dp, bottom = bottomPadding),
     )
 }

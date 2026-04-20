@@ -202,6 +202,10 @@
     
     <string name="home_info_app_version">App Version</string>
     <string name="home_info_android_version">Android Version</string>
+    <string name="home_section_status">Status</string>
+    <string name="home_section_system_info">System Information</string>
+    <string name="home_info_device">Device</string>
+    <string name="home_info_system_build">System Build</string>
     <string name="item_floating_bottom_bar">Floating Bottom Bar</string>
     <string name="item_summary_floating_bottom_bar">Enable to use floating style bottom navigation bar</string>
     <string name="item_liquid_glass">Liquid Glass</string>
