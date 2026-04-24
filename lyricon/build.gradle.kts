@@ -18,11 +18,12 @@ configure<ApplicationExtension> {
         resources{
             excludes.addAll(
                 listOf(
-                    "/META-INF/LICENSE*",
-                    "/META-INF/NOTICE*",
-                    "/META-INF/*.txt"
+                    "META-INF/LICENSE*",
+                    "META-INF/NOTICE*",
+                    "META-INF/*.txt"
                 )
             )
+            excludes += "DebugProbesKt.bin"
         }
         dex {
             //强制压缩Dex

@@ -7,7 +7,7 @@
 
 ![version](https://img.shields.io/maven-central/v/io.github.proify.lyricon/subscriber)
 
-在`build.gradle.kts` 中添加依赖：
+在 `build.gradle.kts` 中添加依赖：
 
 ```kotlin
 implementation("io.github.proify.lyricon:subscriber:0.1.70")
