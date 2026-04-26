@@ -120,6 +120,8 @@ class MainActivity : BaseActivity() {
      */
     private lateinit var manageStorageLauncher: ActivityResultLauncher<Intent>
 
+    private var isFilePermissionGranted = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         registerPermissionLaunchers()
         super.onCreate(savedInstanceState)
@@ -182,6 +184,10 @@ class MainActivity : BaseActivity() {
      * @param action 权限就绪后执行的代码逻辑
      */
     private fun runWithStoragePermission(action: () -> Unit) {
+        if (isFilePermissionGranted) {
+            action.invoke()
+            return
+        }
         pendingPermissionAction = action
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -207,12 +213,14 @@ class MainActivity : BaseActivity() {
     }
 
     private fun executePendingAction() {
+        isFilePermissionGranted = true
         pendingPermissionAction?.invoke()
         pendingPermissionAction = null
     }
 
     private fun handlePermissionDenied() {
         pendingPermissionAction = null
+        isFilePermissionGranted = false
         Toasty.show(R.string.write_permission_denied)
     }
 
@@ -231,7 +239,7 @@ class MainActivity : BaseActivity() {
         lifecycleScope.launch {
             try {
                 val response = LyriconBridge.with(this@MainActivity)
-                    .to(PackageNames.SYSTEM_UI_PLUGIN)
+                    .to(PackageNames.SYSTEM_UI)
                     .key(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE)
                     .await()
 

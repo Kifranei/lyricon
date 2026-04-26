@@ -10,6 +10,8 @@ import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageInfo
+import android.util.Log
+import androidx.annotation.Keep
 import androidx.core.content.pm.PackageInfoCompat
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.common.util.safe
@@ -18,6 +20,12 @@ class LyriconApp : Application() {
 
     init {
         instance = this
+    }
+
+    @Keep
+    override fun onCreate() {
+        super.onCreate()
+        Log.i(TAG, "LyriconApp created")
     }
 
     override fun attachBaseContext(base: Context) {

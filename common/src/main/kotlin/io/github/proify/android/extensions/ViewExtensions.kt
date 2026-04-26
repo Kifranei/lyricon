@@ -18,4 +18,10 @@ var View.visibilityIfChanged: Int
     }
 
 fun ViewGroup.getChildAtOrNull(index: Int): View? =
-    if (childCount > index) getChildAt(index) else null
+    if (childCount > index) {
+        try {
+            getChildAt(index)
+        } catch (e: Exception) {
+            null
+        }
+    } else null

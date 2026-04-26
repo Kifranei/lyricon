@@ -55,6 +55,9 @@ object SystemUIHooker : PackageHooker() {
     private var isSafeMode = false
     private var isAppCreated = false
 
+    var subscriber: LyriconSubscriber? = null
+        private set
+
     private val mainCoroutineScope by lazy {
         CoroutineScope(Dispatchers.Main + SupervisorJob())
     }
@@ -166,10 +169,11 @@ object SystemUIHooker : PackageHooker() {
             BridgeCentral.initialize(context)
             BridgeCentral.sendBootCompleted()
         } else {
-            YLog.info(TAG, "已禁用内置核心服务")
+            YLog.info(TAG, "已禁用内置中心服务")
         }
 
         val subscriber = LyriconFactory.createSubscriber(appContext!!)
+        this.subscriber = subscriber
 
         subscriber.subscribeActivePlayer(LyricDataHub)
 
@@ -241,12 +245,13 @@ object SystemUIHooker : PackageHooker() {
      */
     private fun addStatusBarView(view: ViewGroup) {
         view.doOnAttach {
-            val controller = StatusBarViewController(view, LyricPrefs.getLyricStyle())
+            val target = view.rootView as? ViewGroup ?: return@doOnAttach
+            val controller = StatusBarViewController(target, LyricPrefs.getLyricStyle())
             StatusBarViewManager.add(controller)
 
             val isFirst = StatusBarViewManager.controllers.size == 1
             if (isFirst) {
-                if (TEST_CRASH) view.postDelayed({ error("test crash") }, 3000)
+                if (TEST_CRASH) target.postDelayed({ error("test crash") }, 3000)
             }
         }
     }

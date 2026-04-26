@@ -9,5 +9,5 @@ package io.github.proify.lyricon.common
 object PackageNames {
     const val APPLICATION: String = BuildConfig.APP_PACKAGE_NAME
     const val SYSTEM_UI: String = "com.android.systemui"
-    const val SYSTEM_UI_PLUGIN: String = "miui.systemui.plugin"
+    const val MIUI_SYSTEM_UI_PLUGIN: String = "miui.systemui.plugin"
 }
