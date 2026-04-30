@@ -27,11 +27,3 @@ features:
     title: 插件支持
     details: 通过 LyricProvider 适配不同播放器。
 ---
-
-## 快速入口
-
-| 内容                       | 链接                                                       |
-|:-------------------------|:---------------------------------------------------------|
-| 安装、激活和配置                 | [App 使用文档](./app/README.md)                              |
-| 开发 Provider / Subscriber | [Developer 文档](./developer/README.md)                    |
-| 下载应用                     | [Releases](https://github.com/tomakino/lyricon/releases) |

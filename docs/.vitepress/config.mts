@@ -11,7 +11,7 @@ import { defineConfig } from 'vitepress'
                                      ],
                                      themeConfig : {
                                      logo : '/logo.svg',
-                                     siteTitle : 'Lyricon Docs',
+                                     siteTitle : '词幕',
                                      nav : [
                                      { text : '首页', link: '/' },
                                      { text: 'App', link: '/app/' },
