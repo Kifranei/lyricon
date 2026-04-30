@@ -48,14 +48,24 @@ const enSidebar = [
     text: 'Provider',
     items: [
       { text: 'Overview', link: '/en/developer/provider/' },
-      { text: 'Quick Start', link: '/en/developer/provider/quick-start' }
+                                                                                    { text : 'Quick Start', link: '/en/developer/provider/quick-start' },
+                                                                                    { text: 'Manifest', link: '/en/developer/provider/manifest' },
+                                                                                          { text : 'Connection Lifecycle', link: '/en/developer/provider/connection' },
+                                                                                          { text : 'Player Control', link: '/en/developer/provider/player-control' },
+               { text : 'Lyric Model', link: '/en/developer/provider/lyrics-model' },
+               { text : 'Local Testing', link: '/en/developer/provider/local-testing' },
+               { text: 'FAQ', link: '/en/developer/provider/faq' }
     ]
   },
   {
     text: 'Subscriber',
     items: [
       { text: 'Overview', link: '/en/developer/subscriber/' },
-      { text: 'Quick Start', link: '/en/developer/subscriber/quick-start' }
+{ text : 'Quick Start', link: '/en/developer/subscriber/quick-start' },
+{ text : 'Connection Lifecycle', link: '/en/developer/subscriber/connection' },
+{ text: 'Active Player', link: '/en/developer/subscriber/active-player' },
+      { text : 'Callbacks', link: '/en/developer/subscriber/callbacks' },
+      { text : 'FAQ', link: '/en/developer/subscriber/faq' }
     ]
   }
 ]
