@@ -15,15 +15,15 @@ configure<ApplicationExtension> {
     }
 
     packaging {
-        resources{
+        resources {
             excludes.addAll(
                 listOf(
-                    "META-INF/LICENSE*",
-                    "META-INF/NOTICE*",
-                    "META-INF/*.txt"
+                    "META-INF/**/LICENSE*",
+                    "META-INF/**/NOTICE*",
+                    "META-INF/*.version",
+                    "DebugProbesKt.bin"
                 )
             )
-            excludes += "DebugProbesKt.bin"
         }
         dex {
             //强制压缩Dex
