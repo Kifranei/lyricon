@@ -59,7 +59,7 @@ import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.EmojiInfiniteQueuePlayer
 import io.github.proify.lyricon.app.compose.MaterialPalette
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
+import io.github.proify.lyricon.app.compose.custom.miuix.extra.OverlayDialog
 import io.github.proify.lyricon.app.event.SettingChangedEvent
 import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.Utils
@@ -504,7 +504,7 @@ class MainActivity : BaseActivity() {
 
     @Composable
     private fun RestartFailDialog(showState: MutableState<Boolean>) {
-        SuperDialog(
+        OverlayDialog(
             title = stringResource(R.string.restart_fail),
             summary = stringResource(R.string.message_app_restart_fail),
             show = showState.value,

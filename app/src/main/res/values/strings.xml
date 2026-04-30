@@ -129,12 +129,6 @@
     <string name="item_base_insertion_before">Before</string>
     <string name="item_base_insertion_after">After</string>
     <string name="item_base_width">Width</string>
-    <string name="item_base_dynamic_width">Lyric width follows lyric length</string>
-    <string name="item_base_dynamic_width_auto_hide_clock">Auto-hide clock for long lyrics</string>
-    <string name="item_base_dynamic_width_auto_hide_clock_disabled_summary">Enable \"Lyric width follows lyric length\" first.</string>
-    <string name="item_base_dynamic_width_auto_hide_clock_summary">Only works when anchor is clock and you did not manually set \"hide clock while playing\".</string>
-    <string name="item_base_xiaomi_island_temp_hide">Hide Super Island</string>
-    <string name="item_base_xiaomi_island_temp_hide_summary">Hide only while lyrics are visible and restore automatically afterward.</string>
     <string name="item_base_width_color_os_capsule">Width (Capsule mode)</string>
     <string name="item_base_margins">Margins</string>
     <string name="item_base_paddings">Padding</string>
@@ -148,7 +142,6 @@
     <string name="module_tag_translation">Translation</string>
     <string name="no_provider_available">No lyric providers available</string>
     <string name="item_base_lockscreen_hidden">Hide on lock screen</string>
-    <string name="item_base_double_tap_switch_clock">Double-tap to switch clock/lyrics</string>
     <string name="option_provider_list_full">Full</string>
     <string name="option_provider_list_short">Compact</string>
     <string name="no_query_app_permission">Please grant permission to read installed apps</string>
@@ -174,7 +167,7 @@
     <string name="item_translation_custom_prompt">Custom Prompt</string>
     <string name="item_translation_model_api_key_not_set">API key is not configured</string>
     <string name="item_translation_model_empty">No available models found</string>
-    <string name="item_translation_model_load_failed">Failed to load models: %1$s</string>
+    <string name="title_translation_model_load_failed">Failed to load models</string>
     <string name="item_translation_only">Show translation only</string>
     <string name="alert_dialog_message_translation_clear">This action will clear the database. Are you sure you want to continue?</string>
     <string name="item_translation_disable">Hide translation</string>
@@ -196,5 +189,5 @@
 
     <string name="item_translation_auto_ignore_chinese">Ignore Chinese</string>
     <string name="item_translation_auto_ignore_chinese_summary">If the entire song is in Chinese, do not translate.</string>
-    <string name="dialog_title_available_models">可用模型</string>
+    <string name="dialog_title_available_models">Available Models</string>
 </resources>

@@ -3,7 +3,6 @@
 agp = "9.1.1"
 jetbrainsKotlinJvm = "2.3.21"
 kotlin = "2.3.21"
-ksp = "2.3.6"
 
 # AndroidX Base
 activity = "1.13.0"
@@ -103,7 +102,3 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 # ===== Kotlin =====
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
-# ===== Other =====
-#noinspection UnusedVersionCatalogEntry
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

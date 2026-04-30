@@ -23,7 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.proify.android.extensions.formatToString
 import io.github.proify.lyricon.app.R
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
+import io.github.proify.lyricon.app.compose.custom.miuix.extra.OverlayDialog
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.TextButton
 
@@ -50,7 +50,7 @@ fun RectFInputDialog(
         if (show.value) show.value = false
     }
 
-    SuperDialog(
+    OverlayDialog(
         title = title,
         show = show.value,
         onDismissRequest = { dismiss() }

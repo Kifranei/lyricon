@@ -41,7 +41,7 @@ import io.github.proify.android.extensions.formatToString
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.NumberTextField
 import io.github.proify.lyricon.app.compose.color
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
+import io.github.proify.lyricon.app.compose.custom.miuix.extra.OverlayDialog
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.TimeFormatter
 import io.github.proify.lyricon.app.util.editCommit
@@ -634,7 +634,7 @@ private fun InputDialogScaffold(
         }
     }
 
-    SuperDialog(
+    OverlayDialog(
         title = title,
         show = true,
         onDismissRequest = { dismiss() }

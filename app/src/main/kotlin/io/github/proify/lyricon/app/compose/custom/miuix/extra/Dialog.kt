@@ -16,10 +16,9 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.layout.DialogDefaults
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
 
 @Composable
-fun SuperDialog(
+fun OverlayDialog(
     show: Boolean,
     modifier: Modifier = Modifier,
     title: String? = null,
@@ -41,7 +40,7 @@ fun SuperDialog(
         if (show.not()) keyboardController?.hide()
     }
 
-    OverlayDialog(
+    top.yukonga.miuix.kmp.overlay.OverlayDialog(
         show = show,
         modifier = modifier,
         title = title,
@@ -56,6 +55,49 @@ fun SuperDialog(
         insideMargin = insideMargin,
         defaultWindowInsetsPadding = defaultWindowInsetsPadding,
         renderInRootScaffold = renderInRootScaffold,
+    ) {
+        Spacer(modifier = Modifier.height(10.dp))
+        content()
+    }
+}
+
+
+@Composable
+fun WindowDialog(
+    show: Boolean,
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    titleColor: Color = DialogDefaults.titleColor(),
+    summary: String? = null,
+    summaryColor: Color = DialogDefaults.summaryColor(),
+    backgroundColor: Color = DialogDefaults.backgroundColor(),
+    enableWindowDim: Boolean = true,
+    onDismissRequest: (() -> Unit)? = null,
+    onDismissFinished: (() -> Unit)? = null,
+    outsideMargin: DpSize = DialogDefaults.outsideMargin,
+    insideMargin: DpSize = DialogDefaults.insideMargin,
+    defaultWindowInsetsPadding: Boolean = true,
+    content: @Composable () -> Unit,
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    LaunchedEffect(show) {
+        if (show.not()) keyboardController?.hide()
+    }
+
+    top.yukonga.miuix.kmp.window.WindowDialog(
+        show = show,
+        modifier = modifier,
+        title = title,
+        titleColor = titleColor,
+        summary = summary,
+        summaryColor = summaryColor,
+        backgroundColor = backgroundColor,
+        enableWindowDim = enableWindowDim,
+        onDismissRequest = onDismissRequest,
+        onDismissFinished = onDismissFinished,
+        outsideMargin = outsideMargin,
+        insideMargin = insideMargin,
+        defaultWindowInsetsPadding = defaultWindowInsetsPadding,
     ) {
         Spacer(modifier = Modifier.height(10.dp))
         content()

@@ -129,12 +129,6 @@
     <string name="item_base_insertion_before">之前</string>
     <string name="item_base_insertion_after">之後</string>
     <string name="item_base_width">寬度</string>
-    <string name="item_base_dynamic_width">歌詞寬度跟隨歌詞長度</string>
-    <string name="item_base_dynamic_width_auto_hide_clock">歌詞過長時自動隱藏 clock</string>
-    <string name="item_base_dynamic_width_auto_hide_clock_disabled_summary">請先啟用「歌詞寬度跟隨歌詞長度」。</string>
-    <string name="item_base_dynamic_width_auto_hide_clock_summary">僅在錨點為 clock 且你未手動設定「clock 播放時隱藏」時生效。</string>
-    <string name="item_base_xiaomi_island_temp_hide">隱藏超級島</string>
-    <string name="item_base_xiaomi_island_temp_hide_summary">僅在歌詞顯示時隱藏，歌詞消失後自動恢復。</string>
     <string name="item_base_width_color_os_capsule">寬度（流體膠囊模式下）</string>
     <string name="item_base_margins">邊距</string>
     <string name="item_base_paddings">內距</string>
@@ -148,7 +142,6 @@
     <string name="module_tag_translation">翻譯</string>
     <string name="no_provider_available">沒有可用的歌詞提供者</string>
     <string name="item_base_lockscreen_hidden">在鎖定畫面隱藏</string>
-    <string name="item_base_double_tap_switch_clock">雙擊切換時鐘/歌詞</string>
     <string name="option_provider_list_full">完整</string>
     <string name="option_provider_list_short">精簡</string>
     <string name="no_query_app_permission">請授予讀取應用權限</string>
@@ -174,7 +167,7 @@
     <string name="item_translation_custom_prompt">自定義提示詞</string>
     <string name="item_translation_model_api_key_not_set">API Key 未設定</string>
     <string name="item_translation_model_empty">未取得可用模型</string>
-    <string name="item_translation_model_load_failed">載入模型失敗：%1$s</string>
+    <string name="title_translation_model_load_failed">載入模型失敗</string>
     <string name="item_translation_only">僅顯示翻譯</string>
     <string name="alert_dialog_message_translation_clear">此操作將清空資料庫，請確認是否繼續？</string>
     <string name="item_translation_disable">不顯示翻譯</string>
@@ -196,4 +189,7 @@
 
     <string name="item_translation_auto_ignore_chinese">不翻譯中文</string>
     <string name="item_translation_auto_ignore_chinese_summary">如果整首歌詞都是中文，則不翻譯。</string>
+
+    <string name="dialog_title_available_models">可用模型</string>
+
 </resources>

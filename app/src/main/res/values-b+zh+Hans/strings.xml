@@ -129,12 +129,6 @@
     <string name="item_base_insertion_before">之前</string>
     <string name="item_base_insertion_after">之后</string>
     <string name="item_base_width">宽度</string>
-    <string name="item_base_dynamic_width">歌词宽度跟随歌词长度</string>
-    <string name="item_base_dynamic_width_auto_hide_clock">歌词过长时自动隐藏 clock</string>
-    <string name="item_base_dynamic_width_auto_hide_clock_disabled_summary">请先开启“歌词宽度跟随歌词长度”。</string>
-    <string name="item_base_dynamic_width_auto_hide_clock_summary">仅在锚点为 clock 且你未手动配置“clock 播放时隐藏”时生效。</string>
-    <string name="item_base_xiaomi_island_temp_hide">隐藏超级岛</string>
-    <string name="item_base_xiaomi_island_temp_hide_summary">仅在歌词显示时隐藏，歌词消失后自动恢复。</string>
     <string name="item_base_width_color_os_capsule">宽度（流体云模式下）</string>
     <string name="item_base_margins">边距</string>
     <string name="item_base_paddings">内边距</string>
@@ -148,7 +142,6 @@
     <string name="module_tag_translation">翻译</string>
     <string name="no_provider_available">没有可用的歌词提供者</string>
     <string name="item_base_lockscreen_hidden">在锁屏界面隐藏</string>
-    <string name="item_base_double_tap_switch_clock">双击切换时钟/歌词</string>
     <string name="option_provider_list_full">完整</string>
     <string name="option_provider_list_short">精简</string>
     <string name="no_query_app_permission">请授予读取应用权限</string>
@@ -174,7 +167,7 @@
     <string name="item_translation_custom_prompt">自定义提示词</string>
     <string name="item_translation_model_api_key_not_set">API Key 未设置</string>
     <string name="item_translation_model_empty">未获取到可用模型</string>
-    <string name="item_translation_model_load_failed">加载模型失败：%1$s</string>
+    <string name="title_translation_model_load_failed">加载模型失败</string>
     <string name="item_translation_only">使用翻译代替歌词</string>
     <string name="item_translation_clear_db">清空数据库</string>
     <string name="alert_dialog_title_translation_clear">清空数据库</string>
@@ -197,4 +190,6 @@
 
     <string name="item_translation_auto_ignore_chinese">纯中文歌词不翻译</string>
     <string name="item_translation_auto_ignore_chinese_summary">如果整体歌词都是中文，跳过翻译。</string>
+    <string name="dialog_title_available_models">可用模型</string>
+
 </resources>

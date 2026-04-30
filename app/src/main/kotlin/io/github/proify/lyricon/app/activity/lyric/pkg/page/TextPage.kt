@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -37,7 +38,8 @@ import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
+import io.github.proify.lyricon.app.compose.custom.miuix.extra.OverlayDialog
+import io.github.proify.lyricon.app.compose.custom.miuix.extra.WindowDialog
 import io.github.proify.lyricon.app.compose.custom.miuix.preference.CheckboxPreference
 import io.github.proify.lyricon.app.compose.preference.DoubleInputPreference
 import io.github.proify.lyricon.app.compose.preference.IntInputPreference
@@ -53,7 +55,6 @@ import io.github.proify.lyricon.app.util.toast
 import io.github.proify.lyricon.common.PackageNames
 import io.github.proify.lyricon.lyric.style.TextStyle
 import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_API_KEY
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -538,6 +539,33 @@ private fun TranslationModelPreference(preferences: SharedPreferences) {
     val noModelsMessage = stringResource(R.string.item_translation_model_empty)
     val unknownErrorMessage = stringResource(R.string.unknown)
 
+    val showMsgDialog = remember { mutableStateOf(false) }
+    var msgDialogTitle by remember { mutableStateOf("") }
+    var msgDialogSummary by remember { mutableStateOf("") }
+
+    @Composable
+    fun MessageDialog(
+        show: MutableState<Boolean>,
+        title: String,
+        summary: String,
+    ) {
+        WindowDialog(
+            title = title,
+            summary = summary,
+            show = show.value,
+            onDismissRequest = { show.value = false }
+        ) {
+            val dismiss = LocalDismissState.current
+            TextButton(
+                text = stringResource(R.string.ok),
+                onClick = { dismiss?.invoke() },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.textButtonColorsPrimary(),
+            )
+        }
+    }
+    MessageDialog(showMsgDialog, msgDialogTitle, msgDialogSummary)
+
     StringInputPreference(
         preferences = preferences,
         key = preferenceKey,
@@ -576,14 +604,12 @@ private fun TranslationModelPreference(preferences: SharedPreferences) {
                                 showDialog = true
                             }
                         }.onFailure { error ->
-                            if (error is CancellationException) throw error
-                            toast(
-                                LyriconApp.get().getString(
-                                    R.string.item_translation_model_load_failed,
-                                    error.message ?: unknownErrorMessage
-                                ),
-                                true
-                            )
+                            val context = LyriconApp.get()
+
+                            msgDialogTitle =
+                                context.getString(R.string.title_translation_model_load_failed)
+                            msgDialogSummary = error.message ?: unknownErrorMessage
+                            showMsgDialog.value = true
                         }
                     }
                 }
@@ -637,7 +663,6 @@ private fun TranslationModelPreference(preferences: SharedPreferences) {
                             }
                         )
                     }
-
                 }
             }
         }
@@ -707,7 +732,7 @@ private data class OpenAiModel(
 @Composable
 private fun ClearTranslationDB() {
     val showDialog = remember { mutableStateOf(false) }
-    SuperDialog(
+    OverlayDialog(
         title = stringResource(R.string.alert_dialog_title_translation_clear),
         summary = stringResource(R.string.alert_dialog_message_translation_clear),
         show = showDialog.value,

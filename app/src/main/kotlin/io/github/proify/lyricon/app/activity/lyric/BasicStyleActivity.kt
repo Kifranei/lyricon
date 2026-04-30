@@ -163,36 +163,6 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         },
                     )
 
-//                    SwitchPreference(
-//                        preferences = preferences,
-//                        key = "lyric_style_base_dynamic_width_auto_hide_clock",
-//                        defaultValue = BasicStyle.Defaults.DYNAMIC_WIDTH_AUTO_HIDE_CLOCK,
-//                        title = stringResource(R.string.item_base_dynamic_width_auto_hide_clock),
-//                        summary = stringResource(
-//                            if (dynamicWidthEnabled.value) {
-//                                R.string.item_base_dynamic_width_auto_hide_clock_summary
-//                            } else {
-//                                R.string.item_base_dynamic_width_auto_hide_clock_disabled_summary
-//                            }
-//                        ),
-//                        startAction = {
-//                            IconActions(painterResource(R.drawable.ic_width_normal))
-//                        },
-//                        enabled = dynamicWidthEnabled.value
-//                    )
-
-//                    if (Utils.isHyperOs3OrAbove) {
-//                        SwitchPreference(
-//                            preferences = preferences,
-//                            key = "lyric_style_base_xiaomi_island_temp_hide_enabled",
-//                            defaultValue = BasicStyle.Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
-//                            title = stringResource(R.string.item_base_xiaomi_island_temp_hide),
-//                            summary = stringResource(R.string.item_base_xiaomi_island_temp_hide_summary),
-//                            startAction = {
-//                                IconActions(painterResource(R.drawable.ic_visibility_off))
-//                            },
-//                        )
-//                    }
                     if (Utils.isOPlus) {
                         DoubleInputPreference(
                             preferences = preferences,
