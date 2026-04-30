@@ -27,6 +27,32 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
 
     var isScrollOnly = false
 
+    var isCharMotionEnabled = true
+
+    var cjkMotionLiftFactor: Float
+        get() = textDrawer.cjkLiftFactor
+        set(value) {
+            textDrawer.cjkLiftFactor = value
+        }
+
+    var cjkMotionWaveFactor: Float
+        get() = textDrawer.cjkWaveFactor
+        set(value) {
+            textDrawer.cjkWaveFactor = value
+        }
+
+    var latinMotionLiftFactor: Float
+        get() = textDrawer.latinLiftFactor
+        set(value) {
+            textDrawer.latinLiftFactor = value
+        }
+
+    var latinMotionWaveFactor: Float
+        get() = textDrawer.latinWaveFactor
+        set(value) {
+            textDrawer.latinWaveFactor = value
+        }
+
     var isGradientEnabled = true
         set(value) {
             if (field != value) {
@@ -141,7 +167,7 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
             canvas, model, viewWidth, viewHeight,
             state.scrollOffset, model.width > viewWidth,
             progressAnimator.currentWidth,
-            isGradientEnabled, isScrollOnly,
+            isGradientEnabled, isScrollOnly, isCharMotionEnabled,
             bgPaint, hlPaint, paint
         )
     }

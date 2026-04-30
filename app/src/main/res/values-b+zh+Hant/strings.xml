@@ -95,6 +95,12 @@
     <string name="item_text_relative_progress">啟用相對進度歌詞</string>
     <string name="item_text_relative_progress_summary">當歌詞缺少單詞資料時，將整行視為單詞顯示。</string>
     <string name="item_text_relative_progress_highlight">顯示相對進度歌詞高亮進度</string>
+    <string name="item_text_word_motion_enable">啟用字詞上浮動畫</string>
+    <string name="item_text_word_motion_summary">中日韓歌詞按字元動畫，英文等拉丁文字按單詞動畫。</string>
+    <string name="item_text_word_motion_cjk_lift_factor">中日韓上浮係數</string>
+    <string name="item_text_word_motion_cjk_wave_factor">中日韓波長係數</string>
+    <string name="item_text_word_motion_latin_lift_factor">拉丁文字上浮係數</string>
+    <string name="item_text_word_motion_latin_wave_factor">拉丁文字波長係數</string>
     <string name="item_text_color_normal">正常顏色</string>
     <string name="item_text_color_background">背景顏色</string>
     <string name="item_text_color_highlight">高亮顏色</string>

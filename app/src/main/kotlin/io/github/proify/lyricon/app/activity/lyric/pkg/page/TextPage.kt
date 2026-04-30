@@ -333,6 +333,56 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     title = stringResource(R.string.item_text_relative_progress_highlight),
                     startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
+
+                var isWordMotionEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
+                    key = TextStyle.KEY_WORD_MOTION_ENABLED,
+                    defaultValue = TextStyle.Defaults.WORD_MOTION_ENABLED
+                )
+                SwitchPreference(
+                    checked = isWordMotionEnabled,
+                    onCheckedChange = { isWordMotionEnabled = it },
+                    title = stringResource(R.string.item_text_word_motion_enable),
+                    summary = stringResource(R.string.item_text_word_motion_summary),
+                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                )
+
+                DoubleInputPreference(
+                    preferences = preferences,
+                    key = TextStyle.KEY_WORD_MOTION_CJK_LIFT_FACTOR,
+                    title = stringResource(R.string.item_text_word_motion_cjk_lift_factor),
+                    defaultValue = TextStyle.Defaults.WORD_MOTION_CJK_LIFT_FACTOR.toDouble(),
+                    range = 0.0..0.2,
+                    enabled = isWordMotionEnabled,
+                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                )
+                DoubleInputPreference(
+                    preferences = preferences,
+                    key = TextStyle.KEY_WORD_MOTION_CJK_WAVE_FACTOR,
+                    title = stringResource(R.string.item_text_word_motion_cjk_wave_factor),
+                    defaultValue = TextStyle.Defaults.WORD_MOTION_CJK_WAVE_FACTOR.toDouble(),
+                    range = 0.5..8.0,
+                    enabled = isWordMotionEnabled,
+                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                )
+                DoubleInputPreference(
+                    preferences = preferences,
+                    key = TextStyle.KEY_WORD_MOTION_LATIN_LIFT_FACTOR,
+                    title = stringResource(R.string.item_text_word_motion_latin_lift_factor),
+                    defaultValue = TextStyle.Defaults.WORD_MOTION_LATIN_LIFT_FACTOR.toDouble(),
+                    range = 0.0..0.2,
+                    enabled = isWordMotionEnabled,
+                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                )
+                DoubleInputPreference(
+                    preferences = preferences,
+                    key = TextStyle.KEY_WORD_MOTION_LATIN_WAVE_FACTOR,
+                    title = stringResource(R.string.item_text_word_motion_latin_wave_factor),
+                    defaultValue = TextStyle.Defaults.WORD_MOTION_LATIN_WAVE_FACTOR.toDouble(),
+                    range = 0.5..8.0,
+                    enabled = isWordMotionEnabled,
+                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                )
             }
         }
 

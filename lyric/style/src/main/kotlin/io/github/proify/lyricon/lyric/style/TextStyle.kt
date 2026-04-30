@@ -47,6 +47,11 @@ data class TextStyle(
 
     var relativeProgress: Boolean = Defaults.RELATIVE_PROGRESS,
     var relativeProgressHighlight: Boolean = Defaults.RELATIVE_PROGRESS_HIGHLIGHT,
+    var wordMotionEnabled: Boolean = Defaults.WORD_MOTION_ENABLED,
+    var wordMotionCjkLiftFactor: Float = Defaults.WORD_MOTION_CJK_LIFT_FACTOR,
+    var wordMotionCjkWaveFactor: Float = Defaults.WORD_MOTION_CJK_WAVE_FACTOR,
+    var wordMotionLatinLiftFactor: Float = Defaults.WORD_MOTION_LATIN_LIFT_FACTOR,
+    var wordMotionLatinWaveFactor: Float = Defaults.WORD_MOTION_LATIN_WAVE_FACTOR,
     var scaleInMultiLine: Float = Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE,
 
     var transitionConfig: String? = Defaults.TRANSITION_CONFIG,
@@ -79,6 +84,13 @@ data class TextStyle(
 
         const val KEY_TEXT_TRANSLATION_ONLY = "lyric_style_text_translation_only"
         const val KEY_TEXT_TRANSLATION_DISABLE = "lyric_style_text_translation_disable"
+        const val KEY_WORD_MOTION_ENABLED = "lyric_style_text_word_motion_enabled"
+        const val KEY_WORD_MOTION_CJK_LIFT_FACTOR = "lyric_style_text_word_motion_cjk_lift_factor"
+        const val KEY_WORD_MOTION_CJK_WAVE_FACTOR = "lyric_style_text_word_motion_cjk_wave_factor"
+        const val KEY_WORD_MOTION_LATIN_LIFT_FACTOR =
+            "lyric_style_text_word_motion_latin_lift_factor"
+        const val KEY_WORD_MOTION_LATIN_WAVE_FACTOR =
+            "lyric_style_text_word_motion_latin_wave_factor"
         const val KEY_AI_TRANSLATION_IGNORE_CHINESE: String =
             "lyric_style_text_ai_translation_auto_ignore_chinese"
 
@@ -125,6 +137,11 @@ data class TextStyle(
         const val TEXT_SIZE_RATIO_IN_MULTI_LINE: Float = 0.86f
         const val RELATIVE_PROGRESS: Boolean = true
         const val RELATIVE_PROGRESS_HIGHLIGHT: Boolean = false
+        const val WORD_MOTION_ENABLED: Boolean = true
+        const val WORD_MOTION_CJK_LIFT_FACTOR: Float = 0.055f
+        const val WORD_MOTION_CJK_WAVE_FACTOR: Float = 2.8f
+        const val WORD_MOTION_LATIN_LIFT_FACTOR: Float = 0.065f
+        const val WORD_MOTION_LATIN_WAVE_FACTOR: Float = 3.6f
 
         const val TEXT_SIZE: Float = 0f
         val MARGINS: RectF = RectF()
@@ -236,6 +253,26 @@ data class TextStyle(
             "lyric_style_text_relative_progress_highlight",
             Defaults.RELATIVE_PROGRESS_HIGHLIGHT
         )
+        wordMotionEnabled = preferences.getBoolean(
+            KEY_WORD_MOTION_ENABLED,
+            Defaults.WORD_MOTION_ENABLED
+        )
+        wordMotionCjkLiftFactor = preferences.getFloat(
+            KEY_WORD_MOTION_CJK_LIFT_FACTOR,
+            Defaults.WORD_MOTION_CJK_LIFT_FACTOR
+        )
+        wordMotionCjkWaveFactor = preferences.getFloat(
+            KEY_WORD_MOTION_CJK_WAVE_FACTOR,
+            Defaults.WORD_MOTION_CJK_WAVE_FACTOR
+        )
+        wordMotionLatinLiftFactor = preferences.getFloat(
+            KEY_WORD_MOTION_LATIN_LIFT_FACTOR,
+            Defaults.WORD_MOTION_LATIN_LIFT_FACTOR
+        )
+        wordMotionLatinWaveFactor = preferences.getFloat(
+            KEY_WORD_MOTION_LATIN_WAVE_FACTOR,
+            Defaults.WORD_MOTION_LATIN_WAVE_FACTOR
+        )
         scaleInMultiLine = preferences.getFloat(
             "lyric_style_text_size_ratio_in_multi_line_mode",
             Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE
@@ -310,6 +347,11 @@ data class TextStyle(
             "lyric_style_text_relative_progress_highlight",
             relativeProgressHighlight
         )
+        editor.putBoolean(KEY_WORD_MOTION_ENABLED, wordMotionEnabled)
+        editor.putFloat(KEY_WORD_MOTION_CJK_LIFT_FACTOR, wordMotionCjkLiftFactor)
+        editor.putFloat(KEY_WORD_MOTION_CJK_WAVE_FACTOR, wordMotionCjkWaveFactor)
+        editor.putFloat(KEY_WORD_MOTION_LATIN_LIFT_FACTOR, wordMotionLatinLiftFactor)
+        editor.putFloat(KEY_WORD_MOTION_LATIN_WAVE_FACTOR, wordMotionLatinWaveFactor)
         editor.putFloat(
             "lyric_style_text_size_ratio_in_multi_line_mode",
             scaleInMultiLine

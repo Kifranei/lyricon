@@ -22,11 +22,13 @@ import io.github.proify.lyricon.lyric.view.LyricPlayListener
 import io.github.proify.lyricon.lyric.view.Marquee
 import io.github.proify.lyricon.lyric.view.TextLook
 import io.github.proify.lyricon.lyric.view.UpdatableColor
+import io.github.proify.lyricon.lyric.view.WordMotion
 import io.github.proify.lyricon.lyric.view.dp
 import io.github.proify.lyricon.lyric.view.line.model.LyricModel
 import io.github.proify.lyricon.lyric.view.line.model.createModel
 import io.github.proify.lyricon.lyric.view.line.model.emptyLyricModel
 import io.github.proify.lyricon.lyric.view.sp
+import kotlin.math.ceil
 
 open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
     View(context, attrs), UpdatableColor {
@@ -60,6 +62,28 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         set(value) {
             field = value
             syncRenderer.playListener = value
+        }
+
+    var isWordCharMotionEnabled: Boolean
+        get() = syncRenderer.isCharMotionEnabled
+        set(value) {
+            if (syncRenderer.isCharMotionEnabled == value) return
+            syncRenderer.isCharMotionEnabled = value
+            requestLayout()
+            invalidate()
+        }
+
+    var wordMotion: WordMotion = WordMotion()
+        set(value) {
+            if (field == value) return
+            field = value
+            syncRenderer.isCharMotionEnabled = value.enabled
+            syncRenderer.cjkMotionLiftFactor = value.cjkLiftFactor
+            syncRenderer.cjkMotionWaveFactor = value.cjkWaveFactor
+            syncRenderer.latinMotionLiftFactor = value.latinLiftFactor
+            syncRenderer.latinMotionWaveFactor = value.latinWaveFactor
+            requestLayout()
+            invalidate()
         }
 
     private val lineState = LineState()
@@ -258,7 +282,13 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
     override fun onMeasure(wSpec: Int, hSpec: Int) {
         val w = MeasureSpec.getSize(wSpec)
-        val textHeight = (textPaint.descent() - textPaint.ascent()).toInt()
+        val charMotionPadding = if (isWordCharMotionEnabled) {
+            val maxLift = maxOf(wordMotion.cjkLiftFactor, wordMotion.latinLiftFactor)
+            ceil(textPaint.textSize * maxLift).toInt()
+        } else {
+            0
+        }
+        val textHeight = (textPaint.descent() - textPaint.ascent()).toInt() + charMotionPadding
         setMeasuredDimension(w, resolveSize(textHeight, hSpec))
     }
 

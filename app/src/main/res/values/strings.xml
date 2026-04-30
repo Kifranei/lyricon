@@ -95,6 +95,12 @@
     <string name="item_text_relative_progress">Enable relative-progress lyrics</string>
     <string name="item_text_relative_progress_summary">If word timing is unavailable, treat the entire line as a single unit.</string>
     <string name="item_text_relative_progress_highlight">Show relative-progress highlight</string>
+    <string name="item_text_word_motion_enable">Enable word motion</string>
+    <string name="item_text_word_motion_summary">CJK lyrics animate by character; Latin lyrics animate by word.</string>
+    <string name="item_text_word_motion_cjk_lift_factor">CJK lift factor</string>
+    <string name="item_text_word_motion_cjk_wave_factor">CJK wave factor</string>
+    <string name="item_text_word_motion_latin_lift_factor">Latin lift factor</string>
+    <string name="item_text_word_motion_latin_wave_factor">Latin wave factor</string>
     <string name="item_text_color_normal">Normal color</string>
     <string name="item_text_color_background">Background color</string>
     <string name="item_text_color_highlight">Highlight color</string>

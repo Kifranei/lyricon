@@ -95,6 +95,12 @@
     <string name="item_text_relative_progress">启用相对进度歌词</string>
     <string name="item_text_relative_progress_summary">当歌词缺少单词数据时，将整行作为单词显示。</string>
     <string name="item_text_relative_progress_highlight">显示相对进度歌词高亮进度</string>
+    <string name="item_text_word_motion_enable">启用字词上浮动画</string>
+    <string name="item_text_word_motion_summary">中日韩歌词按字符动画，英文等拉丁文字按单词动画。</string>
+    <string name="item_text_word_motion_cjk_lift_factor">中日韩上浮系数</string>
+    <string name="item_text_word_motion_cjk_wave_factor">中日韩波长系数</string>
+    <string name="item_text_word_motion_latin_lift_factor">拉丁文字上浮系数</string>
+    <string name="item_text_word_motion_latin_wave_factor">拉丁文字波长系数</string>
     <string name="item_text_color_normal">正常颜色</string>
     <string name="item_text_color_background">背景颜色</string>
     <string name="item_text_color_highlight">高亮颜色</string>

@@ -37,6 +37,20 @@ After installing a plugin, reopen the player and start playback. If lyrics are n
 
 Status bar layouts vary across ROMs. Confirm that lyrics can be displayed first, then adjust position and style.
 
+### Word Motion
+
+Word-by-word lyrics support an Apple Music-like rise-to-baseline motion. Inactive text stays
+slightly below the baseline, then rises into place as the highlight wave sweeps across it.
+
+- CJK lyrics animate per character.
+- Latin lyrics animate per word.
+- The lift factor controls the initial offset below the baseline: `text size * lift factor`.
+- The wave factor controls how wide the spatial wave is. Larger values create smoother staggered
+  motion and softer settling.
+
+Default factors are `0.055 / 2.8` for CJK and `0.065 / 3.6` for Latin text. Reduce the lift factor
+for subtler motion, or increase the wave factor for a more continuous sweeping effect.
+
 ## Troubleshooting
 
 ### Lyrics are not displayed

@@ -131,7 +131,8 @@ class RichLyricLineView(
             style.highlight,
             style.marquee,
             style.gradient,
-            style.fadingEdge
+            style.fadingEdge,
+            style.wordMotion
         )
         applyLineStyle(
             secondary,
@@ -139,7 +140,8 @@ class RichLyricLineView(
             style.highlight,
             style.marquee,
             style.gradient,
-            style.fadingEdge
+            style.fadingEdge,
+            style.wordMotion
         )
     }
 
@@ -210,8 +212,9 @@ class RichLyricLineView(
 
     private fun applyLineStyle(
         view: LyricLineView, text: TextLook, highlight: Highlight,
-        marquee: Marquee, gradient: Boolean, fadingEdge: Int
+        marquee: Marquee, gradient: Boolean, fadingEdge: Int, wordMotion: WordMotion
     ) {
+        view.wordMotion = wordMotion
         view.configureWith(text, highlight, marquee, gradient, fadingEdge)
     }
 

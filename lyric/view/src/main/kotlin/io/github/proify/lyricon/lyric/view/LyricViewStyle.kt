@@ -14,6 +14,7 @@ data class LyricViewStyle(
     val secondary: TextLook = TextLook(size = 14f),
     val highlight: Highlight = Highlight(),
     val marquee: Marquee = Marquee(),
+    val wordMotion: WordMotion = WordMotion(),
     val gradient: Boolean = true,
     val fadingEdge: Int = 10,
     val scaleMultiLine: Float = 1f,
@@ -67,6 +68,14 @@ data class Marquee(
     val loopDelay: Int = 700,
     val repeatCount: Int = -1,
     val stopAtEnd: Boolean = false,
+)
+
+data class WordMotion(
+    val enabled: Boolean = true,
+    val cjkLiftFactor: Float = 0.055f,
+    val cjkWaveFactor: Float = 2.8f,
+    val latinLiftFactor: Float = 0.065f,
+    val latinWaveFactor: Float = 3.6f,
 )
 
 data class AnimParams(
