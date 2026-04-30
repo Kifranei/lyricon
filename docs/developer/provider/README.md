@@ -22,13 +22,13 @@ Lyricon 中心服务，再由 Lyricon 负责展示或分发。
 
 ## 文档目录
 
-- [快速开始](./quick-start.md)
-- [Manifest 配置](./manifest.md)
-- [连接生命周期](./connection.md)
-- [播放器控制](./player-control.md)
-- [歌词数据结构](./lyrics-model.md)
-- [本地测试](./local-testing.md)
-- [常见问题](./faq.md)
+- [快速开始](quick-start.md)
+- [Manifest 配置](manifest.md)
+- [连接生命周期](connection.md)
+- [播放器控制](player-control.md)
+- [歌词数据结构](lyrics-model.md)
+- [本地测试](local-testing.md)
+- [常见问题](faq.md)
 
 ## 核心类型
 

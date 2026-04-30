@@ -1,16 +1,14 @@
-# Lyricon 文档
+# Lyric Bridge 文档
 
-Lyricon 文档分为两个顶层分区：
+Lyric Bridge 提供面向第三方应用和插件的歌词数据接入能力，主要包含两类接口：
 
-- **App**：Lyricon 主体应用的安装、配置和使用说明。
-- **Lyric**：歌词数据模型、Bridge 接入和显示相关文档。
+- **Provider**：由音乐播放器或歌词插件接入，用于向 Lyricon 推送歌曲、歌词、播放状态和显示配置。
+- **Subscriber**：由第三方应用接入，用于订阅 Lyricon 当前活跃播放器、歌曲、歌词和播放状态。
 
 ## 快速入口
 
-- [App 文档](./app/README.md)
-- [Lyric 文档](./lyric/README.md)
-- [Provider 开发文档](./lyric/bridge/provider/README.md)
-- [Subscriber 接入文档](./lyric/bridge/subscriber/README.md)
+- [Provider 开发文档](provider/README.md)
+- [Subscriber 接入文档](subscriber/README.md)
 
 ## 如何选择
 

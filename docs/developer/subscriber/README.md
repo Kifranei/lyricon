@@ -22,11 +22,11 @@ Subscriber 是 Lyricon 的歌词订阅端接口。第三方应用可以通过 Su
 
 ## 文档目录
 
-- [快速开始](./quick-start.md)
-- [连接生命周期](./connection.md)
-- [活跃播放器](./active-player.md)
-- [回调说明](./callbacks.md)
-- [常见问题](./faq.md)
+- [快速开始](quick-start.md)
+- [连接生命周期](connection.md)
+- [活跃播放器](active-player.md)
+- [回调说明](callbacks.md)
+- [常见问题](faq.md)
 
 ## 核心类型
 
