@@ -248,5 +248,7 @@
 
     <string name="item_view_on_github_summary">查看项目/提交问题</string>
     <string name="item_open_source_licenses_summary">查看软件依赖和许可证信息</string>
+    <string name="about_badge_live_lyrics">实时歌词</string>
+    <string name="about_tagline">让每一句歌词都准时抵达</string>
 
 </resources>

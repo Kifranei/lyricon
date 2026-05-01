@@ -58,6 +58,7 @@ dependencies {
 
     // --- 第三方 UI 库 ---
     implementation(libs.miuix.android)
+    implementation(libs.miuix.blur)
     implementation(libs.miuix.icons)
     implementation(libs.miuix.preference)
 

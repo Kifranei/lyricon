@@ -32,6 +32,10 @@ subscriber.subscribeActivePlayer(object : SimpleActivePlayerListener {
 subscriber.register()
 ```
 
-## More
+## Documentation
 
 - [Quick Start](quick-start.md)
+- [Connection Lifecycle](connection.md)
+- [Active Player](active-player.md)
+- [Callbacks](callbacks.md)
+- [FAQ](faq.md)

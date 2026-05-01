@@ -30,6 +30,12 @@ provider.player.setPlaybackState(true)
 provider.player.sendText("I can't just be an ordinary friend")
 ```
 
-## More
+## Documentation
 
 - [Quick Start](quick-start.md)
+- [Manifest](manifest.md)
+- [Connection Lifecycle](connection.md)
+- [Player Control](player-control.md)
+- [Lyric Model](lyrics-model.md)
+- [Local Testing](local-testing.md)
+- [FAQ](faq.md)

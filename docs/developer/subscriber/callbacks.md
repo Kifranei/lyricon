@@ -44,8 +44,7 @@ override fun onReceiveText(text: String?) {
 当 Provider 发送纯文本歌词时触发。一些 Provider 可能会发送多行文本，例如：
 
 ```text
-你好 世界
-Hello world
+你好 世界\nHello world
 ```
 
 如果应用只支持结构化歌词，也应该处理纯文本回调，避免界面没有任何反馈。

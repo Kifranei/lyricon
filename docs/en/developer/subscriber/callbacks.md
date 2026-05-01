@@ -46,8 +46,7 @@ Called when the Provider sends plain text lyrics. Some Providers may send multi-
 example:
 
 ```text
-你好 世界
-Hello world
+你好 世界\nHello world
 ```
 
 Apps should handle this callback even if they primarily support structured lyrics.

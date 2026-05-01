@@ -245,4 +245,6 @@
 
     <string name="item_view_on_github_summary">View on GitHub / Report issues.</string>
     <string name="item_open_source_licenses_summary">Show licenses of third-party software.</string>
+    <string name="about_badge_live_lyrics">Live Lyrics</string>
+    <string name="about_tagline">Make every lyric land in the right moment</string>
 </resources>

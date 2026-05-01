@@ -246,4 +246,6 @@
 
     <string name="item_view_on_github_summary">檢視 GitHub / 報告問題</string>
     <string name="item_open_source_licenses_summary">顯示第三方軟體的授權</string>
+    <string name="about_badge_live_lyrics">即時歌詞</string>
+    <string name="about_tagline">讓每一句歌詞都準時抵達</string>
 </resources>
