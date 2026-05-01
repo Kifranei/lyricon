@@ -62,8 +62,8 @@ class AnchorViewTreeActivity : ViewTreeActivity() {
     object : ViewTreeViewModel() {
         override fun handleNodeClick(node: Node<ViewTreeNode>) {
             val value = node.content
-            val id = value.id ?: return
-            if (id == "status_bar" || id == currentAnchor) return
+            val id = value.id
+            if (id.isNullOrBlank() || id == "status_bar" || id == currentAnchor) return
             saveAnchorId(id)
         }
 

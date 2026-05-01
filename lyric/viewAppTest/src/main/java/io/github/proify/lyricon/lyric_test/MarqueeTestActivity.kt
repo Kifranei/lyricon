@@ -10,10 +10,9 @@ import android.graphics.Typeface
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import io.github.proify.lyricon.lyric.model.LyricLine
-import io.github.proify.lyricon.lyric.view.DefaultMarqueeConfig
-import io.github.proify.lyricon.lyric.view.DefaultSyllableConfig
-import io.github.proify.lyricon.lyric.view.LyricLineConfig
-import io.github.proify.lyricon.lyric.view.MainTextConfig
+import io.github.proify.lyricon.lyric.view.Highlight
+import io.github.proify.lyricon.lyric.view.Marquee
+import io.github.proify.lyricon.lyric.view.TextLook
 import io.github.proify.lyricon.lyric_test.databinding.MarqueeBinding
 
 class MarqueeTestActivity : AppCompatActivity() {
@@ -22,30 +21,26 @@ class MarqueeTestActivity : AppCompatActivity() {
         val binding = MarqueeBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.line.setStyle(
-            LyricLineConfig(
-                text = MainTextConfig(),
-                marquee = DefaultMarqueeConfig(),
-                syllable = DefaultSyllableConfig(),
-                gradientProgressStyle = true,
-                fadingEdgeLength = 10.dp
-            ).apply {
-                text.apply {
-                    textSize = 28f.sp
-                    typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-                }
-                marquee.apply {
-                    ghostSpacing = 10.dp.toFloat()
-                    scrollSpeed = 120f
-                    loopDelay = 0
-                    repeatCount = 2
-                    stopAtEnd = false
-                }
-            })
+        binding.line.configureWith(
+            text = TextLook(
+                size = 28f,
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            ),
+            highlight = Highlight(),
+            marquee = Marquee(
+                spacing = 10f,
+                speed = 120f,
+                loopDelay = 0,
+                repeatCount = 2,
+                stopAtEnd = false
+            ),
+            gradient = true,
+            fadingEdge = 10,
+        )
 
         binding.line.setLyric(LyricLine(text = "哈基米叮咚鸡胖宝宝踩踩背搞核酸"))
         binding.line.post {
-            binding.line.reqStartMarquee()
+            binding.line.requestScroll()
         }
     }
 }

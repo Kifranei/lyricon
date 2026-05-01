@@ -13,9 +13,10 @@ import android.os.Build
 import android.os.Bundle
 import android.view.HapticFeedbackConstants
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -44,9 +45,10 @@ import io.github.proify.lyricon.common.PackageNames
 import io.github.proify.lyricon.common.util.ViewTreeNode
 import io.github.proify.lyricon.lyric.style.VisibilityRule
 import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.overScrollVertical
+import top.yukonga.miuix.kmp.window.WindowBottomSheet
 
 class ViewRulesTreeActivity : ViewTreeActivity() {
     internal val viewModel: RuleViewModel by viewModels()
@@ -164,20 +166,24 @@ class ViewRulesTreeActivity : ViewTreeActivity() {
 
         val context = LocalContext.current
 
-        OverlayBottomSheet(
+        WindowBottomSheet(
             show = show.value,
             modifier = Modifier,
             title = nodeId,
             backgroundColor = MiuixTheme.colorScheme.surface,
             onDismissRequest = { show.value = false },
-            insideMargin = DpSize(16.dp, 0.dp),
+            insideMargin = DpSize(0.dp, 0.dp),
             content = {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    options.forEach { option ->
-                        VisibilityOptionItem(option, selectedMode, onModeSelected, context)
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .overScrollVertical(),
+                )
+                {
+                    items(options, key = { it.titleRes }) {
+                        VisibilityOptionItem(it, selectedMode, onModeSelected, context)
                     }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
             })
     }
 
@@ -188,24 +194,31 @@ class ViewRulesTreeActivity : ViewTreeActivity() {
         onModeSelected: (Int) -> Unit,
         context: Context
     ) {
-        CheckboxPreference(
-            title = stringResource(option.titleRes),
-            checked = selectedMode == option.mode,
-            onCheckedChange = { isChecked ->
-                if (isChecked && selectedMode != option.mode) {
-                    onModeSelected(option.mode)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                        (context as? Activity)?.window?.decorView?.performHapticFeedback(
-                            HapticFeedbackConstants.TOGGLE_ON
-                        )
-                    } else {
-                        (context as? Activity)?.window?.decorView?.performHapticFeedback(
-                            HapticFeedbackConstants.CONTEXT_CLICK
-                        )
+        Card(
+            modifier =
+                Modifier
+                    .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
+                    .fillMaxWidth()
+        ) {
+            CheckboxPreference(
+                title = stringResource(option.titleRes),
+                checked = selectedMode == option.mode,
+                onCheckedChange = { isChecked ->
+                    if (isChecked && selectedMode != option.mode) {
+                        onModeSelected(option.mode)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                            (context as? Activity)?.window?.decorView?.performHapticFeedback(
+                                HapticFeedbackConstants.TOGGLE_ON
+                            )
+                        } else {
+                            (context as? Activity)?.window?.decorView?.performHapticFeedback(
+                                HapticFeedbackConstants.CONTEXT_CLICK
+                            )
+                        }
                     }
                 }
-            }
-        )
+            )
+        }
     }
 
     private data class VisibilityOption(

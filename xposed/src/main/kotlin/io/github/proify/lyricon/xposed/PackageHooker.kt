@@ -18,6 +18,9 @@ abstract class PackageHooker {
 
     fun isMainProcess() = processName == packageName
 
+    /**
+     * 确保在Application创建时执行
+     */
     fun doOnAppCreated(callback: (Application) -> Unit) {
         packageHelper.doOnAppCreated(callback)
     }

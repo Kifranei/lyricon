@@ -14,10 +14,6 @@ import io.github.proify.lyricon.xposed.logger.YLog
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * 强化版 PackageHelper
- * 支持根据 AndroidManifest 中定义的 Application 真实类名进行精准 Hook
- */
 class PackageHelper(
     private val param: XC_LoadPackage.LoadPackageParam
 ) {
@@ -33,7 +29,7 @@ class PackageHelper(
     private val isHooked = AtomicBoolean(false)
 
     /**
-     * 执行初始化任务
+     * 在 Application 创建时执行回调
      */
     fun doOnAppCreated(callback: (Application) -> Unit) {
         val current = appInstance

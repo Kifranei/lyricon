@@ -23,15 +23,4 @@ data class ViewTreeNode(
     @Transient
     @IgnoredOnParcel
     var view: WeakReference<View>? = null
-) : Parcelable {
-
-//    fun findById(id: String?): ViewTreeNode? {
-//        if (this.id == id) return this
-//        children?.forEach {
-//            it.findById(id)?.let { node ->
-//                return node
-//            }
-//        }
-//        return null
-//    }
-}
+) : Parcelable

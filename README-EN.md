@@ -1,4 +1,5 @@
 <!--suppress ALL -->
+
 <p align="center">
   <img src="resources/logo.svg" width="100" alt="Lyricon Logo"/>
 </p>
@@ -6,14 +7,14 @@
 <h1 align="center">Lyricon</h1>
 
 <p align="center">
-  <b>An Xposed-based Status Bar Lyric Enhancement Tool for Android</b>
+  <b>An Android status bar lyric enhancement tool based on the Xposed framework</b>
 </p>
 
 <p align="center">
-  <a href="https://github.com/Kifranei/lyricon/releases"><img src="https://img.shields.io/github/v/release/Kifranei/lyricon?style=flat&color=blue" alt="Version"></a>
-  <a href="https://github.com/Kifranei/lyricon/releases"><img src="https://img.shields.io/github/downloads/Kifranei/lyricon/total?style=flat&color=orange" alt="Downloads"></a>
-  <a href="https://github.com/Kifranei/lyricon/commits"><img src="https://img.shields.io/github/last-commit/Kifranei/lyricon?style=flat" alt="Last Commit"></a>
-  <a href="https://github.com/Kifranei/lyricon/blob/main/LICENSE"><img src="https://img.shields.io/github/license/Kifranei/lyricon?style=flat" alt="License"></a>
+  <a href="https://github.com/tomakino/lyricon/releases"><img src="https://img.shields.io/github/v/release/tomakino/lyricon?style=flat&color=blue" alt="Version"></a>
+  <a href="https://github.com/tomakino/lyricon/releases"><img src="https://img.shields.io/github/downloads/tomakino/lyricon/total?style=flat&color=orange" alt="Downloads"></a>
+  <a href="https://github.com/tomakino/lyricon/commits"><img src="https://img.shields.io/github/last-commit/tomakino/lyricon?style=flat" alt="Last Commit"></a>
+  <a href="https://github.com/tomakino/lyricon/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tomakino/lyricon?style=flat" alt="License"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Document-Chinese-red.svg" alt="CN"></a>
 </p>
 
@@ -30,11 +31,11 @@
 
 ## ✨ Features
 
-- 🎤 **Lyric Display** — Supports word-by-word lyrics, translations, and duet modes.
-- 🧩 **Modular Design** — Extend lyric sources for various players through an independent plugin
-  system.
-- 🎨 **Visual Customization** — Adjust font styles, logos, coordinate offsets, and animations to fit
-  your UI.
+- 🎤 **Lyric Display** — Supports word-by-word lyrics, translated lyrics, and duet mode.
+- 🧩 **Modular Design** — Supports extending lyric sources for different music players through an
+  independent plugin system.
+- 🎨 **Visual Customization** — Supports adjusting font styles, logo display, coordinate offsets, and
+  animation effects.
 
 ---
 
@@ -42,38 +43,40 @@
 
 ### 📋 Requirements
 
-- **System**: Android 8.1 (API 27) or higher.
-- **Prerequisites**: Device must be **Rooted** with the **LSPosed** (or compatible Xposed) framework
-  installed.
+- **System Version**: Android 9.0 (API 28) or later.
+- **Prerequisites**: The device must have **Root** access and the **LSPosed** framework, or a
+  compatible Xposed framework, installed.
 
 > [!TIP]
-> It is recommended to use the latest stable version of LSPosed for optimal compatibility.
+> For better stability, the latest stable version of LSPosed is recommended.
 
-### ⚙️ Installation & Setup
+### ⚙️ Installation & Configuration
 
-1. **Download Main App**: Get the Lyricon app
-   from [Releases](https://github.com/Kifranei/lyricon/releases).
-2. **Activate Module**: Enable "Lyricon" in the LSPosed manager and ensure the **System UI** scope
-   is checked.
-3. **Apply Changes**: Restart System UI or reboot your device to complete the Hook injection.
-4. **Install Plugins**: Download the corresponding plugin for your music player
-   from [LyricProvider](https://github.com/tomakino/LyricProvider).
-5. **Configuration**: Open the Lyricon app to adjust position anchors, width, and visual styles.
-6. **Enjoy**: Play music and check your status bar for live lyrics.
+1. **Download the Main App**: Download and install Lyricon
+   from [Releases](https://github.com/tomakino/lyricon/releases).
+2. **Activate the Module**: Enable the "Lyricon" module in LSPosed Manager and select the **System
+   UI** scope.
+3. **Restart to Apply**: Restart System UI or reboot the device to complete Hook injection.
+4. **Install Plugins**: Download the corresponding plugin
+   from [LyricProvider](https://github.com/tomakino/LyricProvider) according to the music player you
+   use.
+5. **Adjust Parameters**: Open the Lyricon app and adjust the position anchor, width, and visual
+   style according to your screen.
+6. **Test It**: Launch your music player and play music, then check whether lyrics are displayed
+   correctly in the status bar.
 
 ---
 
 ## 🧩 Ecosystem & Support
 
-| Category           | Links                                                                                                      | Description                                 |
-|:-------------------|:-----------------------------------------------------------------------------------------------------------|:--------------------------------------------|
-| **Plugin Library** | [LyricProvider Repo](https://github.com/tomakino/LyricProvider)                                            | Plugins for mainstream music platforms      |
-| **Development**    | [Dev Guide](https://github.com/Kifranei/lyricon/blob/master/lyric/bridge/provider/README-EN.md)            | Learn how to build lyric provider plugins   |
-| **Subscription**   | [Subscription Guide](https://github.com/Kifranei/lyricon/blob/master/lyric/bridge/subscriber/README-EN.md) | Methods for 3rd-party apps to access lyrics |
+| Category           | Resource Link                                                         | Description                                       |
+|:-------------------|:----------------------------------------------------------------------|:--------------------------------------------------|
+| **Plugin Library** | [LyricProvider Repository](https://github.com/tomakino/LyricProvider) | Adaptation plugins for mainstream music platforms |
+| **Documentation**  | [Documentation Center](https://tomakino.github.io/lyricon/)           | App and Lyric documentation                       |
 
-### 💡 Native Support Apps
+### 💡 Natively Supported Apps
 
-- [**Light Cone Player**](https://coneplayer.trantor.ink/)
+- [**ConePlayer**](https://coneplayer.trantor.ink/)
 - **Flamingo**
 - [**BBPlayer**](https://bbplayer.roitium.com/)
 - **MobiMusic**
@@ -81,29 +84,31 @@
 - **Sollin Player**
 - [**QZ Music**](https://github.com/lqtmcstudio/QZMusic)
 
+#### Is your player already supported but not listed here? Please [submit an issue](https://github.com/tomakino/lyricon/issues).
+
 ---
 
 ## 👥 Contributors
 
-[![Contributors](https://contrib.rocks/image?repo=Kifranei/lyricon)](https://github.com/Kifranei/lyricon/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=tomakino/lyricon)](https://github.com/tomakino/lyricon/graphs/contributors)
 
 ---
 
 ## ⭐ Star History
 
 <p align="center">
-  <a href="https://www.star-history.com/#Kifranei/lyricon&Date">
+  <a href="https://www.star-history.com/#tomakino/lyricon&Date">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=Kifranei/lyricon&type=Date&theme=dark" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=Kifranei/lyricon&type=Date" />
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=Kifranei/lyricon&type=Date" width="600" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=tomakino/lyricon&type=Date&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=tomakino/lyricon&type=Date" />
+      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=tomakino/lyricon&type=Date" width="600" />
     </picture>
   </a>
 </p>
 
 ---
 
-### 👀 Traffic
+### 👀 Visit Statistics
 
 <p align="center">
   <img src="https://count.getloli.com/get/@tomakino_lyricon?theme=minecraft" alt="Visitor Count" />

@@ -19,9 +19,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -32,6 +34,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
@@ -41,6 +44,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -234,6 +238,29 @@ class AboutActivity : BaseActivity() {
                     .onSizeChanged { size -> with(density) { logoHeightDp = size.height.toDp() } },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
+                Box(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CircleShape)
+                        .textureBlur(
+                            backdrop = backdrop,
+                            shape = SmoothRoundedCornerShape(45.dp),
+                            blurRadius = 150f,
+                            noiseCoefficient = BlurDefaults.NoiseCoefficient,
+                            colors = BlurColors(blendColors = titleBlend),
+                            contentBlendMode = BlendMode.DstIn,
+                            enabled = blurEnable,
+                        ),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_music_note),
+                        contentDescription = null,
+                        tint = if (isDark) Color.White else colorScheme.onBackground,
+                        modifier = Modifier.size(48.dp),
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     modifier = Modifier
                         .padding(bottom = 8.dp)
@@ -319,14 +346,49 @@ class AboutActivity : BaseActivity() {
                 item(key = "about_project") {
                     SmallTitle(text = stringResource(R.string.section_about_project))
                     FrostedCard(backdrop = backdrop, blurEnable = blurEnable, cardBlendColors = cardBlendColors) {
-                        ArrowPreference(
-                            title = stringResource(R.string.item_view_on_github),
+                        BasicComponent(
+                            title = stringResource(R.string.item_app_version),
+                            summary = versionSummary,
+                        )
+                        BasicComponent(
+                            title = stringResource(R.string.app_name),
                             summary = githubHome.removePrefix("https://"),
                             onClick = { launchBrowser(githubHome) },
                         )
-                        ArrowPreference(
-                            title = stringResource(R.string.item_open_source_license),
-                            summary = stringResource(R.string.item_open_source_license_summary),
+                    }
+                }
+
+                item(key = "about_thanks") {
+                    SmallTitle(text = stringResource(R.string.section_about_thanks))
+                    FrostedCard(backdrop = backdrop, blurEnable = blurEnable, cardBlendColors = cardBlendColors) {
+                        BasicComponent(
+                            title = "tomakino",
+                            summary = "Upstream Lyricon",
+                            onClick = { launchBrowser("https://github.com/tomakino/lyricon") },
+                        )
+                        BasicComponent(
+                            title = "Kifranei",
+                            summary = "Fork customization",
+                        )
+                    }
+                }
+
+                item(key = "about_open_source") {
+                    SmallTitle(text = stringResource(R.string.section_about_open_source))
+                    FrostedCard(backdrop = backdrop, blurEnable = blurEnable, cardBlendColors = cardBlendColors) {
+                        BasicComponent(
+                            title = "Miuix",
+                            summary = "MIUI/HyperOS Compose UI",
+                            onClick = { launchBrowser("https://github.com/miuix-kmp/miuix") },
+                        )
+                        BasicComponent(
+                            title = "Lyricon",
+                            summary = "Provider API and status bar lyric",
+                            onClick = { launchBrowser(githubHome) },
+                        )
+                        BasicComponent(
+                            title = stringResource(R.string.item_open_source_licenses),
+                            summary = stringResource(R.string.item_open_source_licenses_summary),
                             onClick = { startActivity(Intent(this@AboutActivity, LicensesActivity::class.java)) },
                         )
                     }

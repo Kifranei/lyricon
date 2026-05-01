@@ -248,7 +248,7 @@ class StatusBarViewController(
 
         val anchorIndex = anchorParent.indexOfChild(anchorView)
         val lp = lyricView.layoutParams ?: ViewGroup.LayoutParams(
-            if (baseStyle.dynamicWidthEnabled) ViewGroup.LayoutParams.WRAP_CONTENT else baseStyle.width.dp,
+            baseStyle.width.dp,
             ViewGroup.LayoutParams.MATCH_PARENT
         )
 

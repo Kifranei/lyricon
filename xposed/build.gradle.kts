@@ -56,8 +56,8 @@ dependencies {
     implementation(project(":lyric:bridge:central"))
     implementation(project(":lyric:bridge:provider"))
     implementation(project(":lyric:bridge:subscriber"))
+    implementation(project(":opencc-lite"))
 
-    //implementation(libs.opencc4j)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.core.ktx)
     compileOnly(libs.xposed.api)

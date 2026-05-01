@@ -7,6 +7,7 @@
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="PackageVisibilityPolicy" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <queries>
         <package android:name="com.oplus.systemui.plugins" />
@@ -15,10 +16,9 @@
     <application
         android:name=".LyriconApp"
         android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.DayNight">
@@ -55,19 +55,19 @@
 
         <activity
             android:name=".activity.LicensesActivity"
-            android:label="@string/activity_open_source_license" />
+            android:label="@string/activity_open_source_licenses" />
 
         <activity
             android:name=".activity.lyric.BasicLyricStyleActivity"
-            android:label="@string/activity_base_lyric_style" />
+            android:label="@string/activity_basic_settings" />
 
         <activity
             android:name=".activity.lyric.pkg.PackageStyleActivity"
-            android:label="@string/activity_package_style_manager" />
+            android:label="@string/activity_app_style_manager" />
 
         <activity
             android:name=".activity.lyric.provider.LyricProviderActivity"
-            android:label="@string/activity_lyric_provider" />
+            android:label="@string/activity_lyric_provider_services" />
 
         <activity
             android:name=".activity.lyric.AnchorViewTreeActivity"

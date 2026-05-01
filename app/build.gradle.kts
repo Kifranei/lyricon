@@ -151,12 +151,14 @@ dependencies {
 
     // --- 第三方 UI 库 ---
     implementation(libs.miuix.android)
+    implementation(libs.miuix.blur)
     implementation(libs.miuix.icons)
     implementation(libs.miuix.preference)
     implementation(libs.miuix.blur)
 
     implementation(libs.aboutlibraries.core)
     implementation(libs.accompanist.drawablepainter)
+    implementation(libs.backdrop)
     implementation(libs.chrisbanes.haze)
     implementation(libs.bonsai.core)
     implementation(libs.capsule.android)
@@ -177,11 +179,8 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.foundation) // 包含了 foundation-layout
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    // 仅在必要时保留此 alpha/特定组件
-    implementation(libs.androidx.compose.remote.creation.core)
 
     // --- 单元测试 ---
     testImplementation(libs.junit)

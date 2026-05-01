@@ -13,11 +13,7 @@ import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.common.PackageNames
 
 fun updateRemoteLyricStyle() {
-    fun getCallSourceMethod(): String {
-        val stackTrace = Thread.currentThread().stackTrace
-        return if (stackTrace.size > 3) "${stackTrace[3].className}.${stackTrace[3].methodName}" else "Unknown"
-    }
-    Log.d(LyriconApp.TAG, "updateRemoteLyricStyle called from ${getCallSourceMethod()}")
+    Log.d(LyriconApp.TAG, "updateRemoteLyricStyle called")
 
     LyriconBridge.with(LyriconApp.get())
         .to(PackageNames.SYSTEM_UI)

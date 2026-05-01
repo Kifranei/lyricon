@@ -18,17 +18,19 @@ import androidx.core.view.updatePadding
 import io.github.proify.android.extensions.dp
 import io.github.proify.android.extensions.sp
 import io.github.proify.lyricon.lyric.style.LyricStyle
-import io.github.proify.lyricon.lyric.style.RainbowTextColor
 import io.github.proify.lyricon.lyric.style.TextStyle
-import io.github.proify.lyricon.lyric.view.DefaultMarqueeConfig
+import io.github.proify.lyricon.lyric.view.AnimParams
+import io.github.proify.lyricon.lyric.view.Highlight
 import io.github.proify.lyricon.lyric.view.LyricPlayerView
+import io.github.proify.lyricon.lyric.view.LyricViewStyle
+import io.github.proify.lyricon.lyric.view.Marquee
 import io.github.proify.lyricon.lyric.view.RichLyricLineView
+import io.github.proify.lyricon.lyric.view.TextLook
+import io.github.proify.lyricon.lyric.view.TitleSlot
+import io.github.proify.lyricon.lyric.view.WordMotion
 import java.io.File
 import kotlin.math.min
 
-/**
- * 高级歌词文本渲染控件，支持逐字染色、跑马灯及间奏监听。
- */
 class SuperText(context: Context) : LyricPlayerView(context) {
 
     @Suppress("unused")
@@ -44,7 +46,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             Color.parseColor("#2ED573"),
             Color.parseColor("#1E90FF"),
             Color.parseColor("#5352ED"),
-            Color.parseColor("#A55EEA")
+            Color.parseColor("#A55EEA"),
         )
         private val LIGHT_MODE_RAINBOW_COLORS = intArrayOf(
             Color.parseColor("#C53A3D"),
@@ -53,40 +55,25 @@ class SuperText(context: Context) : LyricPlayerView(context) {
             Color.parseColor("#1E8E3E"),
             Color.parseColor("#1565C0"),
             Color.parseColor("#3949AB"),
-            Color.parseColor("#7B1FA2")
+            Color.parseColor("#7B1FA2"),
         )
     }
 
-    /**
-     * 关联的系统 TextView，用于同步默认的字体、字号等样式。
-     */
     var linkedTextView: TextView? = null
 
-    /**
-     * 歌词事件监听器
-     */
     var eventListener: EventListener? = null
 
     private var currentStatusColor = StatusColor()
     private var currentLyricStyle: LyricStyle? = null
 
-    /**
-     * 事件监听接口
-     */
     interface EventListener {
-        /** 进入间奏模式 */
         fun enteringInterludeMode(duration: Long)
-
-        /** 退出间奏模式 */
         fun exitInterludeMode()
     }
 
     init {
         tag = VIEW_TAG
-        //setBackgroundColor(Color.CYAN)
     }
-
-    // --- 生命周期/重写方法 ---
 
     override fun enteringInterludeMode(duration: Long) {
         super.enteringInterludeMode(duration)
@@ -98,85 +85,72 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         eventListener?.exitInterludeMode()
     }
 
-    // --- 公开 API ---
-
-    /**
-     * 应用全量歌词样式。
-     *
-     * @param style 歌词样式配置
-     */
     fun applyStyle(style: LyricStyle) {
         this.currentLyricStyle = style
         val textStyle = style.packageStyle.text
 
-        // 应用过渡配置
         setTransitionConfig(textStyle.transitionConfig)
-
-        // 更新容器布局（Margin/Padding）
         updateContainerLayout(textStyle)
 
-        // 配置核心样式
-        val config = getStyle().apply {
-            val resolvedTypeface = resolveTypeface(textStyle)
-            val fontSize = if (textStyle.textSize > 0) {
-                textStyle.textSize.sp
-            } else {
-                linkedTextView?.textSize ?: 14f.sp
-            }
-
-            primary.apply {
-                this.textColor = resolvePrimaryColor(textStyle)
-                this.textSize = fontSize
-                this.typeface = resolvedTypeface
-                enableRelativeProgress = textStyle.relativeProgress
-                enableRelativeProgressHighlight = textStyle.relativeProgressHighlight
-            }
-
-            secondary.apply {
-                this.textColor = primary.textColor
-                this.textSize = fontSize * 0.76f
-                this.typeface = resolvedTypeface
-            }
-
-            this.marquee = buildMarqueeConfig(textStyle)
-            this.syllable.apply {
-                backgroundColor = resolveBgColor(textStyle)
-                highlightColor = resolveHighlightColor(textStyle)
-                enableSustainLift = textStyle.sustainLiftEnabled
-                val colorModeEnabled = textStyle.enableCustomTextColor
-                        || textStyle.enableExtractCoverTextColor
-                        || textStyle.enableExtractCoverTextGradient
-                        || textStyle.enableRainbowTextColor
-                enableSustainGlow = textStyle.sustainGlowEnabled && !colorModeEnabled
-            }
-
-            this.gradientProgressStyle = textStyle.gradientProgressStyle
-            scaleInMultiLine = textStyle.scaleInMultiLine
-            fadingEdgeLength = textStyle.fadingEdgeLength.coerceAtLeast(0).dp
-            placeholderFormat = textStyle.placeholderFormat ?: TextStyle.Defaults.PLACEHOLDER_FORMAT
-            enableAnim = style.packageStyle.anim.enable
-            animId = style.packageStyle.anim.id
+        val resolvedTypeface = resolveTypeface(textStyle)
+        val fontSize = if (textStyle.textSize > 0) {
+            textStyle.textSize.sp
+        } else {
+            linkedTextView?.textSize ?: 14f.sp
         }
 
-        setStyle(config)
+        setStyle(
+            LyricViewStyle(
+                primary = TextLook(
+                    color = resolvePrimaryColor(textStyle),
+                    size = fontSize,
+                    typeface = resolvedTypeface,
+                    relativeProgress = textStyle.relativeProgress,
+                    relativeHighlight = textStyle.relativeProgressHighlight,
+                ),
+                secondary = TextLook(
+                    color = resolvePrimaryColor(textStyle),
+                    size = fontSize * 0.76f,
+                    typeface = resolvedTypeface,
+                ),
+                highlight = Highlight(
+                    background = resolveBgColor(textStyle),
+                    foreground = resolveHighlightColor(textStyle),
+                ),
+                marquee = buildMarquee(textStyle),
+                wordMotion = WordMotion(
+                    enabled = textStyle.wordMotionEnabled,
+                    cjkLiftFactor = textStyle.wordMotionCjkLiftFactor,
+                    cjkWaveFactor = textStyle.wordMotionCjkWaveFactor,
+                    latinLiftFactor = textStyle.wordMotionLatinLiftFactor,
+                    latinWaveFactor = textStyle.wordMotionLatinWaveFactor,
+                ),
+                sustainGlow = textStyle.sustainGlowEnabled && !isColorModeEnabled(textStyle),
+                gradient = textStyle.gradientProgressStyle,
+                fadingEdge = textStyle.fadingEdgeLength.coerceAtLeast(0).dp,
+                scaleMultiLine = textStyle.scaleInMultiLine,
+                animation = AnimParams(
+                    enabled = style.packageStyle.anim.enable,
+                    presetId = style.packageStyle.anim.id,
+                ),
+                placeholder = when (textStyle.placeholderFormat
+                    ?: TextStyle.Defaults.PLACEHOLDER_FORMAT) {
+                    TextStyle.PlaceholderFormat.NONE -> TitleSlot.NONE
+                    TextStyle.PlaceholderFormat.NAME -> TitleSlot.NAME
+                    TextStyle.PlaceholderFormat.NAME_ARTIST -> TitleSlot.NAME_ARTIST
+                    else -> TitleSlot.NAME_ARTIST
+                }
+            )
+        )
     }
 
-    /**
-     * 更新状态栏颜色环境，同步刷新文本及染色颜色。
-     */
     fun setStatusBarColor(color: StatusColor) {
         this.currentStatusColor = color
         refreshVisualColors()
     }
 
-    // --- 内部逻辑私有方法 ---
-
-    /**
-     * 仅刷新颜色相关的配置，不触发布局变更。
-     */
     private fun refreshVisualColors() {
         val textStyle = currentLyricStyle?.packageStyle?.text ?: return
-
         updateColor(
             primary = resolvePrimaryColor(textStyle),
             background = resolveBgColor(textStyle),
@@ -207,14 +181,14 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         )
     }
 
-    private fun buildMarqueeConfig(textStyle: TextStyle) = DefaultMarqueeConfig().apply {
-        scrollSpeed = textStyle.marqueeSpeed
-        ghostSpacing = textStyle.marqueeGhostSpacing
-        initialDelay = textStyle.marqueeInitialDelay
-        loopDelay = textStyle.marqueeLoopDelay
-        repeatCount = if (textStyle.marqueeRepeatUnlimited) -1 else textStyle.marqueeRepeatCount
-        stopAtEnd = textStyle.marqueeStopAtEnd
-    }
+    private fun buildMarquee(textStyle: TextStyle) = Marquee(
+        speed = textStyle.marqueeSpeed,
+        spacing = textStyle.marqueeGhostSpacing,
+        initialDelay = textStyle.marqueeInitialDelay,
+        loopDelay = textStyle.marqueeLoopDelay,
+        repeatCount = if (textStyle.marqueeRepeatUnlimited) -1 else textStyle.marqueeRepeatCount,
+        stopAtEnd = textStyle.marqueeStopAtEnd,
+    )
 
     private fun resolvePrimaryColor(textStyle: TextStyle): IntArray {
         if (textStyle.enableRainbowTextColor) {
@@ -224,9 +198,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         return if (textStyle.enableCustomTextColor && customColor?.normal?.isNotEmpty() == true) {
             customColor.normal
         } else {
-            currentStatusColor.color.takeIf { it.isNotEmpty() } ?: intArrayOf(
-                currentStatusColor.firstColor()
-            )
+            currentStatusColor.color
         }
     }
 
@@ -238,8 +210,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         return if (textStyle.enableCustomTextColor && customColor?.background?.isNotEmpty() == true) {
             customColor.background
         } else {
-            val alpha = if (currentStatusColor.isLightMode) 0.62f else 0.42f
-            intArrayOf(currentStatusColor.firstColor().withAlpha(alpha))
+            currentStatusColor.translucentColor
         }
     }
 
@@ -251,9 +222,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         return if (textStyle.enableCustomTextColor && customColor?.highlight?.isNotEmpty() == true) {
             customColor.highlight
         } else {
-            currentStatusColor.color.takeIf { it.isNotEmpty() } ?: intArrayOf(
-                currentStatusColor.firstColor()
-            )
+            currentStatusColor.color
         }
     }
 
@@ -282,35 +251,44 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         }
     }
 
+    private fun isColorModeEnabled(textStyle: TextStyle): Boolean =
+        textStyle.enableCustomTextColor ||
+                textStyle.enableExtractCoverTextColor ||
+                textStyle.enableExtractCoverTextGradient ||
+                textStyle.enableRainbowTextColor
+
     private fun Int.withAlpha(ratio: Float): Int {
         val alpha = (ratio.coerceIn(0f, 1f) * 255).toInt().coerceIn(0, 255)
         return Color.argb(alpha, Color.red(this), Color.green(this), Color.blue(this))
     }
 
-    private fun resolveRainbowColors(textStyle: TextStyle): RainbowTextColor {
+    private fun resolveRainbowColors(
+        textStyle: TextStyle
+    ): io.github.proify.lyricon.lyric.style.RainbowTextColor {
         val lightMode = currentStatusColor.isLightMode
         val custom = textStyle.color(lightMode)
         val fallback = defaultRainbowTextColor(lightMode)
-        return RainbowTextColor(
+        return io.github.proify.lyricon.lyric.style.RainbowTextColor(
             normal = custom?.normal?.takeIf { it.isNotEmpty() } ?: fallback.normal,
             background = custom?.background?.takeIf { it.isNotEmpty() } ?: fallback.background,
-            highlight = custom?.highlight?.takeIf { it.isNotEmpty() } ?: fallback.highlight
+            highlight = custom?.highlight?.takeIf { it.isNotEmpty() } ?: fallback.highlight,
         )
     }
 
-    private fun defaultRainbowTextColor(lightMode: Boolean): RainbowTextColor {
+    private fun defaultRainbowTextColor(
+        lightMode: Boolean
+    ): io.github.proify.lyricon.lyric.style.RainbowTextColor {
         val normal = if (lightMode) LIGHT_MODE_RAINBOW_COLORS else RAINBOW_COLORS
         val bgAlpha = if (lightMode) 0.44f else 0.45f
-        return RainbowTextColor(
+        return io.github.proify.lyricon.lyric.style.RainbowTextColor(
             normal = normal,
             background = normal.map { it.withAlpha(bgAlpha) }.toIntArray(),
-            highlight = normal
+            highlight = normal,
         )
     }
 
     fun shouldShow(): Boolean {
         if (isEmpty()) return false
-
         var visibleCount = 0
         forEach {
             if (it.isVisible) {

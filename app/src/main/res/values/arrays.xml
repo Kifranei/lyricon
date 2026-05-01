@@ -14,7 +14,7 @@
 
     <string-array name="xposed_scope">
         <item>com.android.systemui</item>
-        <item>miui.systemui.plugin</item>
+        <!--        <item>miui.systemui.plugin</item>-->
     </string-array>
 
 </resources>

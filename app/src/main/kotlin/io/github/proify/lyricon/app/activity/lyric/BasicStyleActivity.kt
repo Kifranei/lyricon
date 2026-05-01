@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -26,20 +27,23 @@ import androidx.compose.ui.unit.dp
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.IconActions
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperArrow
-import io.github.proify.lyricon.app.compose.preference.InputPreference
-import io.github.proify.lyricon.app.compose.preference.InputType
+import io.github.proify.lyricon.app.compose.preference.DoubleInputPreference
+import io.github.proify.lyricon.app.compose.preference.LongInputPreference
+import io.github.proify.lyricon.app.compose.preference.PreferenceValueDisplay
 import io.github.proify.lyricon.app.compose.preference.RectInputPreference
-import io.github.proify.lyricon.app.compose.preference.SwitchPreference
+import io.github.proify.lyricon.app.compose.preference.StringInputPreference
 import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.app.util.Utils
 import io.github.proify.lyricon.app.util.editCommit
+import io.github.proify.lyricon.common.rom.HyperOS
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SpinnerEntry
-import top.yukonga.miuix.kmp.extra.SuperSpinner
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
+import top.yukonga.miuix.kmp.preference.SwitchPreference
 
 class BasicLyricStyleActivity : AbstractLyricActivity() {
     private val preferences by lazy { LyricPrefs.basicStylePrefs }
@@ -62,7 +66,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
         val context = LocalContext.current
 
         AppToolBarListContainer(
-            title = stringResource(R.string.activity_base_lyric_style),
+            title = stringResource(R.string.activity_basic_settings),
             canBack = true
         ) {
             item(key = "location") {
@@ -77,7 +81,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         BasicStyle.Defaults.ANCHOR
                     )
 
-                    SuperArrow(
+                    ArrowPreference(
                         title = stringResource(R.string.item_base_anchor),
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_locationon))
@@ -113,7 +117,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         }
                     }
 
-                    SuperSpinner(
+                    OverlaySpinnerPreference(
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_stack))
                         },
@@ -135,7 +139,8 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         preferences,
                         "lyric_style_base_margins",
                         stringResource(R.string.item_base_margins),
-                        leftAction = {
+                        dialogSummary = stringResource(R.string.dialog_summary_base_margins),
+                        startAction = {
                             IconActions(painterResource(R.drawable.ic_margin))
                         },
                     )
@@ -144,28 +149,63 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         preferences,
                         "lyric_style_base_paddings",
                         stringResource(R.string.item_base_paddings),
-                        leftAction = {
+                        dialogSummary = stringResource(R.string.dialog_summary_base_paddings),
+                        startAction = {
                             IconActions(painterResource(R.drawable.ic_padding))
                         }
                     )
 
 
-                    InputPreference(
+                    DoubleInputPreference(
                         preferences = preferences,
                         key = "lyric_style_base_width",
                         title = stringResource(R.string.item_base_width),
-                        inputType = InputType.DOUBLE,
-                        maxValue = 1000.0,
+                        dialogSummary = stringResource(R.string.dialog_summary_base_width),
+                        range = 0.0..1000.0,
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_width_normal))
                         },
                     )
 
-                    if (Utils.isHyperOs3OrAbove) {
+                    var dynamicWidthEnabled by rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_dynamic_width_enabled",
+                        BasicStyle.Defaults.DYNAMIC_WIDTH_ENABLED
+                    )
+                    SwitchPreference(
+                        checked = dynamicWidthEnabled,
+                        onCheckedChange = { dynamicWidthEnabled = it },
+                        title = stringResource(R.string.item_base_dynamic_width),
+                        summary = stringResource(R.string.item_base_dynamic_width_summary),
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_width_normal))
+                        },
+                    )
+
+                    var dynamicWidthAutoHideClock by rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_dynamic_width_auto_hide_clock",
+                        BasicStyle.Defaults.DYNAMIC_WIDTH_AUTO_HIDE_CLOCK
+                    )
+                    SwitchPreference(
+                        checked = dynamicWidthAutoHideClock,
+                        onCheckedChange = { dynamicWidthAutoHideClock = it },
+                        title = stringResource(R.string.item_base_dynamic_width_auto_hide_clock),
+                        summary = stringResource(R.string.item_base_dynamic_width_auto_hide_clock_summary),
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_visibility_off))
+                        },
+                    )
+
+                    if (HyperOS.isXiaomiHyperOs3OrAbove()) {
+                        var xiaomiIslandTempHideEnabled by rememberBooleanPreference(
+                            preferences,
+                            "lyric_style_base_xiaomi_island_temp_hide_enabled",
+                            BasicStyle.Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED
+                        )
                         SwitchPreference(
-                            preferences = preferences,
-                            key = "lyric_style_base_xiaomi_island_temp_hide_enabled",
-                            defaultValue = BasicStyle.Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
+                            checked = xiaomiIslandTempHideEnabled,
+                            onCheckedChange = { xiaomiIslandTempHideEnabled = it },
                             title = stringResource(R.string.item_base_xiaomi_island_temp_hide),
                             summary = stringResource(R.string.item_base_xiaomi_island_temp_hide_summary),
                             startAction = {
@@ -173,20 +213,21 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                             },
                         )
                     }
+
                     if (Utils.isOPlus) {
-                        InputPreference(
+                        DoubleInputPreference(
                             preferences = preferences,
                             key = "lyric_style_base_width_in_coloros_capsule_mode",
                             title = stringResource(R.string.item_base_width_color_os_capsule),
-                            inputType = InputType.DOUBLE,
-                            maxValue = 1000.0,
+                            dialogSummary = stringResource(R.string.dialog_summary_base_width_color_os_capsule),
+                            range = 0.0..1000.0,
                             startAction = {
                                 IconActions(painterResource(R.drawable.ic_width_normal))
                             },
                         )
                     }
 
-                    SuperArrow(
+                    ArrowPreference(
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_visibility))
                         },
@@ -197,11 +238,12 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                             )
                         }
                     )
-                    InputPreference(
+
+                    StringInputPreference(
                         preferences = preferences,
                         key = "lyric_style_base_blocked_words_regex",
                         title = stringResource(R.string.item_base_blocked_words_regex),
-                        maxValue = 1000.0,
+                        dialogSummary = stringResource(R.string.dialog_summary_base_blocked_words_regex),
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_visibility_off))
                         }
@@ -218,72 +260,23 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         .fillMaxWidth(),
                 ) {
 
-                    SwitchPreference(
+                    var isHideOnLockScreenEnabled by rememberBooleanPreference(
                         preferences,
                         "lyric_style_base_hide_on_lock_screen",
-                        defaultValue = BasicStyle.Defaults.HIDE_ON_LOCK_SCREEN,
+                        BasicStyle.Defaults.HIDE_ON_LOCK_SCREEN
+                    )
+                    SwitchPreference(
+                        checked = isHideOnLockScreenEnabled,
+                        onCheckedChange = { isHideOnLockScreenEnabled = it },
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_visibility_off))
                         },
                         title = stringResource(R.string.item_base_lockscreen_hidden),
                     )
 
-                    SwitchPreference(
-                        preferences,
-                        "lyric_style_base_double_tap_switch_clock",
-                        defaultValue = BasicStyle.Defaults.DOUBLE_TAP_SWITCH_CLOCK,
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_visibility_off))
-                        },
-                        title = stringResource(R.string.item_base_double_tap_switch_clock),
-                    )
-
                     HideWhenNoLyric()
                     HideWhenNoUpdate()
                     HideWhenKeywords()
-                }
-            }
-
-            item(key = "experimental") {
-                Card(
-                    modifier = Modifier
-                        .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                        .fillMaxWidth(),
-                ) {
-                    val dynamicWidthEnabled = rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_dynamic_width_enabled",
-                        BasicStyle.Defaults.DYNAMIC_WIDTH_ENABLED
-                    )
-
-                    SwitchPreference(
-                        preferences = preferences,
-                        key = "lyric_style_base_dynamic_width_enabled",
-                        defaultValue = false,
-                        title = stringResource(R.string.item_base_dynamic_width),
-                        summary = stringResource(R.string.item_base_dynamic_width_experimental_summary),
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_visibility_off))
-                        },
-                    )
-
-                    SwitchPreference(
-                        preferences = preferences,
-                        key = "lyric_style_base_dynamic_width_auto_hide_clock",
-                        defaultValue = false,
-                        title = stringResource(R.string.item_base_dynamic_width_auto_hide_clock),
-                        summary = stringResource(
-                            if (dynamicWidthEnabled.value) {
-                                R.string.item_base_dynamic_width_auto_hide_clock_experimental_summary
-                            } else {
-                                R.string.item_base_dynamic_width_auto_hide_clock_disabled_summary
-                            }
-                        ),
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_width_normal))
-                        },
-                        enabled = dynamicWidthEnabled.value
-                    )
                 }
             }
 
@@ -312,16 +305,15 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             } else null
         }
 
-        InputPreference(
+        LongInputPreference(
             preferences = preferences,
             key = "lyric_style_base_no_lyric_hide_timeout",
             title = stringResource(R.string.item_base_timeout_no_lyric),
-            inputType = InputType.INTEGER,
-            maxValue = 3600000.0,
-            summary = hideWhenNoLyricSummary,
-            startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
-            isTimeUnit = true,
-            formatMultiplier = 1000
+            dialogSummary = stringResource(R.string.dialog_summary_base_timeout_no_lyric),
+            range = 0L..3_600_000L,
+            summary = { hideWhenNoLyricSummary },
+            startAction = { IconActions(painterResource(R.drawable.update_24px)) },
+            display = PreferenceValueDisplay.Time(multiplier = 1000)
         )
     }
 
@@ -344,16 +336,15 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             } else null
         }
 
-        InputPreference(
+        LongInputPreference(
             preferences = preferences,
             key = "lyric_style_base_no_update_hide_timeout",
             title = stringResource(R.string.item_base_timeout_no_update),
-            inputType = InputType.INTEGER,
-            maxValue = 3600000.0,
-            summary = summary,
-            startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
-            isTimeUnit = true,
-            formatMultiplier = 1000
+            dialogSummary = stringResource(R.string.dialog_summary_base_timeout_no_update),
+            range = 0L..3_600_000L,
+            summary = { summary },
+            startAction = { IconActions(painterResource(R.drawable.update_24px)) },
+            display = PreferenceValueDisplay.Time(multiplier = 1000)
         )
     }
 
@@ -379,16 +370,15 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                 } else null
             }
 
-            InputPreference(
+            LongInputPreference(
                 preferences = preferences,
                 key = "lyric_style_base_keyword_hide_timeout",
                 title = stringResource(R.string.item_base_timeout_keyword_match),
-                inputType = InputType.INTEGER,
-                maxValue = 3600000.0,
-                summary = summary,
-                startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
-                isTimeUnit = true,
-                formatMultiplier = 1000
+                dialogSummary = stringResource(R.string.dialog_summary_base_timeout_keyword_match),
+                range = 0L..3_600_000L,
+                summary = { summary },
+                startAction = { IconActions(painterResource(R.drawable.update_24px)) },
+                display = PreferenceValueDisplay.Time(multiplier = 1000)
             )
         }
 
@@ -402,13 +392,13 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             )
             val summary = keywords
 
-            InputPreference(
+            StringInputPreference(
                 preferences = preferences,
                 key = "lyric_style_base_timeout_hide_keywords",
                 title = stringResource(R.string.item_base_filter_keyword_list),
-                inputType = InputType.STRING,
                 summary = summary,
-                startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+                dialogSummary = stringResource(R.string.dialog_summary_base_filter_keyword_list),
+                startAction = { IconActions(painterResource(R.drawable.regular_expression_24px)) },
                 label = stringResource(R.string.hint_filter_keyword_input)
             )
         }
@@ -444,11 +434,11 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             SpinnerEntry(title = stringResource(R.string.item_base_chinese_conv_traditional)),
         )
 
-        SuperSpinner(
+        OverlaySpinnerPreference(
             startAction = {
                 IconActions(painterResource(R.drawable.translate_24px))
             },
-            title = stringResource(R.string.item_base_chinese_conversion_title),
+            title = stringResource(R.string.item_base_chinese_conversion),
             items = entries,
             selectedIndex = selectedIndex.intValue,
             onSelectedIndexChange = { index ->
@@ -466,4 +456,3 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
         Content()
     }
 }
-

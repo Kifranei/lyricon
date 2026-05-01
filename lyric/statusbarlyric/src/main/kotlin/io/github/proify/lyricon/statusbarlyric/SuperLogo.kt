@@ -80,7 +80,7 @@ class SuperLogo(context: Context) : ImageView(context) {
         private const val DEFAULT_ROTATION_DURATION_MS = 12_000L
         private const val TEXT_SIZE_MULTIPLIER = 1.2f
         private const val DEFAULT_TEXT_SIZE_DP = 14
-        private val SQUIRCLE_CORNER_RADIUS_DP by lazy { 3.dp.toFloat() }
+        private val SQUIRCLE_CORNER_RADIUS_DP by lazy { 3.5f.dp.toFloat() }
         const val VIEW_TAG: String = "lyricon:logo_view"
         const val TAG = "SuperLogo"
     }

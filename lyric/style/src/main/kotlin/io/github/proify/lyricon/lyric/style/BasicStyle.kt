@@ -110,7 +110,7 @@ data class BasicStyle(
         visibilityRules = json.safeDecode<MutableList<VisibilityRule>>(
             preferences.getString(
                 "lyric_style_base_visibility_rules",
-                null
+                "[]"
             ), Defaults.VISIBILITY_RULES.toMutableList()
         )
 

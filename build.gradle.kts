@@ -12,15 +12,15 @@ plugins {
 }
 
 extra["appPackageName"] = "io.github.kifranei.lyricon.fork"
-extra["appVersionCode"] = 32
+extra["appVersionCode"] = 41
 extra["appVersionName"] = "1.0.32"
 extra["compileSdkVersion"] = 37
 extra["targetSdkVersion"] = 37
 extra["minSdkVersion"] = 28
 
-extra["providerSdkVersion"] = "0.1.69"
-extra["subscriberSdkVersion"] = "0.1.69"
-extra["lyricModelVersion"] = "0.1.69"
+extra["providerSdkVersion"] = "0.1.71"
+extra["subscriberSdkVersion"] = "0.1.71"
+extra["lyricModelVersion"] = "0.1.71"
 
 // apk自动导出
 /**

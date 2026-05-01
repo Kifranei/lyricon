@@ -1,9 +1,8 @@
 [versions]
 # Gradle / Kotlin / KSP
 agp = "9.1.1"
-jetbrainsKotlinJvm = "2.3.20"
-kotlin = "2.3.20"
-ksp = "2.3.6"
+jetbrainsKotlinJvm = "2.3.21"
+kotlin = "2.3.21"
 
 # AndroidX Base
 activity = "1.13.0"
@@ -16,14 +15,12 @@ lifecycle = "2.10.0"
 
 # AndroidX Compose
 activityCompose = "1.13.0"
-composeBom = "2026.03.01"
-composeFoundation = "1.10.6"
+composeBom = "2026.04.01"
 opencc4j = "1.14.0"
-remoteCreationCore = "1.0.0-alpha08"
 
 # Material
 material = "1.13.0"
-material3 = "1.5.0-alpha17"
+material3 = "1.5.0-alpha18"
 
 # Network / Logic / Serialization
 kotlinxSerializationJson = "1.11.0"
@@ -35,10 +32,12 @@ androidsvg = "1.4"
 bonsai = "1.2.0"
 capsuleAndroid = "2.1.1-patch2"
 haze = "1.7.2"
+backdrop = "1.0.6"
 lottieCompose = "6.7.1"
 miuixUI = "0.9.0"
 miuixIcons = "0.9.0"
 miuixPreference = "0.9.0"
+miuixBlur = "0.9.0"
 
 # Hook / Reflection
 xposed = "82"
@@ -63,9 +62,7 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 # ===== AndroidX Compose =====
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-androidx-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "composeFoundation" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
-androidx-compose-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
@@ -84,11 +81,12 @@ androidsvg = { module = "com.caverock:androidsvg-aar", version.ref = "androidsvg
 bonsai-core = { module = "cafe.adriel.bonsai:bonsai-core", version.ref = "bonsai" }
 capsule-android = { module = "com.mocharealm.gaze:capsule-android", version.ref = "capsuleAndroid" }
 chrisbanes-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
+backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 miuix-android = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuixUI" }
 miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference-android", version.ref = "miuixPreference" }
 miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons-android", version.ref = "miuixIcons" }
-miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur", version.ref = "miuixUI" }
+miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur-android", version.ref = "miuixBlur" }
 
 # ===== Hook / Reflection =====
 #noinspection UnusedVersionCatalogEntry
@@ -108,7 +106,3 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 # ===== Kotlin =====
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
-# ===== Other =====
-#noinspection UnusedVersionCatalogEntry
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

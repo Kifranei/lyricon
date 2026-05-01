@@ -3,16 +3,13 @@
  * Licensed under the Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0
  */
-@file:Suppress("unused")
 
 package io.github.proify.lyricon.app.util
 
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.os.Build
 import android.os.Process
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
@@ -37,58 +34,12 @@ object Utils {
         }
     }
 
-    val isHyperOs3OrAbove: Boolean by lazy {
-        isXiaomiFamilyDevice() && detectHyperOsMajor() >= 3
-    }
-
-    private fun isXiaomiFamilyDevice(): Boolean {
-        val brand = Build.BRAND.orEmpty().lowercase()
-        val manufacturer = Build.MANUFACTURER.orEmpty().lowercase()
-        val product = Build.PRODUCT.orEmpty().lowercase()
-        return brand.contains("xiaomi")
-                || brand.contains("redmi")
-                || brand.contains("poco")
-                || manufacturer.contains("xiaomi")
-                || manufacturer.contains("redmi")
-                || manufacturer.contains("poco")
-                || product.contains("xiaomi")
-                || product.contains("redmi")
-                || product.contains("poco")
-    }
-
-    private fun detectHyperOsMajor(): Int {
-        val sources = listOfNotNull(
-            getSystemProperty("ro.system.build.version.incremental"),
-            getSystemProperty("ro.build.version.incremental"),
-            getSystemProperty("ro.vendor.build.version.incremental"),
-            getSystemProperty("ro.system.build.fingerprint"),
-            getSystemProperty("ro.vendor.build.fingerprint"),
-            Build.DISPLAY,
-            Build.FINGERPRINT
-        )
-        val regex = Regex("""(?i)\bOS(\d+)(?:\.\d+)*""")
-        return sources
-            .mapNotNull { source ->
-                regex.find(source)?.groupValues?.getOrNull(1)?.toIntOrNull()
-            }
-            .maxOrNull() ?: 0
-    }
-
-    @SuppressLint("PrivateApi")
-    private fun getSystemProperty(key: String): String? {
-        return runCatching {
-            val systemProperties = Class.forName("android.os.SystemProperties")
-            val get = systemProperties.getMethod("get", String::class.java, String::class.java)
-            (get.invoke(null, key, "") as? String)?.trim().orEmpty()
-        }.getOrNull()?.takeIf { it.isNotBlank() }
-    }
-
-    fun forceStop(packageName: String?): ShellUtils.CommandResult =
-        ShellUtils.execCmd(
-            "am force-stop $packageName",
-            isRoot = true,
-            isNeedResultMsg = true,
-        )
+//    fun forceStop(packageName: String?): ShellUtils.CommandResult =
+//        ShellUtils.execCmd(
+//            "am force-stop $packageName",
+//            isRoot = true,
+//            isNeedResultMsg = true,
+//        )
 
     fun killSystemUI(): ShellUtils.CommandResult =
         ShellUtils.execCmd(

@@ -8,11 +8,11 @@ package io.github.proify.lyricon.app.util
 
 import android.content.SharedPreferences
 import io.github.proify.android.extensions.fromJson
-import io.github.proify.android.extensions.getWorldReadableSharedPreferences
 import io.github.proify.android.extensions.json
 import io.github.proify.android.extensions.safeDecode
 import io.github.proify.android.extensions.toJson
 import io.github.proify.lyricon.app.LyriconApp
+import io.github.proify.lyricon.app.bridge.AppBridge
 import io.github.proify.lyricon.app.bridge.AppBridge.LyricStylePrefs
 import io.github.proify.lyricon.app.bridge.AppBridge.LyricStylePrefs.KEY_ENABLED_PACKAGES
 import io.github.proify.lyricon.lyric.style.VisibilityRule
@@ -41,7 +41,7 @@ object LyricPrefs {
 
     /** 获取指定名称的 SharedPreferences*/
     fun getSharedPreferences(name: String): SharedPreferences {
-        return LyriconApp.instance.getWorldReadableSharedPreferences(name)
+        return AppBridge.getSharedPreferences(LyriconApp.get(), name)
     }
 
     /** 获取指定包名对应的样式配置偏好名称 */

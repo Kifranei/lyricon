@@ -25,6 +25,21 @@ import androidx.compose.ui.text.input.TextFieldValue
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+/**
+ * 数字文本输入框。
+ *
+ * 组件只负责把用户输入过滤为“可编辑的数字文本”，不负责范围校验和业务合法性判断。
+ * 例如空字符串、负号、小数点等编辑中间态会保留下来，由外层决定是否允许保存。
+ *
+ * @param value 当前输入文本。
+ * @param onValueChange 输入文本变化回调，返回值已经经过数字字符过滤。
+ * @param label 输入框标签。
+ * @param allowDecimal 是否允许输入小数点。
+ * @param allowNegative 是否允许输入负号。
+ * @param autoSelectOnFocus 首次获得焦点时是否全选已有内容。
+ * @param isError 是否显示错误态边框。
+ * @param borderColor 自定义边框颜色；默认根据 [isError] 在主色和错误色之间切换。
+ */
 @Composable
 fun NumberTextField(
     value: String,
@@ -33,49 +48,38 @@ fun NumberTextField(
     label: String = "",
     allowDecimal: Boolean = false,
     allowNegative: Boolean = true,
-    maxValue: Double? = null,
-    minValue: Double? = null,
     autoSelectOnFocus: Boolean = false,
-    borderColor: Color = MiuixTheme.colorScheme.primary,
+    isError: Boolean = false,
+    borderColor: Color = if (isError) MiuixTheme.colorScheme.error else MiuixTheme.colorScheme.primary,
 ) {
-    // 初始 TextFieldValue 基于外部 value 构造（selection 放在末尾）
     val initialTf = remember(value) {
         TextFieldValue(text = value, selection = TextRange(value.length))
     }
 
-    // 使用 rememberSaveable 保存 TextFieldValue（避免进程重启丢失）
     var textFieldValueState by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(initialTf)
     }
 
-    // 是否已经执行过“初始把光标放末尾”的动作
     var initialSelectionDone by remember { mutableStateOf(false) }
-
-    // 聚焦状态
     var isFocused by remember { mutableStateOf(false) }
     var shouldSelectAll by remember { mutableStateOf(false) }
 
-    // 同步外部 value：
-    // - 初次组合或外部 value 变化且不在聚焦时，将文本替换并把光标放末尾（避免打断用户输入）
     LaunchedEffect(value) {
         if (textFieldValueState.text != value) {
             if (!isFocused) {
                 textFieldValueState =
                     TextFieldValue(text = value, selection = TextRange(value.length))
             } else {
-                // 如果正在聚焦并编辑，尽量只更新文本而保留现有 selection（防止光标跳动）
                 val sel = textFieldValueState.selection
                 val clamped = sel.end.coerceIn(0, value.length)
                 textFieldValueState = TextFieldValue(text = value, selection = TextRange(clamped))
             }
         } else if (!initialSelectionDone) {
-            // 初次组合且文本相同，确保初始 selection 已置于末尾（防止某些实现把 selection 置为 0）
             textFieldValueState = textFieldValueState.copy(selection = TextRange(value.length))
         }
         initialSelectionDone = true
     }
 
-    // 全选控制（获取焦点时触发）
     LaunchedEffect(shouldSelectAll) {
         if (shouldSelectAll && textFieldValueState.text.isNotEmpty()) {
             textFieldValueState = textFieldValueState.copy(
@@ -91,26 +95,19 @@ fun NumberTextField(
             label = label,
             value = textFieldValueState,
             onValueChange = { newValue ->
-                // 过滤输入，只允许数字相关字符
                 val filtered = filterNumericInput(
                     input = newValue.text,
                     allowDecimal = allowDecimal,
                     allowNegative = allowNegative
                 )
-
-                val isValid = validateRange(filtered, minValue, maxValue)
-
-                // 保留合理的 selection：尝试基于 newValue.selection.end，裁剪到 filtered 长度范围内
                 val rawSel = newValue.selection.end
                 val clampedSel = rawSel.coerceIn(0, filtered.length)
 
-                if (isValid || filtered.isEmpty() || filtered == "-" || filtered.endsWith(".")) {
-                    textFieldValueState = TextFieldValue(
-                        text = filtered,
-                        selection = TextRange(clampedSel)
-                    )
-                    onValueChange(filtered)
-                }
+                textFieldValueState = TextFieldValue(
+                    text = filtered,
+                    selection = TextRange(clampedSel)
+                )
+                onValueChange(filtered)
             },
             modifier = Modifier
                 .fillMaxWidth()
@@ -129,9 +126,11 @@ fun NumberTextField(
 }
 
 /**
- * 过滤输入，只保留有效数字字符
+ * 过滤数字输入文本。
+ *
+ * 规则：只保留数字、可选小数点和可选负号；负号最多保留在开头，小数点最多保留一个。
  */
-private fun filterNumericInput(
+internal fun filterNumericInput(
     input: String,
     allowDecimal: Boolean,
     allowNegative: Boolean
@@ -161,29 +160,4 @@ private fun filterNumericInput(
     }
 
     return result
-}
-
-/**
- * 校验数值范围
- */
-private fun validateRange(
-    value: String,
-    minValue: Double?,
-    maxValue: Double?
-): Boolean {
-    if (
-        value.isEmpty() ||
-        value == "-" ||
-        value.endsWith(".") ||
-        value == "-."
-    ) {
-        return true
-    }
-
-    val number = value.toDoubleOrNull() ?: return false
-
-    if (minValue != null && number < minValue) return false
-    if (maxValue != null && number > maxValue) return false
-
-    return true
 }

@@ -14,12 +14,13 @@ import io.github.proify.lyricon.xposed.logger.YLog
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
 import io.github.proify.lyricon.xposed.systemui.util.ChineseConverter.toSimplified
 import io.github.proify.lyricon.xposed.systemui.util.ChineseConverter.toTraditional
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 /**
  * 歌词数据加工引擎
- * 负责执行同步的前置清洗与异步的后置增强流水线。
+ * 负责执行前置清洗、后置增强与显示层变换。
  */
 object LyricDataProcessor {
 
@@ -27,18 +28,17 @@ object LyricDataProcessor {
 
     /** 注册后置加工插件列表 */
     private val postProcessors = listOf(
-        AITranslationProcessor(),
-        TranslationOnlyProcessor()
+        AiTranslationProcessor()
     ).sortedBy { it.priority }
 
     /**
-     * 执行前置加工 (同步)
-     * 职责：处理极速任务（繁简转换、屏蔽词），确保切歌时 UI 瞬间响应。
+     * 执行前置加工。
+     * 职责：处理繁简转换、屏蔽词等基础数据清洗。
      */
     fun executePreProcessing(song: Song): Song {
-        return song.deepCopy()
+        return song
             .let(::filterBlockedWords)
-           .let(::convertChineseCharacters)
+            .let(::convertChineseCharacters)
     }
 
     /**
@@ -52,6 +52,8 @@ object LyricDataProcessor {
                 if (processor.isEnabled(style)) {
                     try {
                         currentSong = processor.process(currentSong, style)
+                    } catch (e: CancellationException) {
+                        throw e
                     } catch (e: Exception) {
                         YLog.error(
                             tag = TAG,
@@ -64,12 +66,37 @@ object LyricDataProcessor {
             currentSong
         }
 
+    /**
+     * 执行显示层加工。
+     * 职责：应用只影响展示、不应参与 AI 等数据增强步骤的变换。
+     */
+    fun executeDisplayProcessing(song: Song, style: LyricStyle): Song {
+        return applyTranslationOnly(song, style)
+    }
+
     // --- 内部基础处理方法 ---
 
     private fun filterBlockedWords(song: Song): Song {
         val regex = LyricPrefs.baseStyle.blockedWordsRegex ?: return song
         return song.copy(lyrics = song.lyrics?.filter { line ->
             line.text?.let { !regex.containsMatchIn(it) } ?: true
+        })
+    }
+
+    private fun applyTranslationOnly(song: Song, style: LyricStyle): Song {
+        if (!style.packageStyle.text.isTranslationOnly) return song
+
+        return song.copy(lyrics = song.lyrics?.map { line ->
+            if (!line.translation.isNullOrBlank()) {
+                line.copy(
+                    text = line.translation,
+                    words = line.translationWords,
+                    translation = null,
+                    translationWords = null
+                )
+            } else {
+                line
+            }
         })
     }
 

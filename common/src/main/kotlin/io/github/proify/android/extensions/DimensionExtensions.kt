@@ -10,7 +10,7 @@ import android.content.res.Resources
 import android.util.TypedValue
 import kotlin.math.roundToInt
 
-private val displayMetrics = Resources.getSystem().displayMetrics
+private val displayMetrics get() = Resources.getSystem().displayMetrics
 
 /**
  *  将 DP 转换为像素 (PX) 整数。适用于布局尺寸。

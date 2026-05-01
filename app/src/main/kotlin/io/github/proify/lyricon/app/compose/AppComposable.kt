@@ -12,7 +12,9 @@ import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -23,6 +25,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -35,6 +39,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.fontscaling.MathUtils.lerp
+import com.kyant.backdrop.backdrops.LayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -54,6 +61,11 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
+
+val LocalBottomBarBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }
+val LocalFloatingBottomBarEnabled = staticCompositionLocalOf { false }
+val LocalLiquidGlassEnabled = staticCompositionLocalOf { false }
+private val FloatingBottomBarScrollPadding = 96.dp
 
 @Composable
 fun NavigationBackIcon(
@@ -148,6 +160,7 @@ fun AppToolBarListContainer(
     content: LazyListScope.() -> Unit
 ) {
     AppTheme {
+        val bottomBarBackdrop = rememberLayerBackdrop()
         val hazeState = remember { HazeState() }
         val scrollBehavior = MiuixScrollBehavior()
 
@@ -158,58 +171,70 @@ fun AppToolBarListContainer(
             }
         }
 
-        Scaffold(
-            bottomBar = bottomBar,
-            topBar = {
-                BlurTopAppBar(
-                    hazeState = hazeState,
-                    navigationIcon = {
-                        if (canBack) {
-                            NavigationBackIcon(backEvent = backEvent)
-                        }
-                    },
-                    title = if (title is Int) stringResource(title) else (titleText ?: ""),
-                    scrollBehavior = scrollBehavior,
-                    actions = actions,
-                    titleDropdown = titleDropdown,
-                    titleOnClick = titleOnClick
-                )
+        androidx.compose.runtime.CompositionLocalProvider(
+            LocalBottomBarBackdrop provides bottomBarBackdrop
+        ) {
+            val floatingBottomPadding = if (LocalFloatingBottomBarEnabled.current) {
+                FloatingBottomBarScrollPadding
+            } else {
+                0.dp
             }
-        ) { paddingValues ->
-            scaffoldContent()
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = paddingValues.calculateTopPadding())
-            ) {
-
-                AnimatedVisibility(
-                    visible = !showEmpty,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .overScrollVertical()
-                            .nestedScroll(scrollBehavior.nestedScrollConnection)
-                            .hazeSource(hazeState),
-                        content = content
+            Scaffold(
+                bottomBar = bottomBar,
+                topBar = {
+                    BlurTopAppBar(
+                        hazeState = hazeState,
+                        navigationIcon = {
+                            if (canBack) {
+                                NavigationBackIcon(backEvent = backEvent)
+                            }
+                        },
+                        title = if (title is Int) stringResource(title) else (titleText ?: ""),
+                        scrollBehavior = scrollBehavior,
+                        actions = actions,
+                        titleDropdown = titleDropdown,
+                        titleOnClick = titleOnClick
                     )
                 }
+            ) { paddingValues ->
+                scaffoldContent()
 
-                AnimatedVisibility(
-                    visible = showEmpty,
-                    enter = fadeIn(),
-                    exit = fadeOut()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .layerBackdrop(bottomBarBackdrop)
+                        .padding(top = paddingValues.calculateTopPadding())
+                        .padding(bottom = paddingValues.calculateBottomPadding())
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(scrollBehavior.nestedScrollConnection)
+
+                    AnimatedVisibility(
+                        visible = !showEmpty,
+                        enter = fadeIn(),
+                        exit = fadeOut()
                     ) {
-                        empty()
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .overScrollVertical()
+                                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                                .hazeSource(hazeState),
+                            contentPadding = PaddingValues(bottom = floatingBottomPadding),
+                            content = content
+                        )
+                    }
+
+                    AnimatedVisibility(
+                        visible = showEmpty,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        ) {
+                            empty()
+                        }
                     }
                 }
             }
@@ -234,25 +259,42 @@ fun AppToolBarContainer(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     AppTheme {
-        Scaffold(
-            bottomBar = bottomBar,
-            topBar = {
-                BlurTopAppBar(
-                    hazeState = hazeState,
-                    navigationIcon = {
-                        if (canBack) NavigationBackIcon(
-                            backEvent = backEvent
-                        )
-                    },
-                    title = if (title is Int) stringResource(title) else title.toString(),
-                    scrollBehavior = scrollBehavior,
-                    actions = actions,
-                    titleDropdown = titleDropdown,
-                    titleOnClick = titleOnClick
-                )
+        val bottomBarBackdrop = rememberLayerBackdrop()
+        androidx.compose.runtime.CompositionLocalProvider(
+            LocalBottomBarBackdrop provides bottomBarBackdrop
+        ) {
+            val floatingBottomPadding = if (LocalFloatingBottomBarEnabled.current) {
+                FloatingBottomBarScrollPadding
+            } else {
+                0.dp
             }
-        ) { paddingValues ->
-            content(paddingValues)
+            Scaffold(
+                bottomBar = bottomBar,
+                topBar = {
+                    BlurTopAppBar(
+                        hazeState = hazeState,
+                        navigationIcon = {
+                            if (canBack) NavigationBackIcon(
+                                backEvent = backEvent
+                            )
+                        },
+                        title = if (title is Int) stringResource(title) else title.toString(),
+                        scrollBehavior = scrollBehavior,
+                        actions = actions,
+                        titleDropdown = titleDropdown,
+                        titleOnClick = titleOnClick
+                    )
+                }
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .layerBackdrop(bottomBarBackdrop)
+                        .padding(bottom = floatingBottomPadding)
+                ) {
+                    content(paddingValues)
+                }
+            }
         }
     }
 }
@@ -279,4 +321,31 @@ fun IconActions(
 
 fun BasicComponentColors.color(enabled: Boolean): Color {
     return if (enabled) color else disabledColor
+}
+
+@Composable
+fun ColoredIconBox(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color,
+    iconRes: Int,
+    isMonet: Boolean = false
+) {
+    val iconSize = if (isMonet) 20.dp else 24.dp
+    Box(
+        modifier = Modifier
+            .padding(end = 16.dp)
+            .size(40.dp)
+            .background(
+                if (isMonet) MiuixTheme.colorScheme.primary else backgroundColor,
+                CircleShape
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        androidx.compose.material3.Icon(
+            painter = androidx.compose.ui.res.painterResource(id = iconRes),
+            modifier = modifier.size(iconSize),
+            tint = Color.White,
+            contentDescription = null
+        )
+    }
 }

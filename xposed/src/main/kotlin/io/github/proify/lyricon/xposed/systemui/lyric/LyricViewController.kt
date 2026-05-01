@@ -61,6 +61,7 @@ object LyricViewController : ActivePlayerListener,
     override fun onSongChanged(song: Song?) {
         lastRenderedSong = song
         if (DEBUG) YLog.debug(tag = TAG, msg = "Rendering UI for song: ${song?.name ?: "None"}")
+        YLog.info(TAG, "onSongChanged: $song")
         updateAllControllers {
             lyricView.setSong(song)
             if (song != null && lastKnownPosition > 0L) {
@@ -78,6 +79,7 @@ object LyricViewController : ActivePlayerListener,
         lastRenderedSong = null
         lastKnownPosition = 0L
         lastPositionUpdateAt = 0L
+        YLog.info(TAG, "onActiveProviderChanged: $providerInfo")
 
         updateAllControllers {
             resetViewForNewPlayer(this, providerInfo)
@@ -86,6 +88,8 @@ object LyricViewController : ActivePlayerListener,
     }
 
     override fun onPlaybackStateChanged(isPlaying: Boolean) {
+        if (this.isPlaying == isPlaying) return
+        YLog.info(TAG, "onPlaybackStateChanged: $isPlaying")
         this.isPlaying = isPlaying
         if (isPlaying) {
             lastPositionUpdateAt = SystemClock.uptimeMillis()
@@ -112,17 +116,22 @@ object LyricViewController : ActivePlayerListener,
     }
 
     override fun onReceiveText(text: String?) {
+        YLog.info(TAG, "onReceiveText: $text")
         updateAllControllers { lyricView.setText(text) }
         scheduleVendorSync()
     }
 
     override fun onDisplayTranslationChanged(isDisplayTranslation: Boolean) {
+        YLog.info(TAG, "onDisplayTranslationChanged: $isDisplayTranslation")
+
         this.isDisplayTranslation = isDisplayTranslation
         updateAllControllers { refreshTranslationVisibility(lyricView) }
         scheduleVendorSync()
     }
 
     override fun onDisplayRomaChanged(isDisplayRoma: Boolean) {
+        YLog.info(TAG, "onDisplayRomaChanged: $isDisplayRoma")
+
         this.isDisplayRoma = isDisplayRoma
         updateAllControllers { lyricView.updateDisplayTranslation(displayRoma = isDisplayRoma) }
         scheduleVendorSync()

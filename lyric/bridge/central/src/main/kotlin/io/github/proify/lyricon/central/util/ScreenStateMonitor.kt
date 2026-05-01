@@ -16,7 +16,7 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import java.util.concurrent.CopyOnWriteArraySet
 
-object ScreenStateMonitor {
+internal object ScreenStateMonitor {
     private const val TAG = "ScreenStateMonitor"
 
     private val listeners = CopyOnWriteArraySet<ScreenStateListener>()

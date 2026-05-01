@@ -6,10 +6,12 @@
 
 package io.github.proify.lyricon.xposed.systemui.lyric
 
+import android.util.Log
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.subscriber.ActivePlayerListener
 import io.github.proify.lyricon.subscriber.ProviderInfo
 import io.github.proify.lyricon.xposed.systemui.lyric.processor.LyricDataProcessor
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,12 +22,13 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * 歌词数据调度中枢
- * 管理歌词生命周期：获取原始数据 -> Pre 加工 -> 第一次分发 -> Post 加工(等待全部) -> 最终分发。
+ * 管理歌词生命周期：获取原始数据 -> 后台加工 -> 第一次分发 -> 后台增强 -> 最终分发。
  */
 object LyricDataHub : ActivePlayerListener {
+    private const val TAG = "LyricDataHub"
 
     private val listeners = CopyOnWriteArraySet<ActivePlayerListener>()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     /** 状态版本号，用于在异步恢复后校验数据是否已过时 */
     private val versionCounter = AtomicInteger(0)
@@ -44,34 +47,55 @@ object LyricDataHub : ActivePlayerListener {
     }
 
     /**
-     * 运行加工流水线
-     * @param song 待加工的原始歌曲
+     * 启动后台加工流水线。
+     * 所有歌词加工都在后台协程执行，避免阻塞播放器回调线程。
+     * @param rawSong 待加工的原始歌曲
      */
-    private fun runProcessingPipeline(song: Song?) {
+    private fun runProcessingPipeline(rawSong: Song?) {
+        val song = rawSong?.deepCopy()
         val currentVersion = versionCounter.incrementAndGet()
         activePipelineJob?.cancel()
 
-        if (song == null) {
-            dispatchSong(null)
-            return
-        }
-
-        // 1. 同步前置加工：处理繁简等基础显示
-        val preProcessed = LyricDataProcessor.executePreProcessing(song)
-        // 第一次分发：立即响应 UI
-        dispatchSong(preProcessed)
-
-        // 2. 异步后置流水线：处理 AI 翻译等耗时扩展
         activePipelineJob = scope.launch {
-            val style = LyricPrefs.getLyricStyle()
-            val finalSong = LyricDataProcessor.executePostProcessingPipeline(preProcessed, style)
+            try {
+                if (song == null) {
+                    if (isCurrentVersion(currentVersion)) dispatchSong(null)
+                    return@launch
+                }
 
-            // 校验版本：确保在等待期间用户没有切歌
-            if (currentVersion == versionCounter.get()) {
-                // 第二次分发：所有异步增强处理完毕
-                dispatchSong(finalSong)
+                val style = LyricPrefs.getLyricStyle()
+
+                // 1. 后台前置加工：处理繁简、屏蔽词等基础显示数据
+                val preProcessed = LyricDataProcessor.executePreProcessing(song)
+                if (!isCurrentVersion(currentVersion)) return@launch
+
+                // 第一次分发：基础处理完成后尽快刷新 UI
+                dispatchSong(LyricDataProcessor.executeDisplayProcessing(preProcessed, style))
+
+                // 2. 后台后置流水线：处理 AI 翻译等耗时扩展
+                val finalSong =
+                    LyricDataProcessor.executePostProcessingPipeline(preProcessed, style)
+
+                if (isCurrentVersion(currentVersion)) {
+                    dispatchSong(LyricDataProcessor.executeDisplayProcessing(finalSong, style))
+                } else {
+                    logOutdatedPipeline(currentVersion, finalSong)
+                }
+            } catch (e: CancellationException) {
+                Log.d(TAG, "Pipeline $currentVersion cancelled. $e")
+            } catch (e: Exception) {
+                Log.e(TAG, "Pipeline $currentVersion error", e)
             }
         }
+    }
+
+    private fun isCurrentVersion(version: Int): Boolean = version == versionCounter.get()
+
+    private fun logOutdatedPipeline(version: Int, song: Song) {
+        Log.d(
+            TAG,
+            "Pipeline requestVersion:$version, nowVersion:${versionCounter.get()} skipped. ${song.name}"
+        )
     }
 
     /**
@@ -85,12 +109,13 @@ object LyricDataHub : ActivePlayerListener {
     // --- ActivePlayerListener 触发点 ---
 
     override fun onSongChanged(song: Song?) {
-        this.cachedRawSong = song
+        this.cachedRawSong = song?.deepCopy()
         runProcessingPipeline(song)
     }
 
     private fun dispatchSong(song: Song?) {
-        listeners.forEach { it.onSongChanged(song) }
+        val normalize = song?.deepCopy()?.normalize()
+        listeners.forEach { it.onSongChanged(normalize) }
     }
 
     // --- 纯状态透传 (不涉及加工) ---

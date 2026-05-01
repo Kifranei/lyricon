@@ -6,39 +6,15 @@
 
 package io.github.proify.lyricon.xposed.systemui.util
 
-//import com.github.houbb.opencc4j.util.ZhConverterUtil
+import io.github.proify.opencc.lite.OpenCCLite
 
-/**
- * 简繁转换扩展工具
- */
 object ChineseConverter {
 
-    /**
-     * 繁体转简体
-     * 注意：由于涉及字典 IO 操作，不建议在 UI 线程处理长文本
-     */
     fun String.toSimplified(): String {
-        return this
-//        if (isEmpty() || isBlank()) return this
-//
-//        return try {
-//            ZhConverterUtil.toSimple(this)
-//        } catch (_: Exception) {
-//            this
-//        }
+        return OpenCCLite.T2S.convert(this)
     }
 
-    /**
-     * 简体转繁体
-     */
     fun String.toTraditional(): String {
-        return this
-//        if (isEmpty() || isBlank()) return this
-//
-//        return try {
-//            ZhConverterUtil.toTraditional(this)
-//        } catch (_: Exception) {
-//            this
-//        }
+        return OpenCCLite.S2T.convert(this)
     }
 }

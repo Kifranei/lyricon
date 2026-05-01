@@ -13,11 +13,7 @@ import android.view.Gravity
 import android.widget.LinearLayout
 import androidx.core.graphics.withScale
 import androidx.core.view.forEach
-import io.github.proify.lyricon.lyric.model.LyricLine
-import io.github.proify.lyricon.lyric.model.LyricWord
-import io.github.proify.lyricon.lyric.model.interfaces.ILyricTiming
 import io.github.proify.lyricon.lyric.model.interfaces.IRichLyricLine
-import io.github.proify.lyricon.lyric.model.lyricMetadataOf
 import io.github.proify.lyricon.lyric.view.line.LyricLineView
 
 @SuppressLint("ViewConstructor")
@@ -29,10 +25,6 @@ class RichLyricLineView(
     var displayRoma: Boolean = true
 ) : LinearLayout(context), UpdatableColor {
 
-    companion object {
-        private val EMPTY_LYRIC_LINE get() = LyricLine()
-    }
-
     val main = LyricLineView(context)
     val secondary = LyricLineView(context).apply { visibleIfChanged = false }
 
@@ -41,13 +33,37 @@ class RichLyricLineView(
     var renderScale = 1.0f
         private set
 
-    private var animationTransition: Boolean = false
+    private val assembler = LyricLineAssembler(
+        displayTranslation, displayRoma,
+        enableRelativeProgress, enableRelativeProgressHighlight
+    )
+
+    private var animationTransition = false
     private var pendingLine: IRichLyricLine? = null
     private var pendingPosition: Long? = null
-    private var mainBaseSustainGlowEnabled: Boolean = true
-    private var secondaryBaseSustainGlowEnabled: Boolean = true
-    private var isMainGeneratedWords: Boolean = false
-    private var isSecondaryGeneratedWords: Boolean = false
+    private var requestMarquee = false
+
+    var rawLine: IRichLyricLine? = null
+
+    var line: IRichLyricLine?
+        get() = rawLine
+        set(value) {
+            rawLine = value
+            requestMarquee = false
+            if (animationTransition) {
+                pendingLine = value
+            } else {
+                refreshLines()
+            }
+        }
+
+    init {
+        orientation = VERTICAL
+        gravity = Gravity.START or Gravity.CENTER_VERTICAL
+        addView(main, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+        addView(secondary, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+        updateLayoutTransitionX()
+    }
 
     fun reset() {
         line = null
@@ -56,7 +72,7 @@ class RichLyricLineView(
         pendingLine = null
         pendingPosition = null
         alwaysShowSecondary = false
-        updateAllLines()
+        refreshLines()
     }
 
     fun beginAnimationTransition() {
@@ -66,55 +82,92 @@ class RichLyricLineView(
     fun endAnimationTransition() {
         animationTransition = false
         if (pendingLine != null) {
-            updateAllLines()
+            refreshLines()
             pendingPosition?.let { setPosition(it) }
         }
         pendingLine = null
         pendingPosition = null
     }
 
-    private fun updateLayoutTransitionX(config: String? = LayoutTransitionX.TRANSITION_CONFIG_SMOOTH) {
-        val layoutTransitionX = LayoutTransitionX(config).apply {
-            setAnimateParentHierarchy(true)
-        }
-        layoutTransition = layoutTransitionX
+    fun setTransitionConfig(config: String?) {
+        updateLayoutTransitionX(config)
     }
 
-    var rawLine: IRichLyricLine? = null
+    fun notifyLineChanged() = refreshLines()
 
-    var line: IRichLyricLine?
-        get() = rawLine
-        set(value) {
-            rawLine = value
-            requestStartMarquee = false
-            if (animationTransition) {
-                pendingLine = value
-            } else {
-                updateAllLines()
-            }
+    fun seekTo(position: Long) {
+        if (animationTransition) {
+            pendingPosition = position; return
         }
-
-    init {
-        orientation = VERTICAL
-        gravity = Gravity.START or Gravity.CENTER_VERTICAL
-        val lp = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-        addView(main, lp)
-        addView(secondary, lp)
-        updateLayoutTransitionX()
+        main.seekTo(position)
+        secondary.seekTo(position)
     }
 
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+    fun setPosition(position: Long) {
+        if (animationTransition) {
+            pendingPosition = position; return
+        }
+        main.updatePosition(position)
+        secondary.updatePosition(position)
+    }
+
+    fun requestStartMarquee() {
+        requestMarquee = true
+        main.requestScroll()
+        secondary.requestScroll()
+    }
+
+    fun setStyle(style: LyricViewStyle) {
+        assembler.updateFlags(
+            displayTranslation, displayRoma,
+            style.primary.relativeProgress, style.primary.relativeHighlight
+        )
+        enableRelativeProgress = style.primary.relativeProgress
+        enableRelativeProgressHighlight = style.primary.relativeHighlight
+
+        applyLineStyle(
+            main,
+            style.primary,
+            style.highlight,
+            style.marquee,
+            style.gradient,
+            style.fadingEdge,
+            style.wordMotion,
+            style.sustainGlow,
+        )
+        applyLineStyle(
+            secondary,
+            style.secondary,
+            style.highlight,
+            style.marquee,
+            style.gradient,
+            style.fadingEdge,
+            style.wordMotion,
+            style.sustainGlow,
+        )
+    }
+
+    override fun updateColor(primary: IntArray, background: IntArray, highlight: IntArray) {
+        forEach { if (it is UpdatableColor) it.updateColor(primary, background, highlight) }
+    }
+
+    fun setMainLyricPlayListener(listener: LyricPlayListener?) {
+        main.playListener = listener
+    }
+
+    fun setSecondaryLyricPlayListener(listener: LyricPlayListener?) {
+        secondary.playListener = listener
+    }
+
+    override fun onMeasure(wSpec: Int, hSpec: Int) {
         if (renderScale != 1.0f && renderScale > 0) {
-            val originalWidth = MeasureSpec.getSize(widthMeasureSpec)
-            val mode = MeasureSpec.getMode(widthMeasureSpec)
-
-            val compensatedWidth = (originalWidth / renderScale).toInt()
-            val newWidthSpec = MeasureSpec.makeMeasureSpec(compensatedWidth, mode)
-
-            super.onMeasure(newWidthSpec, heightMeasureSpec)
-            setMeasuredDimension(originalWidth, measuredHeight)
+            val origW = MeasureSpec.getSize(wSpec)
+            val mode = MeasureSpec.getMode(wSpec)
+            val compW = (origW / renderScale).toInt()
+            super.onMeasure(MeasureSpec.makeMeasureSpec(compW, mode), hSpec)
+            setMeasuredDimension(origW, measuredHeight)
         } else {
-            super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+            super.onMeasure(wSpec, hSpec)
         }
     }
 
@@ -135,247 +188,41 @@ class RichLyricLineView(
         }
     }
 
-    fun setTransitionConfig(config: String?) {
-        updateLayoutTransitionX(config)
-    }
-
-    fun notifyLineChanged() = updateAllLines()
-
-    fun seekTo(position: Long) {
-        if (animationTransition) {
-            pendingPosition = position
-            return
-        }
-        main.seekTo(position)
-        secondary.seekTo(position)
-    }
-
-    fun setPosition(position: Long) {
-        if (animationTransition) {
-            pendingPosition = position
-            return
-        }
-        main.setPosition(position)
-        secondary.setPosition(position)
-    }
-
-    private var requestStartMarquee = false
-    fun requestStartMarquee() {
-        requestStartMarquee = true
-        main.reqStartMarquee()
-        secondary.reqStartMarquee()
-    }
-
-    fun setStyle(config: RichLyricLineConfig) {
-        setMainStyle(
-            config.primary,
-            config.marquee,
-            config.syllable,
-            config.gradientProgressStyle,
-            config.fadingEdgeLength
-        )
-        setSecondaryStyle(
-            config.secondary,
-            config.marquee,
-            config.syllable,
-            config.gradientProgressStyle,
-            config.fadingEdgeLength
-        )
-    }
-
-    override fun updateColor(primary: IntArray, background: IntArray, highlight: IntArray) {
-        forEach { if (it is UpdatableColor) it.updateColor(primary, background, highlight) }
-    }
-
-    fun setMainLyricPlayListener(listener: LyricPlayListener?) {
-        main.syllable.playListener = listener
-    }
-
-    fun setSecondaryLyricPlayListener(listener: LyricPlayListener?) {
-        secondary.syllable.playListener = listener
-    }
-
-    // --- 内部逻辑处理 ---
-
-    private var oldline: IRichLyricLine? = null
-    private fun updateAllLines() {
-        if (oldline === line && oldline.isTitleLine()) return
-        oldline = line
-
-        setMainLine(line)
-        setSecondaryLine(line)
-
-        if (requestStartMarquee) {
-            requestStartMarquee()
-        }
-    }
-
-    private fun setMainLine(source: IRichLyricLine?) {
-        if (source == null) {
-            isMainGeneratedWords = false
-            main.setLyric(EMPTY_LYRIC_LINE)
-            updateSustainGlowState()
-            return
-        }
-
-        // 仅在启用相对进度且非标题行时，尝试为整行生成一个虚拟的 Word 节点
-        val shouldGenerate = enableRelativeProgress && !source.isTitleLine()
-        val processedWords = if (shouldGenerate) {
-            calculateRelativeProgressWords(source, source.text, source.words)
-        } else source.words
-
-        val isGenerated = processedWords !== source.words
-        isMainGeneratedWords = isGenerated
-
-        main.setLyric(
-            LyricLine(
-                begin = source.begin,
-                end = source.end,
-                duration = source.duration,
-                isAlignedRight = source.isAlignedRight,
-                metadata = source.metadata,
-                text = source.text,
-                words = processedWords
-            )
-        )
-
-        // 如果是生成的 Word，根据配置决定是否显示逐字高亮效果
-        main.syllable.isScrollOnly = isGenerated && !enableRelativeProgressHighlight
-        updateSustainGlowState()
-    }
-
-    private fun setSecondaryLine(source: IRichLyricLine?) {
-        alwaysShowSecondary = false
-
-        if (source == null) {
-            isSecondaryGeneratedWords = false
-            secondary.apply { setLyric(null); visibleIfChanged = false }
-            updateSustainGlowState()
-            return
-        }
-
-        var isGenerated = false
-        val newLine = LyricLine().apply {
-            begin = source.begin
-            end = source.end
-            duration = source.duration
-            isAlignedRight = source.isAlignedRight
-
-            when {
-                // 1. 优先展示副行歌词
-                !source.secondary.isNullOrBlank() || !source.secondaryWords.isNullOrEmpty() -> {
-                    text = source.secondary
-                    words = calculateRelativeProgressWords(
-                        source,
-                        source.secondary,
-                        source.secondaryWords
-                    )
-                    isGenerated = words !== source.secondaryWords
-                }
-                // 2. 其次展示翻译
-                displayTranslation && (!source.translation.isNullOrBlank() || !source.translationWords.isNullOrEmpty()) -> {
-                    text = source.translation
-                    words = calculateRelativeProgressWords(
-                        source,
-                        source.translation,
-                        source.translationWords
-                    )
-                    metadata = lyricMetadataOf("translation" to "true")
-                    isGenerated = words !== source.translationWords
-                }
-
-                displayRoma -> {
-                    text = source.roma
-                    words = calculateRelativeProgressWords(
-                        source,
-                        source.roma,
-                        null
-                    )
-                    isGenerated = true
-                    metadata = lyricMetadataOf("roma" to "true")
-                }
-            }
-        }
-
-        val hasContent = newLine.text?.isNotBlank() == true || !newLine.words.isNullOrEmpty()
-        val isPlainText = newLine.words?.isEmpty() == true
-
-        alwaysShowSecondary = hasContent
-                && (isPlainText
-                || newLine.metadata?.getBoolean("translation") == true
-                || newLine.metadata?.getBoolean("roma") == true
-                || newLine.words?.first()?.begin?.let { (it - source.begin) < 500 } == true
-                )
-
-        secondary.visibleIfChanged = alwaysShowSecondary
-
-        secondary.setLyric(newLine)
-        secondary.syllable.isScrollOnly = isGenerated && !enableRelativeProgressHighlight
-        isSecondaryGeneratedWords = isGenerated
-        updateSustainGlowState()
-    }
-
-    /**
-     * 当没有逐字信息但有起止时间时，构造一个包含全文本的虚拟 Word 节点以实现平滑滚动。
-     */
-    fun calculateRelativeProgressWords(
-        timing: ILyricTiming,
-        text: String?,
-        words: List<LyricWord>?
-    ): List<LyricWord>? {
-        return if (words.isNullOrEmpty() && !text.isNullOrBlank() && timing.begin < timing.end && timing.begin >= 0) {
-            listOf(
-                LyricWord(
-                    text = text,
-                    begin = timing.begin,
-                    end = timing.end,
-                    duration = timing.duration
-                )
-            )
-        } else words
-    }
-
-    private fun setMainStyle(
-        cfg: MainTextConfig,
-        mar: MarqueeConfig,
-        syl: SyllableConfig,
-        grad: Boolean,
-        fadingEdgeLength: Int
-    ) {
-        val notifyNeeded = (cfg.enableRelativeProgress != enableRelativeProgress) ||
-                (cfg.enableRelativeProgressHighlight != enableRelativeProgressHighlight)
-
-        enableRelativeProgress = cfg.enableRelativeProgress
-        enableRelativeProgressHighlight = cfg.enableRelativeProgressHighlight
-        mainBaseSustainGlowEnabled = syl.enableSustainGlow
-
-        main.setStyle(LyricLineConfig(cfg, mar, syl, grad, fadingEdgeLength))
-        updateSustainGlowState()
-        if (notifyNeeded) notifyLineChanged()
-    }
-
-    private fun setSecondaryStyle(
-        cfg: SecondaryTextConfig,
-        mar: MarqueeConfig,
-        syl: SyllableConfig,
-        grad: Boolean,
-        fadingEdgeLength: Int
-    ) {
-        secondaryBaseSustainGlowEnabled = syl.enableSustainGlow
-        secondary.setStyle(LyricLineConfig(cfg, mar, syl, grad, fadingEdgeLength))
-        updateSustainGlowState()
-    }
-
-    private fun updateSustainGlowState() {
-        // 相对进度构造的整行词节点没有真实逐字边界，禁用发光避免整行泛白
-        main.syllable.isSustainGlowEnabled = mainBaseSustainGlowEnabled && !isMainGeneratedWords
-        secondary.syllable.isSustainGlowEnabled =
-            secondaryBaseSustainGlowEnabled && !isSecondaryGeneratedWords
-    }
-
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         reset()
     }
-}
 
+    private var oldLine: IRichLyricLine? = null
+
+    private fun refreshLines() {
+        if (oldLine === line && line.isTitleLine()) return
+        oldLine = line
+
+        val mainResult = assembler.buildMain(line)
+        main.setLyric(mainResult.line)
+        main.isScrollOnly = mainResult.isScrollOnly
+
+        val secResult = assembler.buildSecondary(line)
+        alwaysShowSecondary = secResult.alwaysShow
+        secondary.visibleIfChanged = secResult.alwaysShow
+        secondary.setLyric(secResult.line)
+        secondary.isScrollOnly = secResult.isScrollOnly
+
+        if (requestMarquee) requestStartMarquee()
+    }
+
+    private fun applyLineStyle(
+        view: LyricLineView, text: TextLook, highlight: Highlight,
+        marquee: Marquee, gradient: Boolean, fadingEdge: Int, wordMotion: WordMotion,
+        sustainGlow: Boolean,
+    ) {
+        view.wordMotion = wordMotion
+        view.sustainGlowEnabled = sustainGlow
+        view.configureWith(text, highlight, marquee, gradient, fadingEdge)
+    }
+
+    private fun updateLayoutTransitionX(config: String? = LayoutTransitionX.TRANSITION_CONFIG_SMOOTH) {
+        layoutTransition = LayoutTransitionX(config).apply { setAnimateParentHierarchy(true) }
+    }
+}

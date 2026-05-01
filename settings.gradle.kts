@@ -45,4 +45,6 @@ include(":lyric:style")
 include(":lyric:viewAppTest")
 include(":lyric:statusbarlyric")
 
-rootProject.name = "LyriconProject"
+include(":opencc-lite")
+
+rootProject.name = "lyricon"

@@ -117,7 +117,7 @@ class PackageStyleViewModel(
 
     fun getPackageLabel(packageName: String): String =
         if (packageName == DEFAULT_PACKAGE_NAME) {
-            context.getString(R.string.package_config_default)
+            context.getString(R.string.app_style_default)
         } else {
             runCatching {
                 AppCache.getCachedLabel(packageName)?.let { return@runCatching it }
@@ -125,7 +125,7 @@ class PackageStyleViewModel(
                 val label = context.packageManager.getApplicationLabel(app).toString()
                 AppCache.cacheLabel(packageName, label)
                 label
-            }.getOrElse { context.getString(R.string.package_config_default) }
+            }.getOrElse { context.getString(R.string.app_style_default) }
         }
 
     private fun updateSharedPreferences(packageName: String) {

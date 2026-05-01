@@ -28,10 +28,10 @@ import androidx.compose.ui.unit.dp
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
-import io.github.proify.lyricon.app.compose.preference.InputPreference
-import io.github.proify.lyricon.app.compose.preference.InputType
+import io.github.proify.lyricon.app.compose.preference.DoubleInputPreference
 import io.github.proify.lyricon.app.compose.preference.LogoColorPreference
 import io.github.proify.lyricon.app.compose.preference.RectInputPreference
+import io.github.proify.lyricon.app.compose.preference.StringInputPreference
 import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberIntPreference
 import io.github.proify.lyricon.app.util.Utils
@@ -87,13 +87,13 @@ fun LogoPage(
                         enable = it
                     }
                 )
-                InputPreference(
+                DoubleInputPreference(
                     preferences = sharedPreferences,
                     key = "lyric_style_logo_width",
                     title = stringResource(R.string.item_logo_size),
-                    syncKeys = arrayOf("lyric_style_logo_height"),
-                    inputType = InputType.DOUBLE,
-                    maxValue = 100.0,
+                    dialogSummary = stringResource(R.string.dialog_summary_logo_size),
+                    syncKeys = listOf("lyric_style_logo_height"),
+                    range = 0.0..100.0,
                     startAction = { IconActions(painterResource(R.drawable.ic_format_size)) }
                 )
                 RectInputPreference(
@@ -101,7 +101,8 @@ fun LogoPage(
                     "lyric_style_logo_margins",
                     stringResource(R.string.item_logo_margins),
                     LogoStyle.Defaults.MARGINS,
-                    leftAction = {
+                    dialogSummary = stringResource(R.string.dialog_summary_logo_margins),
+                    startAction = {
                         IconActions(painterResource(R.drawable.ic_margin))
                     },
                 )
@@ -198,15 +199,15 @@ fun LogoPage(
                     )
                 }
 
-                InputPreference(
+                StringInputPreference(
                     preferences = sharedPreferences,
                     key = "lyric_style_logo_base64_icon",
                     title = stringResource(R.string.item_logo_base64_icon),
-                    summary = stringResource(R.string.item_logo_base64_icon_summary),
+                    dialogSummary = stringResource(R.string.item_logo_base64_icon_summary),
                     startAction = {
                         IconActions(painterResource(R.drawable.ic_music_note))
                     },
-                    label = "Base64"
+                    maxLines = 4
                 )
             }
         }
