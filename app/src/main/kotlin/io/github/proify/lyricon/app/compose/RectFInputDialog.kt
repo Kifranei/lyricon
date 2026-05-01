@@ -30,6 +30,7 @@ import top.yukonga.miuix.kmp.basic.TextButton
 @Composable
 fun RectFInputDialog(
     title: String? = null,
+    summary: String? = null,
     show: MutableState<Boolean>,
     initialLeft: Float = 0f,
     initialTop: Float = 0f,
@@ -52,6 +53,7 @@ fun RectFInputDialog(
 
     OverlayDialog(
         title = title,
+        summary = summary,
         show = show.value,
         onDismissRequest = { dismiss() }
     ) {

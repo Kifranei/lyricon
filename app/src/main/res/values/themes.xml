@@ -7,7 +7,6 @@
 <resources>
 
     <style name="Theme.Dark" parent="@android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:windowActivityTransitions">true</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
 

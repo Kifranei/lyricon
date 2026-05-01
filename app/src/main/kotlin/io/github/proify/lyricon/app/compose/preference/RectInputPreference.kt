@@ -44,6 +44,7 @@ fun RectInputPreference(
     defaultValue: RectF = RectF(),
     titleColor: BasicComponentColors = BasicComponentDefaults.titleColor(),
     summary: (@Composable (RectF) -> String)? = null,
+    dialogSummary: String? = null,
     summaryColor: BasicComponentColors = BasicComponentDefaults.summaryColor(),
     startAction: @Composable (() -> Unit)? = null,
     endActions: @Composable RowScope.() -> Unit = {},
@@ -68,6 +69,7 @@ fun RectInputPreference(
             initialBottom = rectF.bottom,
             show = showDialog,
             title = title,
+            summary = dialogSummary,
             onConfirm = { left, top, right, bottom ->
                 val rectF = RectF(left, top, right, bottom)
                 preferences.editCommit {

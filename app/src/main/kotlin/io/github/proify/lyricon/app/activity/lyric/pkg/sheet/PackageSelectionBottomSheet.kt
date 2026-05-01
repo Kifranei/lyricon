@@ -160,6 +160,7 @@ fun PackageSelectionBottomSheet(
         onDismissRequest = { show.value = false },
         outsideMargin = BottomSheetDefaults.outsideMargin,
         insideMargin = DpSize(0.dp, 0.dp),
+        enableNestedScroll = false,
         content = {
             Column {
                 PackageSearchBar(

@@ -90,6 +90,7 @@ fun LogoPage(
                     preferences = sharedPreferences,
                     key = "lyric_style_logo_width",
                     title = stringResource(R.string.item_logo_size),
+                    dialogSummary = stringResource(R.string.dialog_summary_logo_size),
                     syncKeys = listOf("lyric_style_logo_height"),
                     range = 0.0..100.0,
                     startAction = { IconActions(painterResource(R.drawable.ic_format_size)) }
@@ -99,6 +100,7 @@ fun LogoPage(
                     "lyric_style_logo_margins",
                     stringResource(R.string.item_logo_margins),
                     LogoStyle.Defaults.MARGINS,
+                    dialogSummary = stringResource(R.string.dialog_summary_logo_margins),
                     startAction = {
                         IconActions(painterResource(R.drawable.ic_margin))
                     },

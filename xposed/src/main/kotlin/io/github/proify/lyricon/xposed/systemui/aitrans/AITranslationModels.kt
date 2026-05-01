@@ -25,7 +25,12 @@ internal data class TranslationResponse(val translations: List<TranslationItem>)
 internal data class OpenAiChatRequest(
     val model: String,
     val messages: List<ChatMessage>,
-    @SerialName("response_format") val responseFormat: ResponseFormat? = null
+    @SerialName("response_format") val responseFormat: ResponseFormat? = null,
+    val temperature: Float? = null,
+    @SerialName("top_p") val topP: Float? = null,
+    @SerialName("max_tokens") val maxTokens: Int? = null,
+    @SerialName("presence_penalty") val presencePenalty: Float? = null,
+    @SerialName("frequency_penalty") val frequencyPenalty: Float? = null
 )
 
 @Serializable

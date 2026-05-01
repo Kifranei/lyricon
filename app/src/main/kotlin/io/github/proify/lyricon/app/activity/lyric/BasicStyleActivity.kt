@@ -138,6 +138,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         preferences,
                         "lyric_style_base_margins",
                         stringResource(R.string.item_base_margins),
+                        dialogSummary = stringResource(R.string.dialog_summary_base_margins),
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_margin))
                         },
@@ -147,6 +148,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         preferences,
                         "lyric_style_base_paddings",
                         stringResource(R.string.item_base_paddings),
+                        dialogSummary = stringResource(R.string.dialog_summary_base_paddings),
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_padding))
                         }
@@ -157,6 +159,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         preferences = preferences,
                         key = "lyric_style_base_width",
                         title = stringResource(R.string.item_base_width),
+                        dialogSummary = stringResource(R.string.dialog_summary_base_width),
                         range = 0.0..1000.0,
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_width_normal))
@@ -168,6 +171,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                             preferences = preferences,
                             key = "lyric_style_base_width_in_coloros_capsule_mode",
                             title = stringResource(R.string.item_base_width_color_os_capsule),
+                            dialogSummary = stringResource(R.string.dialog_summary_base_width_color_os_capsule),
                             range = 0.0..1000.0,
                             startAction = {
                                 IconActions(painterResource(R.drawable.ic_width_normal))
@@ -191,6 +195,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         preferences = preferences,
                         key = "lyric_style_base_blocked_words_regex",
                         title = stringResource(R.string.item_base_blocked_words_regex),
+                        dialogSummary = stringResource(R.string.dialog_summary_base_blocked_words_regex),
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_visibility_off))
                         }
@@ -220,16 +225,6 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         },
                         title = stringResource(R.string.item_base_lockscreen_hidden),
                     )
-
-//                    SwitchPreference(
-//                        preferences,
-//                        "lyric_style_base_double_tap_switch_clock",
-//                        defaultValue = BasicStyle.Defaults.DOUBLE_TAP_SWITCH_CLOCK,
-//                        startAction = {
-//                            IconActions(painterResource(R.drawable.ic_visibility_off))
-//                        },
-//                        title = stringResource(R.string.item_base_double_tap_switch_clock),
-//                    )
 
                     HideWhenNoLyric()
                     HideWhenNoUpdate()
@@ -266,9 +261,10 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             preferences = preferences,
             key = "lyric_style_base_no_lyric_hide_timeout",
             title = stringResource(R.string.item_base_timeout_no_lyric),
+            dialogSummary = stringResource(R.string.dialog_summary_base_timeout_no_lyric),
             range = 0L..3_600_000L,
             summary = { hideWhenNoLyricSummary },
-            startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+            startAction = { IconActions(painterResource(R.drawable.update_24px)) },
             display = PreferenceValueDisplay.Time(multiplier = 1000)
         )
     }
@@ -296,9 +292,10 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             preferences = preferences,
             key = "lyric_style_base_no_update_hide_timeout",
             title = stringResource(R.string.item_base_timeout_no_update),
+            dialogSummary = stringResource(R.string.dialog_summary_base_timeout_no_update),
             range = 0L..3_600_000L,
             summary = { summary },
-            startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+            startAction = { IconActions(painterResource(R.drawable.update_24px)) },
             display = PreferenceValueDisplay.Time(multiplier = 1000)
         )
     }
@@ -329,9 +326,10 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                 preferences = preferences,
                 key = "lyric_style_base_keyword_hide_timeout",
                 title = stringResource(R.string.item_base_timeout_keyword_match),
+                dialogSummary = stringResource(R.string.dialog_summary_base_timeout_keyword_match),
                 range = 0L..3_600_000L,
                 summary = { summary },
-                startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+                startAction = { IconActions(painterResource(R.drawable.update_24px)) },
                 display = PreferenceValueDisplay.Time(multiplier = 1000)
             )
         }
@@ -351,7 +349,8 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                 key = "lyric_style_base_timeout_hide_keywords",
                 title = stringResource(R.string.item_base_filter_keyword_list),
                 summary = summary,
-                startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
+                dialogSummary = stringResource(R.string.dialog_summary_base_filter_keyword_list),
+                startAction = { IconActions(painterResource(R.drawable.regular_expression_24px)) },
                 label = stringResource(R.string.hint_filter_keyword_input)
             )
         }

@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,6 +20,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
@@ -32,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
@@ -268,9 +271,34 @@ class MainActivity : BaseActivity() {
         onRestartSystemUI: () -> Unit = {},
         onRestartApp: () -> Unit = {}
     ) {
+        val isTablet = LocalConfiguration.current.screenWidthDp >= 600
         val fallbackShowPopup = remember { mutableStateOf(false) }
         val showPopupState = model?.showPopup ?: fallbackShowPopup
 
+        if (isTablet) {
+            TabletMainContent(
+                model = model,
+                showPopupState = showPopupState,
+                onRestartSystemUI = onRestartSystemUI,
+                onRestartApp = onRestartApp
+            )
+        } else {
+            PhoneMainContent(
+                model = model,
+                showPopupState = showPopupState,
+                onRestartSystemUI = onRestartSystemUI,
+                onRestartApp = onRestartApp
+            )
+        }
+    }
+
+    @Composable
+    private fun PhoneMainContent(
+        model: MainViewModel?,
+        showPopupState: MutableState<Boolean>,
+        onRestartSystemUI: () -> Unit,
+        onRestartApp: () -> Unit
+    ) {
         AppToolBarListContainer(
             title = stringResource(R.string.app_name),
             actions = { TopBarActions(showPopupState, onRestartSystemUI, onRestartApp) },
@@ -282,14 +310,112 @@ class MainActivity : BaseActivity() {
                 val cardStatus = determineCardStatus(
                     safeMode = model?.safeMode?.value ?: false,
                     isWaitingForReboot = model?.isWaitingForReboot?.value ?: false,
+                    isMonet = model?.isMonet ?: AppThemeUtils.isEnableMonet(LocalContext.current),
                     onRestartSystemUI = onRestartSystemUI
                 )
-                StatusCardItem(cardStatus)
+                StatusCardItem(
+                    cardStatus = cardStatus,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 16.dp)
+                )
             }
 
-            item("style_settings") { StyleSettingsCard() }
-            item("provider_settings") { ProviderSettingsCard() }
-            item("other_settings") { OtherSettingsCard() }
+            item("style_settings") {
+                StyleSettingsCard(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
+            item("provider_settings") {
+                ProviderSettingsCard(
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
+            item("other_settings") {
+                OtherSettingsCard(
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun TabletMainContent(
+        model: MainViewModel?,
+        showPopupState: MutableState<Boolean>,
+        onRestartSystemUI: () -> Unit,
+        onRestartApp: () -> Unit
+    ) {
+        AppToolBarListContainer(
+            title = stringResource(R.string.app_name),
+            actions = { TopBarActions(showPopupState, onRestartSystemUI, onRestartApp) },
+            scaffoldContent = {
+                if (model != null) RestartFailDialog(showState = model.showRestartFailDialog)
+            }
+        ) {
+            item("status_card") {
+                val cardStatus = determineCardStatus(
+                    safeMode = model?.safeMode?.value ?: false,
+                    isWaitingForReboot = model?.isWaitingForReboot?.value ?: false,
+                    isMonet = model?.isMonet ?: AppThemeUtils.isEnableMonet(LocalContext.current),
+                    onRestartSystemUI = onRestartSystemUI
+                )
+                TabletContentItem {
+                    StatusCardItem(
+                        cardStatus = cardStatus,
+                        modifier = Modifier
+                            .padding(horizontal = 32.dp)
+                            .padding(bottom = 20.dp)
+                    )
+                }
+            }
+            item("primary_settings") {
+                TabletContentItem {
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 32.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        StyleSettingsCard(modifier = Modifier.weight(1f))
+                        ProviderSettingsCard(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+            item("other_settings") {
+                TabletContentItem {
+                    OtherSettingsCard(
+                        modifier = Modifier
+                            .padding(horizontal = 32.dp)
+                            .padding(top = 20.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun TabletContentItem(
+        content: @Composable () -> Unit
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 900.dp)
+            ) {
+                content()
+            }
         }
     }
 
@@ -297,6 +423,7 @@ class MainActivity : BaseActivity() {
     private fun determineCardStatus(
         safeMode: Boolean,
         isWaitingForReboot: Boolean,
+        isMonet: Boolean,
         onRestartSystemUI: () -> Unit
     ): CardStatus {
         val inspectionMode = LocalInspectionMode.current
@@ -340,7 +467,7 @@ class MainActivity : BaseActivity() {
 
             return StatusCard(
                 colors = when {
-                    viewModel.isMonet -> CardColors(
+                    isMonet -> CardColors(
                         MiuixTheme.colorScheme.primary,
                         MiuixTheme.colorScheme.onPrimary
                     )
@@ -364,11 +491,12 @@ class MainActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    private fun StatusCardItem(cardStatus: CardStatus) {
+    private fun StatusCardItem(
+        cardStatus: CardStatus,
+        modifier: Modifier = Modifier
+    ) {
         Card(
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-                .fillMaxWidth(),
+            modifier = modifier.fillMaxWidth(),
             insideMargin = PaddingValues(vertical = 7.dp),
             colors = cardStatus.colors,
             pressFeedbackType = PressFeedbackType.Sink,
@@ -379,12 +507,10 @@ class MainActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    private fun StyleSettingsCard() {
+    private fun StyleSettingsCard(modifier: Modifier = Modifier) {
         val context = LocalContext.current
         Card(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth()
+            modifier = modifier
         ) {
             ArrowPreference(
                 startAction = {
@@ -415,12 +541,10 @@ class MainActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    private fun ProviderSettingsCard() {
+    private fun ProviderSettingsCard(modifier: Modifier = Modifier) {
         val context = LocalContext.current
         Card(
-            modifier = Modifier
-                .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                .fillMaxWidth()
+            modifier = modifier
         ) {
             ArrowPreference(
                 startAction = {
@@ -437,12 +561,10 @@ class MainActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    private fun OtherSettingsCard() {
+    private fun OtherSettingsCard(modifier: Modifier = Modifier) {
         val context = LocalContext.current
         Card(
-            modifier = Modifier
-                .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                .fillMaxWidth()
+            modifier = modifier
         ) {
             ArrowPreference(
                 startAction = {
@@ -479,13 +601,14 @@ class MainActivity : BaseActivity() {
         backgroundColor: Color,
         iconRes: Int
     ) {
-        val iconSize = if (viewModel.isMonet) 20.dp else 24.dp
+        val isMonet = AppThemeUtils.isEnableMonet(LocalContext.current)
+        val iconSize = if (isMonet) 20.dp else 24.dp
         Box(
             modifier = Modifier
                 .padding(end = 16.dp)
                 .size(40.dp)
                 .let {
-                    if (viewModel.isMonet) {
+                    if (isMonet) {
                         it.background(MiuixTheme.colorScheme.primary, CircleShape)
                     } else {
                         it.background(backgroundColor, CircleShape)

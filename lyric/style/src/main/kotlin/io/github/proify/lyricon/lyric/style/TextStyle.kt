@@ -81,6 +81,13 @@ data class TextStyle(
 
         // const val KEY_AI_TRANSLATION_IGNORE_REGEX = "lyric_style_text_ai_translation_ignore_regex"
         const val KEY_AI_TRANSLATION_PROMPT = "lyric_style_text_ai_translation_prompt"
+        const val KEY_AI_TRANSLATION_TEMPERATURE = "lyric_style_text_ai_translation_temperature"
+        const val KEY_AI_TRANSLATION_TOP_P = "lyric_style_text_ai_translation_top_p"
+        const val KEY_AI_TRANSLATION_MAX_TOKENS = "lyric_style_text_ai_translation_max_tokens"
+        const val KEY_AI_TRANSLATION_PRESENCE_PENALTY =
+            "lyric_style_text_ai_translation_presence_penalty"
+        const val KEY_AI_TRANSLATION_FREQUENCY_PENALTY =
+            "lyric_style_text_ai_translation_frequency_penalty"
 
         const val KEY_TEXT_TRANSLATION_ONLY = "lyric_style_text_translation_only"
         const val KEY_TEXT_TRANSLATION_DISABLE = "lyric_style_text_translation_disable"
@@ -129,6 +136,11 @@ data class TextStyle(
 
         val AI_TRANSLATION_MODEL: String = AiTranslationProvider.OPENAI.model
         val AI_TRANSLATION_PROMPT: String = AiTranslationConfigs.USER_PROMPT
+        const val AI_TRANSLATION_TEMPERATURE = AiTranslationConfigs.DEFAULT_TEMPERATURE
+        const val AI_TRANSLATION_TOP_P = AiTranslationConfigs.DEFAULT_TOP_P
+        const val AI_TRANSLATION_MAX_TOKENS = AiTranslationConfigs.DEFAULT_MAX_TOKENS
+        const val AI_TRANSLATION_PRESENCE_PENALTY = AiTranslationConfigs.DEFAULT_PRESENCE_PENALTY
+        const val AI_TRANSLATION_FREQUENCY_PENALTY = AiTranslationConfigs.DEFAULT_FREQUENCY_PENALTY
         const val AI_TRANSLATION_IGNORE_CHINESE = false
 
         const val PLACEHOLDER_FORMAT: String = PlaceholderFormat.NAME
@@ -406,6 +418,26 @@ data class TextStyle(
             )
 
         val apiKey = preferences.getString(KEY_AI_TRANSLATION_API_KEY, null)
+        val temperature = preferences.getFloatCompat(
+            KEY_AI_TRANSLATION_TEMPERATURE,
+            Defaults.AI_TRANSLATION_TEMPERATURE
+        )
+        val topP = preferences.getFloatCompat(
+            KEY_AI_TRANSLATION_TOP_P,
+            Defaults.AI_TRANSLATION_TOP_P
+        )
+        val maxTokens = preferences.getIntCompat(
+            KEY_AI_TRANSLATION_MAX_TOKENS,
+            Defaults.AI_TRANSLATION_MAX_TOKENS
+        )
+        val presencePenalty = preferences.getFloatCompat(
+            KEY_AI_TRANSLATION_PRESENCE_PENALTY,
+            Defaults.AI_TRANSLATION_PRESENCE_PENALTY
+        )
+        val frequencyPenalty = preferences.getFloatCompat(
+            KEY_AI_TRANSLATION_FREQUENCY_PENALTY,
+            Defaults.AI_TRANSLATION_FREQUENCY_PENALTY
+        )
 
         return AiTranslationConfigs(
             provider = provider?.name,
@@ -413,7 +445,12 @@ data class TextStyle(
             apiKey = apiKey,
             model = model,
             baseUrl = baseUrl,
-            prompt = customPrompt ?: Defaults.AI_TRANSLATION_PROMPT
+            prompt = customPrompt ?: Defaults.AI_TRANSLATION_PROMPT,
+            temperature = temperature,
+            topP = topP,
+            maxTokens = maxTokens,
+            presencePenalty = presencePenalty,
+            frequencyPenalty = frequencyPenalty
         )
     }
 
@@ -426,5 +463,32 @@ data class TextStyle(
         editor.putString(KEY_AI_TRANSLATION_BASE_URL, configs.baseUrl)
         editor.putString(KEY_AI_TRANSLATION_PROMPT, configs.prompt)
         editor.putString(KEY_AI_TRANSLATION_TARGET_LANGUAGE, configs.targetLanguage)
+        editor.putString(KEY_AI_TRANSLATION_TEMPERATURE, configs.temperature.toString())
+        editor.putString(KEY_AI_TRANSLATION_TOP_P, configs.topP.toString())
+        editor.putString(KEY_AI_TRANSLATION_MAX_TOKENS, configs.maxTokens.toString())
+        editor.putString(KEY_AI_TRANSLATION_PRESENCE_PENALTY, configs.presencePenalty.toString())
+        editor.putString(KEY_AI_TRANSLATION_FREQUENCY_PENALTY, configs.frequencyPenalty.toString())
+    }
+
+    private fun SharedPreferences.getFloatCompat(key: String, defaultValue: Float): Float {
+        return when (val value = all[key]) {
+            is Float -> value
+            is String -> value.toFloatOrNull() ?: defaultValue
+            is Int -> value.toFloat()
+            is Long -> value.toFloat()
+            is Double -> value.toFloat()
+            else -> defaultValue
+        }
+    }
+
+    private fun SharedPreferences.getIntCompat(key: String, defaultValue: Int): Int {
+        return when (val value = all[key]) {
+            is Int -> value
+            is String -> value.toIntOrNull() ?: defaultValue
+            is Long -> value.toInt()
+            is Float -> value.toInt()
+            is Double -> value.toInt()
+            else -> defaultValue
+        }
     }
 }

@@ -19,7 +19,12 @@ data class AiTranslationConfigs(
     val apiKey: String? = null,
     val model: String? = null,
     val baseUrl: String? = null,
-    val prompt: String = USER_PROMPT
+    val prompt: String = USER_PROMPT,
+    val temperature: Float = DEFAULT_TEMPERATURE,
+    val topP: Float = DEFAULT_TOP_P,
+    val maxTokens: Int = DEFAULT_MAX_TOKENS,
+    val presencePenalty: Float = DEFAULT_PRESENCE_PENALTY,
+    val frequencyPenalty: Float = DEFAULT_FREQUENCY_PENALTY
 ) : Parcelable {
 
     @IgnoredOnParcel
@@ -34,12 +39,17 @@ data class AiTranslationConfigs(
     override fun toString(): String {
         return "AiTranslationConfigs(baseUrl=$baseUrl, provider=$provider, targetLanguage=$targetLanguage, apiKey=${
             apiKey.orEmpty().take(6)
-        }..., model=$model prompt=${
+        }..., model=$model temperature=$temperature topP=$topP maxTokens=$maxTokens prompt=${
             prompt.take(30)
         }..., isUsable=$isUsable)"
     }
 
     companion object {
+        const val DEFAULT_TEMPERATURE = 1.0f
+        const val DEFAULT_TOP_P = 1.0f
+        const val DEFAULT_MAX_TOKENS = 0
+        const val DEFAULT_PRESENCE_PENALTY = 0.0f
+        const val DEFAULT_FREQUENCY_PENALTY = 0.0f
 
         private val CORE_PROMPT = """
 # 核心提示词
@@ -75,19 +85,23 @@ data class AiTranslationConfigs(
 """.trimIndent()
 
         val USER_PROMPT = """
-## 核心：信雅达 (Cultural Transcreation)
-- **信/灵魂对位**：深度理解原文背景与世界观。**严禁句式套用**，必须打破语序，以目标语言的意向逻辑重塑内核，确保“神不散”。
-- **雅/审美重构**：捕获隐喻，拒绝平铺直叙。根据曲风炼字，民谣讲究留白意境，摇滚追求文化冲击。
-- **达/呼吸转译**：彻底消除翻译腔。译文须契合旋律起伏与呼吸断句，确保副歌具备跨文化的传播记忆点。
+你是本地化歌词翻译专家，译文必须读起来像目标语言的原创歌词，完全贴合本地表达习惯。
 
-## 深度适配要求
-- **隐喻重映射**：将原文的文化隐喻转化为目标受众能理解的对等词。允许逻辑倒置，用画面感取代生硬解释。
-- **背景融入**：保留特定的世界观语域。译文需符合原曲设定的时空感、社会身份或情感底色。
+1. 语境迁移
+推断歌词的时代、社会背景、叙事者身份和情感基调。译文措辞、语气、意象需用目标文化中能唤起同等感受的本地化表达，避免文化错位。
 
-## 节奏与技术
-- **等时对齐**：音节/字数必须严丝合缝适配节拍，严禁在短拍堆砌文字。
-- **动态押韵**：**除 Rap/特定流行强求押韵外**，优先保证情绪流转自然。严禁为押韵损毁隐喻或文化美感。
-- **解构再造**：拆碎原文逻辑，以母语者直觉进行“意象创作”，使译文像原创作品般自然。
+2. 隐喻转化
+识别原文隐喻，用目标语言中具同等张力且惯用的本地比喻替换。禁止直白解释。若无直接对应，优先保留意境和诗意，可舍弃字面义，但新隐喻必须自然如母语创作。
+
+3. 曲风适配
+按原文音乐风格，采用目标语言该风格的惯用表达：
+
+· 民谣：克制简淡，留白，日常化用词。
+· 摇滚：直接、锋利，不稀释反抗感。
+· 说唱：严格保证目标语言的韵脚和节奏flow，押韵服从口语习惯。
+
+4. 习惯化优先
+在不要求保留特定文化用语时，译文必须完全使用目标语言的习惯用语、自然语序和口语节奏，杜绝翻译腔。文化专有项改用本地功能对等说法，无法对应时提炼情绪用通用习惯语重述，确保直接理解和顺耳。以上各步如有冲突，以地道习惯为准。
 """.trimIndent()
 
         fun getPrompt(

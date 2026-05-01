@@ -54,7 +54,12 @@ internal object OpenAiTranslationClient {
                 ChatMessage("system", AITranslationPrompt.build(configs, song)),
                 ChatMessage("user", json.encodeToString(payload))
             ),
-            responseFormat = ResponseFormat("json_object")
+            responseFormat = ResponseFormat("json_object"),
+            temperature = configs.temperature,
+            topP = configs.topP,
+            maxTokens = configs.maxTokens.takeIf { it > 0 },
+            presencePenalty = configs.presencePenalty,
+            frequencyPenalty = configs.frequencyPenalty
         )
 
         var connection: HttpURLConnection? = null

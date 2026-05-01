@@ -8,11 +8,13 @@ package io.github.proify.lyricon.app.activity.lyric.pkg.page
 
 import android.content.SharedPreferences
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalLocale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpSize
@@ -64,10 +67,13 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.InputField
+import top.yukonga.miuix.kmp.basic.SearchBar
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Search
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.CheckboxLocation
 import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
@@ -78,6 +84,8 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.window.WindowBottomSheet
 import java.net.HttpURLConnection
 import java.net.URL
+import java.text.Collator
+import java.util.Locale
 
 @Composable
 fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
@@ -107,6 +115,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_size",
                     title = stringResource(R.string.item_text_size),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_size),
                     range = 0.0..100.0,
                     startAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
                 )
@@ -115,6 +124,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     "lyric_style_text_margins",
                     stringResource(R.string.item_text_margins),
                     defaultValue = TextStyle.Defaults.MARGINS,
+                    dialogSummary = stringResource(R.string.dialog_summary_text_margins),
                     startAction = { IconActions(painterResource(R.drawable.ic_margin)) },
                 )
                 RectInputPreference(
@@ -122,6 +132,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     "lyric_style_text_paddings",
                     stringResource(R.string.item_text_paddings),
                     defaultValue = TextStyle.Defaults.PADDINGS,
+                    dialogSummary = stringResource(R.string.dialog_summary_text_paddings),
                     startAction = { IconActions(painterResource(R.drawable.ic_padding)) },
                 )
 
@@ -129,6 +140,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_size_ratio_in_multi_line_mode",
                     title = stringResource(R.string.item_text_size_scale_multi_line),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_size_scale_multi_line),
                     defaultValue = TextStyle.Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE.toDouble(),
                     range = 0.1..1.0,
                     startAction = { IconActions(painterResource(R.drawable.ic_format_size)) },
@@ -139,6 +151,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_fading_edge_length",
                     title = stringResource(R.string.item_text_fading_edge_length),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_fading_edge_length),
                     range = 0.0..100.0,
                     startAction = { IconActions(painterResource(R.drawable.ic_gradient)) },
                 )
@@ -278,7 +291,8 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_typeface",
                     title = stringResource(R.string.item_text_typeface),
-                    startAction = { IconActions(painterResource(R.drawable.ic_fontdownload)) },
+                    dialogSummary = stringResource(R.string.dialog_summary_text_typeface),
+                    startAction = { IconActions(painterResource(R.drawable.file_24px)) },
                     maxLines = 1
                 )
 
@@ -286,6 +300,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_weight",
                     title = stringResource(R.string.item_text_font_weight),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_font_weight),
                     range = 0..1000,
                     startAction = { IconActions(painterResource(R.drawable.ic_fontdownload)) },
                 )
@@ -344,44 +359,48 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     onCheckedChange = { isWordMotionEnabled = it },
                     title = stringResource(R.string.item_text_word_motion_enable),
                     summary = stringResource(R.string.item_text_word_motion_summary),
-                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                    startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
                 )
 
                 DoubleInputPreference(
                     preferences = preferences,
                     key = TextStyle.KEY_WORD_MOTION_CJK_LIFT_FACTOR,
                     title = stringResource(R.string.item_text_word_motion_cjk_lift_factor),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_word_motion_cjk_lift_factor),
                     defaultValue = TextStyle.Defaults.WORD_MOTION_CJK_LIFT_FACTOR.toDouble(),
                     range = 0.0..0.2,
                     enabled = isWordMotionEnabled,
-                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                    startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
                 )
                 DoubleInputPreference(
                     preferences = preferences,
                     key = TextStyle.KEY_WORD_MOTION_CJK_WAVE_FACTOR,
                     title = stringResource(R.string.item_text_word_motion_cjk_wave_factor),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_word_motion_cjk_wave_factor),
                     defaultValue = TextStyle.Defaults.WORD_MOTION_CJK_WAVE_FACTOR.toDouble(),
                     range = 0.5..8.0,
                     enabled = isWordMotionEnabled,
-                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                    startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
                 )
                 DoubleInputPreference(
                     preferences = preferences,
                     key = TextStyle.KEY_WORD_MOTION_LATIN_LIFT_FACTOR,
                     title = stringResource(R.string.item_text_word_motion_latin_lift_factor),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_word_motion_latin_lift_factor),
                     defaultValue = TextStyle.Defaults.WORD_MOTION_LATIN_LIFT_FACTOR.toDouble(),
                     range = 0.0..0.2,
                     enabled = isWordMotionEnabled,
-                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                    startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
                 )
                 DoubleInputPreference(
                     preferences = preferences,
                     key = TextStyle.KEY_WORD_MOTION_LATIN_WAVE_FACTOR,
                     title = stringResource(R.string.item_text_word_motion_latin_wave_factor),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_word_motion_latin_wave_factor),
                     defaultValue = TextStyle.Defaults.WORD_MOTION_LATIN_WAVE_FACTOR.toDouble(),
                     range = 0.5..8.0,
                     enabled = isWordMotionEnabled,
-                    startAction = { IconActions(painterResource(R.drawable.ic_music_note)) },
+                    startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
                 )
             }
         }
@@ -469,6 +488,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = TextStyle.KEY_AI_TRANSLATION_BASE_URL,
                     title = stringResource(R.string.item_translation_base_url),
+                    dialogSummary = stringResource(R.string.dialog_summary_translation_base_url),
                     defaultValue = TextStyle.Defaults.AI_TRANSLATION_HOST,
                     startAction = { IconActions(painterResource(R.drawable.link_24px)) },
                     maxLines = 1
@@ -476,11 +496,13 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
 
                 TranslationApiKeyPreference(preferences)
                 TranslationModelPreference(preferences)
+                TranslationAdvancedOptionsPreference(preferences)
 
                 StringInputPreference(
                     preferences = preferences,
                     key = TextStyle.KEY_AI_TRANSLATION_PROMPT,
                     title = stringResource(R.string.item_translation_custom_prompt),
+                    dialogSummary = stringResource(R.string.dialog_summary_translation_custom_prompt),
                     defaultValue = TextStyle.Defaults.AI_TRANSLATION_PROMPT,
                     startAction = { IconActions(painterResource(R.drawable.title_24px)) },
                 )
@@ -508,6 +530,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_marquee_speed",
                     title = stringResource(R.string.item_text_marquee_speed),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_marquee_speed),
                     defaultValue = TextStyle.Defaults.MARQUEE_SPEED.toInt(),
                     range = 0..500,
                     startAction = { IconActions(painterResource(R.drawable.ic_speed)) },
@@ -516,6 +539,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_marquee_space",
                     title = stringResource(R.string.item_text_marquee_space),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_marquee_space),
                     defaultValue = TextStyle.Defaults.MARQUEE_GHOST_SPACING.toInt(),
                     range = 0..1000,
                     startAction = { IconActions(painterResource(R.drawable.ic_space_bar)) },
@@ -524,6 +548,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_marquee_initial_delay",
                     title = stringResource(R.string.item_text_marquee_initial_delay),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_marquee_initial_delay),
                     defaultValue = TextStyle.Defaults.MARQUEE_INITIAL_DELAY.toLong(),
                     range = 0L..3_600_000L,
                     startAction = { IconActions(painterResource(R.drawable.ic_autopause)) },
@@ -533,6 +558,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_marquee_loop_delay",
                     title = stringResource(R.string.item_text_marquee_delay),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_marquee_delay),
                     defaultValue = TextStyle.Defaults.MARQUEE_LOOP_DELAY.toLong(),
                     range = 0L..3_600_000L,
                     startAction = { IconActions(painterResource(R.drawable.ic_autopause)) },
@@ -554,6 +580,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     preferences = preferences,
                     key = "lyric_style_text_marquee_repeat_count",
                     title = stringResource(R.string.item_text_marquee_repeat_count),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_marquee_repeat_count),
                     range = 0..3_600_000,
                     startAction = { IconActions(painterResource(R.drawable.ic_pin)) },
                 )
@@ -569,6 +596,100 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     title = stringResource(R.string.item_text_marquee_stop_at_end),
                     startAction = { IconActions(painterResource(R.drawable.ic_stop_circle)) },
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun TranslationAdvancedOptionsPreference(preferences: SharedPreferences) {
+    var showSheet by remember { mutableStateOf(false) }
+
+    ArrowPreference(
+        title = stringResource(R.string.item_translation_advanced_options),
+        summary = stringResource(R.string.item_translation_advanced_options_summary),
+        startAction = { IconActions(painterResource(R.drawable.more_horiz_24px)) },
+        holdDownState = showSheet,
+        onClick = { showSheet = true }
+    )
+
+    if (showSheet) {
+        OverlayBottomSheet(
+            show = showSheet,
+            title = stringResource(R.string.item_translation_advanced_options),
+            onDismissRequest = { showSheet = false },
+            backgroundColor = MiuixTheme.colorScheme.surface,
+            insideMargin = DpSize(0.dp, 0.dp),
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .overScrollVertical()
+            ) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
+                            .fillMaxWidth(),
+                    ) {
+                        DoubleInputPreference(
+                            preferences = preferences,
+                            key = TextStyle.KEY_AI_TRANSLATION_TEMPERATURE,
+                            title = stringResource(R.string.item_translation_temperature),
+                            dialogSummary = stringResource(R.string.dialog_summary_translation_temperature),
+                            defaultValue = TextStyle.Defaults.AI_TRANSLATION_TEMPERATURE.toDouble(),
+                            range = 0.0..2.0,
+                            startAction = { IconActions(painterResource(R.drawable.device_thermostat_24px)) },
+                        )
+
+                        DoubleInputPreference(
+                            preferences = preferences,
+                            key = TextStyle.KEY_AI_TRANSLATION_TOP_P,
+                            title = stringResource(R.string.item_translation_top_p),
+                            dialogSummary = stringResource(R.string.dialog_summary_translation_top_p),
+                            defaultValue = TextStyle.Defaults.AI_TRANSLATION_TOP_P.toDouble(),
+                            range = 0.0..1.0,
+                            startAction = { IconActions(painterResource(R.drawable.discover_tune_24px)) },
+                        )
+
+                        IntInputPreference(
+                            preferences = preferences,
+                            key = TextStyle.KEY_AI_TRANSLATION_MAX_TOKENS,
+                            title = stringResource(R.string.item_translation_max_tokens),
+                            dialogSummary = stringResource(R.string.dialog_summary_translation_max_tokens),
+                            defaultValue = TextStyle.Defaults.AI_TRANSLATION_MAX_TOKENS,
+                            range = 0..200000,
+                            summary = {
+                                if (it == 0) {
+                                    stringResource(R.string.item_translation_max_tokens_default)
+                                } else {
+                                    null
+                                }
+                            },
+                            startAction = { IconActions(painterResource(R.drawable.token_24px)) },
+                        )
+
+                        DoubleInputPreference(
+                            preferences = preferences,
+                            key = TextStyle.KEY_AI_TRANSLATION_PRESENCE_PENALTY,
+                            title = stringResource(R.string.item_translation_presence_penalty),
+                            dialogSummary = stringResource(R.string.dialog_summary_translation_presence_penalty),
+                            defaultValue = TextStyle.Defaults.AI_TRANSLATION_PRESENCE_PENALTY.toDouble(),
+                            range = -2.0..2.0,
+                            startAction = { IconActions(painterResource(R.drawable.do_not_disturb_on_24px)) },
+                        )
+
+                        DoubleInputPreference(
+                            preferences = preferences,
+                            key = TextStyle.KEY_AI_TRANSLATION_FREQUENCY_PENALTY,
+                            title = stringResource(R.string.item_translation_frequency_penalty),
+                            dialogSummary = stringResource(R.string.dialog_summary_translation_frequency_penalty),
+                            defaultValue = TextStyle.Defaults.AI_TRANSLATION_FREQUENCY_PENALTY.toDouble(),
+                            range = -2.0..2.0,
+                            startAction = { IconActions(painterResource(R.drawable.lightbulb_2_24px)) },
+                        )
+                    }
+                }
             }
         }
     }
@@ -620,6 +741,7 @@ private fun TranslationModelPreference(preferences: SharedPreferences) {
         preferences = preferences,
         key = preferenceKey,
         title = title,
+        dialogSummary = stringResource(R.string.dialog_summary_translation_model),
         defaultValue = defaultModel,
         startAction = { IconActions(painterResource(R.drawable.psychology_24px)) },
         maxLines = 1,
@@ -825,14 +947,304 @@ private fun ClearTranslationDB() {
 @Composable
 private fun TranslationTargetLanguagePreference(preferences: SharedPreferences) {
     val targetLanguageName = TextStyle.Defaults.AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME
+    var showLanguageSheet by remember { mutableStateOf(false) }
+    var targetLanguage by rememberStringPreference(
+        preferences,
+        TextStyle.KEY_AI_TRANSLATION_TARGET_LANGUAGE,
+        targetLanguageName
+    )
 
     StringInputPreference(
         preferences = preferences,
         key = TextStyle.KEY_AI_TRANSLATION_TARGET_LANGUAGE,
         defaultValue = targetLanguageName,
         title = stringResource(R.string.item_translation_target_language),
+        dialogSummary = stringResource(R.string.dialog_summary_translation_target_language),
         startAction = { IconActions(painterResource(R.drawable.ic_language)) },
+        endActions = {
+            IconButton(onClick = { showLanguageSheet = true }) {
+                Icon(
+                    painter = painterResource(R.drawable.list_24px),
+                    contentDescription = stringResource(R.string.dialog_title_translation_languages)
+                )
+            }
+        }
     )
+
+    if (showLanguageSheet) {
+        val displayLocale = LocalLocale.current.platformLocale
+        val languageGroups =
+            remember(displayLocale) { buildTranslationLanguageGroups(displayLocale) }
+        var query by remember { mutableStateOf("") }
+        var selectedLanguageCode by remember { mutableStateOf<String?>(null) }
+        val filteredLanguageGroups = remember(languageGroups, query) {
+            filterTranslationLanguageGroups(languageGroups, query)
+        }
+        val selectedLanguageGroup = remember(languageGroups, selectedLanguageCode) {
+            languageGroups.firstOrNull { it.languageCode == selectedLanguageCode }
+        }
+
+        var isExpanded by remember { mutableStateOf(false) }
+
+        WindowBottomSheet(
+            show = showLanguageSheet,
+            title = stringResource(R.string.dialog_title_translation_languages),
+            onDismissRequest = { showLanguageSheet = false },
+            backgroundColor = MiuixTheme.colorScheme.surface,
+            insideMargin = DpSize(0.dp, 0.dp),
+            enableNestedScroll = false
+        ) {
+            val dismiss = LocalDismissState.current
+
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+
+                SearchBar(
+                    inputField = {
+                        InputField(
+                            query = query,
+                            onQueryChange = { query = it },
+                            label = stringResource(R.string.hint_search),
+                            modifier = Modifier
+                                .padding(horizontal = 10.dp, vertical = 0.dp)
+                                .fillMaxWidth(),
+                            leadingIcon = {
+                                Icon(
+                                    modifier = Modifier.padding(start = 12.dp, end = 8.dp),
+                                    imageVector = MiuixIcons.Search,
+                                    contentDescription = stringResource(R.string.action_search),
+                                    tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                                )
+                            },
+                            onSearch = {
+                                isExpanded = false
+                            },
+                            expanded = isExpanded,
+                            onExpandedChange = {
+                                isExpanded = it
+                            },
+                        )
+                    },
+                    onExpandedChange = {
+                        isExpanded = it
+                    },
+                ) {}
+                Spacer(modifier = Modifier.height(10.dp))
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .overScrollVertical()
+                ) {
+
+
+                    if (query.isBlank()) {
+                        itemsIndexed(
+                            items = languageGroups,
+                            key = { _, group -> "language_${group.languageCode}" }
+                        ) { _, group ->
+                            Card(
+                                modifier = Modifier
+                                    .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                ArrowPreference(
+                                    title = group.name,
+                                    summary = group.options
+                                        .drop(1)
+                                        .take(3)
+                                        .joinToString(" / ") { it.name }
+                                        .takeIf { it.isNotBlank() },
+                                    onClick = { selectedLanguageCode = group.languageCode }
+                                )
+                            }
+                        }
+                    } else {
+                        filteredLanguageGroups.forEach { group ->
+                            item(key = "language_group_${group.languageCode}") {
+                                SmallTitle(
+                                    text = group.name,
+                                    insideMargin = PaddingValues(
+                                        start = 26.dp,
+                                        end = 26.dp,
+                                        bottom = 10.dp
+                                    )
+                                )
+                            }
+
+                            itemsIndexed(
+                                items = group.options,
+                                key = { _, option -> option.code }
+                            ) { _, option ->
+                                TranslationLanguageOptionPreference(
+                                    option = option,
+                                    checked = targetLanguage == option.name,
+                                    onClick = {
+                                        targetLanguage = option.name
+                                        dismiss?.invoke()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (selectedLanguageGroup != null) {
+            WindowBottomSheet(
+                show = true,
+                title = selectedLanguageGroup.name,
+                onDismissRequest = { selectedLanguageCode = null },
+                backgroundColor = MiuixTheme.colorScheme.surface,
+                insideMargin = DpSize(0.dp, 0.dp),
+            ) {
+                val dismiss = LocalDismissState.current
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .overScrollVertical()
+                ) {
+                    itemsIndexed(
+                        items = selectedLanguageGroup.options,
+                        key = { _, option -> option.code }
+                    ) { _, option ->
+                        TranslationLanguageOptionPreference(
+                            option = option,
+                            checked = targetLanguage == option.name,
+                            onClick = {
+                                targetLanguage = option.name
+                                selectedLanguageCode = null
+                                dismiss?.invoke()
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TranslationLanguageOptionPreference(
+    option: TranslationLanguageOption,
+    checked: Boolean,
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 16.dp)
+            .fillMaxWidth()
+    ) {
+        val summary = listOfNotNull(option.nativeName, option.englishName)
+            .distinct()
+            .joinToString(" / ")
+        CheckboxPreference(
+            title = option.name,
+            summary = summary.takeIf { it.isNotBlank() },
+            checked = checked,
+            onCheckedChange = { onClick() }
+        )
+    }
+}
+
+private fun buildTranslationLanguageGroups(displayLocale: Locale): List<TranslationLanguageGroup> {
+    val collator = Collator.getInstance(displayLocale)
+    return systemLanguageTags()
+        .asSequence()
+        .map { Locale.forLanguageTag(it) }
+        .filter { locale -> locale.language.isNotBlank() && locale.language != "und" }
+        .distinctBy { it.toLanguageTag() }
+        .map { locale ->
+            val languageName = locale.getDisplayLanguage(displayLocale).replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(displayLocale) else it.toString()
+            }
+            val name = locale.getDisplayName(displayLocale).replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(displayLocale) else it.toString()
+            }
+            val nativeName = locale.getDisplayName(locale).replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(locale) else it.toString()
+            }
+            val englishName = locale.getDisplayName(Locale.ENGLISH).replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(Locale.ENGLISH) else it.toString()
+            }
+            TranslationLanguageOption(
+                code = locale.toLanguageTag(),
+                languageCode = locale.language,
+                languageName = languageName,
+                name = name,
+                nativeName = nativeName.takeIf { it.isNotBlank() && it != name },
+                englishName = englishName.takeIf { it.isNotBlank() && it != name }
+            )
+        }
+        .groupBy { it.languageCode }
+        .map { (languageCode, options) ->
+            TranslationLanguageGroup(
+                languageCode = languageCode,
+                name = options.first().languageName,
+                options = options.sortedWith { left, right ->
+                    collator.compare(
+                        left.name,
+                        right.name
+                    )
+                }
+            )
+        }
+        .sortedWith { left, right -> collator.compare(left.name, right.name) }
+        .toList()
+}
+
+private fun systemLanguageTags(): List<String> {
+    val systemLocaleTags = Locale.getAvailableLocales()
+        .map { it.toLanguageTag() }
+        .asSequence()
+        .map { it.replace('_', '-') }
+        .filter { it.isNotBlank() }
+        .toList()
+
+    return systemLocaleTags
+}
+
+private fun filterTranslationLanguageGroups(
+    groups: List<TranslationLanguageGroup>,
+    query: String
+): List<TranslationLanguageGroup> {
+    val normalizedQuery = query.trim().lowercase(Locale.ROOT)
+    if (normalizedQuery.isBlank()) return groups
+
+    return groups.mapNotNull { group ->
+        if (group.searchText.contains(normalizedQuery)) {
+            group
+        } else {
+            val options = group.options.filter { it.searchText.contains(normalizedQuery) }
+            if (options.isEmpty()) null else group.copy(options = options)
+        }
+    }
+}
+
+private data class TranslationLanguageGroup(
+    val languageCode: String,
+    val name: String,
+    val options: List<TranslationLanguageOption>,
+) {
+    val searchText: String = listOf(languageCode, name)
+        .joinToString(" ")
+        .lowercase(Locale.ROOT)
+}
+
+private data class TranslationLanguageOption(
+    val code: String,
+    val languageCode: String,
+    val languageName: String,
+    val name: String,
+    val nativeName: String?,
+    val englishName: String?,
+) {
+    val searchText: String =
+        listOfNotNull(code, languageCode, languageName, name, nativeName, englishName)
+            .joinToString(" ")
+            .lowercase(Locale.ROOT)
 }
 
 @Composable
@@ -850,6 +1262,7 @@ private fun TranslationApiKeyPreference(preferences: SharedPreferences) {
         key = KEY_AI_TRANSLATION_API_KEY,
         title = stringResource(R.string.item_translation_api_key),
         summary = summary,
+        dialogSummary = stringResource(R.string.dialog_summary_translation_api_key),
         startAction = { IconActions(painterResource(R.drawable.vpn_key_24px)) },
         maxLines = 1
     )
