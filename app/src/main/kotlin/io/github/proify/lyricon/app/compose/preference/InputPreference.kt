@@ -466,7 +466,7 @@ private fun <T> TypedInputPreference(
     val currentText = prefValueState.value ?: defaultText
     val currentValue = currentText?.let(parse)
     val rawSummary = summary ?: display(currentValue)
-    val finalSummary = rawSummary.ifBlank { stringResource(id = R.string.defaultText) }
+    val finalSummary = rawSummary.ifBlank { stringResource(id = R.string.default_text) }
     val truncatedSummary = if (finalSummary.lines().size > 3) {
         finalSummary.lines().take(4).joinToString("\n") + "..."
     } else finalSummary

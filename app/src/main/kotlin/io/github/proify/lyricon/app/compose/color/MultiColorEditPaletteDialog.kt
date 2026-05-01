@@ -170,7 +170,7 @@ fun MultiColorEditPaletteDialog(
                             Icon(
                                 imageVector = MiuixIcons.MinusCircle,
                                 tint = LocalContentColor.current,
-                                contentDescription = stringResource(R.string.delete_current_color)
+                                contentDescription = stringResource(R.string.action_delete_current_color)
                             )
                         }
                         Spacer(modifier = Modifier.width(10.dp))
@@ -186,7 +186,7 @@ fun MultiColorEditPaletteDialog(
                             Icon(
                                 imageVector = MiuixIcons.AddCircle,
                                 tint = LocalContentColor.current,
-                                contentDescription = stringResource(R.string.add_color)
+                                contentDescription = stringResource(R.string.action_add_color)
                             )
                         }
                     }

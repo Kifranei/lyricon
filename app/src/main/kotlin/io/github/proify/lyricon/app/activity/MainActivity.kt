@@ -516,8 +516,8 @@ class MainActivity : BaseActivity() {
                 startAction = {
                     ColoredIconBox(Modifier, MaterialPalette.Teal.Primary, R.drawable.ic_android)
                 },
-                title = stringResource(id = R.string.item_base_lyric_style),
-                summary = stringResource(id = R.string.item_summary_base_lyric_style),
+                title = stringResource(id = R.string.item_basic_settings),
+                summary = stringResource(id = R.string.item_summary_basic_settings),
                 onClick = {
                     context.startActivity(Intent(context, BasicLyricStyleActivity::class.java))
                 }
@@ -530,8 +530,8 @@ class MainActivity : BaseActivity() {
                         R.drawable.ic_palette_swatch_variant
                     )
                 },
-                title = stringResource(id = R.string.item_package_style_manager),
-                summary = stringResource(id = R.string.item_summary_package_style_manager),
+                title = stringResource(id = R.string.item_app_style_manager),
+                summary = stringResource(id = R.string.item_summary_app_style_manager),
                 onClick = {
                     context.startActivity(Intent(context, PackageStyleActivity::class.java))
                 }
@@ -550,8 +550,8 @@ class MainActivity : BaseActivity() {
                 startAction = {
                     ColoredIconBox(Modifier, MaterialPalette.Blue.Primary, R.drawable.ic_extension)
                 },
-                title = stringResource(id = R.string.item_provider_manager),
-                summary = stringResource(id = R.string.item_summary_provider_manager),
+                title = stringResource(id = R.string.item_lyric_provider_services),
+                summary = stringResource(id = R.string.item_summary_lyric_provider_services),
                 onClick = {
                     context.startActivity(Intent(context, LyricProviderActivity::class.java))
                 }

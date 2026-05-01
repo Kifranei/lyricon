@@ -65,7 +65,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
         val context = LocalContext.current
 
         AppToolBarListContainer(
-            title = stringResource(R.string.activity_base_lyric_style),
+            title = stringResource(R.string.activity_basic_settings),
             canBack = true
         ) {
             item(key = "location") {
@@ -390,7 +390,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             startAction = {
                 IconActions(painterResource(R.drawable.translate_24px))
             },
-            title = stringResource(R.string.item_base_chinese_conversion_title),
+            title = stringResource(R.string.item_base_chinese_conversion),
             items = entries,
             selectedIndex = selectedIndex.intValue,
             onSelectedIndexChange = { index ->

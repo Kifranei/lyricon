@@ -153,8 +153,8 @@ class SettingsActivity : BaseActivity() {
         SwitchPreference(
             checked = enable,
             startAction = { IconActions(painterResource(R.drawable.ic_core_bear)) },
-            title = stringResource(R.string.item_core_service_disable),
-            summary = stringResource(R.string.item_core_service_disable_summary),
+            title = stringResource(R.string.item_disable_builtin_services),
+            summary = stringResource(R.string.item_summary_disable_builtin_services),
             onCheckedChange = {
                 enable = it
             }

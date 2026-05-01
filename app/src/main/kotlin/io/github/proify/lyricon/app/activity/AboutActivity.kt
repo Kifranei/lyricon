@@ -199,6 +199,7 @@ class AboutActivity : BaseActivity() {
 
                     ArrowPreference(
                         startAction = { IconActions(painterResource(R.drawable.ic_github)) },
+                        summary = stringResource(id = R.string.item_view_on_github_summary),
                         title = stringResource(id = R.string.item_view_on_github),
                         onClick = {
                             launchBrowser(
@@ -209,7 +210,8 @@ class AboutActivity : BaseActivity() {
 
                     ArrowPreference(
                         startAction = { IconActions(painterResource(R.drawable.ic_license)) },
-                        title = stringResource(id = R.string.item_open_source_license),
+                        title = stringResource(id = R.string.item_open_source_licenses),
+                        summary = stringResource(id = R.string.item_open_source_licenses_summary),
                         onClick = {
                             startActivity(Intent(this@AboutActivity, LicensesActivity::class.java))
                         }

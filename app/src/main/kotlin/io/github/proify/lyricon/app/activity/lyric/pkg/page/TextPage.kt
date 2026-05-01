@@ -357,7 +357,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 SwitchPreference(
                     checked = isWordMotionEnabled,
                     onCheckedChange = { isWordMotionEnabled = it },
-                    title = stringResource(R.string.item_text_word_motion_enable),
+                    title = stringResource(R.string.item_text_word_motion),
                     summary = stringResource(R.string.item_text_word_motion_summary),
                     startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
                 )
@@ -429,7 +429,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 )
                 SwitchPreference(
                     checked = isTranslationDisableEnabled,
-                    title = stringResource(R.string.item_translation_disable),
+                    title = stringResource(R.string.item_translation_hide),
                     startAction = { IconActions(painterResource(R.drawable.ic_visibility_off)) },
                     onCheckedChange = {
                         isTranslationDisableEnabled = it
@@ -465,7 +465,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 SwitchPreference(
                     checked = isAiTranslationEnabled,
                     onCheckedChange = { isAiTranslationEnabled = it },
-                    title = stringResource(R.string.item_translation_enable),
+                    title = stringResource(R.string.item_translation_openai),
                     startAction = { IconActions(painterResource(R.drawable.translate_24px)) },
                 )
 
@@ -538,7 +538,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 IntInputPreference(
                     preferences = preferences,
                     key = "lyric_style_text_marquee_space",
-                    title = stringResource(R.string.item_text_marquee_space),
+                    title = stringResource(R.string.item_text_marquee_repeat_spacing),
                     dialogSummary = stringResource(R.string.dialog_summary_text_marquee_space),
                     defaultValue = TextStyle.Defaults.MARQUEE_GHOST_SPACING.toInt(),
                     range = 0..1000,
@@ -573,7 +573,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 SwitchPreference(
                     checked = isMarqueeRepeatUnlimited,
                     onCheckedChange = { isMarqueeRepeatUnlimited = it },
-                    title = stringResource(R.string.item_text_marquee_repeat_unlimited),
+                    title = stringResource(R.string.item_text_marquee_infinite_scrolling),
                     startAction = { IconActions(painterResource(R.drawable.ic_all_inclusive)) },
                 )
                 IntInputPreference(

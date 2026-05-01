@@ -376,7 +376,7 @@ private fun PackageSwitchSheetContent(
     WindowBottomSheet(
         show = showState.value,
         modifier = Modifier,
-        title = stringResource(R.string.manager_package_config),
+        title = stringResource(R.string.manage_app_styles),
         startAction = null,
         endAction = {
             Row {
