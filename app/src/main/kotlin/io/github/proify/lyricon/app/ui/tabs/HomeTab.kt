@@ -1,7 +1,6 @@
 package io.github.proify.lyricon.app.ui.tabs
 
 import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +27,7 @@ import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.MainActivity.MainViewModel
 import io.github.proify.lyricon.app.bridge.AppBridge
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
+import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Text
@@ -69,19 +69,19 @@ private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean) {
     }
 
     val summaryText = stringResource(R.string.module_status_summary, BuildConfig.VERSION_NAME)
-    val isDark = isSystemInDarkTheme()
+    val isDark = CurrentThemeConfigs.isDark
 
     val cardColor = when {
-        safeMode || !isActive -> if (isDark) Color(0xFF4A1E20) else Color(0xFFFDECEE)
-        isMonet -> MiuixTheme.colorScheme.secondaryContainer
-        else -> if (isDark) Color(0xFF1A3825) else Color(0xFFDFFAE4)
+        safeMode || !isActive -> if (isDark) Color(0xFF3A171A) else Color(0xFFFDECEE)
+        else -> if (isDark) Color(0xFF102819) else Color(0xFFDFFAE4)
     }
 
     val iconColor = when {
         safeMode || !isActive -> if (isDark) Color(0xFFB3261E) else Color(0xFFE25B5B)
-        isMonet -> MiuixTheme.colorScheme.primary.copy(alpha = 0.8f)
         else -> Color(0xFF36D167)
     }
+    val titleColor = if (isDark) Color.White else Color(0xFF0F1B13)
+    val summaryColor = if (isDark) Color.White.copy(alpha = 0.68f) else Color(0xFF2F4637)
 
     val iconVector = if (isActive && !safeMode) {
         ImageVector.vectorResource(id = R.drawable.ic_check_circle)
@@ -122,7 +122,7 @@ private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean) {
                     text = titleText,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MiuixTheme.colorScheme.onSurface,
+                    color = titleColor,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
@@ -130,7 +130,7 @@ private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean) {
                     text = summaryText,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                    color = summaryColor,
                 )
             }
         }

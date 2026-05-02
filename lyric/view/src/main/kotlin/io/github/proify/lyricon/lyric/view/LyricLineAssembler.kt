@@ -26,10 +26,14 @@ internal class LyricLineAssembler(
         this.enableRelativeHighlight = enableRelativeHighlight
     }
 
-    data class MainResult(val line: LyricLine, val isScrollOnly: Boolean)
+    data class MainResult(
+        val line: LyricLine,
+        val isScrollOnly: Boolean,
+        val isGeneratedWords: Boolean
+    )
 
     fun buildMain(source: IRichLyricLine?): MainResult {
-        if (source == null) return MainResult(LyricLine(), false)
+        if (source == null) return MainResult(LyricLine(), false, false)
 
         val shouldGen = enableRelativeProgress && source.isTitleLine().not()
         val words = if (shouldGen) {
@@ -42,13 +46,18 @@ internal class LyricLineAssembler(
             isAlignedRight = source.isAlignedRight, metadata = source.metadata,
             text = source.text, words = words
         )
-        return MainResult(line, generated && !enableRelativeHighlight)
+        return MainResult(line, generated && !enableRelativeHighlight, generated)
     }
 
-    data class SecondaryResult(val line: LyricLine, val alwaysShow: Boolean, val isScrollOnly: Boolean)
+    data class SecondaryResult(
+        val line: LyricLine,
+        val alwaysShow: Boolean,
+        val isScrollOnly: Boolean,
+        val isGeneratedWords: Boolean
+    )
 
     fun buildSecondary(source: IRichLyricLine?): SecondaryResult {
-        if (source == null) return SecondaryResult(LyricLine(), false, false)
+        if (source == null) return SecondaryResult(LyricLine(), false, false, false)
 
         var generated = false
         val line = LyricLine().apply {
@@ -85,6 +94,6 @@ internal class LyricLineAssembler(
                         || line.words?.firstOrNull()?.begin?.let { (it - source.begin) < 500 } == true
                 )
 
-        return SecondaryResult(line, alwaysShow, generated && !enableRelativeHighlight)
+        return SecondaryResult(line, alwaysShow, generated && !enableRelativeHighlight, generated)
     }
 }

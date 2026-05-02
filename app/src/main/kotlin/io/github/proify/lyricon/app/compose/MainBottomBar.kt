@@ -52,18 +52,33 @@ fun MainBottomBar(
 ) {
     val isFloating = LocalFloatingBottomBarEnabled.current
     if (!isFloating) {
-        NavigationBar(
-            modifier = modifier,
-            color = MiuixTheme.colorScheme.surface,
+        val isDark = CurrentThemeConfigs.isDark
+        val navContentColor = if (isDark) Color.White else Color(0xFF111111)
+        val dividerColor = if (isDark) {
+            Color.White.copy(alpha = 0.14f)
+        } else {
+            Color.Black.copy(alpha = 0.08f)
+        }
+        MiuixTheme(
+            colors = MiuixTheme.colorScheme.copy(
+                onSurfaceContainer = navContentColor,
+                surfaceVariant = dividerColor,
+            ),
         ) {
-            items.forEachIndexed { index, item ->
-                NavigationBarItem(
-                    modifier = Modifier.weight(1f),
-                    selected = selectedIndex == index,
-                    onClick = { onSelected(index) },
-                    icon = item.icon,
-                    label = item.label,
-                )
+            NavigationBar(
+                modifier = modifier,
+                color = if (isDark) Color(0xFF0B0B0D) else Color(0xFFF8F8FA),
+                showDivider = true,
+            ) {
+                items.forEachIndexed { index, item ->
+                    NavigationBarItem(
+                        modifier = Modifier.weight(1f),
+                        selected = selectedIndex == index,
+                        onClick = { onSelected(index) },
+                        icon = item.icon,
+                        label = item.label,
+                    )
+                }
             }
         }
         return
@@ -71,6 +86,7 @@ fun MainBottomBar(
 
     val shape = RoundedCornerShape(30.dp)
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    val isDark = CurrentThemeConfigs.isDark
 
     Box(
         modifier = modifier
@@ -94,9 +110,17 @@ fun MainBottomBar(
                         animationSpec = tween(220),
                         label = "main_bottom_bar_selected",
                     )
-                    val pillColor = MiuixTheme.colorScheme.primary.copy(
-                        alpha = 0.10f,
-                    )
+                    val selectedContent = if (isDark) Color.White else Color(0xFF111111)
+                    val unselectedContent = if (isDark) {
+                        Color.White.copy(alpha = 0.56f)
+                    } else {
+                        Color.Black.copy(alpha = 0.48f)
+                    }
+                    val pillColor = if (isDark) {
+                        MiuixTheme.colorScheme.primary.copy(alpha = 0.28f)
+                    } else {
+                        MiuixTheme.colorScheme.primary.copy(alpha = 0.14f)
+                    }
 
                     Box(
                         modifier = Modifier
@@ -120,21 +144,13 @@ fun MainBottomBar(
                                 modifier = Modifier.size(18.dp),
                                 imageVector = item.icon,
                                 contentDescription = item.label,
-                                tint = if (selected) {
-                                    MiuixTheme.colorScheme.onSurface
-                                } else {
-                                    MiuixTheme.colorScheme.onSurfaceSecondary
-                                },
+                                tint = if (selected) selectedContent else unselectedContent,
                             )
                             Text(
                                 text = item.label,
                                 fontSize = 11.sp,
                                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                                color = if (selected) {
-                                    MiuixTheme.colorScheme.onSurface
-                                } else {
-                                    MiuixTheme.colorScheme.onSurfaceSecondary
-                                },
+                                color = if (selected) selectedContent else unselectedContent,
                                 maxLines = 1,
                                 softWrap = false,
                                 overflow = TextOverflow.Ellipsis,
@@ -156,15 +172,15 @@ private fun FloatingGlassBar(
     val backdrop = LocalBottomBarBackdrop.current
     val isDark = CurrentThemeConfigs.isDark
     val surface = if (isDark) {
-        MiuixTheme.colorScheme.surface.copy(alpha = 0.94f)
+        Color(0xFF111114)
     } else {
-        MiuixTheme.colorScheme.surfaceContainer
+        Color(0xFFF8F8FA)
     }
-    val glassAlpha = if (isDark) 0.74f else 0.40f
+    val glassAlpha = if (isDark) 0.92f else 0.86f
     val chromeTint = if (isDark) {
-        Color.Black.copy(alpha = 0.18f)
+        Color.Black.copy(alpha = 0.20f)
     } else {
-        Color.White.copy(alpha = 0.12f)
+        Color.White.copy(alpha = 0.32f)
     }
 
     val decorated = if (backdrop != null) {

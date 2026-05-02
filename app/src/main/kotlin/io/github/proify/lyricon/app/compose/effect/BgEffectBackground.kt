@@ -3,7 +3,6 @@ package io.github.proify.lyricon.app.compose.effect
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported
@@ -36,7 +36,7 @@ fun BgEffectBackground(
         val surface = MiuixTheme.colorScheme.surface
         val painter = remember { BgEffectPainter() }
         val animTime = rememberFrameTimeSeconds(dynamicBackground)
-        val isDark = isSystemInDarkTheme()
+        val isDark = CurrentThemeConfigs.isDark
         val deviceType = DeviceType.PHONE
 
         val preset = remember(isDark, deviceType) {

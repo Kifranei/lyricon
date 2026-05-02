@@ -226,15 +226,19 @@ class SuperLogo(context: Context) : ImageView(context) {
     private fun reassessStrategy() {
         val logoConfig = lyricStyle?.packageStyle?.logo ?: return
 
-        val newStrategy = when (logoConfig.style) {
-            LogoStyle.STYLE_COVER_SQUIRCLE,
-            LogoStyle.STYLE_COVER_CIRCLE -> CoverStrategy()
+        val newStrategy = if (hasBase64Override()) {
+            AppLogoStrategy()
+        } else {
+            when (logoConfig.style) {
+                LogoStyle.STYLE_COVER_SQUIRCLE,
+                LogoStyle.STYLE_COVER_CIRCLE -> CoverStrategy()
 
-            LogoStyle.STYLE_PROVIDER_LOGO ->
-                if (providerLogo == null) null else ProviderStrategy()
+                LogoStyle.STYLE_PROVIDER_LOGO ->
+                    if (providerLogo == null) null else ProviderStrategy()
 
-            LogoStyle.STYLE_APP_LOGO -> AppLogoStrategy()
-            else -> null
+                LogoStyle.STYLE_APP_LOGO -> AppLogoStrategy()
+                else -> null
+            }
         }
 
         // 如果策略类型发生变化，执行完整的切换流程
@@ -336,14 +340,20 @@ class SuperLogo(context: Context) : ImageView(context) {
 
     private fun shouldForceProviderTint(): Boolean {
         val style = lyricStyle ?: return false
-        return hasBase64Override()
-                || style.packageStyle.logo.enableCustomColor
-                || style.packageStyle.text.enableRainbowTextColor
+        return style.packageStyle.logo.enableCustomColor
+                || isTextColorModeEnabled(style.packageStyle.text)
     }
 
     private fun shouldForceAppTint(): Boolean {
         val style = lyricStyle ?: return false
-        return hasBase64Override() || style.packageStyle.logo.enableCustomColor
+        return style.packageStyle.logo.enableCustomColor || isTextColorModeEnabled(style.packageStyle.text)
+    }
+
+    private fun isTextColorModeEnabled(textStyle: TextStyle): Boolean {
+        return textStyle.enableCustomTextColor ||
+                textStyle.enableExtractCoverTextColor ||
+                textStyle.enableExtractCoverTextGradient ||
+                textStyle.enableRainbowTextColor
     }
 
     private fun resolveLogoTintColor(): Int {
@@ -361,7 +371,7 @@ class SuperLogo(context: Context) : ImageView(context) {
         val logoColorConfig = logoStyle.color(currentStatusColor.isLightMode)
         return when {
             logoColorConfig.followTextColor -> resolveFollowTextColor(textStyle)
-            logoColorConfig.color != 0 -> logoColorConfig.color
+            logoColorConfig.color != 0 -> logoColorConfig.color.withStatusContrast()
             else -> currentStatusColor.firstColor()
         }
     }
@@ -374,13 +384,50 @@ class SuperLogo(context: Context) : ImageView(context) {
             return currentStatusColor.firstColor()
         }
         val textColorConfig = textStyle.color(currentStatusColor.isLightMode)
-        return textColorConfig?.normal?.firstOrNull() ?: currentStatusColor.firstColor()
+        return textColorConfig?.normal?.firstOrNull()?.withStatusContrast() ?: currentStatusColor.firstColor()
     }
 
     private fun resolveRainbowTintColor(textStyle: TextStyle): Int {
         val lightMode = currentStatusColor.isLightMode
         val custom = textStyle.color(lightMode)?.normal
-        return custom?.firstOrNull() ?: defaultRainbowTintColors(lightMode).first()
+        return custom?.firstOrNull()?.withStatusContrast() ?: defaultRainbowTintColors(lightMode).first()
+    }
+
+    private fun Int.withStatusContrast(): Int {
+        return if (currentStatusColor.isLightMode) {
+            if (luminance() > 0.42f) darken(0.58f) else this
+        } else {
+            if (luminance() < 0.58f) lighten(0.62f) else this
+        }
+    }
+
+    private fun Int.luminance(): Float {
+        fun channel(value: Int): Float {
+            val srgb = value / 255f
+            return if (srgb <= 0.03928f) srgb / 12.92f
+            else Math.pow(((srgb + 0.055f) / 1.055f).toDouble(), 2.4).toFloat()
+        }
+        return 0.2126f * channel(Color.red(this)) +
+                0.7152f * channel(Color.green(this)) +
+                0.0722f * channel(Color.blue(this))
+    }
+
+    private fun Int.darken(ratio: Float): Int {
+        val keep = (1f - ratio).coerceIn(0f, 1f)
+        return Color.rgb(
+            (Color.red(this) * keep).toInt().coerceIn(0, 255),
+            (Color.green(this) * keep).toInt().coerceIn(0, 255),
+            (Color.blue(this) * keep).toInt().coerceIn(0, 255),
+        )
+    }
+
+    private fun Int.lighten(ratio: Float): Int {
+        val amount = ratio.coerceIn(0f, 1f)
+        return Color.rgb(
+            (Color.red(this) + (255 - Color.red(this)) * amount).toInt().coerceIn(0, 255),
+            (Color.green(this) + (255 - Color.green(this)) * amount).toInt().coerceIn(0, 255),
+            (Color.blue(this) + (255 - Color.blue(this)) * amount).toInt().coerceIn(0, 255),
+        )
     }
 
     private fun defaultRainbowTintColors(lightMode: Boolean): IntArray = if (lightMode) {
@@ -472,7 +519,7 @@ class SuperLogo(context: Context) : ImageView(context) {
         }
 
         override fun onColorUpdate() {
-            imageTintList = if (providerLogo?.colorful == true && !shouldForceProviderTint()) {
+            imageTintList = if (providerLogo?.colorful == true && !hasBase64Override() && !shouldForceProviderTint()) {
                 null
             } else {
                 ColorStateList.valueOf(resolveLogoTintColor())
@@ -715,7 +762,7 @@ class SuperLogo(context: Context) : ImageView(context) {
         }
 
         override fun onColorUpdate() {
-            imageTintList = if (shouldForceAppTint()) {
+            imageTintList = if (hasBase64Override() || shouldForceAppTint()) {
                 ColorStateList.valueOf(resolveLogoTintColor())
             } else {
                 null

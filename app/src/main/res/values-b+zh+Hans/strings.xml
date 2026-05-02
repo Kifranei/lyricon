@@ -150,6 +150,8 @@
     <string name="module_tag_translation">翻译</string>
     <string name="no_provider_available">没有可用的歌词提供服务</string>
     <string name="item_base_lockscreen_hidden">在锁屏界面隐藏</string>
+    <string name="item_base_double_tap_switch_clock">双击歌词显示时钟</string>
+    <string name="item_base_double_tap_switch_clock_summary">歌词播放时临时隐藏歌词并显示时钟，再次双击恢复歌词。</string>
     <string name="option_provider_list_full">完整</string>
     <string name="option_provider_list_short">精简</string>
     <string name="message_query_app_permission_required">需要读取应用列表权限</string>
@@ -253,7 +255,7 @@
 
     <string name="tab_home">主页</string>
     <string name="tab_config">配置</string>
-    <string name="tab_provider">服务</string>
+    <string name="tab_provider">提供者</string>
     <string name="tab_settings">设置</string>
     <string name="home_info_app_version">软件版本</string>
     <string name="home_info_android_version">安卓版本</string>
@@ -271,8 +273,6 @@
     <string name="item_base_dynamic_width_summary">让歌词视图跟随当前歌词宽度变化。</string>
     <string name="item_base_dynamic_width_auto_hide_clock">自动隐藏时钟</string>
     <string name="item_base_dynamic_width_auto_hide_clock_summary">动态宽度歌词显示时临时隐藏时钟。</string>
-    <string name="item_base_xiaomi_island_temp_hide">隐藏小米超级岛</string>
-    <string name="item_base_xiaomi_island_temp_hide_summary">在支持的 HyperOS 版本上，歌词显示时临时隐藏小米超级岛。</string>
     <string name="item_logo_base64_icon">Base64 图标</string>
     <string name="item_logo_base64_icon_summary">粘贴 Base64 编码图片，用来覆盖播放器图标。</string>
     <string name="section_about_info">信息</string>

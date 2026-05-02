@@ -11,10 +11,10 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/tomakino/lyricon/releases"><img src="https://img.shields.io/github/v/release/tomakino/lyricon?style=flat&color=blue" alt="Version"></a>
-  <a href="https://github.com/tomakino/lyricon/releases"><img src="https://img.shields.io/github/downloads/tomakino/lyricon/total?style=flat&color=orange" alt="Downloads"></a>
-  <a href="https://github.com/tomakino/lyricon/commits"><img src="https://img.shields.io/github/last-commit/tomakino/lyricon?style=flat" alt="Last Commit"></a>
-  <a href="https://github.com/tomakino/lyricon/blob/main/LICENSE"><img src="https://img.shields.io/github/license/tomakino/lyricon?style=flat" alt="License"></a>
+  <a href="https://github.com/kifranei/lyricon/releases"><img src="https://img.shields.io/github/v/release/kifranei/lyricon?style=flat&color=blue" alt="Version"></a>
+  <a href="https://github.com/kifranei/lyricon/releases"><img src="https://img.shields.io/github/downloads/kifranei/lyricon/total?style=flat&color=orange" alt="Downloads"></a>
+  <a href="https://github.com/kifranei/lyricon/commits"><img src="https://img.shields.io/github/last-commit/kifranei/lyricon?style=flat" alt="Last Commit"></a>
+  <a href="https://github.com/kifranei/lyricon/blob/main/LICENSE"><img src="https://img.shields.io/github/license/kifranei/lyricon?style=flat" alt="License"></a>
   <a href="README.md"><img src="https://img.shields.io/badge/Document-Chinese-red.svg" alt="CN"></a>
 </p>
 
@@ -53,7 +53,7 @@
 ### ⚙️ Installation & Configuration
 
 1. **Download the Main App**: Download and install Lyricon
-   from [Releases](https://github.com/tomakino/lyricon/releases).
+   from [Releases](https://github.com/kifranei/lyricon/releases).
 2. **Activate the Module**: Enable the "Lyricon" module in LSPosed Manager and select the **System
    UI** scope.
 3. **Restart to Apply**: Restart System UI or reboot the device to complete Hook injection.
@@ -71,8 +71,8 @@
 
 | Category           | Resource Link                                                         | Description                                       |
 |:-------------------|:----------------------------------------------------------------------|:--------------------------------------------------|
-| **Plugin Library** | [LyricProvider Repository](https://github.com/tomakino/LyricProvider) | Adaptation plugins for mainstream music platforms |
-| **Documentation**  | [Documentation Center](https://tomakino.github.io/lyricon/)           | App and Lyric documentation                       |
+| **Plugin Library** | [LyricProvider Repository](https://github.com/kifranei/LyricProvider) | Adaptation plugins for mainstream music platforms |
+| **Documentation**  | [Documentation Center](https://kifranei.github.io/lyricon/)           | App and Lyric documentation                       |
 
 ### 💡 Natively Supported Apps
 
@@ -84,24 +84,24 @@
 - **Sollin Player**
 - [**QZ Music**](https://github.com/lqtmcstudio/QZMusic)
 
-#### Is your player already supported but not listed here? Please [submit an issue](https://github.com/tomakino/lyricon/issues).
+#### Is your player already supported but not listed here? Please [submit an issue](https://github.com/kifranei/lyricon/issues).
 
 ---
 
 ## 👥 Contributors
 
-[![Contributors](https://contrib.rocks/image?repo=tomakino/lyricon)](https://github.com/tomakino/lyricon/graphs/contributors)
+[![Contributors](https://contrib.rocks/image?repo=kifranei/lyricon)](https://github.com/kifranei/lyricon/graphs/contributors)
 
 ---
 
 ## ⭐ Star History
 
 <p align="center">
-  <a href="https://www.star-history.com/#tomakino/lyricon&Date">
+  <a href="https://www.star-history.com/#kifranei/lyricon&Date">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=tomakino/lyricon&type=Date&theme=dark" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=tomakino/lyricon&type=Date" />
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=tomakino/lyricon&type=Date" width="600" />
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=kifranei/lyricon&type=Date&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=kifranei/lyricon&type=Date" />
+      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=kifranei/lyricon&type=Date" width="600" />
     </picture>
   </a>
 </p>
@@ -111,5 +111,5 @@
 ### 👀 Visit Statistics
 
 <p align="center">
-  <img src="https://count.getloli.com/get/@tomakino_lyricon?theme=minecraft" alt="Visitor Count" />
+  <img src="https://count.getloli.com/get/@kifranei_lyricon?theme=moembooru-h" alt="Visitor Count" />
 </p>

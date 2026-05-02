@@ -125,7 +125,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
                     latinLiftFactor = textStyle.wordMotionLatinLiftFactor,
                     latinWaveFactor = textStyle.wordMotionLatinWaveFactor,
                 ),
-                sustainGlow = textStyle.sustainGlowEnabled && !isColorModeEnabled(textStyle),
+                sustainGlow = textStyle.sustainGlowEnabled,
                 gradient = textStyle.gradientProgressStyle,
                 fadingEdge = textStyle.fadingEdgeLength.coerceAtLeast(0).dp,
                 scaleMultiLine = textStyle.scaleInMultiLine,
@@ -196,7 +196,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         }
         val customColor = textStyle.color(currentStatusColor.isLightMode)
         return if (textStyle.enableCustomTextColor && customColor?.normal?.isNotEmpty() == true) {
-            customColor.normal
+            customColor.normal.ensureStatusContrast()
         } else {
             currentStatusColor.color
         }
@@ -208,7 +208,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         }
         val customColor = textStyle.color(currentStatusColor.isLightMode)
         return if (textStyle.enableCustomTextColor && customColor?.background?.isNotEmpty() == true) {
-            customColor.background
+            customColor.background.ensureStatusContrast(alpha = 0.5f)
         } else {
             currentStatusColor.translucentColor
         }
@@ -220,7 +220,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         }
         val customColor = textStyle.color(currentStatusColor.isLightMode)
         return if (textStyle.enableCustomTextColor && customColor?.highlight?.isNotEmpty() == true) {
-            customColor.highlight
+            customColor.highlight.ensureStatusContrast()
         } else {
             currentStatusColor.color
         }
@@ -260,6 +260,47 @@ class SuperText(context: Context) : LyricPlayerView(context) {
     private fun Int.withAlpha(ratio: Float): Int {
         val alpha = (ratio.coerceIn(0f, 1f) * 255).toInt().coerceIn(0, 255)
         return Color.argb(alpha, Color.red(this), Color.green(this), Color.blue(this))
+    }
+
+    private fun Int.withStatusContrast(alpha: Float = 1f): Int {
+        val target = if (currentStatusColor.isLightMode) {
+            if (luminance() > 0.42f) darken(0.58f) else this
+        } else {
+            if (luminance() < 0.58f) lighten(0.62f) else this
+        }
+        return target.withAlpha(alpha)
+    }
+
+    private fun IntArray.ensureStatusContrast(alpha: Float = 1f): IntArray =
+        map { it.withStatusContrast(alpha) }.toIntArray()
+
+    private fun Int.luminance(): Float {
+        fun channel(value: Int): Float {
+            val srgb = value / 255f
+            return if (srgb <= 0.03928f) srgb / 12.92f
+            else Math.pow(((srgb + 0.055f) / 1.055f).toDouble(), 2.4).toFloat()
+        }
+        return 0.2126f * channel(Color.red(this)) +
+                0.7152f * channel(Color.green(this)) +
+                0.0722f * channel(Color.blue(this))
+    }
+
+    private fun Int.darken(ratio: Float): Int {
+        val keep = (1f - ratio).coerceIn(0f, 1f)
+        return Color.rgb(
+            (Color.red(this) * keep).toInt().coerceIn(0, 255),
+            (Color.green(this) * keep).toInt().coerceIn(0, 255),
+            (Color.blue(this) * keep).toInt().coerceIn(0, 255),
+        )
+    }
+
+    private fun Int.lighten(ratio: Float): Int {
+        val amount = ratio.coerceIn(0f, 1f)
+        return Color.rgb(
+            (Color.red(this) + (255 - Color.red(this)) * amount).toInt().coerceIn(0, 255),
+            (Color.green(this) + (255 - Color.green(this)) * amount).toInt().coerceIn(0, 255),
+            (Color.blue(this) + (255 - Color.blue(this)) * amount).toInt().coerceIn(0, 255),
+        )
     }
 
     private fun resolveRainbowColors(

@@ -7,10 +7,12 @@
 package io.github.proify.lyricon.app.compose.theme
 
 import android.app.Activity
+import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowInsetsControllerCompat
@@ -39,8 +41,17 @@ fun AppTheme(
 
     SideEffect {
         activity?.window?.let { window ->
-            WindowInsetsControllerCompat(window, view)
-                .isAppearanceLightStatusBars = !colors.isDark
+            val barColor = if (colors.isDark) Color.Black else Color(0xFFF0F1F2)
+            window.statusBarColor = barColor.toArgb()
+            window.navigationBarColor = barColor.toArgb()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                window.isStatusBarContrastEnforced = false
+                window.isNavigationBarContrastEnforced = false
+            }
+            WindowInsetsControllerCompat(window, view).apply {
+                isAppearanceLightStatusBars = !colors.isDark
+                isAppearanceLightNavigationBars = !colors.isDark
+            }
         }
     }
 
@@ -86,6 +97,7 @@ class AppColors(
 )
 
 fun appDarkColorScheme(): Colors = darkColorScheme(
+    onSurfaceContainer = Color.White,
     error = MaterialPalette.Red.Primary,
     errorContainer = MaterialPalette.Red.Hue200,
 )

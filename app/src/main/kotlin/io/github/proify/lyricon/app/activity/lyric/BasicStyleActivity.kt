@@ -37,7 +37,6 @@ import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.app.util.Utils
 import io.github.proify.lyricon.app.util.editCommit
-import io.github.proify.lyricon.common.rom.HyperOS
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SpinnerEntry
@@ -197,23 +196,6 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         },
                     )
 
-                    if (HyperOS.isXiaomiHyperOs3OrAbove()) {
-                        var xiaomiIslandTempHideEnabled by rememberBooleanPreference(
-                            preferences,
-                            "lyric_style_base_xiaomi_island_temp_hide_enabled",
-                            BasicStyle.Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED
-                        )
-                        SwitchPreference(
-                            checked = xiaomiIslandTempHideEnabled,
-                            onCheckedChange = { xiaomiIslandTempHideEnabled = it },
-                            title = stringResource(R.string.item_base_xiaomi_island_temp_hide),
-                            summary = stringResource(R.string.item_base_xiaomi_island_temp_hide_summary),
-                            startAction = {
-                                IconActions(painterResource(R.drawable.ic_visibility_off))
-                            },
-                        )
-                    }
-
                     if (Utils.isOPlus) {
                         DoubleInputPreference(
                             preferences = preferences,
@@ -272,6 +254,21 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                             IconActions(painterResource(R.drawable.ic_visibility_off))
                         },
                         title = stringResource(R.string.item_base_lockscreen_hidden),
+                    )
+
+                    var doubleTapSwitchClock by rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_double_tap_switch_clock",
+                        BasicStyle.Defaults.DOUBLE_TAP_SWITCH_CLOCK
+                    )
+                    SwitchPreference(
+                        checked = doubleTapSwitchClock,
+                        onCheckedChange = { doubleTapSwitchClock = it },
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_visibility_off))
+                        },
+                        title = stringResource(R.string.item_base_double_tap_switch_clock),
+                        summary = stringResource(R.string.item_base_double_tap_switch_clock_summary),
                     )
 
                     HideWhenNoLyric()

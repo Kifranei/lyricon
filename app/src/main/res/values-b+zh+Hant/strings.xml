@@ -148,6 +148,8 @@
     <string name="module_tag_translation">翻譯</string>
     <string name="no_provider_available">沒有可用的歌詞提供服務</string>
     <string name="item_base_lockscreen_hidden">在鎖定畫面隱藏</string>
+    <string name="item_base_double_tap_switch_clock">雙擊歌詞顯示時鐘</string>
+    <string name="item_base_double_tap_switch_clock_summary">歌詞播放時暫時隱藏歌詞並顯示時鐘，再次雙擊恢復歌詞。</string>
     <string name="option_provider_list_full">完整</string>
     <string name="option_provider_list_short">精簡</string>
     <string name="message_query_app_permission_required">需要讀取應用列表權限</string>
@@ -250,7 +252,7 @@
     <string name="about_tagline">讓每一句歌詞都準時抵達</string>
     <string name="tab_home">首頁</string>
     <string name="tab_config">配置</string>
-    <string name="tab_provider">服務</string>
+    <string name="tab_provider">提供者</string>
     <string name="tab_settings">設定</string>
     <string name="home_info_app_version">軟體版本</string>
     <string name="home_info_android_version">Android 版本</string>
@@ -268,8 +270,6 @@
     <string name="item_base_dynamic_width_summary">讓歌詞視圖跟隨目前歌詞寬度變化。</string>
     <string name="item_base_dynamic_width_auto_hide_clock">自動隱藏時鐘</string>
     <string name="item_base_dynamic_width_auto_hide_clock_summary">動態寬度歌詞顯示時暫時隱藏時鐘。</string>
-    <string name="item_base_xiaomi_island_temp_hide">隱藏小米超級島</string>
-    <string name="item_base_xiaomi_island_temp_hide_summary">在支援的 HyperOS 版本上，歌詞顯示時暫時隱藏小米超級島。</string>
     <string name="item_logo_base64_icon">Base64 圖示</string>
     <string name="item_logo_base64_icon_summary">貼上 Base64 編碼圖片，用來覆蓋播放器圖示。</string>
     <string name="section_about_info">資訊</string>

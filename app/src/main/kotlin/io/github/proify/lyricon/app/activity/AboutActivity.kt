@@ -9,7 +9,6 @@ package io.github.proify.lyricon.app.activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -54,6 +53,8 @@ import androidx.compose.ui.unit.sp
 import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.effect.BgEffectBackground
+import io.github.proify.lyricon.app.compose.theme.AppTheme
+import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.launchBrowser
 import java.time.Instant
@@ -92,7 +93,7 @@ import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 class AboutActivity : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { AboutContent() }
+        setContent { AppTheme { AboutContent() } }
     }
 
     @Composable
@@ -102,7 +103,7 @@ class AboutActivity : BaseActivity() {
         val githubHome = getString(R.string.github_home)
         val scrollBehavior = MiuixScrollBehavior()
         val lazyListState = rememberLazyListState()
-        val isDark = isSystemInDarkTheme()
+        val isDark = CurrentThemeConfigs.isDark
         var logoHeightPx by remember { mutableIntStateOf(0) }
         val scrollProgress by remember {
             derivedStateOf {
@@ -190,9 +191,9 @@ class AboutActivity : BaseActivity() {
         val cardBlendColors = remember(isDark) {
             if (isDark) {
                 listOf(
-                    BlendColorEntry(Color(0x66436BFF), BlurBlendMode.Screen),
-                    BlendColorEntry(Color(0x334A7CFF), BlurBlendMode.Lighten),
-                    BlendColorEntry(Color(0x1AFFFFFF), BlurBlendMode.Luminosity),
+                    BlendColorEntry(Color(0x4D1D2A7A), BlurBlendMode.Screen),
+                    BlendColorEntry(Color(0x332B1C60), BlurBlendMode.Lighten),
+                    BlendColorEntry(Color(0x1A3E2C78), BlurBlendMode.Luminosity),
                 )
             } else {
                 listOf(
@@ -241,22 +242,13 @@ class AboutActivity : BaseActivity() {
                 Box(
                     modifier = Modifier
                         .size(90.dp)
-                        .clip(CircleShape)
-                        .textureBlur(
-                            backdrop = backdrop,
-                            shape = SmoothRoundedCornerShape(45.dp),
-                            blurRadius = 150f,
-                            noiseCoefficient = BlurDefaults.NoiseCoefficient,
-                            colors = BlurColors(blendColors = titleBlend),
-                            contentBlendMode = BlendMode.DstIn,
-                            enabled = blurEnable,
-                        ),
+                        .clip(CircleShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_music_note),
                         contentDescription = null,
-                        tint = if (isDark) Color.White else colorScheme.onBackground,
+                        tint = if (isDark) Color.White else colorScheme.primary,
                         modifier = Modifier.size(48.dp),
                     )
                 }
@@ -347,43 +339,8 @@ class AboutActivity : BaseActivity() {
                     SmallTitle(text = stringResource(R.string.section_about_project))
                     FrostedCard(backdrop = backdrop, blurEnable = blurEnable, cardBlendColors = cardBlendColors) {
                         BasicComponent(
-                            title = stringResource(R.string.item_app_version),
-                            summary = versionSummary,
-                        )
-                        BasicComponent(
                             title = stringResource(R.string.app_name),
                             summary = githubHome.removePrefix("https://"),
-                            onClick = { launchBrowser(githubHome) },
-                        )
-                    }
-                }
-
-                item(key = "about_thanks") {
-                    SmallTitle(text = stringResource(R.string.section_about_thanks))
-                    FrostedCard(backdrop = backdrop, blurEnable = blurEnable, cardBlendColors = cardBlendColors) {
-                        BasicComponent(
-                            title = "tomakino",
-                            summary = "Upstream Lyricon",
-                            onClick = { launchBrowser("https://github.com/tomakino/lyricon") },
-                        )
-                        BasicComponent(
-                            title = "Kifranei",
-                            summary = "Fork customization",
-                        )
-                    }
-                }
-
-                item(key = "about_open_source") {
-                    SmallTitle(text = stringResource(R.string.section_about_open_source))
-                    FrostedCard(backdrop = backdrop, blurEnable = blurEnable, cardBlendColors = cardBlendColors) {
-                        BasicComponent(
-                            title = "Miuix",
-                            summary = "MIUI/HyperOS Compose UI",
-                            onClick = { launchBrowser("https://github.com/miuix-kmp/miuix") },
-                        )
-                        BasicComponent(
-                            title = "Lyricon",
-                            summary = "Provider API and status bar lyric",
                             onClick = { launchBrowser(githubHome) },
                         )
                         BasicComponent(
@@ -422,8 +379,8 @@ class AboutActivity : BaseActivity() {
                     enabled = blurEnable,
                 ),
             colors = CardDefaults.defaultColors(
-                if (blurEnable) Color.Transparent else colorScheme.surfaceContainer,
-                Color.Transparent,
+                if (CurrentThemeConfigs.isDark) Color(0x4D52608E) else if (blurEnable) Color.Transparent else colorScheme.surfaceContainer,
+                if (CurrentThemeConfigs.isDark) Color.White else colorScheme.onSurface,
             ),
         ) {
             content()

@@ -63,6 +63,8 @@ class StatusBarViewController(
     private var lyricDoubleTapDetector: GestureDetector? = null
     private var clockDoubleTapDetector: GestureDetector? = null
     private var statusBarTouchListener: View.OnTouchListener? = null
+    private var lyricTouchListener: View.OnTouchListener? = null
+    private var clockTouchListener: View.OnTouchListener? = null
     private var colorMonitorView: View? = null
     private var coverColorPaletteResult: ColorPaletteResult? = null
     private var systemStatusBarColor: SystemStatusBarColor? = null
@@ -124,6 +126,10 @@ class StatusBarViewController(
         lyricView.onPlayingChanged = null
         statusBarTouchListener?.let { statusBarView.setOnTouchListener(null) }
         statusBarTouchListener = null
+        lyricTouchListener?.let { lyricView.setOnTouchListener(null) }
+        lyricTouchListener = null
+        clockTouchListener?.let { clockView?.setOnTouchListener(null) }
+        clockTouchListener = null
         lyricDoubleTapDetector = null
         clockDoubleTapDetector = null
         colorMonitorView?.let { ClockColorMonitor.setListener(it, null) }
@@ -420,6 +426,24 @@ class StatusBarViewController(
                 false
             }
             statusBarView.setOnTouchListener(statusBarTouchListener)
+        }
+
+        if (lyricTouchListener == null) {
+            lyricTouchListener = View.OnTouchListener { _, event ->
+                if (!doubleTapSwitchEnabled || !LyricViewController.isPlaying) return@OnTouchListener false
+                lyricDoubleTapDetector?.onTouchEvent(event) == true
+            }
+            lyricView.isClickable = true
+            lyricView.setOnTouchListener(lyricTouchListener)
+        }
+
+        val clock = clockView
+        if (clock != null && clockTouchListener == null) {
+            clockTouchListener = View.OnTouchListener { _, event ->
+                if (!doubleTapSwitchEnabled || !LyricViewController.isPlaying) return@OnTouchListener false
+                clockDoubleTapDetector?.onTouchEvent(event) == true
+            }
+            clock.setOnTouchListener(clockTouchListener)
         }
     }
 

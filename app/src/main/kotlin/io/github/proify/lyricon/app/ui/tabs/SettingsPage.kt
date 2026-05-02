@@ -229,7 +229,6 @@ private fun FloatingBarSetting() {
         summary = stringResource(R.string.item_summary_floating_bottom_bar),
         onCheckedChange = {
             floatingBarEnabled = it
-            EventBus.post(SettingChangedEvent)
         }
     )
 }

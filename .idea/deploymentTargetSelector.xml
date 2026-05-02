@@ -2,19 +2,17 @@
 <project version="4">
   <component name="deploymentTargetSelector">
     <selectionStates>
-      <SelectionState runConfigName="lyric.bridge.localcentralapp">
-        <option name="selectionMode" value="DROPDOWN" />
-        <DialogSelection />
-      </SelectionState>
-      <SelectionState runConfigName="lyric.bridge.centralapp">
+      <SelectionState runConfigName="lyricon">
         <option name="selectionMode" value="DROPDOWN" />
         <DialogSelection />
       </SelectionState>
       <SelectionState runConfigName="lyric.viewAppTest">
         <option name="selectionMode" value="DROPDOWN" />
-        <DialogSelection />
       </SelectionState>
-      <SelectionState runConfigName="lyricon">
+      <SelectionState runConfigName="lyric.bridge.localcentralapp">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="lyric.bridge.centralapp">
         <option name="selectionMode" value="DROPDOWN" />
         <DialogSelection />
       </SelectionState>

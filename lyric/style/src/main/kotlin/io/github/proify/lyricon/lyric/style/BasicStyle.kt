@@ -30,7 +30,6 @@ data class BasicStyle(
     var dynamicWidthEnabled: Boolean = Defaults.DYNAMIC_WIDTH_ENABLED,
     var dynamicWidthAutoHideClock: Boolean = Defaults.DYNAMIC_WIDTH_AUTO_HIDE_CLOCK,
     var doubleTapSwitchClock: Boolean = Defaults.DOUBLE_TAP_SWITCH_CLOCK,
-    var xiaomiIslandTempHideEnabled: Boolean = Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
     var margins: RectF = Defaults.MARGINS,
     var paddings: RectF = Defaults.PADDINGS,
     var visibilityRules: List<VisibilityRule> = Defaults.VISIBILITY_RULES,
@@ -94,11 +93,6 @@ data class BasicStyle(
             "lyric_style_base_double_tap_switch_clock",
             Defaults.DOUBLE_TAP_SWITCH_CLOCK
         )
-        xiaomiIslandTempHideEnabled = preferences.getBoolean(
-            "lyric_style_base_xiaomi_island_temp_hide_enabled",
-            Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED
-        )
-
         margins = json.safeDecode<RectF>(
             preferences.getString("lyric_style_base_margins", null),
             Defaults.MARGINS
@@ -162,10 +156,6 @@ data class BasicStyle(
             "lyric_style_base_double_tap_switch_clock",
             doubleTapSwitchClock
         )
-        editor.putBoolean(
-            "lyric_style_base_xiaomi_island_temp_hide_enabled",
-            xiaomiIslandTempHideEnabled
-        )
         editor.putString("lyric_style_base_margins", margins.toJson())
         editor.putString("lyric_style_base_paddings", paddings.toJson())
         editor.putString("lyric_style_base_visibility_rules", visibilityRules.toJson())
@@ -188,7 +178,6 @@ data class BasicStyle(
         const val DYNAMIC_WIDTH_ENABLED: Boolean = false
         const val DYNAMIC_WIDTH_AUTO_HIDE_CLOCK: Boolean = false
         const val DOUBLE_TAP_SWITCH_CLOCK: Boolean = false
-        const val XIAOMI_ISLAND_TEMP_HIDE_ENABLED: Boolean = true
         val MARGINS: RectF = RectF()
         val PADDINGS: RectF = RectF()
         val VISIBILITY_RULES: List<VisibilityRule> = emptyList()

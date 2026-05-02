@@ -148,6 +148,8 @@
     <string name="module_tag_translation">Translation</string>
     <string name="no_provider_available">No lyric providers available</string>
     <string name="item_base_lockscreen_hidden">Hide on lock screen</string>
+    <string name="item_base_double_tap_switch_clock">Double-tap lyric to show clock</string>
+    <string name="item_base_double_tap_switch_clock_summary">Temporarily hide lyrics and show the clock while lyrics are playing; double-tap again to restore lyrics.</string>
     <string name="option_provider_list_full">Full</string>
     <string name="option_provider_list_short">Compact</string>
     <string name="message_query_app_permission_required">Please grant permission to read installed apps</string>
@@ -268,8 +270,6 @@
     <string name="item_base_dynamic_width_summary">Let the lyric view follow the current lyric width.</string>
     <string name="item_base_dynamic_width_auto_hide_clock">Auto hide clock</string>
     <string name="item_base_dynamic_width_auto_hide_clock_summary">Temporarily hide the clock while dynamic width lyrics are visible.</string>
-    <string name="item_base_xiaomi_island_temp_hide">Hide Xiaomi Island</string>
-    <string name="item_base_xiaomi_island_temp_hide_summary">Temporarily hide Xiaomi Island while lyrics are visible on supported HyperOS versions.</string>
     <string name="item_logo_base64_icon">Base64 icon</string>
     <string name="item_logo_base64_icon_summary">Paste a Base64-encoded image to override the provider icon.</string>
     <string name="section_about_info">Info</string>
