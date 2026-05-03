@@ -29,6 +29,11 @@
 
 ---
 
+## ⚠此版本为 Fork 版本，[原项目地址](https://github.com/tomakino/Lyricon)
+- 鉴于原版已经添加了很多我 Fork 以来加入的功能，因此决定 2026.5.3 起正式归档。
+- 如果你想使用或参与开发，请前往原项目地址。
+- 现有 bug 和功能请求将不再处理，建议在原项目重新提交。
+
 ## ✨ 功能特性
 
 - 🎤 **歌词展示** — 支持逐字歌词、翻译显示及对唱模式。
@@ -45,7 +50,7 @@
 - **前置条件**：设备需获取 **Root** 权限，并安装 **LSPosed**（或兼容的 Xposed）框架。
 
 > [!TIP]
-> 为保证功能稳定，建议使用 LSPosed 最新正式版本。
+> 为保证功能稳定，建议使用 LSPosed 2.0.1以上。同时不建议临时 Root 用户使用，Zygote进程脆弱可能会引发未知的 bug。
 
 ### ⚙️ 安装与配置
 
@@ -61,10 +66,10 @@
 
 ## 🧩 生态与支持
 
-| 类别       | 资源链接                                                            | 说明             |
-|:---------|:----------------------------------------------------------------|:---------------|
-| **插件库**  | [LyricProvider 仓库](https://github.com/kifranei/LyricProvider)   | 包含主流音乐平台的适配插件 |
-| **开发文档** | [文档中心](https://kifranei.github.io/lyricon/)                    | App 与 Lyric 文档 |
+| 类别       | 资源链接                                                          | 说明             |
+|:---------|:--------------------------------------------------------------|:---------------|
+| **插件库**  | [LyricProvider 仓库](https://github.com/tomakino/LyricProvider) | 包含主流音乐平台的适配插件 |
+| **开发文档** | [文档中心](https://tomakino.github.io/lyricon/)                   | App 与 Lyric 文档 |
 
 ### 💡 已原生适配的应用
 
@@ -76,7 +81,7 @@
 - **Sollin Player**
 - [**QZ Music**](https://github.com/lqtmcstudio/QZMusic)
 
-#### 已适配了但没有你的播放器？请[提交 issue](https://github.com/kifranei/lyricon/issues)。
+#### 已适配了但没有你的播放器？请[提交 issue](https://github.com/tomakino/lyricon/issues)。
 
 ---
 

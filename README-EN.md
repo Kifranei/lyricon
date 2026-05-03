@@ -39,6 +39,11 @@
 
 ---
 
+## ⚠️ This is a Fork Version, [Original Project](https://github.com/tomakino/Lyricon)
+- Since the original version has added many features that I've contributed since forking, it has been decided to officially archive this fork starting from 2026.5.3.
+- If you want to use or participate in development, please go to the original project address.
+- Existing bugs and feature requests will no longer be handled. It is recommended to resubmit them to the original project.
+
 ## 🚀 Quick Start
 
 ### 📋 Requirements
@@ -48,12 +53,12 @@
   compatible Xposed framework, installed.
 
 > [!TIP]
-> For better stability, the latest stable version of LSPosed is recommended.
+> To ensure functional stability, it is recommended to use LSPosed 2.0.1 or above. At the same time, it is not recommended for temporary Root users, as the Zygote process is fragile and may trigger unknown bugs.
 
 ### ⚙️ Installation & Configuration
 
 1. **Download the Main App**: Download and install Lyricon
-   from [Releases](https://github.com/kifranei/lyricon/releases).
+   from [Releases](https://github.com/tomakino/lyricon/releases).
 2. **Activate the Module**: Enable the "Lyricon" module in LSPosed Manager and select the **System
    UI** scope.
 3. **Restart to Apply**: Restart System UI or reboot the device to complete Hook injection.
@@ -71,12 +76,12 @@
 
 | Category           | Resource Link                                                         | Description                                       |
 |:-------------------|:----------------------------------------------------------------------|:--------------------------------------------------|
-| **Plugin Library** | [LyricProvider Repository](https://github.com/kifranei/LyricProvider) | Adaptation plugins for mainstream music platforms |
-| **Documentation**  | [Documentation Center](https://kifranei.github.io/lyricon/)           | App and Lyric documentation                       |
+| **Plugin Library** | [LyricProvider Repository](https://github.com/tomakino/LyricProvider) | Adaptation plugins for mainstream music platforms |
+| **Documentation**  | [Documentation Center](https://tomakino.github.io/lyricon/)           | App and Lyric documentation                       |
 
 ### 💡 Natively Supported Apps
 
-- [**ConePlayer**](https://coneplayer.trantor.ink/)
+- [**Light Cone Player**](https://coneplayer.trantor.ink/)
 - **Flamingo**
 - [**BBPlayer**](https://bbplayer.roitium.com/)
 - **MobiMusic**
@@ -84,7 +89,7 @@
 - **Sollin Player**
 - [**QZ Music**](https://github.com/lqtmcstudio/QZMusic)
 
-#### Is your player already supported but not listed here? Please [submit an issue](https://github.com/kifranei/lyricon/issues).
+#### Is your player already supported but not listed here? Please [submit an issue](https://github.com/tomakino/lyricon/issues).
 
 ---
 
