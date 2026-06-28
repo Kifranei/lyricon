@@ -60,6 +60,12 @@ data class BasicStyle(
     var aiTranslationConfigs: AiTranslationConfigs? = null,
     var isAiTranslationAutoIgnoreChinese: Boolean = false,
 
+    var hdrHighlightEnabled: Boolean = Defaults.HDR_HIGHLIGHT_ENABLED,
+    var hdrBrightnessRatio: Float = Defaults.HDR_BRIGHTNESS_RATIO,
+    var hdrLocalProbeEnabled: Boolean = Defaults.HDR_LOCAL_PROBE_ENABLED,
+    var hdrSurfaceProbeEnabled: Boolean = Defaults.HDR_SURFACE_PROBE_ENABLED,
+    var hdrOverlayProbeEnabled: Boolean = Defaults.HDR_OVERLAY_PROBE_ENABLED,
+
     ) : AbstractStyle(), Parcelable {
 
     fun getAutoWidth(isLand: Boolean, isOplusCapsuleShowing: Boolean): Float {
@@ -181,6 +187,27 @@ data class BasicStyle(
                 KEY_AI_TRANSLATION_IGNORE_CHINESE,
                 TextStyle.Defaults.AI_TRANSLATION_IGNORE_CHINESE
             )
+
+        hdrHighlightEnabled = preferences.getBoolean(
+            "lyric_style_base_hdr_highlight_enabled",
+            Defaults.HDR_HIGHLIGHT_ENABLED
+        )
+        hdrBrightnessRatio = preferences.getFloatCompat(
+            "lyric_style_base_hdr_brightness_ratio",
+            Defaults.HDR_BRIGHTNESS_RATIO
+        )
+        hdrLocalProbeEnabled = preferences.getBoolean(
+            "lyric_style_base_hdr_local_probe_enabled",
+            Defaults.HDR_LOCAL_PROBE_ENABLED
+        )
+        hdrSurfaceProbeEnabled = preferences.getBoolean(
+            "lyric_style_base_hdr_surface_probe_enabled",
+            Defaults.HDR_SURFACE_PROBE_ENABLED
+        )
+        hdrOverlayProbeEnabled = preferences.getBoolean(
+            "lyric_style_base_hdr_overlay_probe_enabled",
+            Defaults.HDR_OVERLAY_PROBE_ENABLED
+        )
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -211,6 +238,12 @@ data class BasicStyle(
         editor.putBoolean(KEY_AI_TRANSLATION_ENABLED, isAiTranslationEnable)
         aiTranslationConfigs?.let { writeAiTranslationConfigs(editor, it) }
         editor.putBoolean(KEY_AI_TRANSLATION_IGNORE_CHINESE, isAiTranslationAutoIgnoreChinese)
+
+        editor.putBoolean("lyric_style_base_hdr_highlight_enabled", hdrHighlightEnabled)
+        editor.putFloat("lyric_style_base_hdr_brightness_ratio", hdrBrightnessRatio)
+        editor.putBoolean("lyric_style_base_hdr_local_probe_enabled", hdrLocalProbeEnabled)
+        editor.putBoolean("lyric_style_base_hdr_surface_probe_enabled", hdrSurfaceProbeEnabled)
+        editor.putBoolean("lyric_style_base_hdr_overlay_probe_enabled", hdrOverlayProbeEnabled)
     }
 
     private fun getAiTranslationConfigs(preferences: SharedPreferences): AiTranslationConfigs {
@@ -332,6 +365,11 @@ data class BasicStyle(
         val KEYWORD_HIDE_MATCH: List<String> = listOf()
         const val BLOCKED_WORDS_REGEX: String = ""
         const val CHINESE_CONVERSION_MODE: Int = CHINESE_CONVERSION_OFF
+        const val HDR_HIGHLIGHT_ENABLED: Boolean = true
+        const val HDR_BRIGHTNESS_RATIO: Float = 1.5f
+        const val HDR_LOCAL_PROBE_ENABLED: Boolean = false
+        const val HDR_SURFACE_PROBE_ENABLED: Boolean = false
+        const val HDR_OVERLAY_PROBE_ENABLED: Boolean = false
     }
 
     companion object {

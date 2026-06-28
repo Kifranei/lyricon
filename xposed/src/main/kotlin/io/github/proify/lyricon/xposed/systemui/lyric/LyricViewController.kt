@@ -15,6 +15,7 @@ import io.github.proify.lyricon.statusbarlyric.logo.CoverStrategy
 import io.github.proify.lyricon.subscriber.ActivePlayerListener
 import io.github.proify.lyricon.subscriber.ProviderInfo
 import io.github.proify.lyricon.xposed.logger.YLog
+import io.github.proify.lyricon.xposed.systemui.hook.HdrStatusBarController
 import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager.MAIN_LOOPER
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
@@ -131,6 +132,8 @@ object LyricViewController : ActivePlayerListener,
 
         this.isPlaying = isPlaying
         updateAllControllers { lyricView.setPlaying(isPlaying) }
+
+        refreshHdrHighlightState()
     }
 
     /**
@@ -153,7 +156,7 @@ object LyricViewController : ActivePlayerListener,
     }
 
     /**
-     * 接收到纯文本歌词时的回调（通常用于未匹配到 Lrc 的情况）。
+     * 收到纯文本歌词时的回调（通常用于未匹配到 Lrc 的情况）。
      * @param text 歌词文本内容
      */
     override fun onReceiveText(text: String?) {
@@ -189,7 +192,42 @@ object LyricViewController : ActivePlayerListener,
      */
     fun applyConfigurationUpdate(style: LyricStyle) {
         updateAllControllers { updateLyricStyle(style) }
+        updateCoverFile(currentCoverFile, force = true)
+        refreshHdrHighlightState()
         LyricDataHub.reprocessCurrentSong()
+    }
+
+    private fun refreshHdrHighlightState() {
+        val enabled = isPlaying && LyricPrefs.isHdrHighlightEnabled()
+        val ratio = if (enabled) LyricPrefs.getHdrRatio() else 1.0f
+        val localProbeEnabled = LyricPrefs.isHdrLocalProbeEnabled()
+        val surfaceProbeEnabled = LyricPrefs.isHdrSurfaceProbeEnabled()
+        val overlayProbeEnabled = LyricPrefs.isHdrOverlayProbeEnabled()
+
+        YLog.info(
+            TAG,
+            "refreshHdrHighlightState: enabled=$enabled ratio=$ratio " +
+                    "localProbe=$localProbeEnabled surfaceProbe=$surfaceProbeEnabled " +
+                    "overlayProbe=$overlayProbeEnabled " +
+                    "initialized=${HdrStatusBarController.isInitialized}"
+        )
+
+        updateAllControllers {
+            lyricView.setHdrHighlightRatio(ratio)
+            updateHdrProbeState(
+                hdrEnabled = enabled,
+                ratio = ratio,
+                localProbeEnabled = localProbeEnabled,
+                surfaceProbeEnabled = surfaceProbeEnabled,
+                overlayProbeEnabled = overlayProbeEnabled
+            )
+        }
+
+        if (enabled && HdrStatusBarController.isInitialized) {
+            HdrStatusBarController.enable(ratio)
+        } else {
+            HdrStatusBarController.disable()
+        }
     }
 
     /**
@@ -270,10 +308,13 @@ object LyricViewController : ActivePlayerListener,
     }
 
     private var lastCoverSignature = 0L
-    private fun updateCoverFile(coverFile: File?) {
+    private var currentCoverFile: File? = null
+    private var lastCoverRenderStateLog: String? = null
+    private fun updateCoverFile(coverFile: File?, force: Boolean = false) {
+        currentCoverFile = coverFile
         if (coverFile != null) {
             val signature = coverFile.crc32()
-            if (signature == lastCoverSignature) {
+            if (!force && signature == lastCoverSignature) {
                 YLog.verbose(TAG, "Cover file is the same, skip update")
                 return
             }
@@ -287,7 +328,15 @@ object LyricViewController : ActivePlayerListener,
                 this.coverFile = coverFile
                 (strategy as? CoverStrategy)?.updateContent()
             }
+            logCoverRenderState(lyricView)
             updateCoverThemeColors(coverFile)
         }
+    }
+
+    private fun logCoverRenderState(lyricView: StatusBarLyric) {
+        val state = lyricView.logoView.describeRenderState()
+        if (state == lastCoverRenderStateLog) return
+        lastCoverRenderStateLog = state
+        YLog.info(TAG, "Cover render state: $state")
     }
 }

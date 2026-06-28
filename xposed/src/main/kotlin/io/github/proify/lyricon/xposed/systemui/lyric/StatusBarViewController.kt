@@ -8,11 +8,15 @@ package io.github.proify.lyricon.xposed.systemui.lyric
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.toColorInt
 import androidx.core.view.doOnAttach
 import androidx.core.view.isVisible
@@ -35,6 +39,7 @@ import io.github.proify.lyricon.xposed.systemui.lyric.LyricViewController.isPlay
 import io.github.proify.lyricon.xposed.systemui.util.OnColorChangeListener
 import io.github.proify.lyricon.xposed.systemui.util.ViewVisibilityController
 import java.io.File
+import java.util.Locale
 
 /**
  * 状态栏歌词视图控制器：负责歌词视图的注入、位置锚定及显隐逻辑
@@ -51,6 +56,8 @@ class StatusBarViewController(
     val context: Context = statusBarView.context.applicationContext
     val visibilityController: ViewVisibilityController = ViewVisibilityController(statusBarView)
     val lyricView: StatusBarLyric by lazy { createLyricView(currentLyricStyle) }
+    private var hdrSurfaceProbeView: HdrSurfaceProbeView? = null
+    private var hdrOverlayProbeController: HdrOverlayProbeController? = null
 
     private val clockId: Int by lazy { ResourceMapper.getIdByName(context, "clock") }
     private var lastAnchor = ""
@@ -60,6 +67,7 @@ class StatusBarViewController(
     private var colorMonitorView: View? = null
     private var coverColorPaletteResult: ColorPaletteResult? = null
     private var systemStatusBarColor: SystemStatusBarColor? = null
+    private var lastStatusColorLogFingerprint: String? = null
 
     private val onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         applyVisibilityRulesNow()
@@ -87,6 +95,7 @@ class StatusBarViewController(
 
         colorMonitorView = getClockView()?.also {
             ClockColorMonitor.setListener(it, onColorChangeListener)
+            updateStatusColor(it.currentSystemStatusBarColor())
         }
 
         statusBarView.doOnAttach { checkLyricViewExists() }
@@ -99,6 +108,15 @@ class StatusBarViewController(
         lyricView.removeOnAttachStateChangeListener(lyricAttachListener)
         ScreenStateMonitor.removeListener(this)
         lyricView.onPlayingChanged = null
+        updateHdrProbeState(
+            hdrEnabled = false,
+            ratio = 1.0f,
+            localProbeEnabled = false,
+            surfaceProbeEnabled = false,
+            overlayProbeEnabled = false
+        )
+        removeSurfaceProbeView()
+        removeOverlayProbeView()
         colorMonitorView?.let { ClockColorMonitor.setListener(it, null) }
         YLog.info(tag = TAG, "Lyric view destroyed for $statusBarView")
     }
@@ -112,46 +130,46 @@ class StatusBarViewController(
         this.systemStatusBarColor = systemStatusBarColor
 
         val textStyle = currentLyricStyle.packageStyle.text
-        lyricView.apply {
-            currentStatusColor.apply {
-                this.darkIntensity = systemStatusBarColor.darkIntensity
+        var colorSource = "system"
+        val statusColor = lyricView.currentStatusColor.apply {
+            darkIntensity = systemStatusBarColor.darkIntensity
 
-                val coverColorPaletteResult = coverColorPaletteResult
-                when {
-                    coverColorPaletteResult != null
-                            && textStyle.enableExtractCoverTextColor
-                            && textStyle.enableExtractCoverTextGradient -> {
-                        val themeColors = coverColorPaletteResult
-                            .let { if (isLightMode) it.lightModeColors else it.darkModeColors }
+            val coverPalette = coverColorPaletteResult
+            when {
+                coverPalette != null
+                        && textStyle.enableExtractCoverTextColor
+                        && textStyle.enableExtractCoverTextGradient -> {
+                    val themeColors = coverPalette
+                        .let { if (isLightMode) it.lightModeColors else it.darkModeColors }
 
-                        val gradient = themeColors.swatches
+                    val gradient = themeColors.swatches
+                    colorSource = "cover-gradient"
+                    color = gradient
+                    translucentColor = gradient.map {
+                        it.setColorAlpha(0.75f)
+                    }.toIntArray()
+                }
 
-                        this.color = gradient
-                        this.translucentColor = gradient.map {
-                            it.setColorAlpha(0.75f)
-                        }.toIntArray()
-                    }
+                coverPalette != null
+                        && textStyle.enableExtractCoverTextColor -> {
+                    val themeColors = coverPalette
+                        .let { if (isLightMode) it.lightModeColors else it.darkModeColors }
 
-                    coverColorPaletteResult != null
-                            && textStyle.enableExtractCoverTextColor -> {
-                        val themeColors = coverColorPaletteResult
-                            .let { if (isLightMode) it.lightModeColors else it.darkModeColors }
+                    val primary = themeColors.primary
+                    colorSource = "cover"
+                    color = intArrayOf(primary)
+                    translucentColor = intArrayOf(primary.setColorAlpha(0.75f))
+                }
 
-                        val primary = themeColors.primary
-
-                        this.color = intArrayOf(primary)
-                        this.translucentColor = intArrayOf(primary.setColorAlpha(0.75f))
-                    }
-
-                    else -> {
-                        this.color = intArrayOf(systemStatusBarColor.color)
-                        this.translucentColor =
-                            intArrayOf(systemStatusBarColor.color.setColorAlpha(0.5f))
-                    }
+                else -> {
+                    color = intArrayOf(systemStatusBarColor.color)
+                    translucentColor =
+                        intArrayOf(systemStatusBarColor.color.setColorAlpha(0.5f))
                 }
             }
-            setStatusBarColor(currentStatusColor)
         }
+        lyricView.setStatusBarColor(statusColor)
+        logStatusColorApplied(colorSource, statusColor, systemStatusBarColor, textStyle)
     }
 
     /**
@@ -177,17 +195,69 @@ class StatusBarViewController(
         systemStatusBarColor?.let { updateStatusColor(it) }
     }
 
+    fun updateHdrProbeState(
+        hdrEnabled: Boolean,
+        ratio: Float,
+        localProbeEnabled: Boolean,
+        surfaceProbeEnabled: Boolean,
+        overlayProbeEnabled: Boolean
+    ) {
+        lyricView.setHdrLocalProbe(
+            enabled = hdrEnabled && localProbeEnabled,
+            ratio = ratio
+        )
+
+        val shouldShowSurfaceProbe = hdrEnabled && surfaceProbeEnabled
+        if (shouldShowSurfaceProbe) {
+            val probeView = ensureSurfaceProbeLocation()
+            probeView?.setProbeEnabled(true, ratio)
+            YLog.info(
+                TAG,
+                "HDR probe state: hdr=$hdrEnabled ratio=$ratio local=$localProbeEnabled " +
+                        "surface=$surfaceProbeEnabled overlay=$overlayProbeEnabled " +
+                        "lyricAttached=${lyricView.isAttachedToWindow} " +
+                        "probeAttached=${probeView?.isAttachedToWindow}"
+            )
+        } else {
+            hdrSurfaceProbeView?.setProbeEnabled(false, ratio)
+            removeSurfaceProbeView()
+        }
+
+        val shouldShowOverlayProbe = hdrEnabled && overlayProbeEnabled
+        if (shouldShowOverlayProbe) {
+            ensureOverlayProbeLocation(ratio)
+        } else {
+            removeOverlayProbeView()
+        }
+
+        YLog.info(
+            TAG,
+            "HDR overlay probe state: hdr=$hdrEnabled ratio=$ratio overlay=$overlayProbeEnabled " +
+                    "lyricAttached=${lyricView.isAttachedToWindow} " +
+                    "controller=${hdrOverlayProbeController != null}"
+        )
+    }
+
     fun updateCoverThemeColors(coverFile: File?) {
         coverColorPaletteResult = null
         try {
-            val bitmap = coverFile?.toBitmap() ?: return
+            val bitmap = coverFile?.toBitmap() ?: run {
+                applyCurrentStatusColor()
+                return
+            }
             ColorExtractor.extractAsync(
                 bitmap = bitmap,
                 cacheKey = {
                     coverFile.crc32().toString()
                 }) {
                 coverColorPaletteResult = it
-                systemStatusBarColor?.let { updateStatusColor(it) }
+                YLog.info(
+                    TAG,
+                    "Cover palette extracted: result=${it != null} " +
+                            "light=${it?.lightModeColors?.swatches.describeColors()} " +
+                            "dark=${it?.darkModeColors?.swatches.describeColors()}"
+                )
+                applyCurrentStatusColor()
                 bitmap.recycle()
             }
         } catch (e: Exception) {
@@ -235,8 +305,73 @@ class StatusBarViewController(
         lastAnchor = anchor
         lastInsertionOrder = baseStyle.insertionOrder
         internalRemoveLyricViewFlag = false
+        ensureSurfaceProbeLocationIfVisible()
+        ensureOverlayProbeLocationIfVisible()
 
         YLog.info(TAG, "Lyric injected: anchor $anchor, index $targetIndex")
+    }
+
+    private fun ensureSurfaceProbeLocationIfVisible() {
+        if (hdrSurfaceProbeView?.isVisible == true) {
+            ensureSurfaceProbeLocation()
+        }
+    }
+
+    private fun ensureSurfaceProbeLocation(): HdrSurfaceProbeView? {
+        if (!lyricView.isAttachedToWindow) {
+            YLog.warning(TAG, "HDR Surface probe skipped: lyric view is not attached")
+            return null
+        }
+
+        val probeView = hdrSurfaceProbeView ?: HdrSurfaceProbeView(statusBarView.context).apply {
+            visibility = View.GONE
+            hdrSurfaceProbeView = this
+        }
+
+        val currentParent = probeView.parent as? ViewGroup
+        if (currentParent !== lyricView) {
+            currentParent?.removeView(probeView)
+            lyricView.addView(
+                probeView,
+                createSurfaceProbeLayoutParams()
+            )
+            YLog.info(TAG, "HDR Surface probe injected inside lyric view")
+        } else {
+            probeView.layoutParams = createSurfaceProbeLayoutParams()
+        }
+        return probeView
+    }
+
+    private fun removeSurfaceProbeView() {
+        val probeView = hdrSurfaceProbeView ?: return
+        (probeView.parent as? ViewGroup)?.removeView(probeView)
+    }
+
+    private fun ensureOverlayProbeLocationIfVisible() {
+        if (hdrOverlayProbeController != null) {
+            hdrOverlayProbeController?.updateLocation(lyricView)
+        }
+    }
+
+    private fun ensureOverlayProbeLocation(ratio: Float) {
+        val controller = hdrOverlayProbeController ?: HdrOverlayProbeController(statusBarView.context).also {
+            hdrOverlayProbeController = it
+        }
+        controller.show(lyricView, ratio)
+    }
+
+    private fun removeOverlayProbeView() {
+        hdrOverlayProbeController?.hide()
+        hdrOverlayProbeController = null
+    }
+
+    private fun createSurfaceProbeLayoutParams(): ViewGroup.LayoutParams {
+        val width = 36.dp
+        val height = 14.dp
+        return LinearLayout.LayoutParams(width, height).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            leftMargin = 4.dp
+        }
     }
 
     fun checkLyricViewExists() {
@@ -249,6 +384,66 @@ class StatusBarViewController(
     // --- 辅助方法 ---
 
     private fun getClockView(): View? = statusBarView.findViewById(clockId)
+
+    private fun applyCurrentStatusColor() {
+        updateStatusColor(
+            systemStatusBarColor
+                ?: colorMonitorView?.currentSystemStatusBarColor()
+                ?: SystemStatusBarColor(color = Color.BLACK, darkIntensity = 0f)
+        )
+    }
+
+    private fun View.currentSystemStatusBarColor(): SystemStatusBarColor {
+        val color = (this as? TextView)?.currentTextColor ?: Color.BLACK
+        return SystemStatusBarColor(
+            color = color,
+            darkIntensity = ColorUtils.calculateLuminance(color).toFloat()
+        )
+    }
+
+    private fun logStatusColorApplied(
+        colorSource: String,
+        statusColor: io.github.proify.lyricon.statusbarlyric.StatusColor,
+        systemStatusBarColor: SystemStatusBarColor,
+        textStyle: io.github.proify.lyricon.lyric.style.TextStyle
+    ) {
+        val customColor = textStyle.color(statusColor.isLightMode)
+        val visualSource = if (textStyle.enableCustomTextColor) "custom" else colorSource
+        val fingerprint = listOf(
+            visualSource,
+            colorSource,
+            statusColor.isLightMode,
+            statusColor.color.contentHashCode(),
+            statusColor.translucentColor.contentHashCode(),
+            textStyle.enableCustomTextColor,
+            customColor?.normal?.contentHashCode(),
+            customColor?.background?.contentHashCode(),
+            customColor?.highlight?.contentHashCode()
+        ).joinToString("|")
+
+        if (fingerprint == lastStatusColorLogFingerprint) return
+        lastStatusColorLogFingerprint = fingerprint
+
+        YLog.info(
+            TAG,
+            "Status color applied: visual=$visualSource statusSource=$colorSource " +
+                    "lightMode=${statusColor.isLightMode} " +
+                    "system=${systemStatusBarColor.color.toColorHex()} " +
+                    "darkIntensity=${systemStatusBarColor.darkIntensity} " +
+                    "status=${statusColor.color.describeColors()} " +
+                    "translucent=${statusColor.translucentColor.describeColors()} " +
+                    "customNormal=${customColor?.normal.describeColors()} " +
+                    "customBg=${customColor?.background.describeColors()} " +
+                    "customHighlight=${customColor?.highlight.describeColors()}"
+        )
+    }
+
+    private fun IntArray?.describeColors(): String =
+        this?.let { "size=${it.size} first=${it.firstOrNull()?.toColorHex() ?: "none"}" }
+            ?: "null"
+
+    private fun Int.toColorHex(): String =
+        String.format(Locale.US, "#%08X", this)
 
     private var wasPlayingBeforeVisibilityUpdate: Boolean = false
 

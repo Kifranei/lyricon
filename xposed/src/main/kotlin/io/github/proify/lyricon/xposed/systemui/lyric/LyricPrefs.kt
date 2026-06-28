@@ -218,6 +218,34 @@ object LyricPrefs {
         )
     }
 
+    /**
+     * 获取 HDR 亮度比率
+     *
+     * @return 用户配置的 HDR 比率，默认 1.1
+     */
+    fun getHdrRatio(): Float {
+        return baseStyle.hdrBrightnessRatio
+    }
+
+    /**
+     * 检查 HDR 高亮是否启用
+     */
+    fun isHdrHighlightEnabled(): Boolean {
+        return baseStyle.hdrHighlightEnabled
+    }
+
+    fun isHdrLocalProbeEnabled(): Boolean {
+        return baseStyle.hdrLocalProbeEnabled
+    }
+
+    fun isHdrSurfaceProbeEnabled(): Boolean {
+        return baseStyle.hdrSurfaceProbeEnabled
+    }
+
+    fun isHdrOverlayProbeEnabled(): Boolean {
+        return baseStyle.hdrOverlayProbeEnabled
+    }
+
     /* ---------------- helper classes ---------------- */
 
     /**

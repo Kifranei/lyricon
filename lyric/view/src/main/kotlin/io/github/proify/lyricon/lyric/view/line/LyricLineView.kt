@@ -86,12 +86,14 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
             invalidate()
         }
 
-    var sustainGlowEnabled: Boolean
-        get() = syncRenderer.sustainGlowEnabled
+    var hdrHighlightRatio: Float
+        get() = syncRenderer.hdrHighlightRatio
         set(value) {
-            if (syncRenderer.sustainGlowEnabled == value) return
-            syncRenderer.sustainGlowEnabled = value
-            invalidate()
+            val old = syncRenderer.hdrHighlightRatio
+            syncRenderer.hdrHighlightRatio = value
+            if (syncRenderer.hdrHighlightRatio != old) {
+                invalidate()
+            }
         }
 
     private val lineState = LineState()

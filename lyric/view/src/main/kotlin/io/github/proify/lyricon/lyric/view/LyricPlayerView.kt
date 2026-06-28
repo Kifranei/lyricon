@@ -159,6 +159,16 @@ open class LyricPlayerView(
 
     private var _transitionConfig: String? = null
 
+    var hdrHighlightRatio: Float = 1.0f
+        set(value) {
+            val ratio = value.normalizedHdrHighlightRatio()
+            if (field == ratio) return
+            field = ratio
+            textRecycleView.hdrHighlightRatio = ratio
+            forEach { if (it is RichLyricLineView) it.hdrHighlightRatio = ratio }
+            invalidate()
+        }
+
     fun updateDisplayTranslation(
         displayTranslation: Boolean = isDisplayTranslation,
         displayRoma: Boolean = isDisplayRoma
@@ -332,6 +342,7 @@ open class LyricPlayerView(
         enableRelativeProgress = style.primary.relativeProgress,
         enableRelativeProgressHighlight = style.primary.relativeHighlight,
     ).apply {
+        hdrHighlightRatio = this@LyricPlayerView.hdrHighlightRatio
         this.line = line
         setStyle(style)
         setMainLyricPlayListener(mainPlayListener)
@@ -368,6 +379,9 @@ open class LyricPlayerView(
     }
 
     private fun emptyNavigator() = TimingNavigator<TimedLine>(emptyArray())
+
+    private fun Float.normalizedHdrHighlightRatio(): Float =
+        if (isFinite() && this > 1.0f) coerceAtMost(8.0f) else 1.0f
 
     interface LyricCountChangeListener {
         fun onLyricTextChanged(old: String, new: String)

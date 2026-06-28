@@ -25,6 +25,7 @@ import io.github.proify.lyricon.xposed.hook.PackageHooker
 import io.github.proify.lyricon.xposed.logger.YLog
 import io.github.proify.lyricon.xposed.systemui.aitrans.AITranslator
 import io.github.proify.lyricon.xposed.systemui.hook.ClockColorMonitor
+import io.github.proify.lyricon.xposed.systemui.hook.HdrStatusBarController
 import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
 import io.github.proify.lyricon.xposed.systemui.hook.StatusBarDisableHooker
 import io.github.proify.lyricon.xposed.systemui.hook.StatusBarViewResolver
@@ -134,6 +135,9 @@ object SystemUIHooker : PackageHooker() {
 
         ScreenStateMonitor.initialize(context)
         OplusCapsuleHooker.initialize(module, classLoader)
+        if (HdrStatusBarController.isSupported()) {
+            HdrStatusBarController.initialize(module, classLoader)
+        }
         NotificationCoverHelper.initialize()
         ViewVisibilityTracker.initialize(module, classLoader)
         initDataChannel()

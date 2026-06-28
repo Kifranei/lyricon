@@ -232,6 +232,103 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             }
 
 
+            item(key = "hdr") {
+                SmallTitle(
+                    text = stringResource(R.string.section_hdr),
+                    insideMargin = PaddingValues(
+                        start = 26.dp,
+                        top = 16.dp,
+                        end = 26.dp,
+                        bottom = 10.dp
+                    )
+                )
+                Card(
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 0.dp, end = 16.dp)
+                        .fillMaxWidth(),
+                ) {
+                    var isHdrHighlightEnabled by rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_hdr_highlight_enabled",
+                        BasicStyle.Defaults.HDR_HIGHLIGHT_ENABLED
+                    )
+
+                    SwitchPreference(
+                        checked = isHdrHighlightEnabled,
+                        onCheckedChange = { isHdrHighlightEnabled = it },
+                        startAction = {
+                            IconActions(painterResource(R.drawable.lightbulb_2_24px))
+                        },
+                        title = stringResource(R.string.item_base_hdr_highlight),
+                        summary = stringResource(R.string.item_base_hdr_highlight_summary),
+                    )
+
+                    DoubleInputPreference(
+                        preferences = preferences,
+                        key = "lyric_style_base_hdr_brightness_ratio",
+                        title = stringResource(R.string.item_base_hdr_brightness_ratio),
+                        defaultValue = BasicStyle.Defaults.HDR_BRIGHTNESS_RATIO.toDouble(),
+                        dialogSummary = stringResource(R.string.dialog_summary_base_hdr_brightness_ratio),
+                        range = 1.0..4.0,
+                        enabled = isHdrHighlightEnabled,
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_brightness7))
+                        },
+                    )
+
+                    var isHdrLocalProbeEnabled by rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_hdr_local_probe_enabled",
+                        BasicStyle.Defaults.HDR_LOCAL_PROBE_ENABLED
+                    )
+
+                    SwitchPreference(
+                        checked = isHdrLocalProbeEnabled,
+                        onCheckedChange = { isHdrLocalProbeEnabled = it },
+                        enabled = isHdrHighlightEnabled,
+                        startAction = {
+                            IconActions(painterResource(R.drawable.lightbulb_2_24px))
+                        },
+                        title = stringResource(R.string.item_base_hdr_local_probe),
+                        summary = stringResource(R.string.item_base_hdr_local_probe_summary),
+                    )
+
+                    var isHdrSurfaceProbeEnabled by rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_hdr_surface_probe_enabled",
+                        BasicStyle.Defaults.HDR_SURFACE_PROBE_ENABLED
+                    )
+
+                    SwitchPreference(
+                        checked = isHdrSurfaceProbeEnabled,
+                        onCheckedChange = { isHdrSurfaceProbeEnabled = it },
+                        enabled = isHdrHighlightEnabled,
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_brightness7))
+                        },
+                        title = stringResource(R.string.item_base_hdr_surface_probe),
+                        summary = stringResource(R.string.item_base_hdr_surface_probe_summary),
+                    )
+
+                    var isHdrOverlayProbeEnabled by rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_hdr_overlay_probe_enabled",
+                        BasicStyle.Defaults.HDR_OVERLAY_PROBE_ENABLED
+                    )
+
+                    SwitchPreference(
+                        checked = isHdrOverlayProbeEnabled,
+                        onCheckedChange = { isHdrOverlayProbeEnabled = it },
+                        enabled = isHdrHighlightEnabled,
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_brightness7))
+                        },
+                        title = stringResource(R.string.item_base_hdr_overlay_probe),
+                        summary = stringResource(R.string.item_base_hdr_overlay_probe_summary),
+                    )
+                }
+            }
+
             item(key = "visibility") {
                 SmallTitle(
                     text = stringResource(R.string.section_visibility),

@@ -140,6 +140,15 @@
     <string name="item_base_insertion_after">After</string>
     <string name="item_base_width">Width</string>
     <string name="item_base_width_color_os_capsule">Width (Capsule mode)</string>
+    <string name="item_base_hdr_highlight">HDR highlight</string>
+    <string name="item_base_hdr_highlight_summary">Use HDR brightness for the active lyric highlight when the device and system layer support it.</string>
+    <string name="item_base_hdr_brightness_ratio">HDR brightness ratio</string>
+    <string name="item_base_hdr_local_probe">HDR local probe</string>
+    <string name="item_base_hdr_local_probe_summary">Draw SDR/HDR test blocks in the lyric view using the current Canvas path.</string>
+    <string name="item_base_hdr_surface_probe">Independent Surface HDR probe</string>
+    <string name="item_base_hdr_surface_probe_summary">Draw SDR/HDR test blocks on a separate Surface and apply HDR only to that Surface.</string>
+    <string name="item_base_hdr_overlay_probe">Overlay window HDR probe</string>
+    <string name="item_base_hdr_overlay_probe_summary">Draw SDR/HDR test blocks in a separate overlay window and apply HDR to that window and Surface.</string>
     <string name="item_base_margins">Margins</string>
     <string name="item_base_paddings">Padding</string>
     <string name="option_visibility_default">Default</string>
@@ -213,6 +222,7 @@
     <string name="dialog_summary_base_paddings">Sets the inside spacing between the lyric content and its container edges, in pixels.</string>
     <string name="dialog_summary_base_width">Controls the maximum width available to the lyric view in the status bar.</string>
     <string name="dialog_summary_base_width_color_os_capsule">Controls the lyric view width used when ColorOS Capsule mode is active.</string>
+    <string name="dialog_summary_base_hdr_brightness_ratio">Controls the HDR headroom multiplier used by the active lyric highlight. 1.0 disables extra brightness.</string>
     <string name="dialog_summary_base_blocked_words_regex">Hides lyric lines matching this regular expression. Leave empty to disable blocking.</string>
     <string name="dialog_summary_base_timeout_no_lyric">Time in seconds before hiding the lyric view when no lyric is available. Use 0 to never hide.</string>
     <string name="dialog_summary_base_timeout_no_update">Time in seconds before hiding the lyric view when lyric content stops updating. Use 0 to never hide.</string>
@@ -257,6 +267,7 @@
     <string name="item_text_enable_enter_anim">Lyrics entrance animation</string>
     <string name="item_text_enable_enter_anim_summary">Controls the animation for lyrics visibility transitions.</string>
     <string name="section_base">Basic</string>
+    <string name="section_hdr">HDR</string>
     <string name="section_translation">Translation</string>
     <string name="section_visibility">Visibility</string>
     <string name="item_base_width_in_landscape">宽度（横屏模式下）</string>

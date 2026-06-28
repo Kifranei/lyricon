@@ -33,6 +33,15 @@ class RichLyricLineView(
     var renderScale = 1.0f
         private set
 
+    var hdrHighlightRatio: Float = 1.0f
+        set(value) {
+            if (field == value) return
+            field = value
+            main.hdrHighlightRatio = value
+            secondary.hdrHighlightRatio = value
+            invalidate()
+        }
+
     private val assembler = LyricLineAssembler(
         displayTranslation, displayRoma,
         enableRelativeProgress, enableRelativeProgressHighlight

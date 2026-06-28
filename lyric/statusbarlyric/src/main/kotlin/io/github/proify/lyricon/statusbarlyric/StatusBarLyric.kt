@@ -63,6 +63,10 @@ class StatusBarLyric(
         }
     }
 
+    private val hdrProbeView: HdrProbeView = HdrProbeView(context).apply {
+        visibility = GONE
+    }
+
     // --- 对外状态 ---
 
     var currentStatusColor: StatusColor = StatusColor()
@@ -203,6 +207,13 @@ class StatusBarLyric(
                     weight = 1f
                 }
         )
+        addView(
+            hdrProbeView,
+            LayoutParams(36.dp, 14.dp).apply {
+                gravity = Gravity.CENTER_VERTICAL
+                leftMargin = 4.dp
+            }
+        )
 
         updateLogoLocation()
         applyInitialStyle(initialStyle)
@@ -229,6 +240,16 @@ class StatusBarLyric(
         currentStatusColor = color
         logoView.setStatusBarColor(color)
         textView.setStatusBarColor(color)
+    }
+
+    fun setHdrHighlightRatio(ratio: Float) {
+        textView.hdrHighlightRatio = ratio
+        logoView.hdrHighlightRatio = ratio
+    }
+
+    fun setHdrLocalProbe(enabled: Boolean, ratio: Float) {
+        hdrProbeView.updateRatio(ratio)
+        hdrProbeView.isVisible = enabled
     }
 
     private var lastPlaying: Boolean? = null

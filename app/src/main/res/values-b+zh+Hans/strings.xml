@@ -142,6 +142,15 @@
     <string name="item_base_insertion_after">之后</string>
     <string name="item_base_width">宽度</string>
     <string name="item_base_width_color_os_capsule">宽度（流体云模式下）</string>
+    <string name="item_base_hdr_highlight">HDR 高亮</string>
+    <string name="item_base_hdr_highlight_summary">在设备和系统图层支持时，对当前歌词高亮使用 HDR 亮度。</string>
+    <string name="item_base_hdr_brightness_ratio">HDR 亮度倍率</string>
+    <string name="item_base_hdr_local_probe">HDR 局部探针</string>
+    <string name="item_base_hdr_local_probe_summary">在歌词视图内绘制 SDR/HDR 对照块，使用当前 Canvas 路径。</string>
+    <string name="item_base_hdr_surface_probe">独立 Surface HDR 探针</string>
+    <string name="item_base_hdr_surface_probe_summary">在单独 Surface 上绘制 SDR/HDR 对照块，并只对该 Surface 提交 HDR。</string>
+    <string name="item_base_hdr_overlay_probe">独立 Overlay HDR 探针</string>
+    <string name="item_base_hdr_overlay_probe_summary">在独立 overlay 窗口中绘制 SDR/HDR 对照块，并对该窗口和 Surface 提交 HDR。</string>
     <string name="item_base_margins">边距</string>
     <string name="item_base_paddings">内边距</string>
     <string name="option_visibility_default">默认</string>
@@ -216,6 +225,7 @@
     <string name="dialog_summary_base_paddings">设置歌词内容与容器边缘之间的内部留白，单位为像素。</string>
     <string name="dialog_summary_base_width">控制歌词视图在状态栏中可使用的最大宽度。</string>
     <string name="dialog_summary_base_width_color_os_capsule">控制 ColorOS 流体云模式下使用的歌词视图宽度。</string>
+    <string name="dialog_summary_base_hdr_brightness_ratio">控制当前歌词高亮使用的 HDR headroom 倍率。1.0 表示不提升额外亮度。</string>
     <string name="dialog_summary_base_blocked_words_regex">隐藏匹配此正则表达式的歌词行。留空则不屏蔽。</string>
     <string name="dialog_summary_base_timeout_no_lyric">无可用歌词时，经过多少秒后隐藏歌词视图。填 0 表示不隐藏。</string>
     <string name="dialog_summary_base_timeout_no_update">歌词内容停止更新时，经过多少秒后隐藏歌词视图。填 0 表示不隐藏。</string>
@@ -259,6 +269,7 @@
     <string name="module_status_connecting">正在连接…</string>
     <string name="item_text_enable_enter_anim_summary">控制歌词可见性变换时的动画</string>
     <string name="section_base">基本</string>
+    <string name="section_hdr">HDR</string>
     <string name="section_translation">翻译</string>
     <string name="section_visibility">可见性</string>
     <string name="item_text_enable_enter_anim">歌词进场动画</string>
