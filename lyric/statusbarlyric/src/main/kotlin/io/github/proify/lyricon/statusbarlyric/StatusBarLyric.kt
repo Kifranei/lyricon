@@ -33,6 +33,7 @@ import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.NONE
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.SONG
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.TEXT
 import io.github.proify.lyricon.statusbarlyric.logo.SuperLogo
+import kotlin.math.min
 
 @SuppressLint("ViewConstructor")
 class StatusBarLyric(
@@ -389,7 +390,7 @@ class StatusBarLyric(
         val margins = basic.margins
         val paddings = basic.paddings
 
-        ensureLayoutParams().apply {
+        ensureOuterLayoutParams().apply {
             width = calculateContainerWidth(basic)
             leftMargin = margins.left.dp
             topMargin = margins.top.dp
@@ -408,14 +409,26 @@ class StatusBarLyric(
 
     private fun updateWidthInternal(style: LyricStyle) {
         val width = calculateContainerWidth(style.basicStyle)
-        ensureLayoutParams().width = width
+        val lp = ensureOuterLayoutParams()
+        lp.width = width
         requestLayout()
-        Log.d(TAG, "updateWidthInternal: $width")
+        Log.d(
+            TAG,
+            "updateWidthInternal: requested=$width lpWidth=${lp.width} " +
+                    "lpClass=${lp.javaClass.name} measured=${measuredWidth} " +
+                    "parent=${parent?.javaClass?.name} parentWidth=${(parent as? View)?.width}"
+        )
     }
 
     private fun calculateContainerWidth(basicStyle: BasicStyle): Int {
         val isLandScape = isLandScape()
-        return basicStyle.getAutoWidth(isLandScape, isOplusCapsuleShowing).dp
+        val requested = basicStyle.getAutoWidth(isLandScape, isOplusCapsuleShowing).dp
+        val screenWidth = resources.displayMetrics.widthPixels
+        return if (screenWidth > 0 && requested > 0) {
+            min(requested, screenWidth)
+        } else {
+            requested
+        }
     }
 
     private fun updateTextViewWidthMode() {
@@ -426,13 +439,18 @@ class StatusBarLyric(
         textView.layoutParams = lp
     }
 
-    private fun ensureLayoutParams(): LayoutParams {
-        val lp = layoutParams as? LayoutParams
-            ?: LayoutParams(
-                LayoutParams.WRAP_CONTENT,
-                LayoutParams.MATCH_PARENT
+    private fun ensureOuterLayoutParams(): ViewGroup.MarginLayoutParams {
+        val current = layoutParams
+        val lp = when (current) {
+            is ViewGroup.MarginLayoutParams -> current
+            null -> ViewGroup.MarginLayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
             )
-        if (layoutParams == null) layoutParams = lp
+
+            else -> ViewGroup.MarginLayoutParams(current)
+        }
+        if (current !== lp) layoutParams = lp
         return lp
     }
 

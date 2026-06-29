@@ -6,11 +6,13 @@
 
 package io.github.proify.lyricon.lyric.view.line
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Shader
+import android.os.Build
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.view.Choreographer
@@ -92,6 +94,8 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
             val old = syncRenderer.hdrHighlightRatio
             syncRenderer.hdrHighlightRatio = value
             if (syncRenderer.hdrHighlightRatio != old) {
+                clearPrimaryShaderCache()
+                applyPrimaryTextPaint()
                 invalidate()
             }
         }
@@ -212,15 +216,8 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         backgroundColors = background
         highlightColors = highlight
 
-        textPaint.apply {
-            if (primary.isEmpty()) {
-                color = Color.BLACK
-                shader = null
-            } else {
-                color = primary.firstOrNull() ?: Color.BLACK
-                shader = if (primary.size > 1) makeRainbowShader(primary) else null
-            }
-        }
+        clearPrimaryShaderCache()
+        applyPrimaryTextPaint()
         syncRenderer.setColors(background, highlight)
         invalidate()
     }
@@ -328,6 +325,60 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
     private var rainbowShader: Shader? = null
     private var rainbowShaderHash = 0
     private var rainbowShaderWidth = -1f
+    private var hdrRainbowShader: Shader? = null
+    private var hdrRainbowShaderHash = 0
+    private var hdrRainbowShaderWidth = -1f
+    private var hdrRainbowShaderRatio = 1.0f
+
+    private fun applyPrimaryTextPaint() {
+        val primary = primaryColors
+        if (primary.isEmpty()) {
+            textPaint.color = Color.BLACK
+            textPaint.shader = null
+            return
+        }
+
+        val firstColor = primary.firstOrNull() ?: Color.BLACK
+        if (primary.size > 1) {
+            textPaint.color = firstColor
+            textPaint.shader = makePrimaryShader(primary)
+        } else {
+            textPaint.shader = null
+            applyPrimaryTextColor(firstColor)
+        }
+    }
+
+    private fun makePrimaryShader(colors: IntArray): Shader {
+        return if (shouldUseHdrPrimaryColor()) {
+            makeHdrRainbowShader(colors) ?: makeRainbowShader(colors)
+        } else {
+            makeRainbowShader(colors)
+        }
+    }
+
+    @SuppressLint("NewApi")
+    private fun applyPrimaryTextColor(color: Int) {
+        if (!shouldUseHdrPrimaryColor()) {
+            textPaint.color = color
+            return
+        }
+
+        runCatching {
+            textPaint.setColor(HdrColor.packHighlightColor(color, hdrHighlightRatio))
+        }.onFailure {
+            textPaint.color = color
+        }
+    }
+
+    private fun shouldUseHdrPrimaryColor(): Boolean =
+        hdrHighlightRatio > 1.0f && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+
+    private fun clearPrimaryShaderCache() {
+        rainbowShader = null
+        hdrRainbowShader = null
+        rainbowShaderWidth = -1f
+        hdrRainbowShaderWidth = -1f
+    }
 
     private fun makeRainbowShader(colors: IntArray): Shader {
         val hash = colors.contentHashCode()
@@ -341,6 +392,39 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         rainbowShaderWidth = lineWidth
         return rainbowShader!!
     }
+
+    @SuppressLint("NewApi")
+    private fun makeHdrRainbowShader(colors: IntArray): Shader? {
+        val hash = colors.contentHashCode()
+        val ratio = hdrHighlightRatio
+        if (hdrRainbowShader != null &&
+            hdrRainbowShaderHash == hash &&
+            hdrRainbowShaderWidth == lineWidth &&
+            hdrRainbowShaderRatio == ratio
+        ) {
+            return hdrRainbowShader!!
+        }
+
+        val positions = FloatArray(colors.size) { i -> i.toFloat() / (colors.size - 1) }
+        hdrRainbowShader = runCatching {
+            LinearGradient(
+                0f,
+                0f,
+                lineWidth,
+                0f,
+                colors.mapToLongArray { HdrColor.packHighlightColor(it, ratio) },
+                positions,
+                Shader.TileMode.CLAMP
+            )
+        }.getOrNull()
+        hdrRainbowShaderHash = hash
+        hdrRainbowShaderWidth = lineWidth
+        hdrRainbowShaderRatio = ratio
+        return hdrRainbowShader
+    }
+
+    private inline fun IntArray.mapToLongArray(transform: (Int) -> Long): LongArray =
+        LongArray(size) { index -> transform(this[index]) }
 
     private inner class Animator : Choreographer.FrameCallback {
         private var running = false

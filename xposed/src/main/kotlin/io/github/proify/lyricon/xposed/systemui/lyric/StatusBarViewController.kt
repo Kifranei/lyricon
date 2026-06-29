@@ -40,6 +40,7 @@ import io.github.proify.lyricon.xposed.systemui.util.OnColorChangeListener
 import io.github.proify.lyricon.xposed.systemui.util.ViewVisibilityController
 import java.io.File
 import java.util.Locale
+import kotlin.math.min
 
 /**
  * 状态栏歌词视图控制器：负责歌词视图的注入、位置锚定及显隐逻辑
@@ -51,6 +52,7 @@ class StatusBarViewController(
 ) : ScreenStateMonitor.ScreenStateListener {
     companion object {
         const val TAG = "StatusBarViewController"
+        private const val MAX_CLIP_RELAX_DEPTH = 12
     }
 
     val context: Context = statusBarView.context.applicationContext
@@ -191,6 +193,8 @@ class StatusBarViewController(
             updateLocation(basicStyle)
         }
         lyricView.updateStyle(lyricStyle)
+        logLyricWidthState("style-applied", basicStyle)
+        lyricView.post { logLyricWidthState("post-style", basicStyle) }
 
         systemStatusBarColor?.let { updateStatusColor(it) }
     }
@@ -278,6 +282,7 @@ class StatusBarViewController(
         val anchorParent = anchorView.parent as? ViewGroup ?: return run {
             YLog.error(TAG, "Lyric anchor parent not found")
         }
+        relaxAncestorClipping(anchorParent)
 
         // 标记内部移除，避免触发冗余的 detach 逻辑
         internalRemoveLyricViewFlag = true
@@ -286,14 +291,7 @@ class StatusBarViewController(
 
         val anchorIndex = anchorParent.indexOfChild(anchorView)
 
-        val lp = lyricView.layoutParams ?: run {
-            val width = baseStyle.getAutoWidth(
-                context.isLandScape(),
-                isOplusCapsuleShowing = OplusCapsuleHooker.isShowing
-            ).dp
-
-            ViewGroup.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT)
-        }
+        val lp = createLyricLayoutParams(baseStyle)
 
         // 执行插入：在前或在后
         val targetIndex =
@@ -309,6 +307,69 @@ class StatusBarViewController(
         ensureOverlayProbeLocationIfVisible()
 
         YLog.info(TAG, "Lyric injected: anchor $anchor, index $targetIndex")
+        logLyricWidthState("injected", baseStyle, anchorParent)
+    }
+
+    private fun createLyricLayoutParams(baseStyle: BasicStyle): ViewGroup.LayoutParams {
+        val requestedWidth = calculateRequestedLyricWidth(baseStyle)
+        return when (val current = lyricView.layoutParams) {
+            is ViewGroup.MarginLayoutParams -> current.apply {
+                width = requestedWidth
+                if (height == 0) height = ViewGroup.LayoutParams.WRAP_CONTENT
+            }
+
+            is ViewGroup.LayoutParams -> current.apply {
+                width = requestedWidth
+                if (height == 0) height = ViewGroup.LayoutParams.WRAP_CONTENT
+            }
+
+            else -> ViewGroup.MarginLayoutParams(
+                requestedWidth,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+    }
+
+    private fun calculateRequestedLyricWidth(baseStyle: BasicStyle): Int {
+        val requested = baseStyle.getAutoWidth(
+            context.isLandScape(),
+            isOplusCapsuleShowing = OplusCapsuleHooker.isShowing
+        ).dp
+        val screenWidth = statusBarView.resources.displayMetrics.widthPixels
+        return if (screenWidth > 0 && requested > 0) min(requested, screenWidth) else requested
+    }
+
+    private fun relaxAncestorClipping(start: ViewGroup) {
+        var current: ViewGroup? = start
+        var changed = false
+        var depth = 0
+        while (current != null && depth < MAX_CLIP_RELAX_DEPTH) {
+            if (current.clipChildren || current.clipToPadding) changed = true
+            current.clipChildren = false
+            current.clipToPadding = false
+            if (current === statusBarView) break
+            current = current.parent as? ViewGroup
+            depth++
+        }
+        if (changed) {
+            YLog.info(TAG, "Lyric ancestor clipping relaxed from ${start.javaClass.name}")
+        }
+    }
+
+    private fun logLyricWidthState(
+        stage: String,
+        baseStyle: BasicStyle,
+        parent: ViewGroup? = lyricView.parent as? ViewGroup
+    ) {
+        val lp = lyricView.layoutParams
+        YLog.info(
+            TAG,
+            "Lyric width $stage: requested=${calculateRequestedLyricWidth(baseStyle)} " +
+                    "lpWidth=${lp?.width} lpHeight=${lp?.height} " +
+                    "measured=${lyricView.measuredWidth} width=${lyricView.width} " +
+                    "parent=${parent?.javaClass?.name} parentWidth=${parent?.width} " +
+                    "statusWidth=${statusBarView.width} lpClass=${lp?.javaClass?.name}"
+        )
     }
 
     private fun ensureSurfaceProbeLocationIfVisible() {
