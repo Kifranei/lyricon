@@ -76,6 +76,8 @@ object HdrStatusBarController {
 
     @Volatile
     private var lastStatusBarSurface: Any? = null
+    private var lastHdrAppliedSurface: Any? = null
+    private var lastHdrAppliedRatio: Float = DEFAULT_HDR_RATIO
     private var lastSurfaceValid: Boolean? = null
     private var lastSurfaceTransactionSucceeded: Boolean? = null
     private var lastHdrTransactionFrame: Long = -1L
@@ -96,6 +98,8 @@ object HdrStatusBarController {
     private var rendererSetWideGamutResolved = false
     private var rendererSetWideGamutFailureLogged = false
     private var lastWideGamutRenderer: Any? = null
+    private var lastHdrForcedRenderer: Any? = null
+    private var lastHdrForcedRatio: Float = DEFAULT_HDR_RATIO
     private var lastWideGamutHookFrame: Long = -1L
     private val rendererIntrospectionLoggedClasses = mutableSetOf<String>()
     private val rendererForcePlans = mutableMapOf<String, RendererForcePlan>()
@@ -155,11 +159,11 @@ object HdrStatusBarController {
                 YLog.info(TAG, "StatusBar SurfaceControl valid=$valid surface=$surface source=pulse")
                 lastSurfaceValid = valid
             }
+            if (!valid && surface === lastHdrAppliedSurface) {
+                clearStatusBarSurfaceHdrCache()
+            }
             if (valid) {
-                val applied = applyHdrToSurface(surface, currentRatio, shouldLog)
-                if (applied) {
-                    lastHdrTransactionFrame = frameCount
-                }
+                ensureStatusBarSurfaceHdr(surface, currentRatio, "pulse", shouldLog)
             }
 
             Choreographer.getInstance().postFrameCallback(this)
@@ -445,7 +449,13 @@ object HdrStatusBarController {
                 return
             }
 
-            val shouldLogWindow = frameCount % 300 == 1L || lastWindowHdrFrame < 0L
+            val windowNeedsHdrApply = lp.colorMode != COLOR_MODE_HDR || lastWindowHdrFrame < 0L
+            if (windowNeedsHdrApply) {
+                clearStatusBarSurfaceHdrCache()
+                clearRendererHdrCache()
+            }
+
+            val shouldLogWindow = frameCount % 300 == 1L || windowNeedsHdrApply
             applyHdr(lp, shouldLogWindow)
             forceRendererWideGamut(vri, shouldLogWindow)
             lastWindowHdrFrame = frameCount
@@ -454,18 +464,21 @@ object HdrStatusBarController {
             lastStatusBarSurface = surface
             if (!applyRootSurfaceTransaction) return
 
-            val shouldLog = frameCount % 300 == 1L || lastHdrTransactionFrame < 0L
+            val shouldLog = frameCount % 300 == 1L ||
+                    lastHdrTransactionFrame < 0L ||
+                    surface !== lastHdrAppliedSurface ||
+                    windowNeedsHdrApply
             val valid = isSurfaceValid(surface)
             if (valid != lastSurfaceValid || shouldLog) {
                 YLog.info(TAG, "StatusBar SurfaceControl valid=$valid surface=$surface")
                 lastSurfaceValid = valid
             }
-            if (!valid) return
-
-            val applied = applyHdrToSurface(surface, currentRatio, shouldLog)
-            if (applied) {
-                lastHdrTransactionFrame = frameCount
+            if (!valid) {
+                if (surface === lastHdrAppliedSurface) clearStatusBarSurfaceHdrCache()
+                return
             }
+
+            ensureStatusBarSurfaceHdr(surface, currentRatio, "traversal", shouldLog)
         } catch (e: Exception) {
             YLog.error(TAG, "onPerformTraversals failed", e)
         }
@@ -479,7 +492,8 @@ object HdrStatusBarController {
         shouldRestoreWindowSdr = false
         currentRatio = clampedRatio
         lastWindowHdrFrame = -1L
-        startSurfacePulse()
+        clearStatusBarSurfaceHdrCache()
+        stopSurfacePulse()
         YLog.info(TAG, "HDR enabled, ratio=$clampedRatio")
     }
 
@@ -493,6 +507,7 @@ object HdrStatusBarController {
         shouldRestoreWindowSdr = false
         currentRatio = clampedRatio
         lastWindowHdrFrame = -1L
+        clearStatusBarSurfaceHdrCache()
         stopSurfacePulse()
 
         val surface = lastStatusBarSurface
@@ -518,6 +533,8 @@ object HdrStatusBarController {
         stopSurfacePulse()
         val surface = lastStatusBarSurface
         val restored = if (shouldRestoreRootSurface && surface != null) restoreSurfaceSdr(surface) else false
+        clearStatusBarSurfaceHdrCache()
+        clearRendererHdrCache()
         YLog.info(TAG, "HDR disabled, surfaceRestored=$restored surface=$surface")
     }
 
@@ -716,6 +733,12 @@ object HdrStatusBarController {
     private fun applyHdr(lp: WindowManager.LayoutParams, shouldLog: Boolean) {
         try {
             val oldColorMode = lp.colorMode
+            if (oldColorMode == COLOR_MODE_HDR && lastWindowHdrFrame >= 0L) {
+                if (shouldLog) {
+                    YLog.info(TAG, "applyHdr kept: colorMode=$oldColorMode, headroom=$currentRatio")
+                }
+                return
+            }
             lp.colorMode = COLOR_MODE_HDR
             setHeadroom(lp, currentRatio)
             if (shouldLog || oldColorMode != lp.colorMode) {
@@ -741,6 +764,17 @@ object HdrStatusBarController {
     private fun forceRendererWideGamut(vri: Any, shouldLog: Boolean) {
         val renderer = getThreadedRenderer(vri) ?: return
         val rendererClass = renderer.javaClass
+        val ratio = currentRatio.coerceIn(MIN_HDR_RATIO, MAX_HDR_RATIO)
+        if (renderer === lastHdrForcedRenderer && lastHdrForcedRatio == ratio) {
+            if (shouldLog) {
+                YLog.info(
+                    TAG,
+                    "Renderer HDR hints kept: class=${rendererClass.name} ratio=$ratio"
+                )
+            }
+            return
+        }
+
         logRendererIntrospection(rendererClass)
 
         val plan = resolveRendererForcePlan(rendererClass)
@@ -749,11 +783,13 @@ object HdrStatusBarController {
             rendererClass = rendererClass,
             plan = plan,
             colorMode = COLOR_MODE_HDR,
-            ratio = currentRatio.coerceIn(MIN_HDR_RATIO, MAX_HDR_RATIO),
+            ratio = ratio,
             booleanValue = true,
             shouldLog = shouldLog,
             logLabel = "Renderer HDR hints forced"
         )
+        lastHdrForcedRenderer = renderer
+        lastHdrForcedRatio = ratio
     }
 
     private fun restoreRendererSdr(vri: Any, shouldLog: Boolean) {
@@ -770,6 +806,12 @@ object HdrStatusBarController {
             shouldLog = shouldLog,
             logLabel = "Renderer SDR hints restored"
         )
+        clearRendererHdrCache()
+    }
+
+    private fun clearRendererHdrCache() {
+        lastHdrForcedRenderer = null
+        lastHdrForcedRatio = DEFAULT_HDR_RATIO
     }
 
     private fun applyRendererForcePlan(
@@ -1407,7 +1449,49 @@ object HdrStatusBarController {
         }
     }
 
-    private fun applyHdrToSurface(surface: Any, ratio: Float, shouldLog: Boolean): Boolean {
+    private fun ensureStatusBarSurfaceHdr(
+        surface: Any,
+        ratio: Float,
+        source: String,
+        shouldLog: Boolean
+    ): Boolean {
+        val alreadyApplied = surface === lastHdrAppliedSurface &&
+                lastHdrAppliedRatio == ratio &&
+                lastSurfaceTransactionSucceeded == true
+        if (alreadyApplied) {
+            if (shouldLog) {
+                YLog.info(
+                    TAG,
+                    "Surface HDR transaction kept: source=$source ratio=$ratio surface=$surface"
+                )
+            }
+            return true
+        }
+
+        val applied = applyHdrToSurface(surface, ratio, shouldLog, source)
+        if (applied) {
+            lastHdrAppliedSurface = surface
+            lastHdrAppliedRatio = ratio
+            lastHdrTransactionFrame = frameCount
+        } else if (surface === lastHdrAppliedSurface) {
+            clearStatusBarSurfaceHdrCache()
+        }
+        return applied
+    }
+
+    private fun clearStatusBarSurfaceHdrCache() {
+        lastHdrAppliedSurface = null
+        lastHdrAppliedRatio = DEFAULT_HDR_RATIO
+        lastSurfaceTransactionSucceeded = null
+        lastHdrTransactionFrame = -1L
+    }
+
+    private fun applyHdrToSurface(
+        surface: Any,
+        ratio: Float,
+        shouldLog: Boolean,
+        source: String
+    ): Boolean {
         if (!resolveSurfaceTransactionMethods()) {
             lastSurfaceTransactionSucceeded = false
             return false
@@ -1421,11 +1505,15 @@ object HdrStatusBarController {
         )
         if (applied) {
             if (shouldLog || lastSurfaceTransactionSucceeded != true || lastHdrTransactionFrame < 0L) {
-                YLog.info(TAG, "Surface HDR transaction applied: ratio=$ratio dataSpace=$scrgbDataSpace surface=$surface")
+                YLog.info(
+                    TAG,
+                    "Surface HDR transaction applied: source=$source ratio=$ratio " +
+                            "dataSpace=$scrgbDataSpace surface=$surface"
+                )
             }
         } else {
             if (shouldLog || lastSurfaceTransactionSucceeded != false) {
-                YLog.warning(TAG, "Surface HDR transaction failed: ratio=$ratio surface=$surface")
+                YLog.warning(TAG, "Surface HDR transaction failed: source=$source ratio=$ratio surface=$surface")
             }
         }
         lastSurfaceTransactionSucceeded = applied
@@ -1501,6 +1589,7 @@ object HdrStatusBarController {
             YLog.info(TAG, "Surface SDR restore result=$restored surface=$surface")
             lastRestoreSurface = surface
         }
+        if (restored) clearStatusBarSurfaceHdrCache()
         return restored
     }
 
@@ -1669,6 +1758,8 @@ object HdrStatusBarController {
         scrgbLinearDataSpace = 0
         unknownDataSpace = 0
         lastStatusBarSurface = null
+        lastHdrAppliedSurface = null
+        lastHdrAppliedRatio = DEFAULT_HDR_RATIO
         lastSurfaceValid = null
         lastSurfaceTransactionSucceeded = null
         lastHdrTransactionFrame = -1L
@@ -1684,6 +1775,8 @@ object HdrStatusBarController {
         lastOverlayRootTransactionSucceeded = null
         lastOverlayRootRestoreSurface = null
         lastWideGamutRenderer = null
+        lastHdrForcedRenderer = null
+        lastHdrForcedRatio = DEFAULT_HDR_RATIO
         lastWideGamutHookFrame = -1L
         rendererIntrospectionLoggedClasses.clear()
         rendererForcePlans.clear()
