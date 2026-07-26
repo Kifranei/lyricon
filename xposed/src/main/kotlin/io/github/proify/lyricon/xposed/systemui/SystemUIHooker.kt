@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2026 Proify, Tomakino
  * Licensed under the Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -9,20 +9,19 @@ package io.github.proify.lyricon.xposed.systemui
 import android.os.Bundle
 import android.view.ViewGroup
 import androidx.core.view.doOnAttach
-import de.robv.android.xposed.XSharedPreferences
 import io.github.proify.android.extensions.deflate
 import io.github.proify.android.extensions.json
 import io.github.proify.android.extensions.safeEncode
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.central.BridgeCentral
-import io.github.proify.lyricon.common.PackageNames
 import io.github.proify.lyricon.common.util.ScreenStateMonitor
 import io.github.proify.lyricon.common.util.ViewHierarchyParser
 import io.github.proify.lyricon.subscriber.ConnectionListener
 import io.github.proify.lyricon.subscriber.LyriconFactory
 import io.github.proify.lyricon.subscriber.LyriconSubscriber
-import io.github.proify.lyricon.xposed.PackageHooker
+import io.github.proify.lyricon.xposed.ModuleEntry
+import io.github.proify.lyricon.xposed.hook.PackageHooker
 import io.github.proify.lyricon.xposed.logger.YLog
 import io.github.proify.lyricon.xposed.systemui.aitrans.AITranslator
 import io.github.proify.lyricon.xposed.systemui.hook.ClockColorMonitor
@@ -32,7 +31,6 @@ import io.github.proify.lyricon.xposed.systemui.hook.StatusBarViewResolver
 import io.github.proify.lyricon.xposed.systemui.hook.ViewVisibilityTracker
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricDataHub
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
-import io.github.proify.lyricon.xposed.systemui.lyric.LyricViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager
 import io.github.proify.lyricon.xposed.systemui.util.CrashDetector
@@ -76,7 +74,7 @@ object SystemUIHooker : PackageHooker() {
                 return@doOnAppCreated
             }
             isAppCreated = true
-            YLog.info(TAG, "App created $it")
+            YLog.info(TAG, "App created ")
             onPreLoad()
         }
     }
@@ -120,7 +118,7 @@ object SystemUIHooker : PackageHooker() {
         }
 
         StatusBarViewResolver.subscribe {
-            YLog.info(TAG, "New status bar view resolved $it")
+            YLog.info(TAG, "New status bar view resolved ")
             addStatusBarView(it)
         }
 
@@ -135,14 +133,14 @@ object SystemUIHooker : PackageHooker() {
         val context = appContext ?: return
 
         ScreenStateMonitor.initialize(context)
-        OplusCapsuleHooker.initialize(context.classLoader)
+        OplusCapsuleHooker.initialize(module, classLoader)
         NotificationCoverHelper.initialize()
-        ViewVisibilityTracker.initialize(context.classLoader)
+        ViewVisibilityTracker.initialize(module, classLoader)
         initDataChannel()
 
         initLyriconService()
 
-        StatusBarDisableHooker.inject(context.classLoader)
+        StatusBarDisableHooker.inject(module, classLoader)
         StatusBarDisableHooker.addListener(object :
             StatusBarDisableHooker.OnStatusBarDisableListener {
             private var lastDisableStateChanged: Boolean? = null
@@ -154,15 +152,17 @@ object SystemUIHooker : PackageHooker() {
             }
         })
 
-        ClockColorMonitor.hook()
+        ClockColorMonitor.hook(module, classLoader)
         AITranslator.init(context)
         SystemUIMediaUtils.init(context)
-        StatusBarViewResolver.init(context)
+        StatusBarViewResolver.init(module, context)
     }
 
     private fun initLyriconService() {
         val context = appContext ?: return
-        val defaultSp = XSharedPreferences(PackageNames.APPLICATION)
+
+        val service = ModuleEntry.instance
+        val defaultSp = service.getRemotePreferences("default")
         val coreServiceDisable = defaultSp.getBoolean("core_service_disable", false)
 
         if (!coreServiceDisable) {
@@ -204,15 +204,9 @@ object SystemUIHooker : PackageHooker() {
     private fun initDataChannel() {
         val context = appContext ?: return
         LyriconBridge.routing(context) {
-            onCommand(AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE) {
-                YLog.info(TAG, "App requested lyric style update")
-
-                LyricViewController.applyConfigurationUpdate(LyricPrefs.getLyricStyle())
-            }
-
             onCommand(AppBridgeConstants.REQUEST_HIGHLIGHT_VIEW) {
                 val id = it.getString("id")
-                YLog.info(TAG, "App requested view highlight id: $id")
+                YLog.info(TAG, "App requested view highlight id: ")
 
                 StatusBarViewManager.forEachOnMainThread { it.highlightView(id) }
             }
@@ -227,7 +221,7 @@ object SystemUIHooker : PackageHooker() {
                         .toByteArray(Charsets.UTF_8)
                         .deflate()
 
-                YLog.info(TAG, "View tree reply data: ${data.size}")
+                YLog.info(TAG, "View tree reply data: ")
 
                 reply(Bundle().apply {
                     putByteArray("result", data)

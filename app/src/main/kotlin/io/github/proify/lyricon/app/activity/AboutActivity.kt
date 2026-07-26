@@ -7,8 +7,12 @@
 package io.github.proify.lyricon.app.activity
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,390 +20,207 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.layout.positionInWindow
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import io.github.proify.lyricon.app.AppConstants
 import io.github.proify.lyricon.app.BuildConfig
+import io.github.proify.lyricon.app.LyriconApp
 import io.github.proify.lyricon.app.R
+import io.github.proify.lyricon.app.compose.AppToolBarListContainer
+import io.github.proify.lyricon.app.compose.IconActions
+import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
 import io.github.proify.lyricon.app.compose.effect.BgEffectBackground
-import io.github.proify.lyricon.app.compose.theme.AppTheme
-import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import io.github.proify.lyricon.app.util.AppLangUtils
+import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.launchBrowser
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import top.yukonga.miuix.kmp.basic.BasicComponent
-import top.yukonga.miuix.kmp.basic.Card
-import top.yukonga.miuix.kmp.basic.CardDefaults
-import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
-import top.yukonga.miuix.kmp.basic.Scaffold
-import top.yukonga.miuix.kmp.basic.ScrollBehavior
-import top.yukonga.miuix.kmp.basic.SmallTitle
-import top.yukonga.miuix.kmp.basic.SmallTopAppBar
-import top.yukonga.miuix.kmp.basic.Text
-import top.yukonga.miuix.kmp.blur.BlendColorEntry
-import top.yukonga.miuix.kmp.blur.BlurBlendMode
-import top.yukonga.miuix.kmp.blur.BlurColors
-import top.yukonga.miuix.kmp.blur.BlurDefaults
-import top.yukonga.miuix.kmp.blur.LayerBackdrop
-import top.yukonga.miuix.kmp.blur.isRenderEffectSupported
-import top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported
-import top.yukonga.miuix.kmp.blur.layerBackdrop
-import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
-import top.yukonga.miuix.kmp.blur.textureBlur
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Back
-import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.shapes.SmoothRoundedCornerShape
-import top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
-import top.yukonga.miuix.kmp.utils.overScrollVertical
-import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
 class AboutActivity : BaseActivity() {
+    companion object {
+        val ENABLE_NEW_HEADVIEW get() = false
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent { AppTheme { AboutContent() } }
+        setContent { AboutContent() }
     }
 
     @Composable
     private fun AboutContent() {
-        val versionSummary = getVersionSummary()
-        val buildTimeFormat = getBuildTimeFormat()
-        val githubHome = getString(R.string.github_home)
-        val scrollBehavior = MiuixScrollBehavior()
-        val lazyListState = rememberLazyListState()
-        val isDark = CurrentThemeConfigs.isDark
-        var logoHeightPx by remember { mutableIntStateOf(0) }
-        val scrollProgress by remember {
-            derivedStateOf {
-                if (logoHeightPx <= 0) 0f else {
-                    val index = lazyListState.firstVisibleItemIndex
-                    val offset = lazyListState.firstVisibleItemScrollOffset
-                    if (index > 0) 1f else (offset.toFloat() / logoHeightPx).coerceIn(0f, 1f)
-                }
-            }
-        }
+        val context = LocalContext.current
+        val isEnableMonet = AppThemeUtils.isEnableMonet(context)
 
-        Scaffold(
-            topBar = {
-                SmallTopAppBar(
-                    title = getString(R.string.activity_about),
-                    scrollBehavior = scrollBehavior,
-                    color = colorScheme.surface.copy(alpha = if (scrollProgress == 1f) 1f else 0f),
-                    titleColor = if (isDark) Color.White.copy(alpha = scrollProgress) else colorScheme.onSurface.copy(alpha = scrollProgress),
-                    defaultWindowInsetsPadding = false,
-                    navigationIcon = {
-                        val layoutDirection = LocalLayoutDirection.current
-                        IconButton(onClick = { finish() }) {
-                            Icon(
-                                imageVector = MiuixIcons.Back,
-                                contentDescription = stringResource(R.string.action_back),
-                                tint = if (isDark) Color.White else colorScheme.onSurface,
-                                modifier = Modifier.graphicsLayer {
-                                    scaleX = if (layoutDirection == LayoutDirection.Rtl) -1f else 1f
-                                },
+        val buildTimeFormat =
+            Instant
+                .ofEpochMilli(BuildConfig.BUILD_TIME)
+                .atZone(ZoneId.systemDefault())
+                .format(
+                    DateTimeFormatter
+                        .ofLocalizedDateTime(FormatStyle.MEDIUM)
+                        .withLocale(AppLangUtils.getLocale(context))
+                )
+
+        AppToolBarListContainer(
+            title = stringResource(id = R.string.activity_about),
+            canBack = true,
+        ) {
+            item("head") {
+                HeadView(isEnableMonet)
+            }
+
+            item("info") {
+                Card(
+                    modifier =
+                        Modifier
+                            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 0.dp)
+                            .fillMaxWidth(),
+                    insideMargin = PaddingValues(0.dp)
+                ) {
+                    AppBasicComponent(
+                        startAction = { IconActions(painterResource(R.drawable.ic_info)) },
+                        title = stringResource(id = R.string.item_app_version),
+                        summary =
+                            stringResource(
+                                id = R.string.item_app_version_summary,
+                                LyriconApp.packageInfo.versionName ?: BuildConfig.VERSION_NAME,
+                                BuildConfig.VERSION_CODE.toString(),
+                                BuildConfig.BUILD_TYPE
+                            )
+                    )
+
+                    AppBasicComponent(
+                        startAction = { IconActions(painterResource(R.drawable.ic_build)) },
+                        title = stringResource(id = R.string.item_build_time),
+                        summary = buildTimeFormat
+                    )
+                }
+
+                Card(
+                    modifier =
+                        Modifier
+                            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 0.dp)
+                            .fillMaxWidth(),
+                    insideMargin = PaddingValues(0.dp),
+                ) {
+                    val githubHome = stringResource(id = R.string.github_home)
+
+                    ArrowPreference(
+                        startAction = { IconActions(painterResource(R.drawable.ic_github)) },
+                        summary = stringResource(id = R.string.item_view_on_github_summary),
+                        title = stringResource(id = R.string.item_view_on_github),
+                        onClick = {
+                            launchBrowser(
+                                githubHome,
                             )
                         }
-                    },
-                )
-            },
-        ) { innerPadding ->
-            AboutBody(
-                padding = PaddingValues(top = innerPadding.calculateTopPadding()),
-                scrollProgress = scrollProgress,
-                lazyListState = lazyListState,
-                onLogoHeightChanged = { logoHeightPx = it },
-                versionSummary = versionSummary,
-                buildTimeFormat = buildTimeFormat,
-                githubHome = githubHome,
-                isDark = isDark,
-            )
+                    )
+
+                    ArrowPreference(
+                        startAction = { IconActions(painterResource(R.drawable.ic_license)) },
+                        title = stringResource(id = R.string.item_open_source_licenses),
+                        summary = stringResource(id = R.string.item_open_source_licenses_summary),
+                        onClick = {
+                            startActivity(Intent(context, LicensesActivity::class.java))
+                        }
+                    )
+                }
+            }
         }
     }
 
     @Composable
-    private fun AboutBody(
-        padding: PaddingValues,
-        scrollProgress: Float,
-        lazyListState: LazyListState,
-        onLogoHeightChanged: (Int) -> Unit,
-        versionSummary: String,
-        buildTimeFormat: String,
-        githubHome: String,
-        isDark: Boolean,
-    ) {
+    private fun HeadView(isEnableMonet: Boolean) {
         val backdrop = rememberLayerBackdrop()
-        val blurEnable = remember { isRenderEffectSupported() }
-        val shaderSupported = remember { isRuntimeShaderSupported() }
-        val density = LocalDensity.current
+        val isRuntimeShaderSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+        val context = LocalContext.current
 
-        var logoHeightDp by remember { androidx.compose.runtime.mutableStateOf(260.dp) }
-        var logoAreaY by remember { mutableFloatStateOf(0f) }
-        var titleY by remember { mutableFloatStateOf(0f) }
-        var versionY by remember { mutableFloatStateOf(0f) }
-        var titleProgress by remember { mutableFloatStateOf(0f) }
-        var versionProgress by remember { mutableFloatStateOf(0f) }
-        var initialLogoAreaY by remember { mutableFloatStateOf(0f) }
-
-        val titleBlend = remember(isDark) {
-            if (isDark) {
-                emptyList()
-            } else {
-                listOf(
-                    BlendColorEntry(Color(0xCC4A4A4A.toInt()), BlurBlendMode.ColorBurn),
-                    BlendColorEntry(Color(0xFF4F4F4F.toInt()), BlurBlendMode.LinearLight),
-                    BlendColorEntry(Color(0xFF1AF200.toInt()), BlurBlendMode.Lab),
-                )
-            }
-        }
-
-        val cardBlendColors = remember(isDark) {
-            if (isDark) {
-                listOf(
-                    BlendColorEntry(Color(0x4D1D2A7A), BlurBlendMode.Screen),
-                    BlendColorEntry(Color(0x332B1C60), BlurBlendMode.Lighten),
-                    BlendColorEntry(Color(0x1A3E2C78), BlurBlendMode.Luminosity),
-                )
-            } else {
-                listOf(
-                    BlendColorEntry(Color(0x34F7D6FF), BlurBlendMode.Overlay),
-                    BlendColorEntry(Color(0xB3FFFFFF.toInt()), BlurBlendMode.HardLight),
-                )
-            }
-        }
-
-        LaunchedEffect(lazyListState) {
-            snapshotFlow { lazyListState.firstVisibleItemScrollOffset }
-                .collect { offset ->
-                    if (lazyListState.firstVisibleItemIndex > 0) {
-                        if (titleProgress != 1f) titleProgress = 1f
-                        if (versionProgress != 1f) versionProgress = 1f
-                        return@collect
-                    }
-                    if (initialLogoAreaY == 0f && logoAreaY > 0f) {
-                        initialLogoAreaY = logoAreaY
-                    }
-                    val refLogoAreaY = if (initialLogoAreaY > 0f) initialLogoAreaY else logoAreaY
-                    val stage1TotalLength = refLogoAreaY - versionY
-                    val stage2TotalLength = versionY - titleY
-                    val versionDelay = stage1TotalLength * 0.5f
-                    versionProgress = ((offset.toFloat() - versionDelay) /
-                        (stage1TotalLength - versionDelay).coerceAtLeast(1f)).coerceIn(0f, 1f)
-                    titleProgress = ((offset.toFloat() - stage1TotalLength) /
-                        stage2TotalLength.coerceAtLeast(1f)).coerceIn(0f, 1f)
-                }
-        }
-
-        BgEffectBackground(
-            dynamicBackground = shaderSupported,
-            modifier = Modifier.fillMaxSize(),
-            bgModifier = Modifier.layerBackdrop(backdrop),
-            effectBackground = shaderSupported,
-            alpha = { 1f - scrollProgress },
+        Card(
+            modifier =
+                Modifier
+                    .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 0.dp)
+                    .fillMaxWidth(),
+            pressFeedbackType = PressFeedbackType.Sink,
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = padding.calculateTopPadding() + 122.dp)
-                    .onSizeChanged { size -> with(density) { logoHeightDp = size.height.toDp() } },
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(90.dp)
-                        .clip(CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_music_note),
-                        contentDescription = null,
-                        tint = if (isDark) Color.White else colorScheme.primary,
-                        modifier = Modifier.size(48.dp),
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    modifier = Modifier
-                        .padding(bottom = 8.dp)
-                        .onGloballyPositioned { coordinates ->
-                            if (titleY != 0f) return@onGloballyPositioned
-                            val y = coordinates.positionInWindow().y
-                            val size = coordinates.size
-                            titleY = y + size.height
-                        }
-                        .graphicsLayer {
-                            alpha = 1 - titleProgress
-                            scaleX = 1 - (titleProgress * 0.05f)
-                            scaleY = 1 - (titleProgress * 0.05f)
-                        }
-                        .then(
-                            if (isDark) Modifier else Modifier.textureBlur(
-                                backdrop = backdrop,
-                                shape = SmoothRoundedCornerShape(16.dp),
-                                blurRadius = 150f,
-                                noiseCoefficient = BlurDefaults.NoiseCoefficient,
-                                colors = BlurColors(blendColors = titleBlend),
-                                contentBlendMode = BlendMode.DstIn,
-                                enabled = blurEnable,
-                            )
-                        ),
-                    text = stringResource(R.string.app_name),
-                    color = if (isDark) Color.White else colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 34.sp,
+            val drawable =
+                AppCompatResources.getDrawable(
+                    context,
+                    R.mipmap.ic_launcher
                 )
-                Text(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .graphicsLayer {
-                            alpha = 1 - versionProgress
-                            scaleX = 1 - (versionProgress * 0.05f)
-                            scaleY = 1 - (versionProgress * 0.05f)
-                        }
-                        .onGloballyPositioned { coordinates ->
-                            if (versionY != 0f) return@onGloballyPositioned
-                            val y = coordinates.positionInWindow().y
-                            val size = coordinates.size
-                            versionY = y + size.height
-                        },
-                    color = if (isDark) Color.White.copy(alpha = 0.72f) else colorScheme.onSurfaceVariantSummary,
-                    text = versionSummary,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                )
-            }
 
-            LazyColumn(
-                state = lazyListState,
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .scrollEndHaptic()
-                    .overScrollVertical(),
-                contentPadding = PaddingValues(top = padding.calculateTopPadding()),
-                overscrollEffect = null,
+                    .height(135.dp)
             ) {
-                item(key = "logoSpacer") {
+                if (isRuntimeShaderSupported && !isEnableMonet && ENABLE_NEW_HEADVIEW) {
+                    BgEffectBackground(
+                        dynamicBackground = isRuntimeShaderSupported,
+                        modifier = Modifier.matchParentSize(),
+                        bgModifier = Modifier.layerBackdrop(backdrop),
+                        effectBackground = isRuntimeShaderSupported
+                    ) {}
+                } else {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .height(logoHeightDp + 228.dp)
-                            .onSizeChanged { size -> onLogoHeightChanged(size.height) }
-                            .onGloballyPositioned { coordinates ->
-                                val y = coordinates.positionInWindow().y
-                                val size = coordinates.size
-                                logoAreaY = y + size.height
-                            },
+                            .matchParentSize()
+                            .background(
+                                (if (isEnableMonet) MiuixTheme.colorScheme.primaryVariant
+                                else AppConstants.APP_COLOR).copy(
+                                    alpha = 0.4f
+                                )
+                            )
                     )
                 }
 
-                item(key = "about_info") {
-                    SmallTitle(text = stringResource(R.string.section_about_info))
-                    FrostedCard(backdrop = backdrop, blurEnable = blurEnable, cardBlendColors = cardBlendColors) {
-                        BasicComponent(title = stringResource(R.string.item_app_version), summary = versionSummary)
-                        BasicComponent(title = stringResource(R.string.item_build_time), summary = buildTimeFormat)
-                    }
-                }
-
-                item(key = "about_project") {
-                    SmallTitle(text = stringResource(R.string.section_about_project))
-                    FrostedCard(backdrop = backdrop, blurEnable = blurEnable, cardBlendColors = cardBlendColors) {
-                        BasicComponent(
-                            title = stringResource(R.string.app_name),
-                            summary = githubHome.removePrefix("https://"),
-                            onClick = { launchBrowser(githubHome) },
-                        )
-                        BasicComponent(
-                            title = stringResource(R.string.item_open_source_licenses),
-                            summary = stringResource(R.string.item_open_source_licenses_summary),
-                            onClick = { startActivity(Intent(this@AboutActivity, LicensesActivity::class.java)) },
-                        )
-                    }
-                }
-
-                item {
-                    Spacer(Modifier.navigationBarsPadding())
+                Column(
+                    modifier =
+                        Modifier
+                            .matchParentSize()
+                            .padding(horizontal = 16.dp, vertical = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Icon(
+                        modifier = Modifier.size(54.dp),
+                        painter = rememberDrawablePainter(drawable),
+                        contentDescription = null,
+                        tint = null
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(id = R.string.app_name),
+                        style = MiuixTheme.textStyles.title3,
+                        fontSize = 18.sp
+                    )
                 }
             }
         }
     }
 
+    @Preview(showBackground = true)
     @Composable
-    private fun FrostedCard(
-        backdrop: LayerBackdrop,
-        blurEnable: Boolean,
-        cardBlendColors: List<BlendColorEntry>,
-        content: @Composable () -> Unit,
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp)
-                .padding(bottom = 12.dp)
-                .textureBlur(
-                    backdrop = backdrop,
-                    shape = SmoothRoundedCornerShape(18.dp),
-                    blurRadius = 64f,
-                    noiseCoefficient = BlurDefaults.NoiseCoefficient,
-                    colors = BlurColors(blendColors = cardBlendColors),
-                    enabled = blurEnable,
-                ),
-            colors = CardDefaults.defaultColors(
-                if (CurrentThemeConfigs.isDark) Color(0x4D52608E) else if (blurEnable) Color.Transparent else colorScheme.surfaceContainer,
-                if (CurrentThemeConfigs.isDark) Color.White else colorScheme.onSurface,
-            ),
-        ) {
-            content()
-        }
+    fun AboutContentPreview() {
+        AboutContent()
     }
-
-    private fun getVersionSummary(): String = getString(
-        R.string.item_app_version_summary,
-        BuildConfig.VERSION_NAME,
-        BuildConfig.VERSION_CODE.toString(),
-        BuildConfig.BUILD_TYPE,
-    )
-
-    private fun getBuildTimeFormat(): String = Instant
-        .ofEpochMilli(BuildConfig.BUILD_TIME)
-        .atZone(ZoneId.systemDefault())
-        .format(
-            DateTimeFormatter
-                .ofLocalizedDateTime(FormatStyle.MEDIUM)
-                .withLocale(AppLangUtils.getLocale()),
-        )
 }

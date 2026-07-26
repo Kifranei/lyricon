@@ -40,7 +40,6 @@ import io.github.proify.lyricon.app.compose.custom.bonsai.core.node.Node
 import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.LyricPrefs
-import io.github.proify.lyricon.app.util.updateRemoteLyricStyle
 import io.github.proify.lyricon.common.PackageNames
 import io.github.proify.lyricon.common.util.ViewTreeNode
 import io.github.proify.lyricon.lyric.style.VisibilityRule
@@ -141,7 +140,6 @@ class ViewRulesTreeActivity : ViewTreeActivity() {
             }
 
             LyricPrefs.setViewVisibilityRule(rules)
-            updateRemoteLyricStyle()
             _currentMode.intValue = newMode
             showOptions.value = false
         }

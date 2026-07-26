@@ -12,8 +12,4 @@
         <item>zh-Hant</item>
     </string-array>
 
-    <string-array name="xposed_scope">
-        <item>com.android.systemui</item>
-    </string-array>
-
 </resources>

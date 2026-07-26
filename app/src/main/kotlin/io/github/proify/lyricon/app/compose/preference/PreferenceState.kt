@@ -11,7 +11,6 @@ package io.github.proify.lyricon.app.compose.preference
 import android.content.SharedPreferences
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,7 +19,19 @@ import androidx.compose.runtime.rememberUpdatedState
 import io.github.proify.lyricon.app.util.editCommit
 
 /**
- * 通用 PreferenceState,支持动态 SharedPreferences 实例
+ * 将 [SharedPreferences] 中的数据映射为 Compose 的 [MutableState]。
+ *
+ * 该函数实现了双向绑定：
+ * 1. 当 [SharedPreferences] 内部数据发生变更（无论来自何处）时，State 会自动同步。
+ * 2. 当对返回的 State 进行赋值时，变更会通过 [editCommit] 同步持久化。
+ *
+ * @param T 数据类型。
+ * @param sharedPreferences 配置存储实例，支持动态切换。
+ * @param key 存储对应的键名。
+ * @param defaultValue 缺省值。
+ * @param getter 读取数据的具体实现。
+ * @param setter 写入数据的具体实现。
+ * @return 响应式的 [MutableState] 实例。
  */
 @Composable
 fun <T> rememberPreference(
@@ -30,43 +41,40 @@ fun <T> rememberPreference(
     getter: SharedPreferences.(String, T) -> T,
     setter: SharedPreferences.Editor.(String, T) -> SharedPreferences.Editor
 ): MutableState<T> {
-    // 确保闭包中使用最新 sharedPreferences
-    val currentPrefs by rememberUpdatedState(sharedPreferences)
+    val currentGetter by rememberUpdatedState(getter)
+    val currentSetter by rememberUpdatedState(setter)
 
-    // 添加 sharedPreferences 作为 remember 的 key
+    // 状态初始化，并在 key 或实例变更时重置
     val state = remember(sharedPreferences, key) {
-        mutableStateOf(currentPrefs.getter(key, defaultValue))
+        mutableStateOf(sharedPreferences.getter(key, defaultValue))
     }
 
-    // 当 sharedPreferences 对象变化时,立即更新值
-    LaunchedEffect(sharedPreferences, key) {
-        val newValue = sharedPreferences.getter(key, defaultValue)
-        if (state.value != newValue) {
-            state.value = newValue
-        }
-    }
-
-    DisposableEffect(currentPrefs, key) {
+    // 注册监听器，确保 listener 被 DisposableEffect 强引用以防止被 WeakHashMap 回收
+    DisposableEffect(sharedPreferences, key) {
         val listener = SharedPreferences.OnSharedPreferenceChangeListener { sp, changedKey ->
             if (changedKey == key) {
-                val newValue = sp.getter(key, defaultValue)
-                if (state.value != newValue) state.value = newValue
+                val newValue = sp.currentGetter(key, defaultValue)
+                if (state.value != newValue) {
+                    state.value = newValue
+                }
             }
         }
-        currentPrefs.registerOnSharedPreferenceChangeListener(listener)
-        onDispose { currentPrefs.unregisterOnSharedPreferenceChangeListener(listener) }
+
+        sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
     }
 
-    // 将包装对象也用 remember 包裹,避免每次重组时重新创建
     return remember(sharedPreferences, key) {
         object : MutableState<T> {
             override var value: T
                 get() = state.value
                 set(newValue) {
-                    currentPrefs.editCommit {
-                        setter(key, newValue)
-                    }
                     state.value = newValue
+                    sharedPreferences.editCommit {
+                        currentSetter(key, newValue)
+                    }
                 }
 
             override fun component1() = value
@@ -75,7 +83,13 @@ fun <T> rememberPreference(
     }
 }
 
-/** Boolean 简化版 */
+/**
+ * 构建并记住一个 [Boolean] 类型的配置状态。
+ *
+ * @param sharedPreferences 存储实例。
+ * @param key 键名。
+ * @param defaultValue 默认值，默认为 false。
+ */
 @Composable
 fun rememberBooleanPreference(
     sharedPreferences: SharedPreferences,
@@ -90,7 +104,13 @@ fun rememberBooleanPreference(
         SharedPreferences.Editor::putBoolean
     )
 
-/** String 简化版 */
+/**
+ * 构建并记住一个 [String] 类型的配置状态。
+ *
+ * @param sharedPreferences 存储实例。
+ * @param key 键名。
+ * @param defaultValue 默认值，默认为 null。
+ */
 @Composable
 fun rememberStringPreference(
     sharedPreferences: SharedPreferences,
@@ -105,6 +125,13 @@ fun rememberStringPreference(
         SharedPreferences.Editor::putString
     )
 
+/**
+ * 构建并记住一个 [Int] 类型的配置状态。
+ *
+ * @param sharedPreferences 存储实例。
+ * @param key 键名。
+ * @param defaultValue 默认值，默认为 0。
+ */
 @Composable
 fun rememberIntPreference(
     sharedPreferences: SharedPreferences,
@@ -119,6 +146,13 @@ fun rememberIntPreference(
         SharedPreferences.Editor::putInt
     )
 
+/**
+ * 构建并记住一个 [Long] 类型的配置状态。
+ *
+ * @param sharedPreferences 存储实例。
+ * @param key 键名。
+ * @param defaultValue 默认值，默认为 0L。
+ */
 @Composable
 fun rememberLongPreference(
     sharedPreferences: SharedPreferences,
@@ -133,6 +167,13 @@ fun rememberLongPreference(
         SharedPreferences.Editor::putLong
     )
 
+/**
+ * 构建并记住一个 [Float] 类型的配置状态。
+ *
+ * @param sharedPreferences 存储实例。
+ * @param key 键名。
+ * @param defaultValue 默认值，默认为 0f。
+ */
 @Composable
 fun rememberFloatPreference(
     sharedPreferences: SharedPreferences,
@@ -145,4 +186,25 @@ fun rememberFloatPreference(
         defaultValue,
         SharedPreferences::getFloat,
         SharedPreferences.Editor::putFloat
+    )
+
+/**
+ * 构建并记住一个 [Set<String>] 类型的配置状态。
+ *
+ * @param sharedPreferences 存储实例。
+ * @param key 键名。
+ * @param defaultValue 默认值，默认为 emptySet()。
+ */
+@Composable
+fun rememberStringSetPreference(
+    sharedPreferences: SharedPreferences,
+    key: String,
+    defaultValue: Set<String> = emptySet()
+): MutableState<Set<String>?> =
+    rememberPreference(
+        sharedPreferences,
+        key,
+        defaultValue,
+        SharedPreferences::getStringSet,
+        SharedPreferences.Editor::putStringSet
     )

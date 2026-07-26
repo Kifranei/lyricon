@@ -1,6 +1,7 @@
 # Subscriber
 
-Subscriber receives the active player, song, lyrics, playback state, and display options from Lyricon. It is intended for third-party apps that need to read Lyricon data.
+Subscriber receives the active player, song, lyrics, playback state, and display options from
+Lyricon. It is intended for third-party apps that need to read Lyricon data.
 
 ## Flow
 

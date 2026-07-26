@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2026 Proify, Tomakino
  * Licensed under the Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -13,8 +13,8 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import androidx.core.view.isVisible
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
+import io.github.libxposed.api.XposedInterface
+import io.github.libxposed.api.XposedModule
 import java.lang.ref.WeakReference
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -39,7 +39,7 @@ object OplusCapsuleHooker {
         private set
 
     private var lastIsShowing: Boolean? = null
-    private var unhook: XC_MethodHook.Unhook? = null
+    private var unhookHandle: XposedInterface.HookHandle? = null
     private var currentHook: SetVisibilityMethodHook? = null
 
     @SuppressLint("PrivateApi")
@@ -49,20 +49,30 @@ object OplusCapsuleHooker {
         false
     }
 
-    fun initialize(classLoader: ClassLoader) {
-        unhook?.unhook()
+    fun initialize(module: XposedModule, classLoader: ClassLoader) {
+        unhookHandle?.unhook()
         currentHook?.cleanup()
         if (!isSupportCapsule(classLoader)) return
 
         val hook = SetVisibilityMethodHook()
         currentHook = hook
-        unhook = XposedHelpers.findAndHookMethod(
-            classLoader.loadClass(
-                View::class.java.getName()
-            ),
+
+        val setVisibilityMethod = View::class.java.getDeclaredMethod(
             "setVisibility",
-            Int::class.javaPrimitiveType, hook
+            Int::class.javaPrimitiveType
         )
+
+        @Suppress("ObjectLiteralToLambda")
+        unhookHandle =
+            module.hook(setVisibilityMethod)
+                .intercept(object : XposedInterface.Hooker {
+                override fun intercept(chain: XposedInterface.Chain): Any? {
+                    chain.proceed()
+                    val view = chain.thisObject as View
+                    hook.afterSetVisibility(view)
+                    return null
+                }
+            })
     }
 
     fun registerListener(listener: CapsuleStateChangeListener): Boolean = listeners.add(listener)
@@ -76,7 +86,7 @@ object OplusCapsuleHooker {
         listeners.forEach { it.onColorOsCapsuleVisibilityChanged(isShowing) }
     }
 
-    private class SetVisibilityMethodHook : XC_MethodHook() {
+    private class SetVisibilityMethodHook {
         companion object {
             /** 隐藏事件的 debounce 延迟，用于吸收胶囊切换时的瞬态 INVISIBLE */
             private const val HIDE_DEBOUNCE_MS = 80L
@@ -136,9 +146,7 @@ object OplusCapsuleHooker {
             capsuleContainers.clear()
         }
 
-        @Throws(Throwable::class)
-        override fun afterHookedMethod(param: MethodHookParam) {
-            val view = param.thisObject as View
+        fun afterSetVisibility(view: View) {
             val name = view.javaClass.getSimpleName()
 
             when (name) {

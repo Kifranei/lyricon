@@ -100,7 +100,6 @@ object LyricDataProcessor {
         })
     }
 
-    @Suppress("unused")
     private fun convertChineseCharacters(song: Song): Song {
         val mode = LyricPrefs.baseStyle.chineseConversionMode
         if (mode == BasicStyle.CHINESE_CONVERSION_OFF) return song

@@ -11,27 +11,28 @@ import io.github.proify.android.extensions.json
 
 internal object AITranslationResponseParser {
     private const val TAG = "LyriconAITranslator"
-    private const val MAX_LOG_BODY_LENGTH = 1000
 
     fun parse(content: String, requestIndices: Set<Int>): List<TranslationItem> {
-        val jsonPayload = content
-        val items = decodeTranslationItems(jsonPayload)
+        val items = decodeTranslationItems(content)
         val validItems = normalizeTranslationItems(items, requestIndices)
         Log.d(TAG, "API call successful, parsed ${items.size} items, accepted ${validItems.size}.")
         return validItems
     }
-//
-//    private fun extractJsonFromLlmContent(raw: String): String? {
-//        val regex = Regex("```(?:json)?\\s*([\\s\\S]*?)```")
-//        val trimmed = regex.find(raw)?.groupValues?.get(1)?.trim() ?: raw.trim()
-//        if (trimmed.isEmpty()) return null
-//
-//        Log.e(TAG, "No JSON payload found in response: ${trimForLog(trimmed)}")
-//        return trimmed
-//    }
 
     private fun decodeTranslationItems(content: String): List<TranslationItem> {
-        return json.decodeFromString<TranslationResponse>(content).translated
+        return try {
+            return json.decodeFromString<TranslationResponse>(content).translated
+        } catch (_: Exception) {
+            json.decodeFromString<TranslationResponse>(cleanOpenAIResponse(content)).translated
+        }
+    }
+
+    private fun cleanOpenAIResponse(rawResponse: String): String {
+        return rawResponse
+            .replace(Regex("^```json\\s*\\n?"), "")  // 移除开头的 ```json
+            .replace(Regex("^```\\s*\\n?"), "")       // 移除开头的 ```
+            .replace(Regex("\\n?```\\s*$"), "")       // 移除结尾的 ```
+            .trim()
     }
 
     private fun normalizeTranslationItems(
@@ -47,7 +48,4 @@ internal object AITranslationResponseParser {
         }
         return accepted.values.toList()
     }
-
-    private fun trimForLog(value: String): String =
-        if (value.length <= MAX_LOG_BODY_LENGTH) value else value.take(MAX_LOG_BODY_LENGTH) + "..."
 }

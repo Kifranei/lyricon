@@ -5,16 +5,17 @@
  */
 package io.github.proify.lyricon.app
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.pm.PackageInfo
 import android.util.Log
-import androidx.annotation.Keep
 import androidx.core.content.pm.PackageInfoCompat
+import io.github.libxposed.service.XposedService
+import io.github.libxposed.service.XposedServiceHelper
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.common.util.safe
+import java.util.concurrent.CopyOnWriteArraySet
 
 class LyriconApp : Application() {
 
@@ -22,10 +23,27 @@ class LyriconApp : Application() {
         instance = this
     }
 
-    @Keep
     override fun onCreate() {
         super.onCreate()
         Log.i(TAG, "LyriconApp created")
+
+        XposedServiceHelper.registerListener(object : XposedServiceHelper.OnServiceListener {
+            override fun onServiceBind(service: XposedService) {
+                Log.i(TAG, "XposedService bind")
+                xposedService = service
+                xposedServiceStateListeners.forEach {
+                    it.onServiceStateChanged(service)
+                }
+            }
+
+            override fun onServiceDied(service: XposedService) {
+                Log.i(TAG, "XposedService died")
+                xposedService = null
+                xposedServiceStateListeners.forEach {
+                    it.onServiceStateChanged(null)
+                }
+            }
+        })
     }
 
     override fun attachBaseContext(base: Context) {
@@ -33,16 +51,32 @@ class LyriconApp : Application() {
         super.attachBaseContext(AppLangUtils.wrapContext(base))
     }
 
-    @Deprecated("This function is deprecated. Please use getSharedPreferences(String, Int, Class) instead.")
     override fun getSharedPreferences(name: String?, mode: Int): SharedPreferences =
         super.getSharedPreferences(name, mode).safe()
 
     companion object {
         const val TAG: String = "LyriconApp"
+        private val xposedServiceStateListeners = CopyOnWriteArraySet<XposedServiceStateListener>()
 
-        @SuppressLint("StaticFieldLeak")
         lateinit var instance: LyriconApp
             private set
+
+        var xposedService: XposedService? = null
+            private set
+
+        fun addXposedServiceStateListener(
+            listener: XposedServiceStateListener,
+            notifyImmediately: Boolean = true
+        ) {
+            xposedServiceStateListeners.add(listener)
+            if (notifyImmediately && xposedService != null) {
+                listener.onServiceStateChanged(xposedService)
+            }
+        }
+
+        fun removeXposedServiceStateListener(listener: XposedServiceStateListener) {
+            xposedServiceStateListeners.remove(listener)
+        }
 
         fun get(): LyriconApp = instance
 
@@ -51,14 +85,18 @@ class LyriconApp : Application() {
                 instance.packageName, 0
             )
         }
+
         val versionCode: Long by lazy { PackageInfoCompat.getLongVersionCode(packageInfo) }
 
-        private var _safeMode: Boolean = false
+        var isSafeMode: Boolean = false
+            private set
 
-        val safeMode: Boolean get() = _safeMode
-
-        fun updateSafeMode(safeMode: Boolean) {
-            _safeMode = safeMode
+        fun setSafeMode(safeMode: Boolean) {
+            this.isSafeMode = safeMode
         }
+    }
+
+    interface XposedServiceStateListener {
+        fun onServiceStateChanged(service: XposedService?)
     }
 }

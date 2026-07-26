@@ -38,7 +38,6 @@ import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.EventBus
 import io.github.proify.lyricon.app.util.resolveLanguageName
-import io.github.proify.lyricon.app.util.updateRemoteLyricStyle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -86,7 +85,6 @@ class SettingsActivity : BaseActivity() {
             task()
             withContext(Dispatchers.Main) {
                 EventBus.post(SettingChangedEvent)
-                updateRemoteLyricStyle()
             }
         }
     }

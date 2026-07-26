@@ -62,9 +62,7 @@ data class TextStyle(
     var isDisableTranslation: Boolean = false,
     var isTranslationOnly: Boolean = false,
 
-    var isAiTranslationEnable: Boolean = false,
-    var aiTranslationConfigs: AiTranslationConfigs? = null,
-    var isAiTranslationAutoIgnoreChinese: Boolean = false
+    var enableEnterAnim: Boolean = false
 ) : Parcelable, AbstractStyle() {
 
     companion object {
@@ -107,6 +105,7 @@ data class TextStyle(
         const val KEY_AI_TRANSLATION_IGNORE_CHINESE: String =
             "lyric_style_text_ai_translation_auto_ignore_chinese"
 
+        const val KEY_ENABLED_ENTER_ANIM = "lyric_style_text_enable_enter_anim"
     }
 
     object PlaceholderFormat {
@@ -342,14 +341,8 @@ data class TextStyle(
             Defaults.TRANSLATION_ONLY
         )
 
-        isAiTranslationEnable =
-            preferences.getBoolean(KEY_AI_TRANSLATION_ENABLED, Defaults.AI_TRANSLATION_ENABLED)
-        aiTranslationConfigs = getAiTranslationConfigs(preferences)
-        isAiTranslationAutoIgnoreChinese =
-            preferences.getBoolean(
-                KEY_AI_TRANSLATION_IGNORE_CHINESE,
-                Defaults.AI_TRANSLATION_IGNORE_CHINESE
-            )
+
+        enableEnterAnim = preferences.getBoolean(KEY_ENABLED_ENTER_ANIM, false)
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -409,122 +402,12 @@ data class TextStyle(
             "lyric_style_text_transition_config",
             transitionConfig
         )
-        editor.putString(
-            "lyric_style_text_placeholder_format",
-            placeholderFormat
-        )
+        editor.putString("lyric_style_text_placeholder_format", placeholderFormat)
 
-        editor.putBoolean(
-            KEY_TEXT_TRANSLATION_DISABLE,
-            isDisableTranslation
-        )
+        editor.putBoolean(KEY_TEXT_TRANSLATION_DISABLE, isDisableTranslation)
         editor.putBoolean(KEY_TEXT_TRANSLATION_ONLY, isTranslationOnly)
 
-        editor.putBoolean(
-            KEY_AI_TRANSLATION_ENABLED,
-            isAiTranslationEnable
-        )
-        aiTranslationConfigs?.let { writeAiTranslationConfigs(editor, it) }
-        editor.putBoolean(
-            KEY_AI_TRANSLATION_IGNORE_CHINESE,
-            isAiTranslationAutoIgnoreChinese
-        )
+        editor.putBoolean(KEY_ENABLED_ENTER_ANIM, enableEnterAnim)
     }
 
-    private fun getAiTranslationConfigs(preferences: SharedPreferences): AiTranslationConfigs {
-        val providerName =
-            preferences.getString(KEY_AI_TRANSLATION_PROVIDER, Defaults.AI_TRANSLATION_PROVIDER)
-        val provider = AiTranslationProvider.entries.firstOrNull {
-            it.name.equals(providerName, ignoreCase = true)
-        }
-
-        val model = preferences.getString(KEY_AI_TRANSLATION_MODEL, provider?.model)
-        val baseUrl = preferences.getString(KEY_AI_TRANSLATION_BASE_URL, provider?.url)
-
-        val customPrompt =
-            preferences.getString(
-                KEY_AI_TRANSLATION_PROMPT,
-                Defaults.AI_TRANSLATION_PROMPT
-            )
-
-        val targetLanguage =
-            preferences.getString(
-                KEY_AI_TRANSLATION_TARGET_LANGUAGE,
-                Defaults.AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME
-            )
-
-        val apiKey = preferences.getString(KEY_AI_TRANSLATION_API_KEY, null)
-        val temperature = preferences.getFloatCompat(
-            KEY_AI_TRANSLATION_TEMPERATURE,
-            Defaults.AI_TRANSLATION_TEMPERATURE
-        )
-        val topP = preferences.getFloatCompat(
-            KEY_AI_TRANSLATION_TOP_P,
-            Defaults.AI_TRANSLATION_TOP_P
-        )
-        val maxTokens = preferences.getIntCompat(
-            KEY_AI_TRANSLATION_MAX_TOKENS,
-            Defaults.AI_TRANSLATION_MAX_TOKENS
-        )
-        val presencePenalty = preferences.getFloatCompat(
-            KEY_AI_TRANSLATION_PRESENCE_PENALTY,
-            Defaults.AI_TRANSLATION_PRESENCE_PENALTY
-        )
-        val frequencyPenalty = preferences.getFloatCompat(
-            KEY_AI_TRANSLATION_FREQUENCY_PENALTY,
-            Defaults.AI_TRANSLATION_FREQUENCY_PENALTY
-        )
-
-        return AiTranslationConfigs(
-            provider = provider?.name,
-            targetLanguage = targetLanguage,
-            apiKey = apiKey,
-            model = model,
-            baseUrl = baseUrl,
-            prompt = customPrompt ?: Defaults.AI_TRANSLATION_PROMPT,
-            temperature = temperature,
-            topP = topP,
-            maxTokens = maxTokens,
-            presencePenalty = presencePenalty,
-            frequencyPenalty = frequencyPenalty
-        )
-    }
-
-    private fun writeAiTranslationConfigs(
-        editor: SharedPreferences.Editor,
-        configs: AiTranslationConfigs
-    ) {
-        editor.putString(KEY_AI_TRANSLATION_PROVIDER, configs.provider)
-        editor.putString(KEY_AI_TRANSLATION_MODEL, configs.model)
-        editor.putString(KEY_AI_TRANSLATION_BASE_URL, configs.baseUrl)
-        editor.putString(KEY_AI_TRANSLATION_PROMPT, configs.prompt)
-        editor.putString(KEY_AI_TRANSLATION_TARGET_LANGUAGE, configs.targetLanguage)
-        editor.putString(KEY_AI_TRANSLATION_TEMPERATURE, configs.temperature.toString())
-        editor.putString(KEY_AI_TRANSLATION_TOP_P, configs.topP.toString())
-        editor.putString(KEY_AI_TRANSLATION_MAX_TOKENS, configs.maxTokens.toString())
-        editor.putString(KEY_AI_TRANSLATION_PRESENCE_PENALTY, configs.presencePenalty.toString())
-        editor.putString(KEY_AI_TRANSLATION_FREQUENCY_PENALTY, configs.frequencyPenalty.toString())
-    }
-
-    private fun SharedPreferences.getFloatCompat(key: String, defaultValue: Float): Float {
-        return when (val value = all[key]) {
-            is Float -> value
-            is String -> value.toFloatOrNull() ?: defaultValue
-            is Int -> value.toFloat()
-            is Long -> value.toFloat()
-            is Double -> value.toFloat()
-            else -> defaultValue
-        }
-    }
-
-    private fun SharedPreferences.getIntCompat(key: String, defaultValue: Int): Int {
-        return when (val value = all[key]) {
-            is Int -> value
-            is String -> value.toIntOrNull() ?: defaultValue
-            is Long -> value.toInt()
-            is Float -> value.toInt()
-            is Double -> value.toInt()
-            else -> defaultValue
-        }
-    }
 }

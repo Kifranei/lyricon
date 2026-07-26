@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.application)
     kotlin("plugin.serialization") version "2.1.21"
 }
@@ -50,10 +50,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    packaging {
+        resources {
+            merges += "META-INF/xposed/*"
+        }
+    }
 }
 
 dependencies {
-    compileOnly(libs.xposed.api)
+    compileOnly(libs.libxposed.api)
+    implementation(libs.libxposed.service)
 
     implementation(project(":lyric:bridge:central"))
     implementation(libs.androidx.core.ktx)

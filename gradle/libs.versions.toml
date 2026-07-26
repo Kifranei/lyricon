@@ -15,18 +15,18 @@ lifecycle = "2.10.0"
 
 # AndroidX Compose
 activityCompose = "1.13.0"
-composeBom = "2026.04.01"
+composeBom = "2026.05.00"
 opencc4j = "1.14.0"
 
 # Material
-material = "1.13.0"
-material3 = "1.5.0-alpha18"
+material = "1.14.0"
+material3 = "1.5.0-alpha19"
 
 # Network / Logic / Serialization
 kotlinxSerializationJson = "1.11.0"
 
 # UI Extensions / Third Party
-aboutlibrariesCore = "14.0.1"
+aboutlibrariesCore = "14.2.0"
 accompanistDrawablePainter = "0.37.3"
 androidsvg = "1.4"
 bonsai = "1.2.0"
@@ -34,18 +34,17 @@ capsuleAndroid = "2.1.1-patch2"
 haze = "1.7.2"
 backdrop = "1.0.6"
 lottieCompose = "6.7.1"
-miuixUI = "0.9.0"
-miuixIcons = "0.9.0"
-miuixPreference = "0.9.0"
-miuixBlur = "0.9.0"
-
-# Hook / Reflection
-xposed = "82"
+miuixUI = "0.9.1"
+miuixIcons = "0.9.1"
+miuixPreference = "0.9.1"
+miuixBlur = "0.9.1"
 
 # Testing
 androidxJunit = "1.3.0"
 espresso = "3.7.0"
 junit4 = "4.13.2"
+xposed-api = "101.0.1"
+xposed-service = "101.0.0"
 
 [libraries]
 # ===== AndroidX Base =====
@@ -69,6 +68,9 @@ androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 
+libxposed-api = { group = "io.github.libxposed", name = "api", version.ref = "xposed-api" }
+libxposed-service = { group = "io.github.libxposed", name = "service", version.ref = "xposed-service" }
+
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 # ===== Network / Logic / Serialization =====
@@ -91,7 +93,6 @@ miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur-android", version.ref 
 # ===== Hook / Reflection =====
 #noinspection UnusedVersionCatalogEntry
 opencc4j = { module = "com.github.houbb:opencc4j", version.ref = "opencc4j" }
-xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed" }
 
 # ===== Testing =====
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }

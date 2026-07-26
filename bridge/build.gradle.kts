@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2026 Proify
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,7 +59,6 @@ configure<LibraryExtension> {
 dependencies {
     implementation(project(":common"))
     implementation(libs.androidx.core.ktx)
-    compileOnly(libs.xposed.api)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

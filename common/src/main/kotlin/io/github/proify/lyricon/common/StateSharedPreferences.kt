@@ -10,12 +10,12 @@ import android.content.SharedPreferences
 
 interface StateSharedPreferences : SharedPreferences {
     /**
-     * 检测外部是否发生了变更（例如文件被修改）。
+     * 检测是否发生了变更
      */
     fun hasChanged(): Boolean
 
     /**
-     * 强制重新加载数据。
+     * 重新加载数据。
      */
     fun reload(): Boolean
 }
@@ -62,13 +62,4 @@ open class StateSharedPreferencesWrapper(private val preferences: SharedPreferen
     override fun unregisterOnSharedPreferenceChangeListener(listener: SharedPreferences.OnSharedPreferenceChangeListener?) {
         preferences.unregisterOnSharedPreferenceChangeListener(listener)
     }
-}
-
-/**
- * 扩展函数：确保数据是最新的。
- * 如果检测到变化则触发重载。
- */
-fun StateSharedPreferences.ensureLatest(): StateSharedPreferences {
-    if (hasChanged()) reload()
-    return this
 }

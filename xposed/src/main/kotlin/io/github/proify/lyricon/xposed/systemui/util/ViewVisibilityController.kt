@@ -22,6 +22,7 @@ class ViewVisibilityController(private val rootViewGroup: ViewGroup) {
         private const val TAG = "ViewVisibilityController"
         private const val TRACKED_MARKER = "tracked"
         private const val VISIBILITY_UNKNOWN = -1
+        private const val DEBUG = false
     }
 
     /**
@@ -30,7 +31,7 @@ class ViewVisibilityController(private val rootViewGroup: ViewGroup) {
      * @param isPlaying 是否正在播放
      */
     fun applyVisibilityRules(rules: List<VisibilityRule>, isPlaying: Boolean) {
-        YLog.debug(TAG, "Applying visibility rules... $rules")
+        if (DEBUG) YLog.debug(TAG, "Applying visibility rules... isPlaying=$isPlaying, $rules")
         if (rules.isEmpty()) return
 
         rules.forEach { rule ->
@@ -49,8 +50,6 @@ class ViewVisibilityController(private val rootViewGroup: ViewGroup) {
 
         when (rule.mode) {
             VisibilityRule.MODE_NORMAL -> restoreOriginalVisibility(targetView)
-            // VisibilityRule.MODE_ALWAYS_VISIBLE -> setVisibility(targetView, View.VISIBLE)
-            // VisibilityRule.MODE_ALWAYS_HIDDEN -> setVisibility(targetView, View.GONE)
             VisibilityRule.MODE_HIDE_WHEN_PLAYING -> applyPlaybackRule(targetView, isPlaying)
             else -> restoreOriginalVisibility(targetView)
         }

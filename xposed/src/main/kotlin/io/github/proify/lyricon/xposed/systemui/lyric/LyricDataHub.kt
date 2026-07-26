@@ -113,8 +113,14 @@ object LyricDataHub : ActivePlayerListener {
         runProcessingPipeline(song)
     }
 
+    private var lastDispatchSongId = 0
     private fun dispatchSong(song: Song?) {
         val normalize = song?.deepCopy()?.normalize()
+
+        val hashCode = normalize?.hashCode() ?: 0
+        if (hashCode == lastDispatchSongId) return
+        lastDispatchSongId = hashCode
+
         listeners.forEach { it.onSongChanged(normalize) }
     }
 

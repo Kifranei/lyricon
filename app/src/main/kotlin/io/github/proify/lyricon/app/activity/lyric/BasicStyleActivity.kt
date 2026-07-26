@@ -9,6 +9,7 @@ package io.github.proify.lyricon.app.activity.lyric
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,6 +25,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.IconActions
@@ -39,6 +41,7 @@ import io.github.proify.lyricon.app.util.Utils
 import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.SpinnerEntry
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
@@ -49,15 +52,9 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        preferences.registerOnSharedPreferenceChangeListener(this)
         setContent {
             Content()
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        preferences.unregisterOnSharedPreferenceChangeListener(this)
     }
 
     @Composable
@@ -68,7 +65,16 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             title = stringResource(R.string.activity_basic_settings),
             canBack = true
         ) {
-            item(key = "location") {
+            item(key = "base") {
+                SmallTitle(
+                    text = stringResource(R.string.section_base),
+                    insideMargin = PaddingValues(
+                        start = 26.dp,
+                        top = 0.dp,
+                        end = 26.dp,
+                        bottom = 10.dp
+                    )
+                )
                 Card(
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -154,55 +160,43 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         }
                     )
 
-
                     DoubleInputPreference(
                         preferences = preferences,
                         key = "lyric_style_base_width",
                         title = stringResource(R.string.item_base_width),
                         dialogSummary = stringResource(R.string.dialog_summary_base_width),
-                        range = 0.0..1000.0,
+                        range = 0.0..8000.0,
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_width_normal))
                         },
                     )
-
-                    var dynamicWidthEnabled by rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_dynamic_width_enabled",
-                        BasicStyle.Defaults.DYNAMIC_WIDTH_ENABLED
-                    )
-                    SwitchPreference(
-                        checked = dynamicWidthEnabled,
-                        onCheckedChange = { dynamicWidthEnabled = it },
-                        title = stringResource(R.string.item_base_dynamic_width),
-                        summary = stringResource(R.string.item_base_dynamic_width_summary),
+                    DoubleInputPreference(
+                        preferences = preferences,
+                        key = "lyric_style_base_width_in_landscape",
+                        title = stringResource(R.string.item_base_width_in_landscape),
+                        dialogSummary = stringResource(R.string.dialog_summary_base_width_in_landscape),
+                        range = 0.0..8000.0,
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_width_normal))
                         },
                     )
-
-                    var dynamicWidthAutoHideClock by rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_dynamic_width_auto_hide_clock",
-                        BasicStyle.Defaults.DYNAMIC_WIDTH_AUTO_HIDE_CLOCK
-                    )
-                    SwitchPreference(
-                        checked = dynamicWidthAutoHideClock,
-                        onCheckedChange = { dynamicWidthAutoHideClock = it },
-                        title = stringResource(R.string.item_base_dynamic_width_auto_hide_clock),
-                        summary = stringResource(R.string.item_base_dynamic_width_auto_hide_clock_summary),
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_visibility_off))
-                        },
-                    )
-
                     if (Utils.isOPlus) {
                         DoubleInputPreference(
                             preferences = preferences,
                             key = "lyric_style_base_width_in_coloros_capsule_mode",
                             title = stringResource(R.string.item_base_width_color_os_capsule),
                             dialogSummary = stringResource(R.string.dialog_summary_base_width_color_os_capsule),
-                            range = 0.0..1000.0,
+                            range = 0.0..8000.0,
+                            startAction = {
+                                IconActions(painterResource(R.drawable.ic_width_normal))
+                            },
+                        )
+                        DoubleInputPreference(
+                            preferences = preferences,
+                            key = "lyric_style_base_width_in_coloros_capsule_mode_in_landscape",
+                            title = stringResource(R.string.item_base_width_color_os_capsule_in_landscape),
+                            dialogSummary = stringResource(R.string.dialog_summary_base_width_color_os_capsule_in_landscape),
+                            range = 0.0..8000.0,
                             startAction = {
                                 IconActions(painterResource(R.drawable.ic_width_normal))
                             },
@@ -231,14 +225,26 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         }
                     )
 
-                    ChineseConversionPreference()
+                    if (BuildConfig.ENABLE_CHINESE_CONVERSION) {
+                        ChineseConversionPreference()
+                    }
                 }
             }
 
+
             item(key = "visibility") {
+                SmallTitle(
+                    text = stringResource(R.string.section_visibility),
+                    insideMargin = PaddingValues(
+                        start = 26.dp,
+                        top = 16.dp,
+                        end = 26.dp,
+                        bottom = 10.dp
+                    )
+                )
                 Card(
                     modifier = Modifier
-                        .padding(start = 16.dp, top = 16.dp, end = 16.dp)
+                        .padding(start = 16.dp, top = 0.dp, end = 16.dp)
                         .fillMaxWidth(),
                 ) {
 
@@ -256,24 +262,28 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         title = stringResource(R.string.item_base_lockscreen_hidden),
                     )
 
-                    var doubleTapSwitchClock by rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_double_tap_switch_clock",
-                        BasicStyle.Defaults.DOUBLE_TAP_SWITCH_CLOCK
-                    )
-                    SwitchPreference(
-                        checked = doubleTapSwitchClock,
-                        onCheckedChange = { doubleTapSwitchClock = it },
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_visibility_off))
-                        },
-                        title = stringResource(R.string.item_base_double_tap_switch_clock),
-                        summary = stringResource(R.string.item_base_double_tap_switch_clock_summary),
-                    )
-
                     HideWhenNoLyric()
                     HideWhenNoUpdate()
                     HideWhenKeywords()
+                }
+            }
+
+            item(key = "ai_translation") {
+                SmallTitle(
+                    text = stringResource(R.string.section_translation),
+                    insideMargin = PaddingValues(
+                        start = 26.dp,
+                        top = 16.dp,
+                        end = 26.dp,
+                        bottom = 10.dp
+                    )
+                )
+                Card(
+                    modifier = Modifier
+                        .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 0.dp)
+                        .fillMaxWidth(),
+                ) {
+                    AiTranslationPreference(preferences)
                 }
             }
 

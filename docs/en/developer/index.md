@@ -4,7 +4,7 @@ Developer documentation is intended for music players, lyric provider plugins, a
 
 ## Interfaces
 
-| Interface | Purpose | Documentation |
-|:---|:---|:---|
-| Provider | Sends songs, lyrics, and playback state to Lyricon | [Provider](provider/index.md) |
-| Subscriber | Subscribes to the active player and lyric state | [Subscriber](subscriber/index.md) |
+| Interface  | Purpose                                            | Documentation                     |
+|:-----------|:---------------------------------------------------|:----------------------------------|
+| Provider   | Sends songs, lyrics, and playback state to Lyricon | [Provider](provider/index.md)     |
+| Subscriber | Subscribes to the active player and lyric state    | [Subscriber](subscriber/index.md) |

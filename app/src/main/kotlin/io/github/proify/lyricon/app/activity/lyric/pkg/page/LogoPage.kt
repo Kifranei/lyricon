@@ -7,40 +7,56 @@
 package io.github.proify.lyricon.app.activity.lyric.pkg.page
 
 import android.content.SharedPreferences
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.mocharealm.gaze.capsule.ContinuousRoundedRectangle
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
+import io.github.proify.lyricon.app.compose.custom.miuix.extra.OverlayDialog
 import io.github.proify.lyricon.app.compose.preference.DoubleInputPreference
 import io.github.proify.lyricon.app.compose.preference.LogoColorPreference
 import io.github.proify.lyricon.app.compose.preference.RectInputPreference
-import io.github.proify.lyricon.app.compose.preference.StringInputPreference
 import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberIntPreference
+import io.github.proify.lyricon.app.compose.preference.rememberStringPreference
 import io.github.proify.lyricon.app.util.Utils
-import io.github.proify.lyricon.app.util.editCommit
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LogoStyle
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.SpinnerEntry
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
@@ -49,8 +65,26 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 @Composable
 fun LogoPage(
     scrollBehavior: ScrollBehavior,
-    sharedPreferences: SharedPreferences
+    preferences: SharedPreferences
 ) {
+    val showCustomLogoDialog = remember { mutableStateOf(false) }
+    var customLogoStr by rememberStringPreference(
+        preferences,
+        "lyric_style_logo_custom",
+        null
+    )
+
+    if (showCustomLogoDialog.value) {
+        CustomLogoInputDialog(
+            preferences = preferences,
+            show = showCustomLogoDialog,
+            initialText = customLogoStr ?: "",
+            onConfirm = { text ->
+                customLogoStr = text.ifBlank { null }
+            }
+        )
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
@@ -73,7 +107,7 @@ fun LogoPage(
                     .fillMaxWidth()
             ) {
                 var enable by rememberBooleanPreference(
-                    sharedPreferences,
+                    preferences,
                     "lyric_style_logo_enable",
                     LogoStyle.Defaults.ENABLE
                 )
@@ -88,7 +122,7 @@ fun LogoPage(
                     }
                 )
                 DoubleInputPreference(
-                    preferences = sharedPreferences,
+                    preferences = preferences,
                     key = "lyric_style_logo_width",
                     title = stringResource(R.string.item_logo_size),
                     dialogSummary = stringResource(R.string.dialog_summary_logo_size),
@@ -97,7 +131,7 @@ fun LogoPage(
                     startAction = { IconActions(painterResource(R.drawable.ic_format_size)) }
                 )
                 RectInputPreference(
-                    sharedPreferences,
+                    preferences,
                     "lyric_style_logo_margins",
                     stringResource(R.string.item_logo_margins),
                     LogoStyle.Defaults.MARGINS,
@@ -106,7 +140,7 @@ fun LogoPage(
                         IconActions(painterResource(R.drawable.ic_margin))
                     },
                 )
-                LogoGravity(sharedPreferences)
+                LogoGravity(preferences)
             }
         }
 
@@ -127,7 +161,7 @@ fun LogoPage(
                         .fillMaxWidth()
                 ) {
                     var hideInColorOsCapsuleMode by rememberBooleanPreference(
-                        sharedPreferences,
+                        preferences,
                         "lyric_style_logo_hide_in_coloros_capsule_mode",
                         LogoStyle.Defaults.HIDE_IN_COLOROS_CAPSULE_MODE
                     )
@@ -162,52 +196,55 @@ fun LogoPage(
                     .fillMaxWidth()
             ) {
 
-                val logoStyle = rememberIntPreference(
-                    sharedPreferences,
+                var logoStyle by rememberIntPreference(
+                    preferences,
                     "lyric_style_logo_style",
                     LogoStyle.Defaults.STYLE
                 )
 
-                val styleNameRes = listOf(
-                    R.string.item_logo_style_default,
-                    R.string.item_logo_style_app_logo,
-                    R.string.item_logo_style_cover_square,
-                    R.string.item_logo_style_cover_circle
-                )
+                val styleOptions = remember {
+                    listOf(
+                        R.string.item_logo_style_default to LogoStyle.STYLE_PROVIDER_LOGO,
+                        R.string.item_logo_style_app_logo to LogoStyle.STYLE_APP_LOGO,
+                        R.string.item_logo_style_cover_square to LogoStyle.STYLE_COVER_SQUIRCLE,
+                        R.string.item_logo_style_cover_circle to LogoStyle.STYLE_COVER_CIRCLE,
+                    )
+                }
 
-                val styleValues = listOf(
-                    LogoStyle.STYLE_PROVIDER_LOGO,
-                    LogoStyle.STYLE_APP_LOGO,
-                    LogoStyle.STYLE_COVER_SQUIRCLE,
-                    LogoStyle.STYLE_COVER_CIRCLE
-                )
+                val checkedIndex = remember(logoStyle) {
+                    styleOptions.indexOfFirst { it.second == logoStyle }
+                }
 
-                val checkedIndex = styleValues.indexOf(logoStyle.value)
-
-                styleNameRes.forEachIndexed { index, resId ->
+                styleOptions.forEachIndexed { index, (resId, value) ->
                     CheckboxPreference(
                         title = stringResource(resId),
                         checked = checkedIndex == index,
                         onCheckedChange = {
-                            sharedPreferences.editCommit {
-                                putInt(
-                                    "lyric_style_logo_style",
-                                    styleValues[index]
-                                )
-                            }
+                            logoStyle = value
                         }
                     )
                 }
 
-                StringInputPreference(
-                    preferences = sharedPreferences,
-                    key = "lyric_style_logo_base64_icon",
-                    title = stringResource(R.string.item_logo_base64_icon),
-                    dialogSummary = stringResource(R.string.item_logo_base64_icon_summary),
-                    startAction = {
-                        IconActions(painterResource(R.drawable.ic_music_note))
+                CheckboxPreference(
+                    title = stringResource(R.string.item_logo_style_custom),
+                    checked = logoStyle == LogoStyle.STYLE_LOGO_CUSTOM,
+                    onCheckedChange = {
+                        logoStyle = LogoStyle.STYLE_LOGO_CUSTOM
                     },
-                    maxLines = 4
+                    endActions = {
+                        IconButton(
+                            onClick = {
+                                showCustomLogoDialog.value = true
+                            },
+                            minWidth = 28.dp,
+                            minHeight = 28.dp
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.keyboard_24px),
+                                contentDescription = null
+                            )
+                        }
+                    }
                 )
             }
         }
@@ -228,15 +265,16 @@ fun LogoPage(
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
             ) {
-                val customColorEnabled = rememberBooleanPreference(
-                    sharedPreferences = sharedPreferences,
+
+                var isCustomColorEnabled by rememberBooleanPreference(
+                    sharedPreferences = preferences,
                     key = "lyric_style_logo_enable_custom_color",
                     defaultValue = LogoStyle.Defaults.ENABLE_CUSTOM_COLOR
                 )
                 SwitchPreference(
-                    checked = customColorEnabled.value,
+                    checked = isCustomColorEnabled,
                     onCheckedChange = {
-                        customColorEnabled.value = it
+                        isCustomColorEnabled = it
                     },
                     title = stringResource(R.string.item_logo_custom_color),
                     startAction = {
@@ -245,22 +283,22 @@ fun LogoPage(
                 )
 
                 LogoColorPreference(
-                    sharedPreferences,
+                    preferences,
                     "lyric_style_logo_color_light_mode",
                     defaultColor = Color.Black,
                     title = stringResource(R.string.item_logo_color_light),
-                    enabled = customColorEnabled.value,
+                    enabled = isCustomColorEnabled,
                     leftAction = {
                         IconActions(painterResource(R.drawable.ic_brightness7))
-                    },
+                    }
                 )
 
                 LogoColorPreference(
-                    sharedPreferences,
+                    preferences,
                     "lyric_style_logo_color_dark_mode",
                     defaultColor = Color.White,
                     title = stringResource(R.string.item_logo_color_dark),
-                    enabled = customColorEnabled.value,
+                    enabled = isCustomColorEnabled,
                     leftAction = {
                         IconActions(painterResource(R.drawable.ic_darkmode))
                     },
@@ -274,45 +312,125 @@ fun LogoPage(
 }
 
 @Composable
-private fun LogoGravity(sharedPreferences: SharedPreferences) {
-    val insertionOrder = sharedPreferences.getInt(
+private fun LogoGravity(preferences: SharedPreferences) {
+    var order by rememberIntPreference(
+        preferences,
         "lyric_style_logo_gravity",
         LogoStyle.Defaults.GRAVITY
     )
 
-    val selectedIndex = remember { mutableIntStateOf(0) }
+    val optionKeys = remember {
+        listOf(
+            BasicStyle.INSERTION_ORDER_BEFORE,
+            BasicStyle.INSERTION_ORDER_AFTER
+        )
+    }
 
-    val optionKeys = listOf(
-        BasicStyle.INSERTION_ORDER_BEFORE,
-        BasicStyle.INSERTION_ORDER_AFTER
-    )
+    val optionResIds = remember {
+        listOf(
+            R.string.item_logo_position_before,
+            R.string.item_logo_position_after
+        )
+    }
 
-    val options = listOf(
-        SpinnerEntry(title = stringResource(R.string.item_logo_position_before)),
-        SpinnerEntry(title = stringResource(R.string.item_logo_position_after)),
-    )
-
-    optionKeys.forEachIndexed { index, key ->
-        if (insertionOrder == key) {
-            selectedIndex.intValue = index
-        }
+    val selectedIndex = remember(order) {
+        val index = optionKeys.indexOf(order)
+        if (index != -1) index else 0
     }
 
     OverlaySpinnerPreference(
-        startAction = {
-            IconActions(painterResource(R.drawable.ic_stack))
-        },
+        startAction = { IconActions(painterResource(R.drawable.ic_stack)) },
         title = stringResource(R.string.item_logo_position),
-        items = options,
-        selectedIndex = selectedIndex.intValue,
-        onSelectedIndexChange = {
-            selectedIndex.intValue = it
-            sharedPreferences.editCommit {
-                putInt(
-                    "lyric_style_logo_gravity",
-                    optionKeys[it]
+        items = optionResIds.map { SpinnerEntry(title = stringResource(it)) },
+        selectedIndex = selectedIndex,
+        onSelectedIndexChange = { index ->
+            order = optionKeys[index]
+        }
+    )
+}
+
+@Composable
+private fun CustomLogoInputDialog(
+    preferences: SharedPreferences,
+    show: MutableState<Boolean>,
+    initialText: String,
+    onConfirm: (String) -> Unit,
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val textState = remember { mutableStateOf(initialText) }
+    val scrollState = rememberScrollState()
+
+    var colorful by rememberBooleanPreference(
+        preferences,
+        "lyric_style_logo_custom_colorful",
+        false
+    )
+
+    fun dismiss() {
+        keyboardController?.hide()
+        if (show.value) show.value = false
+    }
+
+    OverlayDialog(
+        title = stringResource(R.string.custom_logo_dialog_title),
+        summary = stringResource(R.string.custom_logo_dialog_summary),
+        show = show.value,
+        onDismissRequest = { dismiss() }
+    ) {
+        Column(
+            modifier = Modifier
+                .imePadding()
+                .fillMaxWidth()
+        ) {
+
+            Column(
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(scrollState)
+            ) {
+                TextField(
+                    value = textState.value,
+                    onValueChange = { textState.value = it },
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    maxLines = 12,
+                    singleLine = false,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            CheckboxPreference(
+                insideMargin = PaddingValues(horizontal = 16.dp),
+                modifier = Modifier.clip(ContinuousRoundedRectangle(16.dp)),
+                checked = colorful,
+                onCheckedChange = { colorful = it },
+                title = stringResource(R.string.item_logo_custom_colorful),
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = { dismiss() },
+                    modifier = Modifier.weight(1f)
+                )
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                TextButton(
+                    text = stringResource(R.string.action_confirm),
+                    onClick = {
+                        onConfirm(textState.value)
+                        dismiss()
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.textButtonColorsPrimary(),
                 )
             }
         }
-    )
+    }
 }

@@ -46,9 +46,9 @@ class AiTranslationProcessor : PostProcessor {
      * @return 如果功能已启用且配置有效（如 API Key 已填）则返回 true。
      */
     override fun isEnabled(style: LyricStyle): Boolean {
-        val targetStyle = style.packageStyle
-        val enabled = targetStyle.text.isAiTranslationEnable
-                && targetStyle.text.aiTranslationConfigs?.isUsable == true
+        val targetStyle = style.basicStyle
+        val enabled = targetStyle.isAiTranslationEnable
+                && targetStyle.aiTranslationConfigs?.isUsable == true
         if (!enabled) {
             Log.v(TAG, "Processor disabled: Config unusable or switch turned off.")
         }
@@ -72,7 +72,7 @@ class AiTranslationProcessor : PostProcessor {
         }
 
         // 处理自动忽略中文逻辑
-        if (style.packageStyle.text.isAiTranslationAutoIgnoreChinese && song.isFullyChinese()) {
+        if (style.basicStyle.isAiTranslationAutoIgnoreChinese && song.isFullyChinese()) {
             Log.d(
                 TAG,
                 "Skip process: Song [${song.name}] is fully Chinese and auto-ignore is enabled."
@@ -86,8 +86,8 @@ class AiTranslationProcessor : PostProcessor {
             return song
         }
 
-        val targetStyle = style.packageStyle
-        val translationConfig = targetStyle.text.aiTranslationConfigs ?: run {
+        val targetStyle = style.basicStyle
+        val translationConfig = targetStyle.aiTranslationConfigs ?: run {
             Log.w(TAG, "Abort process: translationConfigs is null.")
             return song
         }

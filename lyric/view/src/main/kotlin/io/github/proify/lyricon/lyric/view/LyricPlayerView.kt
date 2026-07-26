@@ -20,6 +20,7 @@ import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.model.extensions.TimingNavigator
 import io.github.proify.lyricon.lyric.model.interfaces.IRichLyricLine
 import io.github.proify.lyricon.lyric.view.line.LyricLineView
+import io.github.proify.lyricon.lyric.view.yoyo.AnimSpeed
 import io.github.proify.lyricon.lyric.view.yoyo.YoYoPresets
 import io.github.proify.lyricon.lyric.view.yoyo.animateUpdate
 import java.util.concurrent.CopyOnWriteArraySet
@@ -32,7 +33,7 @@ open class LyricPlayerView(
     companion object {
         internal const val KEY_SONG_TITLE_LINE: String = "TitleLine"
         private const val MIN_GAP_DURATION: Long = 8 * 1000
-        private const val TAG = "LyricPlayerView"
+        //private const val TAG = "LyricPlayerView"
     }
 
     private var isTextMode = false
@@ -118,7 +119,8 @@ open class LyricPlayerView(
                 updateTextLineViewStyle(style)
             }
             val old = textRecycleView.line
-            val preset = YoYoPresets.getById(style.animation.presetId)
+            val speed = AnimSpeed.fromPref(style.animation.speed)
+            val preset = YoYoPresets.getById(style.animation.presetId, speed)
 
             val line = RichLyricLine(
                 text = value.lines().first(),
@@ -237,7 +239,8 @@ open class LyricPlayerView(
             val recycle = getChildAtOrNull(0) as? RichLyricLineView
             val newLine = engine.toAdd[0]
             if (recycle != null) {
-                val preset by lazy { YoYoPresets.getById(style.animation.presetId) }
+                val speed = AnimSpeed.fromPref(style.animation.speed)
+                val preset by lazy { YoYoPresets.getById(style.animation.presetId, speed) }
                 if (style.animation.enabled && preset != null) {
                     activeLines[0] = newLine
                     recycle.beginAnimationTransition()

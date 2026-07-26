@@ -41,7 +41,6 @@ import io.github.proify.android.extensions.formatToString
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.compose.NumberTextField
 import io.github.proify.lyricon.app.compose.color
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.OverlayDialog
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.TimeFormatter
 import io.github.proify.lyricon.app.util.editCommit
@@ -54,6 +53,7 @@ import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.window.WindowDialog
 
 /**
  * Preference 值的摘要展示策略。
@@ -654,7 +654,7 @@ private fun InputDialogScaffold(
         }
     }
 
-    OverlayDialog(
+    WindowDialog(
         title = title,
         summary = summary,
         show = true,

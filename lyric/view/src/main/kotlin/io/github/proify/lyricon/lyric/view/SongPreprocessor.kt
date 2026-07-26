@@ -42,7 +42,7 @@ internal class SongPreprocessor(private val placeholder: TitleSlot) {
             val first = lyrics.first()
             if (first.begin > 0) {
                 var end = first.begin
-                if (end > 1) end--
+                if (end > 1) end-- //优化标题行和第一句歌词同时匹配的抖动
                 lyrics.add(0, titleLine(end, end, title))
             }
         }

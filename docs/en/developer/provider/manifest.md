@@ -6,6 +6,7 @@ so Lyricon can identify the app as a lyric provider.
 ## Required Metadata
 
 ```xml
+
 <application>
     <meta-data android:name="lyricon_module" android:value="true" />
 
@@ -26,12 +27,14 @@ so Lyricon can identify the app as a lyric provider.
 Module tags declare the lyric capabilities supported by the plugin. They are used for display only.
 
 ```xml
+
 <meta-data android:name="lyricon_module_tags" android:resource="@array/lyricon_module_tags" />
 ```
 
 Declare the array in `res/values/arrays.xml`:
 
 ```xml
+
 <string-array name="lyricon_module_tags">
     <item>$syllable</item>
     <item>$translation</item>

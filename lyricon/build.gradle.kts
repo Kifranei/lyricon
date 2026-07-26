@@ -9,9 +9,7 @@ configure<ApplicationExtension> {
     namespace = rootProject.extra["appPackageName"] as String
 
     compileSdk {
-        version = release(rootProject.extra.get("compileSdkVersion") as Int) {
-           /// minorApiLevel = 1
-        }
+        version = release(rootProject.extra.get("compileSdkVersion") as Int)
     }
 
     packaging {
@@ -48,6 +46,17 @@ configure<ApplicationExtension> {
                 "zh-rTW",
                 "zh-rHK"
             )
+        }
+    }
+
+    flavorDimensions += "locale"
+    productFlavors {
+        create("standard") {
+            dimension = "locale"
+        }
+        create("zh") {
+            dimension = "locale"
+            versionNameSuffix = "-zh"
         }
     }
 

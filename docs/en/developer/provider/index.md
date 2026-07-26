@@ -1,6 +1,7 @@
 # Provider
 
-Provider sends songs, lyrics, playback state, and display options to Lyricon. It is intended for music players and lyric provider plugins.
+Provider sends songs, lyrics, playback state, and display options to Lyricon. It is intended for
+music players and lyric provider plugins.
 
 ## Flow
 

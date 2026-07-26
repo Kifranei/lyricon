@@ -6,17 +6,7 @@
 
 package io.github.proify.lyricon.app.util
 
-import android.util.Log
-import io.github.proify.lyricon.app.LyriconApp
-import io.github.proify.lyricon.app.bridge.AppBridgeConstants
-import io.github.proify.lyricon.app.bridge.LyriconBridge
-import io.github.proify.lyricon.common.PackageNames
-
+@Deprecated("不需要手动调用，远程自动根据key变化刷新")
 fun updateRemoteLyricStyle() {
-    Log.d(LyriconApp.TAG, "updateRemoteLyricStyle called")
-
-    LyriconBridge.with(LyriconApp.get())
-        .to(PackageNames.SYSTEM_UI)
-        .key(AppBridgeConstants.REQUEST_UPDATE_LYRIC_STYLE)
-        .send()
+    //no op
 }

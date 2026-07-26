@@ -29,7 +29,6 @@ class AnchorViewTreeActivity : ViewTreeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        preferences.registerOnSharedPreferenceChangeListener(this)
         currentAnchor =
             preferences.getString("lyric_style_base_anchor", currentAnchor) ?: currentAnchor
     }
@@ -43,11 +42,6 @@ class AnchorViewTreeActivity : ViewTreeActivity() {
 
     override fun resetSettings() {
         saveAnchorId(BasicStyle.Defaults.ANCHOR)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        preferences.unregisterOnSharedPreferenceChangeListener(this)
     }
 
     internal fun saveAnchorId(id: String) {

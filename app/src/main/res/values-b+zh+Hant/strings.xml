@@ -6,7 +6,7 @@
 
 <resources>
     <string name="app_name">詞幕</string>
-    <string name="xposed_description">為狀態列加入即時歌詞功能</string>
+    <string name="app_description">為狀態列加入即時歌詞功能</string>
     <string name="action_confirm">確定</string>
     <string name="action_save">儲存</string>
     <string name="action_add">新增</string>
@@ -34,7 +34,7 @@
     <string name="activity_settings">設定</string>
     <string name="activity_about">關於</string>
     <string name="activity_anchor">錨點</string>
-    <string name="activity_view_rules">視圖規則</string>
+    <string name="activity_view_rules">視圖可見性規則</string>
     <string name="activity_basic_settings">基本設定</string>
     <string name="activity_app_style_manager">應用樣式管理</string>
     <string name="activity_lyric_provider_services">歌詞提供服務</string>
@@ -90,7 +90,7 @@
     <string name="item_text_marquee_infinite_scrolling">無限滾動</string>
     <string name="item_text_marquee_repeat_count">最大滾動次數</string>
     <string name="item_text_marquee_stop_at_end">結束時停止於末尾</string>
-    <string name="item_text_fading_style">邊緣淡出樣式</string>
+    <string name="item_text_word_progress_fading_style">漸變單詞進度樣式</string>
     <string name="item_text_syllable">逐字歌詞</string>
     <string name="item_text_relative_progress">相對進度</string>
     <string name="item_text_relative_progress_summary">歌詞缺少字詞時間軸時，將整行作為一個進度單元。</string>
@@ -113,6 +113,10 @@
     <string name="option_text_transition_config_none">關閉</string>
     <string name="item_logo_section_basic">基本</string>
     <string name="item_logo_enable">啟用</string>
+    <string name="item_anim_speed">動畫速度</string>
+    <string name="option_anim_speed_fast">快</string>
+    <string name="option_anim_speed_normal">正常</string>
+    <string name="option_anim_speed_slow">慢</string>
     <string name="item_logo_margins">邊距</string>
     <string name="item_logo_section_coloros">ColorOS</string>
     <string name="item_logo_hide_in_coloros_capsule_mode">在流體膠囊模式下隱藏</string>
@@ -148,8 +152,6 @@
     <string name="module_tag_translation">翻譯</string>
     <string name="no_provider_available">沒有可用的歌詞提供服務</string>
     <string name="item_base_lockscreen_hidden">在鎖定畫面隱藏</string>
-    <string name="item_base_double_tap_switch_clock">雙擊歌詞顯示時鐘</string>
-    <string name="item_base_double_tap_switch_clock_summary">歌詞播放時暫時隱藏歌詞並顯示時鐘，再次雙擊恢復歌詞。</string>
     <string name="option_provider_list_full">完整</string>
     <string name="option_provider_list_short">精簡</string>
     <string name="message_query_app_permission_required">需要讀取應用列表權限</string>
@@ -248,39 +250,14 @@
 
     <string name="item_view_on_github_summary">檢視 GitHub / 報告問題</string>
     <string name="item_open_source_licenses_summary">顯示第三方軟體的授權</string>
-    <string name="about_badge_live_lyrics">即時歌詞</string>
-    <string name="about_tagline">讓每一句歌詞都準時抵達</string>
-    <string name="tab_home">首頁</string>
-    <string name="tab_config">配置</string>
-    <string name="tab_provider">提供者</string>
-    <string name="tab_settings">設定</string>
-    <string name="home_info_app_version">軟體版本</string>
-    <string name="home_info_android_version">Android 版本</string>
-    <string name="home_info_device">裝置</string>
-    <string name="home_info_system_build">系統建置</string>
-    <string name="item_floating_bottom_bar">懸浮底欄</string>
-    <string name="item_summary_floating_bottom_bar">開啟以啟用懸浮風格的底部導覽列。</string>
-    <string name="item_show_desktop_icon">顯示桌面圖示</string>
-    <string name="item_show_desktop_icon_summary">在啟動器中顯示詞幕。</string>
-    <string name="toast_desktop_icon_hidden">桌面圖示已隱藏，可在詞幕設定中恢復。</string>
-    <string name="item_text_enable_rainbow_color">彩虹歌詞顏色</string>
-    <string name="item_text_sustain_glow">拉長音發光</string>
-    <string name="item_text_sustain_glow_summary">為長時間保持的歌詞音節加入柔和發光。</string>
-    <string name="item_base_dynamic_width">動態寬度</string>
-    <string name="item_base_dynamic_width_summary">讓歌詞視圖跟隨目前歌詞寬度變化。</string>
-    <string name="item_base_dynamic_width_auto_hide_clock">自動隱藏時鐘</string>
-    <string name="item_base_dynamic_width_auto_hide_clock_summary">動態寬度歌詞顯示時暫時隱藏時鐘。</string>
-    <string name="item_logo_base64_icon">Base64 圖示</string>
-    <string name="item_logo_base64_icon_summary">貼上 Base64 編碼圖片，用來覆蓋播放器圖示。</string>
-    <string name="section_about_info">資訊</string>
-    <string name="section_about_project">專案</string>
-    <string name="section_about_thanks">致謝</string>
-    <string name="section_about_open_source">開源專案</string>
-    <string name="item_base_lyric_style">基礎歌詞樣式</string>
-    <string name="item_summary_base_lyric_style">設定歌詞位置、大小和狀態列顯示規則。</string>
-    <string name="item_package_style_manager">應用樣式管理</string>
-    <string name="item_summary_package_style_manager">管理預設樣式，或為不同應用指定樣式。</string>
-    <string name="no_query_app_permission">未授予讀取已安裝應用的權限。</string>
-    <string name="item_core_service_disable">停用核心服務</string>
-    <string name="item_core_service_disable_summary">停用詞幕內建核心服務。需要重啟系統介面。</string>
+    <string name="item_logo_style_custom">自訂</string>
+    <string name="custom_logo_dialog_title">自訂圖示</string>
+    <string name="custom_logo_dialog_summary">貼上 Base64 編碼的圖片或原始 SVG 內容。</string>
+    <string name="item_logo_custom_colorful">此圖示為彩色圖示</string>
+    <string name="module_status_connecting">正在連線…</string>
+    <string name="section_base">基本</string>
+    <string name="section_translation">翻译</string>
+    <string name="section_visibility">可見性</string>
+    <string name="item_text_enable_enter_anim">歌詞進場動畫</string>
+    <string name="item_text_enable_enter_anim_summary">控制歌词可见性变换时的动</string>
 </resources>

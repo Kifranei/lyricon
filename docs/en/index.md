@@ -30,8 +30,8 @@ features:
 
 ## Quick Links
 
-| Content | Link |
-|:---|:---|
-| Install, activate, and configure | [App Guide](./app/index.md) |
-| Provider / Subscriber integration | [Developer Guide](./developer/index.md) |
-| Download | [Releases](https://github.com/tomakino/lyricon/releases) |
+| Content                           | Link                                                     |
+|:----------------------------------|:---------------------------------------------------------|
+| Install, activate, and configure  | [App Guide](./app/index.md)                              |
+| Provider / Subscriber integration | [Developer Guide](./developer/index.md)                  |
+| Download                          | [Releases](https://github.com/tomakino/lyricon/releases) |

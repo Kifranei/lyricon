@@ -1,70 +1,69 @@
 # App Guide
 
-Lyricon is an Android status bar lyrics tool based on Xposed / LSPosed. The app configures display behavior, while lyrics are rendered in the System UI scope.
+Lyricon is an Android status bar lyrics tool based on Xposed / LSPosed. The app manages position,
+visual style, lyric providers, and app preferences, while lyrics are injected into the System UI
+status bar area.
 
-## Requirements
+## Who It Is For
 
-- Android 9.0 (API 28) or later.
-- Root access.
-- LSPosed or a compatible Xposed framework.
+- Users who want current lyrics to stay visible in the Android status bar.
+- Users who want different lyric styles for different music players.
+- Users who need word-by-word lyrics, translated lyrics, cover color extraction, or status bar
+  visual customization.
+- Android users familiar with Root, LSPosed, and System UI scope configuration.
 
-## Installation
+## How It Works
 
-1. Download and install Lyricon from [Releases](https://github.com/tomakino/lyricon/releases).
+Lyricon works through three parts:
+
+| Part           | Purpose                                                            |
+|:---------------|:-------------------------------------------------------------------|
+| Lyricon app    | Manages configuration, styles, lyric providers, and backup/restore |
+| LSPosed module | Injects the lyric view into System UI                              |
+| Lyric provider | Provides lyric data from players or external sources               |
+
+The app itself does not directly draw status bar lyrics. Lyrics appear only after the module is
+enabled in LSPosed, the System UI scope is selected, and System UI has been restarted.
+
+## Main Features
+
+| Feature             | Description                                                            |
+|:--------------------|:-----------------------------------------------------------------------|
+| Status bar lyrics   | Shows current lyrics in the status bar area                            |
+| Word-by-word lyrics | Supports word-level progress and highlight when provided by the source |
+| Translated lyrics   | Supports provider translations and OpenAI-compatible translation       |
+| Per-app styles      | Uses separate text, logo, and animation styles for different players   |
+| Position tuning     | Supports anchor, insertion order, width, margins, and paddings         |
+| Logo display        | Supports provider logo, app icon, album cover, and custom logo         |
+| Animation effects   | Provides lyric transition animation presets                            |
+| Backup and restore  | Exports and restores Lyricon configuration                             |
+
+## Quick Start
+
+1. Download and install Lyricon from [Releases](https://github.com/proify/lyricon/releases).
 2. Enable the Lyricon module in LSPosed.
 3. Select the **System UI** scope.
 4. Restart System UI or reboot the device.
-5. Open Lyricon and confirm that the module is active.
+5. Install the lyric provider for your music player.
+6. Play a track and confirm that lyrics appear in the status bar.
+7. Return to Lyricon and adjust basic settings and app styles.
 
-## Plugins
+## Recommended Reading
 
-Lyricon uses plugins to adapt lyric sources for different music players.
+| Goal                                 | Page                                    |
+|:-------------------------------------|:----------------------------------------|
+| Install and activate                 | [Installation](./installation.md)       |
+| Check the first-run setup            | [First Run](./first-run.md)             |
+| Manage lyric sources                 | [Lyric Providers](./providers.md)       |
+| Adjust display position              | [Basic Settings](./basic-settings.md)   |
+| Configure text, logo, and animations | [App Styles](./app-style.md)            |
+| Configure AI translation             | [Translation](./translation.md)         |
+| Troubleshoot issues                  | [Troubleshooting](./troubleshooting.md) |
 
-- [LyricProvider repository](https://github.com/tomakino/LyricProvider)
+## Tips
 
-After installing a plugin, reopen the player and start playback. If lyrics are not shown, check whether the plugin supports the current player version.
-
-## Configuration
-
-| Option | Description |
-|:---|:---|
-| Position anchor | Sets the lyric position in the status bar |
-| Width | Limits the lyric area to avoid status icons |
-| Offset | Fine-tunes horizontal and vertical position |
-| Font style | Adjusts text appearance |
-| Logo | Controls player or plugin logo display |
-| Animation | Controls lyric transition and scrolling effects |
-
-Status bar layouts vary across ROMs. Confirm that lyrics can be displayed first, then adjust position and style.
-
-### Word Motion
-
-Word-by-word lyrics support an Apple Music-like rise-to-baseline motion. Inactive text stays
-slightly below the baseline, then rises into place as the highlight wave sweeps across it.
-
-- CJK lyrics animate per character.
-- Latin lyrics animate per word.
-- The lift factor controls the initial offset below the baseline: `text size * lift factor`.
-- The wave factor controls how wide the spatial wave is. Larger values create smoother staggered
-  motion and softer settling.
-
-Default factors are `0.055 / 2.8` for CJK and `0.065 / 3.6` for Latin text. Reduce the lift factor
-for subtler motion, or increase the wave factor for a more continuous sweeping effect.
-
-## Troubleshooting
-
-### Lyrics are not displayed
-
-- Ensure Lyricon is enabled in LSPosed.
-- Ensure the scope includes **System UI**.
-- Restart System UI or reboot the device.
-- Install the plugin for the current player.
-- Confirm that lyrics are available for the current track.
-
-### Incorrect position
-
-Adjust the position anchor, width, and offset in Lyricon.
-
-### No word-by-word lyrics or translation
-
-Word-by-word lyrics and translations depend on the lyric source. If the plugin does not provide these fields, Lyricon can only display plain lyrics.
+- Confirm that lyrics can be displayed before changing position and style.
+- Status bar structures vary across ROMs, so there is no universal anchor or width value.
+- Word-by-word lyrics and translations depend on what the lyric source provides.
+- After a system update, ROM update, LSPosed update, or Lyricon upgrade, restart System UI first if
+  display issues appear.

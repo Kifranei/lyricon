@@ -10,6 +10,14 @@ package io.github.proify.android.extensions
 
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
+
+
+var View.isVisibleIfChanged: Boolean
+    get() = isVisible
+    set(value) {
+        if (isVisible != value) isVisible = value
+    }
 
 var View.visibilityIfChanged: Int
     get() = visibility

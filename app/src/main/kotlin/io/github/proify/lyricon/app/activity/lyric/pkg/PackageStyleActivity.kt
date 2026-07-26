@@ -55,7 +55,6 @@ import io.github.proify.lyricon.app.compose.custom.miuix.basic.MiuixScrollBehavi
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.ScrollBehavior
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.app.util.editCommit
-import io.github.proify.lyricon.app.util.updateRemoteLyricStyle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -175,7 +174,7 @@ class PackageStyleActivity : AbstractLyricActivity() {
         PackageStyleViewModelFactory(
             context = this,
             onLyricStyleUpdate = {
-                updateRemoteLyricStyle()
+                //远程自动监听preferences更新，这里不需要实现
             },
         )
     }

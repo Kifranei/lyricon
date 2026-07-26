@@ -6,7 +6,6 @@
 
 package io.github.proify.android.extensions
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.content.SharedPreferences
 import io.github.proify.lyricon.common.util.safe
@@ -14,29 +13,24 @@ import io.github.proify.lyricon.common.util.safe
 fun Context.getPrivateSharedPreferences(name: String): SharedPreferences {
     return getSharedPreferences(name, Context.MODE_PRIVATE).safe()
 }
+//
+///**
+// * 尝试获取 world-readable 的 SharedPreferences
+// */
+//@SuppressLint("WorldReadableFiles")
+//fun Context.getWorldReadableSharedPreferences(name: String): SharedPreferences = try {
+//    @Suppress("DEPRECATION")
+//    getSharedPreferences(name, Context.MODE_WORLD_READABLE).safe()
+//} catch (_: Exception) {
+//    getPrivateSharedPreferences(name)
+//}
+//
+//@Suppress("unused")
+//fun Context.getSharedPreferences(name: String, worldReadable: Boolean): SharedPreferences =
+//    if (worldReadable) getWorldReadableSharedPreferences(name)
+//    else getPrivateSharedPreferences(name)
 
-/**
- * 尝试获取 world-readable 的 SharedPreferences，失败则返回私有的
- */
-@SuppressLint("WorldReadableFiles")
-fun Context.getWorldReadableSharedPreferences(name: String): SharedPreferences = try {
-    @Suppress("DEPRECATION")
-    getSharedPreferences(name, Context.MODE_WORLD_READABLE).safe()
-} catch (_: Exception) {
-    getPrivateSharedPreferences(name)
-}
-
-@Suppress("unused")
-fun Context.getSharedPreferences(name: String, worldReadable: Boolean): SharedPreferences =
-    if (worldReadable) getWorldReadableSharedPreferences(name)
-    else getPrivateSharedPreferences(name)
-
-/**
- * 默认的 SharedPreferences
- *
- * 注意：`BackupManager`不会备份此SharedPreferences的设置
- */
 val Context.defaultSharedPreferences: SharedPreferences
-    get() = getWorldReadableSharedPreferences(defaultSharedPreferencesName)
+    get() = getPrivateSharedPreferences(defaultSharedPreferencesName)
 
 val Context.defaultSharedPreferencesName: String get() = packageName + "_preferences"

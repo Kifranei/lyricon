@@ -8,7 +8,6 @@ package io.github.proify.lyricon.lyric.view.yoyo
 
 import android.view.animation.Interpolator
 import android.view.animation.OvershootInterpolator
-import androidx.interpolator.view.animation.FastOutLinearInInterpolator
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.daimajia.androidanimations.library.Techniques
 import io.github.proify.lyricon.lyric.view.yoyo.anim.MyTechniques
@@ -38,199 +37,472 @@ object YoYoPresets {
 
     // region Fade Animations
 
-    val Default: Pair<AnimConfig, AnimConfig>
-        get() = FadeOutLeft_FadeInRight
+    fun fadeOutFadeIn(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOut, 150L, speed.defaultOutInterpolator,
+            Techniques.FadeIn, 150L, speed.defaultInInterpolator
+        )
 
-    val FadeOut_FadeIn: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOut, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOut, 300L, speed.defaultOutInterpolator,
             Techniques.FadeIn, 300L, FastOutSlowInInterpolator()
         )
 
-    val FadeOutLeft_FadeInRight: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutLeft, 300L, FastOutLinearInInterpolator(),
-            Techniques.FadeInRight, 450L, OvershootInterpolator(1.6f)
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOut, 520L, speed.defaultOutInterpolator,
+            Techniques.FadeIn, 520L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun fadeOutLeftFadeInRight(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutLeft, 250L, speed.defaultOutInterpolator,
+            Techniques.FadeInRight, 350L, OvershootInterpolator(2f)
         )
 
-    val FadeOutLeft_FadeInUp: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutLeft, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutLeft, 350L, speed.defaultOutInterpolator,
+            Techniques.FadeInRight, 450L, OvershootInterpolator(2f)
+        )
+
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutLeft, 450L, speed.defaultOutInterpolator,
+            Techniques.FadeInRight, 550L, OvershootInterpolator(2.5f)
+        )
+    }
+
+    private fun fadeOutLeftFadeInUp(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutLeft, 150L, speed.defaultOutInterpolator,
+            Techniques.FadeInUp, 250L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutLeft, 300L, speed.defaultOutInterpolator,
             Techniques.FadeInUp, 450L, FastOutSlowInInterpolator()
         )
 
-    val FadeOutLeft_ZoomIn: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutLeft, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutLeft, 500L, speed.defaultOutInterpolator,
+            Techniques.FadeInUp, 750L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun fadeOutLeftZoomIn(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutLeft, 150L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 220L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutLeft, 300L, speed.defaultOutInterpolator,
             Techniques.ZoomIn, 400L, FastOutSlowInInterpolator()
         )
 
-    val FadeOutLeft_Landing: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutLeft, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutLeft, 500L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 680L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun fadeOutLeftLanding(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutLeft, 150L, speed.defaultOutInterpolator,
+            MyTechniques.LandingSoft, 400L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutLeft, 300L, speed.defaultOutInterpolator,
             MyTechniques.LandingSoft, 700L, FastOutSlowInInterpolator()
         )
 
-    val FadeOutRight_FadeInLeft: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutRight, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutLeft, 500L, speed.defaultOutInterpolator,
+            MyTechniques.LandingSoft, 1200L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun fadeOutRightFadeInLeft(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutRight, 150L, speed.defaultOutInterpolator,
+            Techniques.FadeInLeft, 250L, OvershootInterpolator(2.4f)
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutRight, 300L, speed.defaultOutInterpolator,
             Techniques.FadeInLeft, 450L, OvershootInterpolator(1.6f)
         )
 
-    val FadeOutRight_FadeInUp: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutRight, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutRight, 500L, speed.defaultOutInterpolator,
+            Techniques.FadeInLeft, 750L, OvershootInterpolator(1.1f)
+        )
+    }
+
+    private fun fadeOutRightFadeInUp(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutRight, 150L, speed.defaultOutInterpolator,
+            Techniques.FadeInUp, 250L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutRight, 300L, speed.defaultOutInterpolator,
             Techniques.FadeInUp, 450L, FastOutSlowInInterpolator()
         )
 
-    val FadeOutRight_ZoomIn: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutRight, 200L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutRight, 500L, speed.defaultOutInterpolator,
+            Techniques.FadeInUp, 750L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun fadeOutRightZoomIn(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutRight, 120L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 220L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutRight, 200L, speed.defaultOutInterpolator,
             Techniques.ZoomIn, 400L, FastOutSlowInInterpolator()
         )
 
-    val FadeOutRight_Landing: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutRight, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutRight, 350L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 680L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun fadeOutRightLanding(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutRight, 150L, speed.defaultOutInterpolator,
+            MyTechniques.LandingSoft, 400L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutRight, 300L, speed.defaultOutInterpolator,
             MyTechniques.LandingSoft, 700L, FastOutSlowInInterpolator()
         )
 
-    val FadeOutUp_FadeInUp: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutUp, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutRight, 500L, speed.defaultOutInterpolator,
+            MyTechniques.LandingSoft, 1200L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun fadeOutUpFadeInUp(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutUp, 150L, speed.defaultOutInterpolator,
+            Techniques.FadeInUp, 250L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutUp, 300L, speed.defaultOutInterpolator,
             Techniques.FadeInUp, 450L, FastOutSlowInInterpolator()
         )
 
-    val FadeOutDown_FadeInDown: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutDown, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutUp, 500L, speed.defaultOutInterpolator,
+            Techniques.FadeInUp, 750L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun fadeOutDownFadeInDown(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutDown, 150L, speed.defaultOutInterpolator,
+            Techniques.FadeInDown, 250L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutDown, 300L, speed.defaultOutInterpolator,
             Techniques.FadeInDown, 450L, FastOutSlowInInterpolator()
         )
+
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutDown, 500L, speed.defaultOutInterpolator,
+            Techniques.FadeInDown, 750L, speed.defaultInInterpolator
+        )
+    }
 
     // endregion
 
     // region Slide Animations
 
-    val SlideOutLeft_SlideInRight: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.SlideOutLeft, 300L, FastOutLinearInInterpolator(),
+    private fun slideOutLeftSlideInRight(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.SlideOutLeft, 150L, speed.defaultOutInterpolator,
+            Techniques.SlideInRight, 250L, OvershootInterpolator(2.8f)
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.SlideOutLeft, 300L, speed.defaultOutInterpolator,
             Techniques.SlideInRight, 450L, OvershootInterpolator(2.0f)
         )
 
-    val SlideOutLeft_FadeInUp: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.SlideOutLeft, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.SlideOutLeft, 500L, speed.defaultOutInterpolator,
+            Techniques.SlideInRight, 750L, OvershootInterpolator(1.4f)
+        )
+    }
+
+    private fun slideOutLeftFadeInUp(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.SlideOutLeft, 150L, speed.defaultOutInterpolator,
+            Techniques.FadeInUp, 250L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.SlideOutLeft, 300L, speed.defaultOutInterpolator,
             Techniques.FadeInUp, 450L, FastOutSlowInInterpolator()
         )
 
-    val SlideOutLeft_ZoomIn: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.SlideOutLeft, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.SlideOutLeft, 500L, speed.defaultOutInterpolator,
+            Techniques.FadeInUp, 750L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun slideOutLeftZoomIn(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.SlideOutLeft, 150L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 250L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.SlideOutLeft, 300L, speed.defaultOutInterpolator,
             Techniques.ZoomIn, 450L, FastOutSlowInInterpolator()
         )
 
-    val SlideOutLeft_Landing: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.SlideOutLeft, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.SlideOutLeft, 500L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 750L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun slideOutLeftLanding(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.SlideOutLeft, 150L, speed.defaultOutInterpolator,
+            MyTechniques.LandingSoft, 400L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.SlideOutLeft, 300L, speed.defaultOutInterpolator,
             MyTechniques.LandingSoft, 700L, FastOutSlowInInterpolator()
         )
 
-    val SlideOutRight_SlideInLeft: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.SlideOutRight, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.SlideOutLeft, 500L, speed.defaultOutInterpolator,
+            MyTechniques.LandingSoft, 1200L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun slideOutRightSlideInLeft(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.SlideOutRight, 150L, speed.defaultOutInterpolator,
+            Techniques.SlideInLeft, 250L, OvershootInterpolator(2.0f)
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.SlideOutRight, 300L, speed.defaultOutInterpolator,
             Techniques.SlideInLeft, 450L, OvershootInterpolator(1.5f)
         )
 
-    val SlideOutRight_FadeInUp: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.SlideOutRight, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.SlideOutRight, 500L, speed.defaultOutInterpolator,
+            Techniques.SlideInLeft, 750L, OvershootInterpolator(1.0f)
+        )
+    }
+
+    private fun slideOutRightFadeInUp(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.SlideOutRight, 150L, speed.defaultOutInterpolator,
+            Techniques.FadeInUp, 250L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.SlideOutRight, 300L, speed.defaultOutInterpolator,
             Techniques.FadeInUp, 450L, FastOutSlowInInterpolator()
         )
 
-    val SlideOutRight_ZoomIn: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.SlideOutRight, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.SlideOutRight, 500L, speed.defaultOutInterpolator,
+            Techniques.FadeInUp, 750L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun slideOutRightZoomIn(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.SlideOutRight, 150L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 250L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.SlideOutRight, 300L, speed.defaultOutInterpolator,
             Techniques.ZoomIn, 450L, FastOutSlowInInterpolator()
         )
 
-    val SlideOutRight_Landing: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.SlideOutRight, 300L, FastOutLinearInInterpolator(),
+        AnimSpeed.Slow -> pair(
+            Techniques.SlideOutRight, 500L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 750L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun slideOutRightLanding(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.SlideOutRight, 150L, speed.defaultOutInterpolator,
+            MyTechniques.LandingSoft, 400L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.SlideOutRight, 300L, speed.defaultOutInterpolator,
             MyTechniques.LandingSoft, 700L, FastOutSlowInInterpolator()
         )
+
+        AnimSpeed.Slow -> pair(
+            Techniques.SlideOutRight, 500L, speed.defaultOutInterpolator,
+            MyTechniques.LandingSoft, 1200L, speed.defaultInInterpolator
+        )
+    }
 
     // endregion
 
     // region Flip/Rotate/Zoom Animations
 
-    val FlipOutX_FlipInX: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FlipOutX, 300L, FastOutLinearInInterpolator(),
+    private fun flipOutXFlipInX(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FlipOutX, 150L, speed.defaultOutInterpolator,
+            Techniques.FlipInX, 250L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FlipOutX, 300L, speed.defaultOutInterpolator,
             Techniques.FlipInX, 450L, FastOutSlowInInterpolator()
         )
 
-    val FlipOutY_FlipInY: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FlipOutY, 300L, FastOutLinearInInterpolator(),
-            Techniques.FlipInY, 450L, FastOutSlowInInterpolator()
-        )
-
-    val RotateOut_RotateIn: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.RotateOut, 200L, FastOutLinearInInterpolator(),
-            Techniques.RotateIn, 600L, OvershootInterpolator(1.0f)
-        )
-
-    val ZoomOut_ZoomIn: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.ZoomOut, 200L, FastOutLinearInInterpolator(),
-            Techniques.ZoomIn, 400L, FastOutSlowInInterpolator()
-        )
-
-    val FadeOutLeft_ZoomInRight: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutLeft, 250L, FastOutLinearInInterpolator(),
-            Techniques.ZoomInRight, 600L, FastOutSlowInInterpolator()
-        )
-
-    val FadeOutRight_ZoomInLeft: Pair<AnimConfig, AnimConfig>
-        get() = pair(
-            Techniques.FadeOutRight, 250L, FastOutLinearInInterpolator(),
-            Techniques.ZoomInLeft, 600L, FastOutSlowInInterpolator()
-        )
-
-    // endregion
-
-    val registry: Map<String, () -> Pair<AnimConfig, AnimConfig>> by lazy {
-        mapOf(
-            "default" to { Default },
-            "fade_out_fade_in" to { FadeOut_FadeIn },
-            "fade_out_up_fade_in_up" to { FadeOutUp_FadeInUp },
-            "fade_out_down_fade_in_down" to { FadeOutDown_FadeInDown },
-            "fade_out_left_fade_in_right" to { FadeOutLeft_FadeInRight },
-            "fade_out_left_fade_in_up" to { FadeOutLeft_FadeInUp },
-            "fade_out_left_zoom_in" to { FadeOutLeft_ZoomIn },
-            "fade_out_left_landing" to { FadeOutLeft_Landing },
-            "fade_out_right_fade_in_left" to { FadeOutRight_FadeInLeft },
-            "fade_out_right_fade_in_up" to { FadeOutRight_FadeInUp },
-            "fade_out_right_zoom_in" to { FadeOutRight_ZoomIn },
-            "fade_out_right_landing" to { FadeOutRight_Landing },
-            "slide_out_left_slide_in_right" to { SlideOutLeft_SlideInRight },
-            "slide_out_left_fade_in_up" to { SlideOutLeft_FadeInUp },
-            "slide_out_left_zoom_in" to { SlideOutLeft_ZoomIn },
-            "slide_out_left_landing" to { SlideOutLeft_Landing },
-            "slide_out_right_slide_in_left" to { SlideOutRight_SlideInLeft },
-            "slide_out_right_fade_in_up" to { SlideOutRight_FadeInUp },
-            "slide_out_right_zoom_in" to { SlideOutRight_ZoomIn },
-            "slide_out_right_landing" to { SlideOutRight_Landing },
-            "flip_out_x_flip_in_x" to { FlipOutX_FlipInX },
-            "flip_out_y_flip_in_y" to { FlipOutY_FlipInY },
-            "rotate_out_rotate_in" to { RotateOut_RotateIn },
-            "zoom_out_zoom_in" to { ZoomOut_ZoomIn },
-            "fade_out_left_zoom_in_right" to { FadeOutLeft_ZoomInRight },
-            "fade_out_right_zoom_in_left" to { FadeOutRight_ZoomInLeft }
+        AnimSpeed.Slow -> pair(
+            Techniques.FlipOutX, 500L, speed.defaultOutInterpolator,
+            Techniques.FlipInX, 750L, speed.defaultInInterpolator
         )
     }
 
-    fun getById(id: String?): Pair<AnimConfig, AnimConfig>? = registry[id]?.invoke()
+    private fun flipOutYFlipInY(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FlipOutY, 150L, speed.defaultOutInterpolator,
+            Techniques.FlipInY, 250L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FlipOutY, 300L, speed.defaultOutInterpolator,
+            Techniques.FlipInY, 450L, FastOutSlowInInterpolator()
+        )
+
+        AnimSpeed.Slow -> pair(
+            Techniques.FlipOutY, 500L, speed.defaultOutInterpolator,
+            Techniques.FlipInY, 750L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun rotateOutRotateIn(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.RotateOut, 120L, speed.defaultOutInterpolator,
+            Techniques.RotateIn, 350L, OvershootInterpolator(1.5f)
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.RotateOut, 200L, speed.defaultOutInterpolator,
+            Techniques.RotateIn, 600L, OvershootInterpolator(1.0f)
+        )
+
+        AnimSpeed.Slow -> pair(
+            Techniques.RotateOut, 350L, speed.defaultOutInterpolator,
+            Techniques.RotateIn, 1000L, OvershootInterpolator(0.8f)
+        )
+    }
+
+    private fun zoomOutZoomIn(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.ZoomOut, 120L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 220L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.ZoomOut, 200L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 400L, FastOutSlowInInterpolator()
+        )
+
+        AnimSpeed.Slow -> pair(
+            Techniques.ZoomOut, 350L, speed.defaultOutInterpolator,
+            Techniques.ZoomIn, 680L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun fadeOutLeftZoomInRight(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutLeft, 130L, speed.defaultOutInterpolator,
+            Techniques.ZoomInRight, 350L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutLeft, 250L, speed.defaultOutInterpolator,
+            Techniques.ZoomInRight, 600L, FastOutSlowInInterpolator()
+        )
+
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutLeft, 420L, speed.defaultOutInterpolator,
+            Techniques.ZoomInRight, 1000L, speed.defaultInInterpolator
+        )
+    }
+
+    private fun fadeOutRightZoomInLeft(speed: AnimSpeed) = when (speed) {
+        AnimSpeed.Fast -> pair(
+            Techniques.FadeOutRight, 130L, speed.defaultOutInterpolator,
+            Techniques.ZoomInLeft, 350L, speed.defaultInInterpolator
+        )
+
+        AnimSpeed.Normal -> pair(
+            Techniques.FadeOutRight, 250L, speed.defaultOutInterpolator,
+            Techniques.ZoomInLeft, 600L, FastOutSlowInInterpolator()
+        )
+
+        AnimSpeed.Slow -> pair(
+            Techniques.FadeOutRight, 420L, speed.defaultOutInterpolator,
+            Techniques.ZoomInLeft, 1000L, speed.defaultInInterpolator
+        )
+    }
+
+    // endregion
+
+    val registry: Map<String, (AnimSpeed) -> Pair<AnimConfig, AnimConfig>> by lazy {
+        mapOf(
+            "default" to ::fadeOutLeftFadeInRight,
+            "fade_out_fade_in" to ::fadeOutFadeIn,
+            "fade_out_up_fade_in_up" to ::fadeOutUpFadeInUp,
+            "fade_out_down_fade_in_down" to ::fadeOutDownFadeInDown,
+            "fade_out_left_fade_in_right" to ::fadeOutLeftFadeInRight,
+            "fade_out_left_fade_in_up" to ::fadeOutLeftFadeInUp,
+            "fade_out_left_zoom_in" to ::fadeOutLeftZoomIn,
+            "fade_out_left_landing" to ::fadeOutLeftLanding,
+            "fade_out_right_fade_in_left" to ::fadeOutRightFadeInLeft,
+            "fade_out_right_fade_in_up" to ::fadeOutRightFadeInUp,
+            "fade_out_right_zoom_in" to ::fadeOutRightZoomIn,
+            "fade_out_right_landing" to ::fadeOutRightLanding,
+            "slide_out_left_slide_in_right" to ::slideOutLeftSlideInRight,
+            "slide_out_left_fade_in_up" to ::slideOutLeftFadeInUp,
+            "slide_out_left_zoom_in" to ::slideOutLeftZoomIn,
+            "slide_out_left_landing" to ::slideOutLeftLanding,
+            "slide_out_right_slide_in_left" to ::slideOutRightSlideInLeft,
+            "slide_out_right_fade_in_up" to ::slideOutRightFadeInUp,
+            "slide_out_right_zoom_in" to ::slideOutRightZoomIn,
+            "slide_out_right_landing" to ::slideOutRightLanding,
+            "flip_out_x_flip_in_x" to ::flipOutXFlipInX,
+            "flip_out_y_flip_in_y" to ::flipOutYFlipInY,
+            "rotate_out_rotate_in" to ::rotateOutRotateIn,
+            "zoom_out_zoom_in" to ::zoomOutZoomIn,
+            "fade_out_left_zoom_in_right" to ::fadeOutLeftZoomInRight,
+            "fade_out_right_zoom_in_left" to ::fadeOutRightZoomInLeft
+        )
+    }
+
+    fun getById(id: String?, speed: AnimSpeed = AnimSpeed.Normal): Pair<AnimConfig, AnimConfig>? =
+        registry[id]?.invoke(speed)
 }
