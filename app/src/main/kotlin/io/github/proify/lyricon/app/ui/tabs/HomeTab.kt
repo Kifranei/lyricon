@@ -60,7 +60,7 @@ fun HomeTab(
 @Composable
 private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean) {
     val inspectionMode = LocalInspectionMode.current
-    val isActive = AppBridge.isModuleActive() || inspectionMode
+    val isActive = AppBridge.isActive() || inspectionMode
 
     val titleText = when {
         safeMode -> stringResource(id = R.string.module_status_system_ui_safe_mode)

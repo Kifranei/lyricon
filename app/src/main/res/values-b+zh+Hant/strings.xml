@@ -271,4 +271,27 @@
     <string name="section_visibility">可見性</string>
     <string name="item_text_enable_enter_anim">歌詞進場動畫</string>
     <string name="item_text_enable_enter_anim_summary">控制歌词可见性变换时的动</string>
+    <string name="tab_home">首頁</string>
+    <string name="tab_config">配置</string>
+    <string name="tab_provider">提供者</string>
+    <string name="tab_settings">設定</string>
+    <string name="home_info_app_version">軟體版本</string>
+    <string name="home_info_android_version">Android 版本</string>
+    <string name="home_info_device">裝置</string>
+    <string name="home_info_system_build">系統建置</string>
+    <string name="item_floating_bottom_bar">懸浮底欄</string>
+    <string name="item_summary_floating_bottom_bar">開啟以啟用懸浮風格的底部導覽列。</string>
+    <string name="item_show_desktop_icon">顯示桌面圖示</string>
+    <string name="item_show_desktop_icon_summary">在啟動器中顯示詞幕。</string>
+    <string name="toast_desktop_icon_hidden">桌面圖示已隱藏，可在詞幕設定中恢復。</string>
+    <string name="item_text_enable_rainbow_color">彩虹歌詞顏色</string>
+    <string name="item_text_sustain_glow">拉長音發光</string>
+    <string name="item_text_sustain_glow_summary">為長時間保持的歌詞音節加入柔和發光。</string>
+    <string name="item_base_lyric_style">基礎歌詞樣式</string>
+    <string name="item_summary_base_lyric_style">設定歌詞位置、大小和狀態列顯示規則。</string>
+    <string name="item_package_style_manager">應用樣式管理</string>
+    <string name="item_summary_package_style_manager">管理預設樣式，或為不同應用指定樣式。</string>
+    <string name="no_query_app_permission">未授予讀取已安裝應用的權限。</string>
+    <string name="item_core_service_disable">停用核心服務</string>
+    <string name="item_core_service_disable_summary">停用詞幕內建核心服務。需要重啟系統介面。</string>
 </resources>

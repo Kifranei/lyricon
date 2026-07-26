@@ -274,4 +274,27 @@
     <string name="dialog_summary_base_width_in_landscape">控制歌词视图在状态栏中可使用的最大宽度。</string>
     <string name="item_base_width_color_os_capsule_in_landscape"><![CDATA[宽度（流体云&横屏模式下）]]></string>
     <string name="dialog_summary_base_width_color_os_capsule_in_landscape">控制 ColorOS 流体云模式下使用的歌词视图宽度。</string>
+    <string name="tab_home">Home</string>
+    <string name="tab_config">Config</string>
+    <string name="tab_provider">Provider</string>
+    <string name="tab_settings">Settings</string>
+    <string name="home_info_app_version">App Version</string>
+    <string name="home_info_android_version">Android Version</string>
+    <string name="home_info_device">Device</string>
+    <string name="home_info_system_build">System Build</string>
+    <string name="item_floating_bottom_bar">Floating Bottom Bar</string>
+    <string name="item_summary_floating_bottom_bar">Enable to use floating style bottom navigation bar.</string>
+    <string name="item_show_desktop_icon">Show desktop icon</string>
+    <string name="item_show_desktop_icon_summary">Show Lyricon in the launcher.</string>
+    <string name="toast_desktop_icon_hidden">Desktop icon hidden. You can restore it from Lyricon settings.</string>
+    <string name="item_text_enable_rainbow_color">Rainbow lyric color</string>
+    <string name="item_text_sustain_glow">Sustain glow</string>
+    <string name="item_text_sustain_glow_summary">Add a soft glow on long held lyric syllables.</string>
+    <string name="item_base_lyric_style">Basic lyric style</string>
+    <string name="item_summary_base_lyric_style">Set lyric position, size and status-bar display rules.</string>
+    <string name="item_package_style_manager">Package style manager</string>
+    <string name="item_summary_package_style_manager">Manage default styles or assign styles per app.</string>
+    <string name="no_query_app_permission">Permission to read installed apps is not granted.</string>
+    <string name="item_core_service_disable">Disable core service</string>
+    <string name="item_core_service_disable_summary">Disable Lyricon built-in core service. Requires a System UI restart.</string>
 </resources>

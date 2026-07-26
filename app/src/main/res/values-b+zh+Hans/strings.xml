@@ -273,5 +273,28 @@
     <string name="section_translation">翻译</string>
     <string name="section_visibility">可见性</string>
     <string name="item_text_enable_enter_anim">歌词进场动画</string>
+    <string name="tab_home">主页</string>
+    <string name="tab_config">配置</string>
+    <string name="tab_provider">提供者</string>
+    <string name="tab_settings">设置</string>
+    <string name="home_info_app_version">软件版本</string>
+    <string name="home_info_android_version">安卓版本</string>
+    <string name="home_info_device">设备</string>
+    <string name="home_info_system_build">系统构建</string>
+    <string name="item_floating_bottom_bar">悬浮底栏</string>
+    <string name="item_summary_floating_bottom_bar">开启以启用悬浮风格的底部导航栏。</string>
+    <string name="item_show_desktop_icon">显示桌面图标</string>
+    <string name="item_show_desktop_icon_summary">在启动器中显示词幕。</string>
+    <string name="toast_desktop_icon_hidden">桌面图标已隐藏，可在词幕设置中恢复。</string>
+    <string name="item_text_enable_rainbow_color">彩虹歌词颜色</string>
+    <string name="item_text_sustain_glow">拉长音发光</string>
+    <string name="item_text_sustain_glow_summary">为长时间保持的歌词音节添加柔和发光。</string>
+    <string name="item_base_lyric_style">基础歌词样式</string>
+    <string name="item_summary_base_lyric_style">设置歌词位置、大小和状态栏显示规则。</string>
+    <string name="item_package_style_manager">应用样式管理</string>
+    <string name="item_summary_package_style_manager">管理默认样式，或为不同应用指定样式。</string>
+    <string name="no_query_app_permission">未授予读取已安装应用的权限。</string>
+    <string name="item_core_service_disable">禁用核心服务</string>
+    <string name="item_core_service_disable_summary">禁用词幕内置核心服务。需要重启系统界面。</string>
 
 </resources>
