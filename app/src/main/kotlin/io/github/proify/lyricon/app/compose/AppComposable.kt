@@ -30,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -50,9 +51,14 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.BaseActivity
+import androidx.compose.runtime.getValue
+import io.github.proify.android.extensions.defaultSharedPreferences
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.MiuixScrollBehavior
+import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.TopAppBar
+import io.github.proify.lyricon.app.compose.effect.BgEffectBackground
 import io.github.proify.lyricon.app.compose.theme.AppTheme
+import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -164,6 +170,12 @@ fun AppToolBarListContainer(
         val hazeState = remember { HazeState() }
         val scrollBehavior = MiuixScrollBehavior()
 
+        val flowingBackground by rememberBooleanPreference(
+            context.defaultSharedPreferences,
+            "enable_flowing_background",
+            false
+        )
+
         val titleText = remember(title) {
             when (title) {
                 is Int -> null
@@ -179,11 +191,16 @@ fun AppToolBarListContainer(
             } else {
                 0.dp
             }
+            // 流光背景：开启后 Scaffold 透明，底层铺关于页同款着色器流光；四个 Tab 页共用此容器
+            val scaffold = @Composable {
             Scaffold(
+                containerColor = if (flowingBackground) Color.Transparent
+                else MiuixTheme.colorScheme.surface,
                 bottomBar = bottomBar,
                 topBar = {
                     BlurTopAppBar(
-                        hazeState = hazeState,
+                        // 流光模式下顶栏不做 haze 模糊、保持透明，让底层流光透出覆盖顶栏区域
+                        hazeState = if (flowingBackground) null else hazeState,
                         navigationIcon = {
                             if (canBack) {
                                 NavigationBackIcon(backEvent = backEvent)
@@ -241,6 +258,34 @@ fun AppToolBarListContainer(
                         }
                     }
                 }
+            }
+            }
+
+            if (flowingBackground) {
+                // 用主题背景亮度实时判断明暗，避免全局 var（非响应式）滞后导致暗色误用亮色流光
+                val isDarkBg = MiuixTheme.colorScheme.background.luminance() < 0.5f
+                BgEffectBackground(
+                    dynamicBackground = true,
+                    modifier = Modifier.fillMaxSize(),
+                    isDarkTheme = isDarkBg,
+                ) {
+                    // 流光模式下让卡片（默认取 surfaceContainer 系列色）转为半透明，
+                    // 复用关于页的观感——透出底层流光，而不是不透明黑块
+                    val cs = MiuixTheme.colorScheme
+                    val a = if (isDarkBg) 0.42f else 0.55f
+                    MiuixTheme(
+                        colors = cs.copy(
+                            surfaceContainer = cs.surfaceContainer.copy(alpha = a),
+                            surfaceContainerHigh = cs.surfaceContainerHigh.copy(alpha = a),
+                            surfaceContainerHighest = cs.surfaceContainerHighest.copy(alpha = a),
+                            surfaceVariant = cs.surfaceVariant.copy(alpha = a),
+                            // 半透明卡片上分隔线会突出，流光模式下隐藏设置项之间的分界线
+                            dividerLine = Color.Transparent,
+                        ),
+                    ) { scaffold() }
+                }
+            } else {
+                scaffold()
             }
         }
     }

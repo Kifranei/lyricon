@@ -317,4 +317,6 @@
     <string name="item_base_xiaomi_island_auto_shrink">超级岛出现时缩短歌词</string>
     <string name="item_base_xiaomi_island_auto_shrink_summary">检测到超级岛显示时，歌词自动切换为胶囊模式宽度。</string>
     <string name="home_info_island_status">超级岛状态</string>
+    <string name="item_flowing_background">流光背景</string>
+    <string name="item_summary_flowing_background">把四个标签页的背景替换为关于页同款着色器流光（需 Android 13+）。</string>
 </resources>

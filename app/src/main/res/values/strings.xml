@@ -317,4 +317,6 @@
     <string name="item_base_xiaomi_island_auto_shrink">Shrink lyrics for super island</string>
     <string name="item_base_xiaomi_island_auto_shrink_summary">When the super island appears, switch lyrics to the capsule-mode width automatically.</string>
     <string name="home_info_island_status">Super island status</string>
+    <string name="item_flowing_background">Flowing background</string>
+    <string name="item_summary_flowing_background">Replace the four tab backgrounds with the same shader flow as the About page (Android 13+).</string>
 </resources>

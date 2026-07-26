@@ -314,4 +314,6 @@
     <string name="item_base_xiaomi_island_auto_shrink">超級島出現時縮短歌詞</string>
     <string name="item_base_xiaomi_island_auto_shrink_summary">偵測到超級島顯示時，歌詞自動切換為膠囊模式寬度。</string>
     <string name="home_info_island_status">超級島狀態</string>
+    <string name="item_flowing_background">流光背景</string>
+    <string name="item_summary_flowing_background">把四個標籤頁的背景替換為關於頁同款著色器流光（需 Android 13+）。</string>
 </resources>
