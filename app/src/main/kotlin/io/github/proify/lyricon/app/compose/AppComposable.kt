@@ -39,9 +39,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.fontscaling.MathUtils.lerp
-import com.kyant.backdrop.backdrops.LayerBackdrop
-import com.kyant.backdrop.backdrops.layerBackdrop
-import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -199,12 +199,13 @@ fun AppToolBarListContainer(
             ) { paddingValues ->
                 scaffoldContent()
 
+                // 不消费底栏高度：内容延伸到停靠底栏之后，底栏的背景模糊才能采样到内容；
+                // 列表用 contentPadding 避让底栏，视觉上不被遮挡。
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .layerBackdrop(bottomBarBackdrop)
                         .padding(top = paddingValues.calculateTopPadding())
-                        .padding(bottom = paddingValues.calculateBottomPadding())
                 ) {
 
                     AnimatedVisibility(
@@ -218,7 +219,10 @@ fun AppToolBarListContainer(
                                 .overScrollVertical()
                                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                                 .hazeSource(hazeState),
-                            contentPadding = PaddingValues(bottom = floatingBottomPadding),
+                            contentPadding = PaddingValues(
+                                bottom = floatingBottomPadding +
+                                        paddingValues.calculateBottomPadding()
+                            ),
                             content = content
                         )
                     }

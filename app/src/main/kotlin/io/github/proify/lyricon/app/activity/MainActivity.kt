@@ -7,6 +7,7 @@ package io.github.proify.lyricon.app.activity
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,11 +35,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -71,7 +78,16 @@ import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.EmojiInfiniteQueuePlayer
+import io.github.proify.lyricon.app.compose.LocalBottomBarBackdrop
+import io.github.proify.lyricon.app.compose.LocalFloatingBottomBarEnabled
+import io.github.proify.lyricon.app.compose.MainBottomBar
+import io.github.proify.lyricon.app.compose.MainBottomBarItem
 import io.github.proify.lyricon.app.compose.MaterialPalette
+import io.github.proify.lyricon.app.compose.theme.AppTheme
+import io.github.proify.lyricon.app.ui.tabs.ConfigPage
+import io.github.proify.lyricon.app.ui.tabs.HomeTab
+import io.github.proify.lyricon.app.ui.tabs.ProviderPage
+import io.github.proify.lyricon.app.ui.tabs.SettingsPage
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.OverlayDialog
 import io.github.proify.lyricon.app.event.SettingChangedEvent
@@ -96,8 +112,11 @@ import top.yukonga.miuix.kmp.basic.ProgressIndicatorDefaults.progressIndicatorCo
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Home
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
@@ -336,50 +355,96 @@ class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
         onRestartSystemUI: () -> Unit,
         onRestartApp: () -> Unit
     ) {
-        AppToolBarListContainer(
-            title = stringResource(R.string.app_name),
-            actions = { TopBarActions(showRestartMenuState, onRestartSystemUI, onRestartApp) },
-            scaffoldContent = {
-                if (model != null) RestartFailedDialog(showState = model.showRestartFailedDialog)
+        val context = LocalContext.current
+        val sharedPreferences = remember { context.defaultSharedPreferences }
+        var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+        var isFloating by remember {
+            mutableStateOf(sharedPreferences.getBoolean("enable_floating_nav_bar", false))
+        }
+        DisposableEffect(sharedPreferences) {
+            val listener = SharedPreferences.OnSharedPreferenceChangeListener { preferences, key ->
+                if (key == "enable_floating_nav_bar") {
+                    isFloating = preferences.getBoolean(key, false)
+                }
             }
-        ) {
-            item("status_card") {
-                val cardStatus = determineCardStatus(
-                    safeMode = model?.safeMode?.value ?: false,
-                    isWaitingForReboot = model?.isWaitingForReboot?.value ?: false,
-                    isMonet = model?.isMonet ?: AppThemeUtils.isEnableMonet(LocalContext.current),
-                    isModuleActive = model?.isModuleActive?.value ?: false,
-                    isServiceConnecting = model?.isServiceConnecting?.value ?: false,
-                    onRestartSystemUI = onRestartSystemUI
-                )
-                StatusCardItem(
-                    cardStatus = cardStatus,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp)
-                )
+            sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+            onDispose {
+                sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
             }
+        }
 
-            item("style_settings") {
-                StyleSettingsCard(
+        val viewModel = model ?: remember { MainViewModel() }
+        val bottomBarContent: @Composable () -> Unit = {
+            val items = listOf(
+                MainBottomBarItem(
+                    stringResource(R.string.tab_home),
+                    MiuixIcons.Home
+                ),
+                MainBottomBarItem(
+                    stringResource(R.string.tab_config),
+                    ImageVector.vectorResource(id = R.drawable.ic_palette_swatch_variant)
+                ),
+                MainBottomBarItem(
+                    stringResource(R.string.tab_provider),
+                    ImageVector.vectorResource(id = R.drawable.ic_extension)
+                ),
+                MainBottomBarItem(
+                    stringResource(R.string.tab_settings),
+                    ImageVector.vectorResource(id = R.drawable.ic_settings)
+                ),
+            )
+            MainBottomBar(
+                items = items,
+                selectedIndex = selectedIndex,
+                onSelected = { selectedIndex = it }
+            )
+        }
+
+        // 浮动液态玻璃底栏需要采样页面内容，所以在页面外层录制 backdrop 并以覆盖层绘制；
+        // 停靠底栏则交给页面 Scaffold 正常占位，避免列表尾部被遮挡。
+        val overlayBackdrop = rememberLayerBackdrop()
+        val pageBottomBar: @Composable () -> Unit = if (isFloating) ({}) else bottomBarContent
+
+        CompositionLocalProvider(
+            LocalFloatingBottomBarEnabled provides isFloating,
+            LocalBottomBarBackdrop provides overlayBackdrop,
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Box(
                     modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                )
-            }
-            item("provider_settings") {
-                ProviderSettingsCard(
-                    modifier = Modifier
-                        .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                        .fillMaxWidth()
-                )
-            }
-            item("other_settings") {
-                OtherSettingsCard(
-                    modifier = Modifier
-                        .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                        .fillMaxWidth()
-                )
+                        .fillMaxSize()
+                        .layerBackdrop(overlayBackdrop)
+                ) {
+                    when (selectedIndex) {
+                        0 -> HomeTab(
+                            model = viewModel,
+                            actions = {
+                                TopBarActions(showRestartMenuState, onRestartSystemUI, onRestartApp)
+                            },
+                            bottomBar = pageBottomBar
+                        )
+
+                        1 -> ConfigPage(isMonet = viewModel.isMonet, bottomBar = pageBottomBar)
+                        2 -> ProviderPage(bottomBar = pageBottomBar)
+                        3 -> SettingsPage(bottomBar = pageBottomBar)
+                    }
+                }
+
+                if (isFloating) {
+                    // 覆盖层在各页面的 AppTheme 之外，需要自己套主题，否则暗色下取到亮色配色
+                    AppTheme {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            bottomBarContent()
+                        }
+                    }
+                }
+
+                AppTheme {
+                    RestartFailedDialog(showState = viewModel.showRestartFailedDialog)
+                }
             }
         }
     }

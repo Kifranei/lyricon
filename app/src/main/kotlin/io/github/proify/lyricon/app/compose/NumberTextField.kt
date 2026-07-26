@@ -23,6 +23,7 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.basic.TextFieldDefaults
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
@@ -91,7 +92,7 @@ fun NumberTextField(
 
     Column(modifier = modifier) {
         TextField(
-            borderColor = borderColor,
+            colors = TextFieldDefaults.textFieldColors(borderColor = borderColor),
             label = label,
             value = textFieldValueState,
             onValueChange = { newValue ->

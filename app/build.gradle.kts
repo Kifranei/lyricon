@@ -170,7 +170,6 @@ dependencies {
 
     implementation(libs.aboutlibraries.core)
     implementation(libs.accompanist.drawablepainter)
-    implementation(libs.backdrop)
     implementation(libs.chrisbanes.haze)
     implementation(libs.bonsai.core)
     implementation(libs.capsule.android)

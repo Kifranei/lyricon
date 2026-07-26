@@ -1,14 +1,7 @@
 package io.github.proify.lyricon.app.compose
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
@@ -16,26 +9,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.kyant.backdrop.drawBackdrop
-import com.kyant.backdrop.effects.blur
 import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.Text
+import top.yukonga.miuix.kmp.blur.blur
+import top.yukonga.miuix.kmp.blur.drawBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 data class MainBottomBarItem(
@@ -54,21 +46,29 @@ fun MainBottomBar(
     if (!isFloating) {
         val isDark = CurrentThemeConfigs.isDark
         val navContentColor = if (isDark) Color.White else Color(0xFF111111)
-        val dividerColor = if (isDark) {
-            Color.White.copy(alpha = 0.14f)
+        val backdrop = LocalBottomBarBackdrop.current
+        // 停靠底栏也采用 InstallerX 同款的背景高斯模糊（有 backdrop 时），
+        // 半透明表面色叠加在模糊之上；莫奈开启时 surface 取动态色，模糊同样生效。
+        val surface = MiuixTheme.colorScheme.surfaceContainer
+        val decorated = if (backdrop != null) {
+            modifier.drawBackdrop(
+                backdrop = backdrop,
+                shape = { RectangleShape },
+                effects = { blur(24.dp.toPx()) },
+                onDrawSurface = { drawRect(surface.copy(alpha = if (isDark) 0.72f else 0.68f)) },
+            )
         } else {
-            Color.Black.copy(alpha = 0.08f)
+            modifier.background(if (isDark) Color(0xFF0B0B0D) else Color(0xFFF8F8FA))
         }
         MiuixTheme(
             colors = MiuixTheme.colorScheme.copy(
                 onSurfaceContainer = navContentColor,
-                surfaceVariant = dividerColor,
             ),
         ) {
             NavigationBar(
-                modifier = modifier,
-                color = if (isDark) Color(0xFF0B0B0D) else Color(0xFFF8F8FA),
-                showDivider = true,
+                modifier = decorated,
+                color = Color.Transparent,
+                showDivider = false,
             ) {
                 items.forEachIndexed { index, item ->
                     NavigationBarItem(
@@ -84,132 +84,48 @@ fun MainBottomBar(
         return
     }
 
-    val shape = RoundedCornerShape(30.dp)
+    val backdrop = LocalBottomBarBackdrop.current
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
-    val isDark = CurrentThemeConfigs.isDark
+
+    // FloatingBottomBar 用 selectedIndex lambda 实例作 remember/LaunchedEffect 的 key，
+    // 每次重组新建 lambda 会重置内部状态并因 drop(1) 丢掉动画，指示器不跟手；
+    // 这里通过 rememberUpdatedState 提供稳定 lambda。
+    val currentSelected by rememberUpdatedState(selectedIndex)
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, bottom = 12.dp + bottomInset),
+            .padding(bottom = 12.dp + bottomInset),
         contentAlignment = Alignment.Center,
     ) {
-        FloatingGlassBar(
-            shape = shape,
-            modifier = Modifier.fillMaxWidth(),
+        if (backdrop == null) return@Box
+        FloatingBottomBar(
+            selectedIndex = remember { { currentSelected } },
+            onSelected = onSelected,
+            backdrop = backdrop,
+            tabsCount = items.size,
+            mode = FloatingBottomBarMode.LiquidGlass,
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 5.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                items.forEachIndexed { index, item ->
-                    val selected = selectedIndex == index
-                    val progress = animateFloatAsState(
-                        targetValue = if (selected) 1f else 0f,
-                        animationSpec = tween(220),
-                        label = "main_bottom_bar_selected",
+            items.forEachIndexed { index, item ->
+                FloatingBottomBarItem(
+                    onClick = { onSelected(index) },
+                    modifier = Modifier.defaultMinSize(minWidth = 76.dp),
+                ) {
+                    Icon(
+                        modifier = Modifier.size(22.dp),
+                        imageVector = item.icon,
+                        contentDescription = item.label,
                     )
-                    val selectedContent = if (isDark) Color.White else Color(0xFF111111)
-                    val unselectedContent = if (isDark) {
-                        Color.White.copy(alpha = 0.56f)
-                    } else {
-                        Color.Black.copy(alpha = 0.48f)
-                    }
-                    val pillColor = if (isDark) {
-                        MiuixTheme.colorScheme.primary.copy(alpha = 0.28f)
-                    } else {
-                        MiuixTheme.colorScheme.primary.copy(alpha = 0.14f)
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .defaultMinSize(minWidth = 64.dp)
-                            .clip(RoundedCornerShape(24.dp))
-                            .background(pillColor.copy(alpha = pillColor.alpha * progress.value))
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = { onSelected(index) },
-                            )
-                            .padding(horizontal = 6.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(3.dp),
-                        ) {
-                            Icon(
-                                modifier = Modifier.size(18.dp),
-                                imageVector = item.icon,
-                                contentDescription = item.label,
-                                tint = if (selected) selectedContent else unselectedContent,
-                            )
-                            Text(
-                                text = item.label,
-                                fontSize = 11.sp,
-                                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                                color = if (selected) selectedContent else unselectedContent,
-                                maxLines = 1,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        }
-                    }
+                    Text(
+                        text = item.label,
+                        fontSize = 11.sp,
+                        lineHeight = 14.sp,
+                        maxLines = 1,
+                        softWrap = false,
+                        overflow = TextOverflow.Visible,
+                    )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun FloatingGlassBar(
-    shape: Shape,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    val backdrop = LocalBottomBarBackdrop.current
-    val isDark = CurrentThemeConfigs.isDark
-    val surface = if (isDark) {
-        Color(0xFF111114)
-    } else {
-        Color(0xFFF8F8FA)
-    }
-    val glassAlpha = if (isDark) 0.92f else 0.86f
-    val chromeTint = if (isDark) {
-        Color.Black.copy(alpha = 0.20f)
-    } else {
-        Color.White.copy(alpha = 0.32f)
-    }
-
-    val decorated = if (backdrop != null) {
-        modifier.drawBackdrop(
-            backdrop = backdrop,
-            shape = { shape },
-            effects = {
-                blur(6.dp.toPx())
-            },
-            onDrawSurface = {
-                drawRect(surface.copy(alpha = glassAlpha))
-            },
-        )
-    } else {
-        modifier.background(surface.copy(alpha = 0.92f), shape)
-    }
-
-    Box(
-        modifier = decorated
-            .clip(shape)
-            .background(chromeTint, shape)
-            .padding(1.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .clip(shape)
-                .background(Color.Transparent, shape),
-        ) {
-            content()
         }
     }
 }

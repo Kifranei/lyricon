@@ -32,12 +32,11 @@ androidsvg = "1.4"
 bonsai = "1.2.0"
 capsuleAndroid = "2.1.1-patch2"
 haze = "1.7.2"
-backdrop = "1.0.6"
 lottieCompose = "6.7.1"
-miuixUI = "0.9.1"
-miuixIcons = "0.9.1"
-miuixPreference = "0.9.1"
-miuixBlur = "0.9.1"
+miuixUI = "0.9.3"
+miuixIcons = "0.9.3"
+miuixPreference = "0.9.3"
+miuixBlur = "0.9.3"
 
 # Testing
 androidxJunit = "1.3.0"
@@ -83,7 +82,6 @@ androidsvg = { module = "com.caverock:androidsvg-aar", version.ref = "androidsvg
 bonsai-core = { module = "cafe.adriel.bonsai:bonsai-core", version.ref = "bonsai" }
 capsule-android = { module = "com.mocharealm.gaze:capsule-android", version.ref = "capsuleAndroid" }
 chrisbanes-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
-backdrop = { module = "io.github.kyant0:backdrop", version.ref = "backdrop" }
 lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "lottieCompose" }
 miuix-android = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuixUI" }
 miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference-android", version.ref = "miuixPreference" }
