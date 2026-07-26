@@ -30,6 +30,7 @@ internal class TextDrawer {
     var cjkWaveFactor = DEFAULT_CJK_WAVE_FACTOR
     var latinLiftFactor = DEFAULT_LATIN_LIFT_FACTOR
     var latinWaveFactor = DEFAULT_LATIN_WAVE_FACTOR
+    var sustainGlowEnabled = false
 
     val isRainbowBg get() = bgColors.size > 1
     val isRainbowHl get() = hlColors.size > 1

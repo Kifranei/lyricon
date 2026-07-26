@@ -31,6 +31,12 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
 
     var isCharMotionEnabled = true
 
+    var sustainGlowEnabled: Boolean
+        get() = textDrawer.sustainGlowEnabled
+        set(value) {
+            textDrawer.sustainGlowEnabled = value
+        }
+
     var cjkMotionLiftFactor: Float
         get() = textDrawer.cjkLiftFactor
         set(value) {

@@ -88,6 +88,14 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
             invalidate()
         }
 
+    var sustainGlowEnabled: Boolean
+        get() = syncRenderer.sustainGlowEnabled
+        set(value) {
+            if (syncRenderer.sustainGlowEnabled == value) return
+            syncRenderer.sustainGlowEnabled = value
+            invalidate()
+        }
+
     var hdrHighlightRatio: Float
         get() = syncRenderer.hdrHighlightRatio
         set(value) {
