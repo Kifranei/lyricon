@@ -15,8 +15,10 @@ import io.github.proify.lyricon.statusbarlyric.logo.CoverStrategy
 import io.github.proify.lyricon.subscriber.ActivePlayerListener
 import io.github.proify.lyricon.subscriber.ProviderInfo
 import io.github.proify.lyricon.xposed.logger.YLog
+import android.view.View
 import io.github.proify.lyricon.xposed.systemui.hook.HdrStatusBarController
 import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
+import io.github.proify.lyricon.xposed.systemui.hook.XiaomiIslandHooker
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager.MAIN_LOOPER
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
 import java.io.File
@@ -30,6 +32,7 @@ import java.io.File
  */
 object LyricViewController : ActivePlayerListener,
     OplusCapsuleHooker.CapsuleStateChangeListener,
+    XiaomiIslandHooker.IslandStateChangeListener,
     NotificationCoverHelper.OnCoverUpdateListener {
 
     private const val TAG = "LyricViewController"
@@ -68,13 +71,23 @@ object LyricViewController : ActivePlayerListener,
         for (i in controllers.indices) {
             controllers[i].lyricView.setPosition(currentLogicPosition)
         }
+        syncXiaomiIslandHide()
     }
+
+    /** ColorOS 胶囊当前是否显示 */
+    @Volatile
+    private var isOplusCapsuleShowing: Boolean = false
+
+    /** 小米超级岛当前是否想要显示（含被抑制中） */
+    @Volatile
+    private var isXiaomiIslandShowing: Boolean = false
 
     init {
         if (DEBUG) YLog.debug(TAG, "Initializing LyricViewController...")
         // 注册数据总线、系统钩子及封面更新监听
         LyricDataHub.addListener(this)
         OplusCapsuleHooker.registerListener(this)
+        XiaomiIslandHooker.registerListener(this)
         NotificationCoverHelper.registerListener(this)
     }
 
@@ -134,6 +147,8 @@ object LyricViewController : ActivePlayerListener,
         updateAllControllers { lyricView.setPlaying(isPlaying) }
 
         refreshHdrHighlightState()
+        // setPlaying 的视图动画在主线程稍后生效，post 一帧后再同步超级岛状态
+        mainHandler.post { syncXiaomiIslandHide() }
     }
 
     /**
@@ -194,33 +209,23 @@ object LyricViewController : ActivePlayerListener,
         updateAllControllers { updateLyricStyle(style) }
         updateCoverFile(currentCoverFile, force = true)
         refreshHdrHighlightState()
+        syncCapsuleWidthMode()
+        mainHandler.post { syncXiaomiIslandHide() }
         LyricDataHub.reprocessCurrentSong()
     }
 
     private fun refreshHdrHighlightState() {
         val enabled = isPlaying && LyricPrefs.isHdrHighlightEnabled()
         val ratio = if (enabled) LyricPrefs.getHdrRatio() else 1.0f
-        val localProbeEnabled = LyricPrefs.isHdrLocalProbeEnabled()
-        val surfaceProbeEnabled = LyricPrefs.isHdrSurfaceProbeEnabled()
-        val overlayProbeEnabled = LyricPrefs.isHdrOverlayProbeEnabled()
 
         YLog.info(
             TAG,
             "refreshHdrHighlightState: enabled=$enabled ratio=$ratio " +
-                    "localProbe=$localProbeEnabled surfaceProbe=$surfaceProbeEnabled " +
-                    "overlayProbe=$overlayProbeEnabled " +
                     "initialized=${HdrStatusBarController.isInitialized}"
         )
 
         updateAllControllers {
             lyricView.setHdrHighlightRatio(ratio)
-            updateHdrProbeState(
-                hdrEnabled = enabled,
-                ratio = ratio,
-                localProbeEnabled = localProbeEnabled,
-                surfaceProbeEnabled = surfaceProbeEnabled,
-                overlayProbeEnabled = overlayProbeEnabled
-            )
         }
 
         if (enabled && HdrStatusBarController.isInitialized) {
@@ -294,7 +299,48 @@ object LyricViewController : ActivePlayerListener,
      * @param isShowing 胶囊是否正在显示
      */
     override fun onColorOsCapsuleVisibilityChanged(isShowing: Boolean) {
-        updateAllControllers { lyricView.setOplusCapsuleVisibility(isShowing) }
+        isOplusCapsuleShowing = isShowing
+        syncCapsuleWidthMode()
+    }
+
+    /**
+     * 小米超级岛状态变更监听。
+     * 超级岛出现时按配置把歌词切换到胶囊模式宽度（自动缩短）。
+     */
+    override fun onXiaomiIslandVisibilityChanged(isShowing: Boolean) {
+        isXiaomiIslandShowing = isShowing
+        syncCapsuleWidthMode()
+    }
+
+    /**
+     * 汇总 ColorOS 胶囊与小米超级岛状态，驱动歌词的胶囊模式宽度。
+     * 开启"歌词显示时隐藏超级岛"后，超级岛会被抑制，不再触发缩短。
+     */
+    private fun syncCapsuleWidthMode() {
+        val baseStyle = LyricPrefs.baseStyle
+        val xiaomiShrink = isXiaomiIslandShowing &&
+                baseStyle.xiaomiIslandAutoShrinkEnabled &&
+                !baseStyle.xiaomiIslandTempHideEnabled
+        val capsuleMode = isOplusCapsuleShowing || xiaomiShrink
+        updateAllControllers { lyricView.setOplusCapsuleVisibility(capsuleMode) }
+    }
+
+    /**
+     * 同步"歌词显示时隐藏超级岛"状态：歌词正在实际展示时抑制超级岛，否则恢复。
+     * 由播放状态、进度帧与配置更新触发；[XiaomiIslandHooker.setHideByLyric] 内部有
+     * 同值早退，重复调用开销极小。
+     */
+    private fun syncXiaomiIslandHide() {
+        if (!XiaomiIslandHooker.isSupported()) return
+        val enabled = LyricPrefs.baseStyle.xiaomiIslandTempHideEnabled
+        val playing = isPlaying
+        val lyricVisible = StatusBarViewManager.controllers.any { controller ->
+            val view = controller.lyricView
+            view.isAttachedToWindow &&
+                    view.visibility == View.VISIBLE &&
+                    view.textView.shouldShow()
+        }
+        XiaomiIslandHooker.setHideByLyric(enabled && playing && lyricVisible)
     }
 
     /**

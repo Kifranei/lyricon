@@ -58,8 +58,6 @@ class StatusBarViewController(
     val context: Context = statusBarView.context.applicationContext
     val visibilityController: ViewVisibilityController = ViewVisibilityController(statusBarView)
     val lyricView: StatusBarLyric by lazy { createLyricView(currentLyricStyle) }
-    private var hdrSurfaceProbeView: HdrSurfaceProbeView? = null
-    private var hdrOverlayProbeController: HdrOverlayProbeController? = null
 
     private val clockId: Int by lazy { ResourceMapper.getIdByName(context, "clock") }
     private var lastAnchor = ""
@@ -73,6 +71,39 @@ class StatusBarViewController(
 
     private val onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         applyVisibilityRulesNow()
+        healAfterHierarchyChange()
+    }
+
+    private val onColorChangeListener = object : OnColorChangeListener {
+
+        private var colorFingerprint: String? = null
+        override fun onColorChanged(color: Int, darkIntensity: Float) {
+            val colorFingerprint = color.toString() + darkIntensity
+            if (colorFingerprint == this.colorFingerprint) return
+            this.colorFingerprint = colorFingerprint
+
+            updateStatusColor(SystemStatusBarColor(color, darkIntensity))
+        }
+    }
+
+    /**
+     * 亮暗色切换等场景下 SystemUI 会重建部分状态栏子视图：
+     * 时钟实例被替换会导致取色监听断流，歌词视图可能被移出父容器。
+     * 在全局布局回调里做轻量自愈（均有同状态早退，开销可忽略）。
+     */
+    private fun healAfterHierarchyChange() {
+        val clock = getClockView()
+        if (clock != null && clock !== colorMonitorView) {
+            colorMonitorView?.let { ClockColorMonitor.setListener(it, null) }
+            colorMonitorView = clock
+            ClockColorMonitor.setListener(clock, onColorChangeListener)
+            updateStatusColor(clock.currentSystemStatusBarColor())
+            YLog.info(TAG, "Clock view changed, color monitor re-registered")
+        }
+
+        if (!lyricView.isAttachedToWindow && statusBarView.isAttachedToWindow) {
+            checkLyricViewExists()
+        }
     }
 
     // --- 生命周期与初始化 ---
@@ -82,18 +113,6 @@ class StatusBarViewController(
         lyricView.addOnAttachStateChangeListener(lyricAttachListener)
         ScreenStateMonitor.addListener(this)
         lyricView.onPlayingChanged = { _ -> }
-
-        val onColorChangeListener = object : OnColorChangeListener {
-
-            private var colorFingerprint: String? = null
-            override fun onColorChanged(color: Int, darkIntensity: Float) {
-                val colorFingerprint = color.toString() + darkIntensity
-                if (colorFingerprint == this.colorFingerprint) return
-                this.colorFingerprint = colorFingerprint
-
-                updateStatusColor(SystemStatusBarColor(color, darkIntensity))
-            }
-        }
 
         colorMonitorView = getClockView()?.also {
             ClockColorMonitor.setListener(it, onColorChangeListener)
@@ -110,15 +129,6 @@ class StatusBarViewController(
         lyricView.removeOnAttachStateChangeListener(lyricAttachListener)
         ScreenStateMonitor.removeListener(this)
         lyricView.onPlayingChanged = null
-        updateHdrProbeState(
-            hdrEnabled = false,
-            ratio = 1.0f,
-            localProbeEnabled = false,
-            surfaceProbeEnabled = false,
-            overlayProbeEnabled = false
-        )
-        removeSurfaceProbeView()
-        removeOverlayProbeView()
         colorMonitorView?.let { ClockColorMonitor.setListener(it, null) }
         YLog.info(tag = TAG, "Lyric view destroyed for $statusBarView")
     }
@@ -199,49 +209,6 @@ class StatusBarViewController(
         systemStatusBarColor?.let { updateStatusColor(it) }
     }
 
-    fun updateHdrProbeState(
-        hdrEnabled: Boolean,
-        ratio: Float,
-        localProbeEnabled: Boolean,
-        surfaceProbeEnabled: Boolean,
-        overlayProbeEnabled: Boolean
-    ) {
-        lyricView.setHdrLocalProbe(
-            enabled = hdrEnabled && localProbeEnabled,
-            ratio = ratio
-        )
-
-        val shouldShowSurfaceProbe = hdrEnabled && surfaceProbeEnabled
-        if (shouldShowSurfaceProbe) {
-            val probeView = ensureSurfaceProbeLocation()
-            probeView?.setProbeEnabled(true, ratio)
-            YLog.info(
-                TAG,
-                "HDR probe state: hdr=$hdrEnabled ratio=$ratio local=$localProbeEnabled " +
-                        "surface=$surfaceProbeEnabled overlay=$overlayProbeEnabled " +
-                        "lyricAttached=${lyricView.isAttachedToWindow} " +
-                        "probeAttached=${probeView?.isAttachedToWindow}"
-            )
-        } else {
-            hdrSurfaceProbeView?.setProbeEnabled(false, ratio)
-            removeSurfaceProbeView()
-        }
-
-        val shouldShowOverlayProbe = hdrEnabled && overlayProbeEnabled
-        if (shouldShowOverlayProbe) {
-            ensureOverlayProbeLocation(ratio)
-        } else {
-            removeOverlayProbeView()
-        }
-
-        YLog.info(
-            TAG,
-            "HDR overlay probe state: hdr=$hdrEnabled ratio=$ratio overlay=$overlayProbeEnabled " +
-                    "lyricAttached=${lyricView.isAttachedToWindow} " +
-                    "controller=${hdrOverlayProbeController != null}"
-        )
-    }
-
     fun updateCoverThemeColors(coverFile: File?) {
         coverColorPaletteResult = null
         try {
@@ -303,8 +270,6 @@ class StatusBarViewController(
         lastAnchor = anchor
         lastInsertionOrder = baseStyle.insertionOrder
         internalRemoveLyricViewFlag = false
-        ensureSurfaceProbeLocationIfVisible()
-        ensureOverlayProbeLocationIfVisible()
 
         YLog.info(TAG, "Lyric injected: anchor $anchor, index $targetIndex")
         logLyricWidthState("injected", baseStyle, anchorParent)
@@ -370,69 +335,6 @@ class StatusBarViewController(
                     "parent=${parent?.javaClass?.name} parentWidth=${parent?.width} " +
                     "statusWidth=${statusBarView.width} lpClass=${lp?.javaClass?.name}"
         )
-    }
-
-    private fun ensureSurfaceProbeLocationIfVisible() {
-        if (hdrSurfaceProbeView?.isVisible == true) {
-            ensureSurfaceProbeLocation()
-        }
-    }
-
-    private fun ensureSurfaceProbeLocation(): HdrSurfaceProbeView? {
-        if (!lyricView.isAttachedToWindow) {
-            YLog.warning(TAG, "HDR Surface probe skipped: lyric view is not attached")
-            return null
-        }
-
-        val probeView = hdrSurfaceProbeView ?: HdrSurfaceProbeView(statusBarView.context).apply {
-            visibility = View.GONE
-            hdrSurfaceProbeView = this
-        }
-
-        val currentParent = probeView.parent as? ViewGroup
-        if (currentParent !== lyricView) {
-            currentParent?.removeView(probeView)
-            lyricView.addView(
-                probeView,
-                createSurfaceProbeLayoutParams()
-            )
-            YLog.info(TAG, "HDR Surface probe injected inside lyric view")
-        } else {
-            probeView.layoutParams = createSurfaceProbeLayoutParams()
-        }
-        return probeView
-    }
-
-    private fun removeSurfaceProbeView() {
-        val probeView = hdrSurfaceProbeView ?: return
-        (probeView.parent as? ViewGroup)?.removeView(probeView)
-    }
-
-    private fun ensureOverlayProbeLocationIfVisible() {
-        if (hdrOverlayProbeController != null) {
-            hdrOverlayProbeController?.updateLocation(lyricView)
-        }
-    }
-
-    private fun ensureOverlayProbeLocation(ratio: Float) {
-        val controller = hdrOverlayProbeController ?: HdrOverlayProbeController(statusBarView.context).also {
-            hdrOverlayProbeController = it
-        }
-        controller.show(lyricView, ratio)
-    }
-
-    private fun removeOverlayProbeView() {
-        hdrOverlayProbeController?.hide()
-        hdrOverlayProbeController = null
-    }
-
-    private fun createSurfaceProbeLayoutParams(): ViewGroup.LayoutParams {
-        val width = 36.dp
-        val height = 14.dp
-        return LinearLayout.LayoutParams(width, height).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            leftMargin = 4.dp
-        }
     }
 
     fun checkLyricViewExists() {

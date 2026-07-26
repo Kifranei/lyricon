@@ -13,6 +13,7 @@ import io.github.proify.lyricon.common.PackageNames
 import io.github.proify.lyricon.xposed.hook.GeneralHooker
 import io.github.proify.lyricon.xposed.logger.YLog
 import io.github.proify.lyricon.xposed.systemui.SystemUIHooker
+import io.github.proify.lyricon.xposed.systemui.hook.XiaomiIslandHooker
 
 /**
  * ooooo        oooooo   oooo ooooooooo.   ooooo   .oooooo.     .oooooo.   ooooo      ooo
@@ -35,6 +36,7 @@ class ModuleEntry : XposedModule() {
         private val scopes = listOf(
             PackageNames.APPLICATION,
             PackageNames.SYSTEM_UI,
+            PackageNames.MIUI_SYSTEM_UI_PLUGIN,
         )
 
         lateinit var instance: ModuleEntry
@@ -67,6 +69,15 @@ class ModuleEntry : XposedModule() {
         }
 
         YLog.info(TAG, "onPackageLoaded: $packageName")
+
+        // MIUI 状态栏插件包只用于超级岛追踪，不走通用 Application 钩子，
+        // 避免与宿主 SystemUI 回调在同进程内重复挂钩。
+        if (packageName == PackageNames.MIUI_SYSTEM_UI_PLUGIN) {
+            if (XiaomiIslandHooker.isSupported()) {
+                XiaomiIslandHooker.initialize(this, param.defaultClassLoader)
+            }
+            return
+        }
 
         GeneralHooker.hook(this, param)
         when (packageName) {

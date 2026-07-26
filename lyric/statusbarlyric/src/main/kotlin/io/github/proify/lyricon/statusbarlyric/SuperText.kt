@@ -7,6 +7,7 @@
 package io.github.proify.lyricon.statusbarlyric
 
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Typeface
 import android.os.Build
 import android.widget.TextView
@@ -18,6 +19,7 @@ import io.github.proify.android.extensions.dp
 import io.github.proify.android.extensions.setColorAlpha
 import io.github.proify.android.extensions.sp
 import io.github.proify.lyricon.lyric.style.LyricStyle
+import io.github.proify.lyricon.lyric.style.RainbowTextColor
 import io.github.proify.lyricon.lyric.style.TextStyle
 import io.github.proify.lyricon.lyric.view.AnimParams
 import io.github.proify.lyricon.lyric.view.Highlight
@@ -39,6 +41,28 @@ class SuperText(context: Context) : LyricPlayerView(context) {
         private const val TAG = "SuperText"
         private const val DEBUG = false
         private const val MAX_FONT_WEIGHT: Int = 1000
+
+        /** 预设彩虹渐变（暗色模式）：饱和明亮，一键开启无需手动配置 */
+        private val RAINBOW_COLORS = intArrayOf(
+            Color.parseColor("#FF4D4F"),
+            Color.parseColor("#FF9F43"),
+            Color.parseColor("#FFD93D"),
+            Color.parseColor("#2ED573"),
+            Color.parseColor("#1E90FF"),
+            Color.parseColor("#5352ED"),
+            Color.parseColor("#A55EEA")
+        )
+
+        /** 预设彩虹渐变（亮色模式）：适当压暗，保证白底可读 */
+        private val LIGHT_MODE_RAINBOW_COLORS = intArrayOf(
+            Color.parseColor("#C53A3D"),
+            Color.parseColor("#C06A00"),
+            Color.parseColor("#B28800"),
+            Color.parseColor("#1E8E3E"),
+            Color.parseColor("#1565C0"),
+            Color.parseColor("#3949AB"),
+            Color.parseColor("#7B1FA2")
+        )
     }
 
     var linkedTextView: TextView? = null
@@ -107,6 +131,7 @@ class SuperText(context: Context) : LyricPlayerView(context) {
                     latinLiftFactor = textStyle.wordMotionLatinLiftFactor,
                     latinWaveFactor = textStyle.wordMotionLatinWaveFactor,
                 ),
+                sustainGlow = textStyle.sustainGlowEnabled,
                 gradient = textStyle.gradientProgressStyle,
                 fadingEdge = textStyle.fadingEdgeLength.coerceAtLeast(0).dp,
                 scaleMultiLine = textStyle.scaleInMultiLine,
@@ -173,6 +198,9 @@ class SuperText(context: Context) : LyricPlayerView(context) {
     )
 
     private fun resolvePrimaryColor(textStyle: TextStyle): IntArray {
+        if (textStyle.enableRainbowTextColor) {
+            return resolveRainbowColors(textStyle).normal
+        }
         val customColor = textStyle.color(currentStatusColor.isLightMode)
         return if (textStyle.enableCustomTextColor && customColor?.normal?.isNotEmpty() == true) {
             customColor.normal
@@ -182,6 +210,9 @@ class SuperText(context: Context) : LyricPlayerView(context) {
     }
 
     private fun resolveBgColor(textStyle: TextStyle): IntArray {
+        if (textStyle.enableRainbowTextColor) {
+            return resolveRainbowColors(textStyle).background
+        }
         val customColor = textStyle.color(currentStatusColor.isLightMode)
         return when {
             textStyle.enableCustomTextColor && customColor?.background?.isNotEmpty() == true ->
@@ -195,6 +226,9 @@ class SuperText(context: Context) : LyricPlayerView(context) {
     }
 
     private fun resolveHighlightColor(textStyle: TextStyle): IntArray {
+        if (textStyle.enableRainbowTextColor) {
+            return resolveRainbowColors(textStyle).highlight
+        }
         val customColor = textStyle.color(currentStatusColor.isLightMode)
         return when {
             textStyle.enableCustomTextColor && customColor?.highlight?.isNotEmpty() == true ->
@@ -205,6 +239,36 @@ class SuperText(context: Context) : LyricPlayerView(context) {
 
             else -> currentStatusColor.color
         }
+    }
+
+    /**
+     * 彩虹歌词配色：优先使用用户在亮/暗色项里自定义的颜色，未配置则回退到预设彩虹渐变。
+     * 无需手动配置即可获得一条完整的彩虹渐变歌词。
+     */
+    private fun resolveRainbowColors(textStyle: TextStyle): RainbowTextColor {
+        val lightMode = currentStatusColor.isLightMode
+        val custom = textStyle.color(lightMode)
+        val fallback = defaultRainbowTextColor(lightMode)
+        return RainbowTextColor(
+            normal = custom?.normal?.takeIf { it.isNotEmpty() } ?: fallback.normal,
+            background = custom?.background?.takeIf { it.isNotEmpty() } ?: fallback.background,
+            highlight = custom?.highlight?.takeIf { it.isNotEmpty() } ?: fallback.highlight
+        )
+    }
+
+    private fun defaultRainbowTextColor(lightMode: Boolean): RainbowTextColor {
+        val normal = if (lightMode) LIGHT_MODE_RAINBOW_COLORS else RAINBOW_COLORS
+        val bgAlpha = if (lightMode) 0.26f else 0.45f
+        return RainbowTextColor(
+            normal = normal,
+            background = normal.map { it.withAlpha(bgAlpha) }.toIntArray(),
+            highlight = normal
+        )
+    }
+
+    private fun Int.withAlpha(ratio: Float): Int {
+        val alpha = (ratio.coerceIn(0f, 1f) * 255).toInt().coerceIn(0, 255)
+        return Color.argb(alpha, Color.red(this), Color.green(this), Color.blue(this))
     }
 
     private fun resolveTypeface(textStyle: TextStyle): Typeface {

@@ -234,18 +234,6 @@ object LyricPrefs {
         return baseStyle.hdrHighlightEnabled
     }
 
-    fun isHdrLocalProbeEnabled(): Boolean {
-        return baseStyle.hdrLocalProbeEnabled
-    }
-
-    fun isHdrSurfaceProbeEnabled(): Boolean {
-        return baseStyle.hdrSurfaceProbeEnabled
-    }
-
-    fun isHdrOverlayProbeEnabled(): Boolean {
-        return baseStyle.hdrOverlayProbeEnabled
-    }
-
     /* ---------------- helper classes ---------------- */
 
     /**

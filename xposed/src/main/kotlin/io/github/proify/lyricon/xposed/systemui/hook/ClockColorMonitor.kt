@@ -124,7 +124,7 @@ object ClockColorMonitor {
 
         if (tv.id != clockId) return
 
-        val listener = listeners[tv] ?: return
+        val listener = resolveListener(tv) ?: return
 
         val color = tv.currentTextColor
         val luminance = luminanceCache.getOrPut(color) {
@@ -132,5 +132,24 @@ object ClockColorMonitor {
         }
 
         listener.onColorChanged(color, luminance)
+    }
+
+    /**
+     * 解析监听器。主题切换等场景下 SystemUI 会重建时钟视图，
+     * 精确实例匹配会失效导致取色断流；此时回退到同一窗口（rootView）
+     * 内注册的监听器，并把注册迁移到新的时钟实例上。
+     */
+    private fun resolveListener(tv: TextView): OnColorChangeListener? {
+        listeners[tv]?.let { return it }
+
+        val root = tv.rootView
+        val fallback = listeners.entries.firstOrNull { (view, _) ->
+            view !== tv && view.rootView === root
+        } ?: listeners.entries.singleOrNull()
+        ?: return null
+
+        val listener = fallback.value
+        listeners[tv] = listener
+        return listener
     }
 }

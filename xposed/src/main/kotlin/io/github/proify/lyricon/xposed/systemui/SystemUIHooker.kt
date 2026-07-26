@@ -30,6 +30,7 @@ import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
 import io.github.proify.lyricon.xposed.systemui.hook.StatusBarDisableHooker
 import io.github.proify.lyricon.xposed.systemui.hook.StatusBarViewResolver
 import io.github.proify.lyricon.xposed.systemui.hook.ViewVisibilityTracker
+import io.github.proify.lyricon.xposed.systemui.hook.XiaomiIslandHooker
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricDataHub
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewController
@@ -135,6 +136,9 @@ object SystemUIHooker : PackageHooker() {
 
         ScreenStateMonitor.initialize(context)
         OplusCapsuleHooker.initialize(module, classLoader)
+        if (XiaomiIslandHooker.isSupported()) {
+            XiaomiIslandHooker.initialize(module, classLoader, context)
+        }
         if (HdrStatusBarController.isSupported()) {
             HdrStatusBarController.initialize(module, classLoader)
         }
@@ -263,6 +267,12 @@ object SystemUIHooker : PackageHooker() {
             onQuery(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE) {
                 reply(Bundle().apply {
                     putBoolean("result", isSafeMode)
+                })
+            }
+
+            onQuery(AppBridgeConstants.REQUEST_XIAOMI_ISLAND_STATUS) {
+                reply(Bundle().apply {
+                    putString("result", XiaomiIslandHooker.dumpStatus())
                 })
             }
         }
