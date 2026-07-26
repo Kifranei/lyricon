@@ -20,6 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:description="@string/app_description"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.DayNight">
 
         <activity

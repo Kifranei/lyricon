@@ -161,7 +161,7 @@ data class TextStyle(
         const val WORD_MOTION_LATIN_WAVE_FACTOR: Float = 3.6f
         const val SUSTAIN_GLOW_ENABLED: Boolean = false
 
-        const val TEXT_SIZE: Float = 0f
+        const val TEXT_SIZE: Float = 12f
         val MARGINS: RectF = RectF()
         val PADDINGS: RectF = RectF()
         const val REPEAT_OUTPUT: Boolean = false
@@ -227,13 +227,13 @@ data class TextStyle(
             Defaults.ENABLE_RAINBOW_TEXT_COLOR
         )
 
-        if (enableCustomTextColor) {
-            enableExtractCoverTextColor = false
-            enableExtractCoverTextGradient = false
-            enableRainbowTextColor = false
-        }
+        // 三种取色模式互斥：彩虹（内置渐变）> 自定义颜色 > 封面取色
         if (enableRainbowTextColor) {
             enableCustomTextColor = false
+            enableExtractCoverTextColor = false
+            enableExtractCoverTextGradient = false
+        }
+        if (enableCustomTextColor) {
             enableExtractCoverTextColor = false
             enableExtractCoverTextGradient = false
         }

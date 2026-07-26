@@ -75,6 +75,7 @@
     <string name="item_text_extract_cover_color">Extract cover color</string>
     <string name="item_text_extract_cover_gradient">Extract cover gradient</string>
     <string name="item_text_enable_custom_color">Custom color</string>
+    <string name="item_text_enable_custom_color_summary">Set colors per light/dark mode; add multiple colors to a slot for a rainbow gradient.</string>
     <string name="item_text_color_light_mode">Color (light mode)</string>
     <string name="item_text_color_dark_mode">Color (dark mode)</string>
     <string name="item_text_font">Font</string>
@@ -139,7 +140,7 @@
     <string name="item_base_insertion_before">Before</string>
     <string name="item_base_insertion_after">After</string>
     <string name="item_base_width">Width</string>
-    <string name="item_base_width_color_os_capsule">Width (Capsule mode)</string>
+    <string name="item_base_width_color_os_capsule">Width (island / capsule shown)</string>
     <string name="item_base_hdr_highlight">HDR highlight</string>
     <string name="item_base_hdr_highlight_summary">Use HDR brightness for the active lyric highlight when the device and system layer support it.</string>
     <string name="item_base_hdr_brightness_ratio">HDR brightness ratio</string>
@@ -221,7 +222,7 @@
     <string name="dialog_summary_base_margins">Sets the outside spacing around the whole lyric view, in pixels for left, top, right and bottom.</string>
     <string name="dialog_summary_base_paddings">Sets the inside spacing between the lyric content and its container edges, in pixels.</string>
     <string name="dialog_summary_base_width">Controls the maximum width available to the lyric view in the status bar.</string>
-    <string name="dialog_summary_base_width_color_os_capsule">Controls the lyric view width used when ColorOS Capsule mode is active.</string>
+    <string name="dialog_summary_base_width_color_os_capsule">Lyric view width used while the Xiaomi super island or ColorOS capsule is shown.</string>
     <string name="dialog_summary_base_hdr_brightness_ratio">Controls the HDR headroom multiplier used by the active lyric highlight. 1.0 disables extra brightness.</string>
     <string name="dialog_summary_base_blocked_words_regex">Hides lyric lines matching this regular expression. Leave empty to disable blocking.</string>
     <string name="dialog_summary_base_timeout_no_lyric">Time in seconds before hiding the lyric view when no lyric is available. Use 0 to never hide.</string>
@@ -272,8 +273,8 @@
     <string name="section_visibility">Visibility</string>
     <string name="item_base_width_in_landscape">宽度（横屏模式下）</string>
     <string name="dialog_summary_base_width_in_landscape">控制歌词视图在状态栏中可使用的最大宽度。</string>
-    <string name="item_base_width_color_os_capsule_in_landscape"><![CDATA[宽度（流体云&横屏模式下）]]></string>
-    <string name="dialog_summary_base_width_color_os_capsule_in_landscape">控制 ColorOS 流体云模式下使用的歌词视图宽度。</string>
+    <string name="item_base_width_color_os_capsule_in_landscape"><![CDATA[宽度（显示岛 / 横屏时）]]></string>
+    <string name="dialog_summary_base_width_color_os_capsule_in_landscape">控制小米超级岛或 ColorOS 胶囊显示时使用的歌词视图宽度。</string>
     <string name="tab_home">Home</string>
     <string name="tab_config">Config</string>
     <string name="tab_provider">Provider</string>
@@ -288,6 +289,7 @@
     <string name="item_show_desktop_icon_summary">Show Lyricon in the launcher.</string>
     <string name="toast_desktop_icon_hidden">Desktop icon hidden. You can restore it from Lyricon settings.</string>
     <string name="item_text_enable_rainbow_color">Rainbow lyric color</string>
+    <string name="item_text_enable_rainbow_color_summary">A built-in multi-color rainbow gradient, no manual color picking needed.</string>
     <string name="item_text_sustain_glow">Sustain glow</string>
     <string name="item_text_sustain_glow_summary">Add a soft glow on long held lyric syllables.</string>
     <string name="item_base_lyric_style">Basic lyric style</string>
@@ -297,4 +299,22 @@
     <string name="no_query_app_permission">Permission to read installed apps is not granted.</string>
     <string name="item_core_service_disable">Disable core service</string>
     <string name="item_core_service_disable_summary">Disable Lyricon built-in core service. Requires a System UI restart.</string>
+    <!-- About page (Halcyon-style) -->
+    <string name="about_project">Project</string>
+    <string name="about_acknowledgements">Acknowledgements</string>
+    <string name="about_open_source_projects">Open Source Projects</string>
+    <string name="about_summary_lyricon_upstream">Upstream project this fork is based on</string>
+    <string name="about_summary_installerx">Liquid glass bottom bar design</string>
+    <string name="about_summary_halcyon">About page design</string>
+    <string name="about_summary_miuix">HyperOS-style Compose UI components</string>
+    <string name="about_summary_liquid_glass">Liquid glass shader effects</string>
+    <string name="about_summary_libxposed">Modern Xposed module API</string>
+    <string name="about_summary_lsposed">Xposed framework implementation</string>
+    <string name="about_summary_haze">Background blur effects for Compose</string>
+    <string name="about_summary_lottie">Vector animation rendering</string>
+    <string name="item_base_xiaomi_island_temp_hide">Hide super island</string>
+    <string name="item_base_xiaomi_island_temp_hide_summary">Hide the HyperOS super island only while lyrics are showing; it is restored once lyrics disappear.</string>
+    <string name="item_base_xiaomi_island_auto_shrink">Shrink lyrics for super island</string>
+    <string name="item_base_xiaomi_island_auto_shrink_summary">When the super island appears, switch lyrics to the capsule-mode width automatically.</string>
+    <string name="home_info_island_status">Super island status</string>
 </resources>

@@ -237,6 +237,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                 SwitchPreference(
                     checked = isRainbowColorEnabled,
                     title = stringResource(R.string.item_text_enable_rainbow_color),
+                    summary = stringResource(R.string.item_text_enable_rainbow_color_summary),
                     startAction = { IconActions(painterResource(R.drawable.ic_palette)) },
                     onCheckedChange = {
                         isRainbowColorEnabled = it
@@ -249,19 +250,20 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                         }
                     }
                 )
+                // 彩虹开启时默认走内置渐变；亮/暗色项仍可选填以覆盖预设。
                 TextColorPreference(
                     preferences,
                     "lyric_style_text_rainbow_color_light_mode",
                     title = stringResource(R.string.item_text_color_light_mode),
                     leftAction = { IconActions(painterResource(R.drawable.ic_brightness7)) },
-                    enabled = isRainbowColorEnabled,
+                    enabled = isCustomColorEnabled || isRainbowColorEnabled,
                 )
                 TextColorPreference(
                     preferences,
                     "lyric_style_text_rainbow_color_dark_mode",
                     title = stringResource(R.string.item_text_color_dark_mode),
                     leftAction = { IconActions(painterResource(R.drawable.ic_darkmode)) },
-                    enabled = isRainbowColorEnabled,
+                    enabled = isCustomColorEnabled || isRainbowColorEnabled,
                 )
             }
         }

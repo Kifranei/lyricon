@@ -71,8 +71,13 @@ private fun rememberAppColors(): AppColors {
     val dark = resolveDarkMode(context)
 
     return when {
-        AppThemeUtils.isEnableMonet(context) ->
-            AppColors(platformDynamicColors(dark), dark)
+        AppThemeUtils.isEnableMonet(context) -> {
+            // miuix 的莫奈映射把 dividerLine 设成 Material You 的 outlineVariant，
+            // 会莫名多出明显分界线；覆盖为与非莫奈一致的淡色，保持无分界观感
+            val base = platformDynamicColors(dark)
+            val dividerLine = if (dark) Color(0xFF393939) else Color(0xFFE0E0E0)
+            AppColors(base.copy(dividerLine = dividerLine), dark)
+        }
 
         dark ->
             AppColors(appDarkColorScheme(), true)

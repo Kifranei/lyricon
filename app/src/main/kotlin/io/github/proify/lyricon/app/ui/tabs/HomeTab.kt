@@ -11,10 +11,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -26,8 +32,12 @@ import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.MainActivity.MainViewModel
 import io.github.proify.lyricon.app.bridge.AppBridge
+import io.github.proify.lyricon.app.bridge.AppBridgeConstants
+import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
+import io.github.proify.lyricon.app.util.Utils
+import io.github.proify.lyricon.common.PackageNames
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.Text
@@ -48,7 +58,11 @@ fun HomeTab(
     ) {
         item("status_card") {
             val safeMode = model.safeMode.value
-            HomeStatusCard(safeMode = safeMode, isMonet = model.isMonet)
+            HomeStatusCard(
+                safeMode = safeMode,
+                isMonet = model.isMonet,
+                isModuleActive = model.isModuleActive.value,
+            )
         }
 
         item("system_info") {
@@ -58,9 +72,11 @@ fun HomeTab(
 }
 
 @Composable
-private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean) {
+private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean, isModuleActive: Boolean) {
     val inspectionMode = LocalInspectionMode.current
-    val isActive = AppBridge.isActive() || inspectionMode
+    // 激活状态以 libxposed XposedService 绑定为准（LSPosed 1.0.2 标准探活）；
+    // AppBridge.isActive() 是恒 false 的占位自 hook 探针，模块侧从未实现对应 hook
+    val isActive = isModuleActive || AppBridge.isActive() || inspectionMode
 
     val titleText = when {
         safeMode -> stringResource(id = R.string.module_status_system_ui_safe_mode)

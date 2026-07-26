@@ -62,9 +62,9 @@ data class BasicStyle(
 
     var hdrHighlightEnabled: Boolean = Defaults.HDR_HIGHLIGHT_ENABLED,
     var hdrBrightnessRatio: Float = Defaults.HDR_BRIGHTNESS_RATIO,
-    var hdrLocalProbeEnabled: Boolean = Defaults.HDR_LOCAL_PROBE_ENABLED,
-    var hdrSurfaceProbeEnabled: Boolean = Defaults.HDR_SURFACE_PROBE_ENABLED,
-    var hdrOverlayProbeEnabled: Boolean = Defaults.HDR_OVERLAY_PROBE_ENABLED,
+
+    var xiaomiIslandTempHideEnabled: Boolean = Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
+    var xiaomiIslandAutoShrinkEnabled: Boolean = Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED,
 
     ) : AbstractStyle(), Parcelable {
 
@@ -195,17 +195,13 @@ data class BasicStyle(
             "lyric_style_base_hdr_brightness_ratio",
             Defaults.HDR_BRIGHTNESS_RATIO
         )
-        hdrLocalProbeEnabled = preferences.getBoolean(
-            "lyric_style_base_hdr_local_probe_enabled",
-            Defaults.HDR_LOCAL_PROBE_ENABLED
+        xiaomiIslandTempHideEnabled = preferences.getBoolean(
+            "lyric_style_base_xiaomi_island_temp_hide_enabled",
+            Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED
         )
-        hdrSurfaceProbeEnabled = preferences.getBoolean(
-            "lyric_style_base_hdr_surface_probe_enabled",
-            Defaults.HDR_SURFACE_PROBE_ENABLED
-        )
-        hdrOverlayProbeEnabled = preferences.getBoolean(
-            "lyric_style_base_hdr_overlay_probe_enabled",
-            Defaults.HDR_OVERLAY_PROBE_ENABLED
+        xiaomiIslandAutoShrinkEnabled = preferences.getBoolean(
+            "lyric_style_base_xiaomi_island_auto_shrink_enabled",
+            Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED
         )
     }
 
@@ -240,9 +236,15 @@ data class BasicStyle(
 
         editor.putBoolean("lyric_style_base_hdr_highlight_enabled", hdrHighlightEnabled)
         editor.putFloat("lyric_style_base_hdr_brightness_ratio", hdrBrightnessRatio)
-        editor.putBoolean("lyric_style_base_hdr_local_probe_enabled", hdrLocalProbeEnabled)
-        editor.putBoolean("lyric_style_base_hdr_surface_probe_enabled", hdrSurfaceProbeEnabled)
-        editor.putBoolean("lyric_style_base_hdr_overlay_probe_enabled", hdrOverlayProbeEnabled)
+
+        editor.putBoolean(
+            "lyric_style_base_xiaomi_island_temp_hide_enabled",
+            xiaomiIslandTempHideEnabled
+        )
+        editor.putBoolean(
+            "lyric_style_base_xiaomi_island_auto_shrink_enabled",
+            xiaomiIslandAutoShrinkEnabled
+        )
     }
 
     private fun getAiTranslationConfigs(preferences: SharedPreferences): AiTranslationConfigs {
@@ -348,11 +350,11 @@ data class BasicStyle(
     object Defaults {
         const val ANCHOR: String = CLOCK_VIEW_ID
         const val INSERTION_ORDER: Int = INSERTION_ORDER_BEFORE
-        const val WIDTH: Float = 100f
+        const val WIDTH: Float = 150f
         const val WIDTH_LAND: Float = 200f
 
-        const val WIDTH_IN_COLOROS_CAPSULE_MODE: Float = 70f
-        const val WIDTH_IN_COLOROS_CAPSULE_MODE_LAND: Float = 70f
+        const val WIDTH_IN_COLOROS_CAPSULE_MODE: Float = 120f
+        const val WIDTH_IN_COLOROS_CAPSULE_MODE_LAND: Float = 120f
 
         val MARGINS: RectF = RectF()
         val PADDINGS: RectF = RectF()
@@ -369,11 +371,10 @@ data class BasicStyle(
         val KEYWORD_HIDE_MATCH: List<String> = listOf()
         const val BLOCKED_WORDS_REGEX: String = ""
         const val CHINESE_CONVERSION_MODE: Int = CHINESE_CONVERSION_OFF
-        const val HDR_HIGHLIGHT_ENABLED: Boolean = true
+        const val HDR_HIGHLIGHT_ENABLED: Boolean = false
         const val HDR_BRIGHTNESS_RATIO: Float = 1.5f
-        const val HDR_LOCAL_PROBE_ENABLED: Boolean = false
-        const val HDR_SURFACE_PROBE_ENABLED: Boolean = false
-        const val HDR_OVERLAY_PROBE_ENABLED: Boolean = false
+        const val XIAOMI_ISLAND_TEMP_HIDE_ENABLED: Boolean = true
+        const val XIAOMI_ISLAND_AUTO_SHRINK_ENABLED: Boolean = true
     }
 
     companion object {

@@ -8,5 +8,7 @@
     <style name="Theme.SplashScreen" parent="Theme.SplashScreen.DayNight">
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/avd_anim</item>
         <item name="android:windowSplashScreenAnimationDuration">800</item>
+        <!-- 启动画面背景跟随 DayNight 的 colorBackground（暗色黑 / 亮色浅灰），避免暗色下亮色遮罩 -->
+        <item name="android:windowSplashScreenBackground">?android:colorBackground</item>
     </style>
 </resources>

@@ -75,6 +75,7 @@
     <string name="item_text_extract_cover_color">提取封面顏色</string>
     <string name="item_text_extract_cover_gradient">提取封面漸變色</string>
     <string name="item_text_enable_custom_color">自訂顏色</string>
+    <string name="item_text_enable_custom_color_summary">為亮色與暗色分別配置顏色；某一項配置多個顏色即為彩虹漸變。</string>
     <string name="item_text_color_light_mode">亮色模式顏色</string>
     <string name="item_text_color_dark_mode">暗色模式顏色</string>
     <string name="item_text_font">字型</string>
@@ -139,7 +140,7 @@
     <string name="item_base_insertion_before">之前</string>
     <string name="item_base_insertion_after">之後</string>
     <string name="item_base_width">寬度</string>
-    <string name="item_base_width_color_os_capsule">寬度（流體膠囊模式下）</string>
+    <string name="item_base_width_color_os_capsule">寬度（顯示島時）</string>
     <string name="item_base_hdr_highlight">HDR 高亮</string>
     <string name="item_base_hdr_highlight_summary">在裝置和系統圖層支援時，對目前歌詞高亮使用 HDR 亮度。</string>
     <string name="item_base_hdr_brightness_ratio">HDR 亮度倍率</string>
@@ -222,7 +223,7 @@
     <string name="dialog_summary_base_margins">設定整個歌詞視圖外側的留白，分別對應左、上、右、下，單位為像素。</string>
     <string name="dialog_summary_base_paddings">設定歌詞內容與容器邊緣之間的內部留白，單位為像素。</string>
     <string name="dialog_summary_base_width">控制歌詞視圖在狀態列中可使用的最大寬度。</string>
-    <string name="dialog_summary_base_width_color_os_capsule">控制 ColorOS 流體膠囊模式下使用的歌詞視圖寬度。</string>
+    <string name="dialog_summary_base_width_color_os_capsule">控制小米超級島或 ColorOS 膠囊顯示時使用的歌詞視圖寬度。</string>
     <string name="dialog_summary_base_hdr_brightness_ratio">控制目前歌詞高亮使用的 HDR headroom 倍率。1.0 表示不提升額外亮度。</string>
     <string name="dialog_summary_base_blocked_words_regex">隱藏符合此正則表示式的歌詞行。留空則不屏蔽。</string>
     <string name="dialog_summary_base_timeout_no_lyric">無可用歌詞時，經過多少秒後隱藏歌詞視圖。填 0 表示不隱藏。</string>
@@ -285,6 +286,7 @@
     <string name="item_show_desktop_icon_summary">在啟動器中顯示詞幕。</string>
     <string name="toast_desktop_icon_hidden">桌面圖示已隱藏，可在詞幕設定中恢復。</string>
     <string name="item_text_enable_rainbow_color">彩虹歌詞顏色</string>
+    <string name="item_text_enable_rainbow_color_summary">內建多彩虹漸變，無需手動配色即可使用。</string>
     <string name="item_text_sustain_glow">拉長音發光</string>
     <string name="item_text_sustain_glow_summary">為長時間保持的歌詞音節加入柔和發光。</string>
     <string name="item_base_lyric_style">基礎歌詞樣式</string>
@@ -294,4 +296,22 @@
     <string name="no_query_app_permission">未授予讀取已安裝應用的權限。</string>
     <string name="item_core_service_disable">停用核心服務</string>
     <string name="item_core_service_disable_summary">停用詞幕內建核心服務。需要重啟系統介面。</string>
+    <!-- 關於頁（Halcyon 風格） -->
+    <string name="about_project">項目</string>
+    <string name="about_acknowledgements">鳴謝</string>
+    <string name="about_open_source_projects">開源項目</string>
+    <string name="about_summary_lyricon_upstream">本分支基於的上游項目</string>
+    <string name="about_summary_installerx">液態玻璃底欄設計</string>
+    <string name="about_summary_halcyon">關於頁設計</string>
+    <string name="about_summary_miuix">HyperOS 風格 Compose 元件庫</string>
+    <string name="about_summary_liquid_glass">液態玻璃著色器效果</string>
+    <string name="about_summary_libxposed">現代化 Xposed 模組 API</string>
+    <string name="about_summary_lsposed">Xposed 框架實現</string>
+    <string name="about_summary_haze">Compose 背景模糊效果</string>
+    <string name="about_summary_lottie">向量動畫渲染</string>
+    <string name="item_base_xiaomi_island_temp_hide">隱藏超級島</string>
+    <string name="item_base_xiaomi_island_temp_hide_summary">僅在歌詞顯示時隱藏超級島，歌詞消失後自動恢復。</string>
+    <string name="item_base_xiaomi_island_auto_shrink">超級島出現時縮短歌詞</string>
+    <string name="item_base_xiaomi_island_auto_shrink_summary">偵測到超級島顯示時，歌詞自動切換為膠囊模式寬度。</string>
+    <string name="home_info_island_status">超級島狀態</string>
 </resources>

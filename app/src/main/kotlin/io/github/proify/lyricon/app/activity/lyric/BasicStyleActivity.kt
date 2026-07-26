@@ -180,7 +180,8 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                             IconActions(painterResource(R.drawable.ic_width_normal))
                         },
                     )
-                    if (Utils.isOPlus) {
+                    // 胶囊模式宽度：ColorOS 流体云与小米超级岛自动缩短共用
+                    if (Utils.isOPlus || Utils.isHyperOs3OrAbove) {
                         DoubleInputPreference(
                             preferences = preferences,
                             key = "lyric_style_base_width_in_coloros_capsule_mode",
@@ -276,56 +277,6 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         },
                     )
 
-                    var isHdrLocalProbeEnabled by rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_hdr_local_probe_enabled",
-                        BasicStyle.Defaults.HDR_LOCAL_PROBE_ENABLED
-                    )
-
-                    SwitchPreference(
-                        checked = isHdrLocalProbeEnabled,
-                        onCheckedChange = { isHdrLocalProbeEnabled = it },
-                        enabled = isHdrHighlightEnabled,
-                        startAction = {
-                            IconActions(painterResource(R.drawable.lightbulb_2_24px))
-                        },
-                        title = stringResource(R.string.item_base_hdr_local_probe),
-                        summary = stringResource(R.string.item_base_hdr_local_probe_summary),
-                    )
-
-                    var isHdrSurfaceProbeEnabled by rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_hdr_surface_probe_enabled",
-                        BasicStyle.Defaults.HDR_SURFACE_PROBE_ENABLED
-                    )
-
-                    SwitchPreference(
-                        checked = isHdrSurfaceProbeEnabled,
-                        onCheckedChange = { isHdrSurfaceProbeEnabled = it },
-                        enabled = isHdrHighlightEnabled,
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_brightness7))
-                        },
-                        title = stringResource(R.string.item_base_hdr_surface_probe),
-                        summary = stringResource(R.string.item_base_hdr_surface_probe_summary),
-                    )
-
-                    var isHdrOverlayProbeEnabled by rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_hdr_overlay_probe_enabled",
-                        BasicStyle.Defaults.HDR_OVERLAY_PROBE_ENABLED
-                    )
-
-                    SwitchPreference(
-                        checked = isHdrOverlayProbeEnabled,
-                        onCheckedChange = { isHdrOverlayProbeEnabled = it },
-                        enabled = isHdrHighlightEnabled,
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_brightness7))
-                        },
-                        title = stringResource(R.string.item_base_hdr_overlay_probe),
-                        summary = stringResource(R.string.item_base_hdr_overlay_probe_summary),
-                    )
                 }
             }
 
@@ -362,6 +313,39 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                     HideWhenNoLyric()
                     HideWhenNoUpdate()
                     HideWhenKeywords()
+
+                    if (Utils.isHyperOs3OrAbove) {
+                        var isXiaomiIslandTempHideEnabled by rememberBooleanPreference(
+                            preferences,
+                            "lyric_style_base_xiaomi_island_temp_hide_enabled",
+                            BasicStyle.Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED
+                        )
+                        SwitchPreference(
+                            checked = isXiaomiIslandTempHideEnabled,
+                            onCheckedChange = { isXiaomiIslandTempHideEnabled = it },
+                            startAction = {
+                                IconActions(painterResource(R.drawable.ic_visibility_off))
+                            },
+                            title = stringResource(R.string.item_base_xiaomi_island_temp_hide),
+                            summary = stringResource(R.string.item_base_xiaomi_island_temp_hide_summary),
+                        )
+
+                        var isXiaomiIslandAutoShrinkEnabled by rememberBooleanPreference(
+                            preferences,
+                            "lyric_style_base_xiaomi_island_auto_shrink_enabled",
+                            BasicStyle.Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED
+                        )
+                        SwitchPreference(
+                            checked = isXiaomiIslandAutoShrinkEnabled,
+                            onCheckedChange = { isXiaomiIslandAutoShrinkEnabled = it },
+                            enabled = !isXiaomiIslandTempHideEnabled,
+                            startAction = {
+                                IconActions(painterResource(R.drawable.ic_width_normal))
+                            },
+                            title = stringResource(R.string.item_base_xiaomi_island_auto_shrink),
+                            summary = stringResource(R.string.item_base_xiaomi_island_auto_shrink_summary),
+                        )
+                    }
                 }
             }
 

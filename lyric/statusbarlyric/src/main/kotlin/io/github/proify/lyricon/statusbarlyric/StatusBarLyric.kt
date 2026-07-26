@@ -64,10 +64,6 @@ class StatusBarLyric(
         }
     }
 
-    private val hdrProbeView: HdrProbeView = HdrProbeView(context).apply {
-        visibility = GONE
-    }
-
     // --- 对外状态 ---
 
     var currentStatusColor: StatusColor = StatusColor()
@@ -135,6 +131,9 @@ class StatusBarLyric(
      * 用于样式或尺寸突变时的过渡
      */
     private val singleLayoutTransition: LayoutTransition = LayoutTransitionX().apply {
+        // 不向状态栏父级层次传播动画：灵动岛/胶囊拖动引发的父级布局
+        // 会被传播动画放大成歌词与系统图标互相抽搐
+        setAnimateParentHierarchy(false)
         addTransitionListener(object : LayoutTransition.TransitionListener {
 
             override fun startTransition(
@@ -153,6 +152,7 @@ class StatusBarLyric(
     }
 
     private val singleVisibilityLayoutTransition: LayoutTransition = LayoutTransitionX().apply {
+        setAnimateParentHierarchy(false)
         setDuration(500)
         addTransitionListener(object : LayoutTransition.TransitionListener {
 
@@ -208,13 +208,6 @@ class StatusBarLyric(
                     weight = 1f
                 }
         )
-        addView(
-            hdrProbeView,
-            LayoutParams(36.dp, 14.dp).apply {
-                gravity = Gravity.CENTER_VERTICAL
-                leftMargin = 4.dp
-            }
-        )
 
         updateLogoLocation()
         applyInitialStyle(initialStyle)
@@ -246,11 +239,6 @@ class StatusBarLyric(
     fun setHdrHighlightRatio(ratio: Float) {
         textView.hdrHighlightRatio = ratio
         logoView.hdrHighlightRatio = ratio
-    }
-
-    fun setHdrLocalProbe(enabled: Boolean, ratio: Float) {
-        hdrProbeView.updateRatio(ratio)
-        hdrProbeView.isVisible = enabled
     }
 
     private var lastPlaying: Boolean? = null
@@ -354,6 +342,8 @@ class StatusBarLyric(
     }
 
     fun setOplusCapsuleVisibility(visible: Boolean) {
+        // 同状态重复调用不应重新武装过渡动画，否则胶囊/灵动岛拖动期间会反复触发布局动画
+        if (isOplusCapsuleShowing == visible) return
         isOplusCapsuleShowing = visible
         triggerSingleTransition()
         updateWidthInternal(currentStyle)

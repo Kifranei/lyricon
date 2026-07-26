@@ -6,10 +6,12 @@
 
 package io.github.proify.lyricon.app.util
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Process
 import androidx.browser.customtabs.CustomTabColorSchemeParams
 import androidx.browser.customtabs.CustomTabsIntent
@@ -32,6 +34,46 @@ object Utils {
         } catch (_: Exception) {
             false
         }
+    }
+
+    val isHyperOs3OrAbove: Boolean by lazy {
+        isXiaomiFamilyDevice() && detectHyperOsMajor() >= 3
+    }
+
+    private fun isXiaomiFamilyDevice(): Boolean {
+        val brand = Build.BRAND.orEmpty().lowercase()
+        val manufacturer = Build.MANUFACTURER.orEmpty().lowercase()
+        val product = Build.PRODUCT.orEmpty().lowercase()
+        return listOf(brand, manufacturer, product).any { source ->
+            source.contains("xiaomi") || source.contains("redmi") || source.contains("poco")
+        }
+    }
+
+    private fun detectHyperOsMajor(): Int {
+        val sources = listOfNotNull(
+            getSystemProperty("ro.system.build.version.incremental"),
+            getSystemProperty("ro.build.version.incremental"),
+            getSystemProperty("ro.vendor.build.version.incremental"),
+            getSystemProperty("ro.system.build.fingerprint"),
+            getSystemProperty("ro.vendor.build.fingerprint"),
+            Build.DISPLAY,
+            Build.FINGERPRINT
+        )
+        val regex = Regex("""(?i)\bOS(\d+)(?:\.\d+)*""")
+        return sources
+            .mapNotNull { source ->
+                regex.find(source)?.groupValues?.getOrNull(1)?.toIntOrNull()
+            }
+            .maxOrNull() ?: 0
+    }
+
+    @SuppressLint("PrivateApi")
+    private fun getSystemProperty(key: String): String? {
+        return runCatching {
+            val systemProperties = Class.forName("android.os.SystemProperties")
+            val get = systemProperties.getMethod("get", String::class.java, String::class.java)
+            (get.invoke(null, key, "") as? String)?.trim().orEmpty()
+        }.getOrNull()?.takeIf { it.isNotBlank() }
     }
 
 //    fun forceStop(packageName: String?): ShellUtils.CommandResult =
