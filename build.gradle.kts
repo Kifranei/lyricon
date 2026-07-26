@@ -11,8 +11,8 @@ plugins {
 }
 
 extra["appPackageName"] = "io.github.kifranei.lyricon.fork"
-extra["appVersionCode"] = 43
-extra["appVersionName"] = "1.0.30-beta13"
+extra["appVersionCode"] = 44
+extra["appVersionName"] = "1.0.30-beta14"
 extra["compileSdkVersion"] = 37
 extra["targetSdkVersion"] = 37
 extra["minSdkVersion"] = 29

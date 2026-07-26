@@ -108,6 +108,14 @@ class StatusBarLyric(
     // 当前生效的超时 Runnable
     private var lyricTimeoutTask: Runnable? = null
 
+    // 用户双击临时隐藏歌词（显示时钟），播放停止或再次双击时钟时复位
+    var userHideLyric = false
+        set(value) {
+            if (field == value) return
+            field = value
+            updateVisibility()
+        }
+
     // 跟随系统隐藏状态栏内容
     var isDisabledVisible = false
         set(value) {
@@ -279,6 +287,7 @@ class StatusBarLyric(
                 && textView.shouldShow()
                 && !lyricTimedOut
                 && !isDisabledVisible
+                && !userHideLyric
 
         if (shouldShow == isVisible) {
             return

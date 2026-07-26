@@ -231,6 +231,21 @@ private fun FloatingBarSetting() {
             floatingBarEnabled = it
         }
     )
+
+    var flowingBackgroundEnabled by rememberBooleanPreference(
+        sharedPreferences,
+        "enable_flowing_background",
+        false
+    )
+    SwitchPreference(
+        checked = flowingBackgroundEnabled,
+        startAction = { IconActions(painterResource(R.drawable.ic_palette)) },
+        title = stringResource(R.string.item_flowing_background),
+        summary = stringResource(R.string.item_summary_flowing_background),
+        onCheckedChange = {
+            flowingBackgroundEnabled = it
+        }
+    )
 }
 
 @Composable

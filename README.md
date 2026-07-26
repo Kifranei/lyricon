@@ -94,16 +94,11 @@
 - [**Kanade**](https://github.com/rcmiku/Kanade)
 - **Sollin Player**
 - [**QZ Music**](https://github.com/lqtmcstudio/QZMusic)
-
-#### 已适配了但没有你的播放器？请[提交 issue](https://github.com/tomakino/lyricon/issues)。
-
----
-
-## 🤝 友情链接
-
-- [**Halcyon**](https://github.com/Kifranei/Halcyon) — 本项目关于页与视觉设计的来源，一款注重体验的本地音乐播放器。
+- [**Halcyon**](https://github.com/Kifranei/Halcyon) — 注重体验的本地音乐播放器，也是本项目关于页与视觉设计的来源。
 - [**NeriPlayer**](https://github.com/cwuom/NeriPlayer) — 简洁优雅的音乐播放器。
 - [**棱镜音乐 PrismMusic**](https://github.com/Ryderwe/PrismMusic-Release) — 功能丰富的第三方音乐客户端。
+
+#### 已适配了但没有你的播放器？请[提交 issue](https://github.com/tomakino/lyricon/issues)。
 
 ---
 

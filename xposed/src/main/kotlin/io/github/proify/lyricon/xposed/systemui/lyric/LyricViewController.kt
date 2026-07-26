@@ -268,6 +268,14 @@ object LyricViewController : ActivePlayerListener,
     }
 
     /**
+     * 对所有控制器重刷翻译显示配置。
+     * 双击临时隐藏恢复歌词时调用，避免副行残留为原文/空行。
+     */
+    fun refreshTranslationDisplay() {
+        updateAllControllers { refreshTranslationVisibility(lyricView) }
+    }
+
+    /**
      * 根据当前用户配置和样式决定翻译行的显示状态。
      * @param view 状态栏歌词视图
      */

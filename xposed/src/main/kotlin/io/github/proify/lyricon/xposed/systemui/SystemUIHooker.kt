@@ -248,7 +248,11 @@ object SystemUIHooker : PackageHooker() {
     private fun addStatusBarView(view: ViewGroup) {
         view.doOnAttach {
             val target = view.rootView as? ViewGroup ?: return@doOnAttach
-            val controller = StatusBarViewController(target, LyricPrefs.getLyricStyle())
+            val controller = StatusBarViewController(
+                statusBarView = target,
+                currentLyricStyle = LyricPrefs.getLyricStyle(),
+                touchView = view
+            )
             StatusBarViewManager.add(controller)
 
             val isFirst = StatusBarViewManager.controllers.size == 1

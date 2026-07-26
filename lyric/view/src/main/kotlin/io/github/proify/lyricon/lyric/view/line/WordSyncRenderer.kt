@@ -375,7 +375,9 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
     private fun targetWidth(posMs: Long, model: LyricModel, word: WordModel? = null): Float {
         val w = word ?: model.wordTimingNavigator.first(posMs)
         return when {
-            w != null -> w.endPosition
+            // 末词的高亮目标取整行宽度（含墨迹溢出），否则斜体等字形
+            // 超出 advance 求和的尾部永远到不了高亮态
+            w != null -> if (w.next == null) max(w.endPosition, model.width) else w.endPosition
             posMs >= model.end -> model.width
             posMs <= model.begin -> 0f
             else -> progressAnimator.currentWidth

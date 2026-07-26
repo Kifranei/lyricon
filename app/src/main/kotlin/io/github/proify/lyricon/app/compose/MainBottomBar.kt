@@ -60,15 +60,19 @@ fun MainBottomBar(
         } else {
             modifier.background(if (isDark) Color(0xFF0B0B0D) else Color(0xFFF8F8FA))
         }
+        // 底栏保留顶部分隔线；单独给它一个可见的 dividerLine，
+        // 不受流光模式外层把 dividerLine 置透明的影响
         MiuixTheme(
             colors = MiuixTheme.colorScheme.copy(
                 onSurfaceContainer = navContentColor,
+                dividerLine = if (isDark) Color.White.copy(alpha = 0.14f)
+                else Color.Black.copy(alpha = 0.08f),
             ),
         ) {
             NavigationBar(
                 modifier = decorated,
                 color = Color.Transparent,
-                showDivider = false,
+                showDivider = true,
             ) {
                 items.forEachIndexed { index, item ->
                     NavigationBarItem(

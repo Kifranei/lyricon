@@ -94,16 +94,11 @@ This repository is a **personal enhanced fork** of [Lyricon](https://github.com/
 - [**Kanade**](https://github.com/rcmiku/Kanade)
 - **Sollin Player**
 - [**QZ Music**](https://github.com/lqtmcstudio/QZMusic)
-
-#### Adapted but your player is missing? Please [open an issue](https://github.com/tomakino/lyricon/issues).
-
----
-
-## 🤝 Related Projects
-
-- [**Halcyon**](https://github.com/Kifranei/Halcyon) — source of this project's About page and visual design; an experience-focused local music player.
+- [**Halcyon**](https://github.com/Kifranei/Halcyon) — an experience-focused local music player; also the source of this project's About page and visual design.
 - [**NeriPlayer**](https://github.com/cwuom/NeriPlayer) — a clean and elegant music player.
 - [**Prism Music**](https://github.com/Ryderwe/PrismMusic-Release) — a feature-rich third-party music client.
+
+#### Adapted but your player is missing? Please [open an issue](https://github.com/tomakino/lyricon/issues).
 
 ---
 

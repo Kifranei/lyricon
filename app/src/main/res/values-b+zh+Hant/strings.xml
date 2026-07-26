@@ -162,6 +162,8 @@
     <string name="module_tag_translation">翻譯</string>
     <string name="no_provider_available">沒有可用的歌詞提供服務</string>
     <string name="item_base_lockscreen_hidden">在鎖定畫面隱藏</string>
+    <string name="item_base_double_tap_switch_clock">雙擊暫時隱藏歌詞</string>
+    <string name="item_base_double_tap_switch_clock_summary">雙擊歌詞區域暫時隱藏歌詞並顯示時鐘，雙擊時鐘區域恢復歌詞。</string>
     <string name="option_provider_list_full">完整</string>
     <string name="option_provider_list_short">精簡</string>
     <string name="message_query_app_permission_required">需要讀取應用列表權限</string>
@@ -314,4 +316,6 @@
     <string name="item_base_xiaomi_island_auto_shrink">超級島出現時縮短歌詞</string>
     <string name="item_base_xiaomi_island_auto_shrink_summary">偵測到超級島顯示時，歌詞自動切換為膠囊模式寬度。</string>
     <string name="home_info_island_status">超級島狀態</string>
+    <string name="item_flowing_background">流光背景</string>
+    <string name="item_summary_flowing_background">把四個標籤頁的背景替換為關於頁同款著色器流光（需 Android 13+）。</string>
 </resources>

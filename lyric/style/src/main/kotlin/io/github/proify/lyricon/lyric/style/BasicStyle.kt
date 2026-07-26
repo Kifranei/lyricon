@@ -66,6 +66,8 @@ data class BasicStyle(
     var xiaomiIslandTempHideEnabled: Boolean = Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
     var xiaomiIslandAutoShrinkEnabled: Boolean = Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED,
 
+    var doubleTapSwitchClock: Boolean = Defaults.DOUBLE_TAP_SWITCH_CLOCK,
+
     ) : AbstractStyle(), Parcelable {
 
     fun getAutoWidth(isLand: Boolean, isOplusCapsuleShowing: Boolean): Float {
@@ -203,6 +205,10 @@ data class BasicStyle(
             "lyric_style_base_xiaomi_island_auto_shrink_enabled",
             Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED
         )
+        doubleTapSwitchClock = preferences.getBoolean(
+            "lyric_style_base_double_tap_switch_clock",
+            Defaults.DOUBLE_TAP_SWITCH_CLOCK
+        )
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -244,6 +250,10 @@ data class BasicStyle(
         editor.putBoolean(
             "lyric_style_base_xiaomi_island_auto_shrink_enabled",
             xiaomiIslandAutoShrinkEnabled
+        )
+        editor.putBoolean(
+            "lyric_style_base_double_tap_switch_clock",
+            doubleTapSwitchClock
         )
     }
 
@@ -375,6 +385,7 @@ data class BasicStyle(
         const val HDR_BRIGHTNESS_RATIO: Float = 1.5f
         const val XIAOMI_ISLAND_TEMP_HIDE_ENABLED: Boolean = true
         const val XIAOMI_ISLAND_AUTO_SHRINK_ENABLED: Boolean = true
+        const val DOUBLE_TAP_SWITCH_CLOCK: Boolean = false
     }
 
     companion object {

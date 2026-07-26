@@ -10,7 +10,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.os.Handler
+import android.view.GestureDetector
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
@@ -48,7 +51,10 @@ import kotlin.math.min
 @SuppressLint("DiscouragedApi")
 class StatusBarViewController(
     val statusBarView: ViewGroup,
-    var currentLyricStyle: LyricStyle
+    var currentLyricStyle: LyricStyle,
+    // Keep gesture observation on the actual status-bar layout. Touch events do not bubble
+    // from its children to the root view used for wide lyric layout injection.
+    private val touchView: ViewGroup = statusBarView
 ) : ScreenStateMonitor.ScreenStateListener {
     companion object {
         const val TAG = "StatusBarViewController"
@@ -68,6 +74,16 @@ class StatusBarViewController(
     private var coverColorPaletteResult: ColorPaletteResult? = null
     private var systemStatusBarColor: SystemStatusBarColor? = null
     private var lastStatusColorLogFingerprint: String? = null
+
+    // --- 双击临时隐藏歌词 ---
+    private var userShowClock = false
+    private var doubleTapSwitchEnabled = false
+    private var lyricDoubleTapDetector: GestureDetector? = null
+    private var clockDoubleTapDetector: GestureDetector? = null
+    private var doubleTapTouchObserver: View.OnTouchListener? = null
+    private var wrappedOriginalTouchListener: View.OnTouchListener? = null
+    private var listenerInfoField: java.lang.reflect.Field? = null
+    private var onTouchListenerField: java.lang.reflect.Field? = null
 
     private val onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
         applyVisibilityRulesNow()
@@ -104,6 +120,8 @@ class StatusBarViewController(
         if (!lyricView.isAttachedToWindow && statusBarView.isAttachedToWindow) {
             checkLyricViewExists()
         }
+
+        ensureDoubleTapObserverInstalled()
     }
 
     // --- 生命周期与初始化 ---
@@ -112,7 +130,10 @@ class StatusBarViewController(
         statusBarView.viewTreeObserver.addOnGlobalLayoutListener(onGlobalLayoutListener)
         lyricView.addOnAttachStateChangeListener(lyricAttachListener)
         ScreenStateMonitor.addListener(this)
-        lyricView.onPlayingChanged = { _ -> }
+        lyricView.onPlayingChanged = { playing ->
+            // 双击隐藏只在本次播放内生效，停止播放即复位
+            if (!playing) setUserShowClock(false)
+        }
 
         colorMonitorView = getClockView()?.also {
             ClockColorMonitor.setListener(it, onColorChangeListener)
@@ -129,6 +150,7 @@ class StatusBarViewController(
         lyricView.removeOnAttachStateChangeListener(lyricAttachListener)
         ScreenStateMonitor.removeListener(this)
         lyricView.onPlayingChanged = null
+        uninstallDoubleTapObserver()
         colorMonitorView?.let { ClockColorMonitor.setListener(it, null) }
         YLog.info(tag = TAG, "Lyric view destroyed for $statusBarView")
     }
@@ -190,6 +212,14 @@ class StatusBarViewController(
     fun updateLyricStyle(lyricStyle: LyricStyle) {
         this.currentLyricStyle = lyricStyle
         val basicStyle = lyricStyle.basicStyle
+
+        doubleTapSwitchEnabled = basicStyle.doubleTapSwitchClock
+        if (doubleTapSwitchEnabled) {
+            ensureDoubleTapObserverInstalled()
+        } else {
+            setUserShowClock(false)
+            uninstallDoubleTapObserver()
+        }
 
         val needUpdateLocation = lastAnchor != basicStyle.anchor
                 || lastInsertionOrder != basicStyle.insertionOrder
@@ -411,6 +441,7 @@ class StatusBarViewController(
     private var wasPlayingBeforeVisibilityUpdate: Boolean = false
 
     fun computeShouldApplyPlayingRules(): Boolean {
+        if (userShowClock) return false
         return isPlaying && when {
             lyricView.isDisabledVisible -> !lyricView.isHideOnLockScreen()
             lyricView.isVisible -> true
@@ -441,6 +472,121 @@ class StatusBarViewController(
 
     private fun createLyricView(style: LyricStyle) =
         StatusBarLyric(context, style, getClockView() as? TextView)
+
+    // --- 双击临时隐藏歌词 ---
+    //
+    // 触摸接入方式：包装 statusBarView 上已有的 OnTouchListener 并原样转发。
+    // 部分 ROM（HyperOS 等）的状态栏下拉手势依赖挂在该视图上的监听，
+    // 直接 setOnTouchListener 会把它顶掉，导致状态栏拉不下来；
+    // 因此只有成功读到现有监听（可为 null）时才安装，观察者自身从不消费事件。
+
+    private fun ensureDoubleTapObserverInstalled() {
+        if (!doubleTapSwitchEnabled) return
+        val current = readStatusBarTouchListener().getOrElse {
+            YLog.error(TAG, "Cannot inspect status bar touch listener, double-tap unavailable", it)
+            return
+        }
+        val observer = doubleTapTouchObserver ?: createDoubleTapObserver().also {
+            doubleTapTouchObserver = it
+        }
+        if (current === observer) return
+
+        // current 可能是系统自己的手势监听（也可能为 null），包装转发而不是替换
+        wrappedOriginalTouchListener = current
+        touchView.setOnTouchListener(observer)
+        YLog.info(TAG, "Double-tap touch observer installed, wrapped=${current?.javaClass?.name}")
+    }
+
+    private fun uninstallDoubleTapObserver() {
+        val observer = doubleTapTouchObserver ?: return
+        val current = readStatusBarTouchListener().getOrNull()
+        if (current === observer) {
+            touchView.setOnTouchListener(wrappedOriginalTouchListener)
+            // 仅在确认还原后清空：观察者若仍在链上，被包装的原监听不能丢
+            wrappedOriginalTouchListener = null
+        }
+    }
+
+    private fun readStatusBarTouchListener(): Result<View.OnTouchListener?> = runCatching {
+        val infoField = listenerInfoField
+            ?: View::class.java.getDeclaredField("mListenerInfo")
+                .apply { isAccessible = true }
+                .also { listenerInfoField = it }
+        val listenerInfo = infoField.get(touchView) ?: return@runCatching null
+        val touchField = onTouchListenerField
+            ?: listenerInfo.javaClass.getDeclaredField("mOnTouchListener")
+                .apply { isAccessible = true }
+                .also { onTouchListenerField = it }
+        touchField.get(listenerInfo) as? View.OnTouchListener
+    }
+
+    private fun createDoubleTapObserver(): View.OnTouchListener {
+        val mainHandler = Handler(context.mainLooper)
+        lyricDoubleTapDetector = GestureDetector(
+            context,
+            object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    if (doubleTapSwitchEnabled && isPlaying) setUserShowClock(true)
+                    return true
+                }
+            },
+            mainHandler
+        )
+        clockDoubleTapDetector = GestureDetector(
+            context,
+            object : GestureDetector.SimpleOnGestureListener() {
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    if (doubleTapSwitchEnabled && isPlaying) setUserShowClock(false)
+                    return true
+                }
+            },
+            mainHandler
+        )
+        return View.OnTouchListener { view, event ->
+            observeDoubleTapEvent(event)
+            // 永不消费：交还给被包装的系统监听，没有则返回 false，
+            // 让状态栏自身的 onTouchEvent（下拉手势）照常执行
+            wrappedOriginalTouchListener?.onTouch(view, event) ?: false
+        }
+    }
+
+    private fun observeDoubleTapEvent(event: MotionEvent) {
+        if (!doubleTapSwitchEnabled || !isPlaying) return
+        if (!userShowClock) {
+            if (lyricView.isShown && isTouchInside(lyricView, event)) {
+                lyricDoubleTapDetector?.onTouchEvent(event)
+            }
+        } else {
+            val clock = getClockView()
+            if (clock != null && clock.isShown && isTouchInside(clock, event)) {
+                clockDoubleTapDetector?.onTouchEvent(event)
+            }
+        }
+    }
+
+    private fun setUserShowClock(show: Boolean) {
+        if (userShowClock == show) return
+        userShowClock = show
+        lyricView.userHideLyric = show
+        applyVisibilityRulesNow()
+        if (!show) {
+            // 恢复歌词时重刷翻译显示配置，避免副行残留为原文/空行
+            LyricViewController.refreshTranslationDisplay()
+        }
+        YLog.info(TAG, "User double-tap switch: showClock=$show")
+    }
+
+    private fun isTouchInside(view: View, event: MotionEvent): Boolean {
+        val width = view.width
+        val height = view.height
+        if (width <= 0 || height <= 0) return false
+
+        val location = IntArray(2)
+        view.getLocationOnScreen(location)
+        val left = location[0].toFloat()
+        val top = location[1].toFloat()
+        return event.rawX in left..(left + width) && event.rawY in top..(top + height)
+    }
 
     fun highlightView(idName: String?) {
         YLog.info(TAG, "Highlighting view id:$idName")

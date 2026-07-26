@@ -310,6 +310,21 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         title = stringResource(R.string.item_base_lockscreen_hidden),
                     )
 
+                    var doubleTapSwitchClock by rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_double_tap_switch_clock",
+                        BasicStyle.Defaults.DOUBLE_TAP_SWITCH_CLOCK
+                    )
+                    SwitchPreference(
+                        checked = doubleTapSwitchClock,
+                        onCheckedChange = { doubleTapSwitchClock = it },
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_visibility_off))
+                        },
+                        title = stringResource(R.string.item_base_double_tap_switch_clock),
+                        summary = stringResource(R.string.item_base_double_tap_switch_clock_summary),
+                    )
+
                     HideWhenNoLyric()
                     HideWhenNoUpdate()
                     HideWhenKeywords()

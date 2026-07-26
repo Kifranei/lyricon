@@ -351,6 +351,7 @@ internal class TextDrawer {
                     drawX = word.startPosition,
                     unitStart = word.startPosition,
                     unitEnd = word.endPosition,
+                    rightOverhang = word.rightOverhang,
                     highlightWidth = highlightWidth,
                     clipStart = clipStart,
                     clipEnd = clipEnd,
@@ -373,6 +374,7 @@ internal class TextDrawer {
                     drawX = charStart,
                     unitStart = charStart,
                     unitEnd = charEnd,
+                    rightOverhang = word.charRightOverhangs[i],
                     highlightWidth = highlightWidth,
                     clipStart = clipStart,
                     clipEnd = clipEnd,
@@ -393,6 +395,7 @@ internal class TextDrawer {
         drawX: Float,
         unitStart: Float,
         unitEnd: Float,
+        rightOverhang: Float,
         highlightWidth: Float,
         clipStart: Float,
         clipEnd: Float,
@@ -401,10 +404,13 @@ internal class TextDrawer {
         paint: TextPaint,
         motionSpec: MotionSpec
     ) {
-        if (unitEnd <= clipStart || unitStart >= clipEnd) return
+        // 裁剪盒右缘扩展到墨迹边界：斜体等字形的墨迹会越过 advance
+        // 边界，只按 advance 裁剪会把字形右侧（尤其行尾字符）切掉
+        val inkEnd = unitEnd + rightOverhang
+        if (inkEnd <= clipStart || unitStart >= clipEnd) return
 
         val visibleLeft = unitStart.coerceAtLeast(clipStart)
-        val visibleRight = unitEnd.coerceAtMost(clipEnd)
+        val visibleRight = inkEnd.coerceAtMost(clipEnd)
         val liftY = computeUnitLift(highlightWidth, unitStart, unitEnd, paint.textSize, motionSpec)
 
         canvas.withSave {
