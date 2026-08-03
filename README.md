@@ -4,7 +4,7 @@
   <img src="resources/logo.svg" width="100" alt="词幕 Logo"/>
 </p>
 
-<h1 align="center">词幕 · Fork</h1>
+<h1 align="center">词幕</h1>
 
 <p align="center">
   <b>基于 Xposed 框架的 Android 状态栏歌词增强工具（个人增强 Fork）</b>
@@ -71,7 +71,7 @@
 
 1. **下载主体应用**：从 [Releases](https://github.com/kifranei/lyricon/releases) 下载并安装词幕主体。
 2. **激活模块**：在 LSPosed 中启用"词幕 · Fork"模块，勾选 **系统界面 (`com.android.systemui`)** 作用域；小米设备如需超级岛联动，请一并勾选 **`miui.systemui.plugin`**。
-3. **重启生效**：重启系统界面或重启设备完成 Hook 注入。
+3. **重启生效**：重启系统界面完成 Hook 注入。
 4. **安装插件**：根据播放器在 [LyricProvider](https://github.com/tomakino/LyricProvider) 下载对应插件。
 5. **参数调节**：进入词幕，按屏幕情况调整位置锚点、宽度与视觉样式。为避免歌词与时间重叠，`clock` 默认在歌词显示时隐藏；若需同时显示，请把它的视图规则设为"默认"。
 6. **运行测试**：播放音乐，检查状态栏显示。
@@ -94,9 +94,12 @@
 - [**Kanade**](https://github.com/rcmiku/Kanade)
 - **Sollin Player**
 - [**QZ Music**](https://github.com/lqtmcstudio/QZMusic)
-- [**Halcyon**](https://github.com/Kifranei/Halcyon) — 注重体验的本地音乐播放器，也是本项目关于页与视觉设计的来源。
-- [**NeriPlayer**](https://github.com/cwuom/NeriPlayer) — 简洁优雅的音乐播放器。
-- [**棱镜音乐 PrismMusic**](https://github.com/Ryderwe/PrismMusic-Release) — 功能丰富的第三方音乐客户端。
+- [**棉花音乐**](https://github.com/pure-music/PureMusic)
+- [**Smart Music Next**](https://qun.qq.com/universal-share/share?ac=1&authKey=k1hftnugk%2Bx5FZnOePE2RTS%2ByBftX2E87Trhz59sfxtVtvC3nw1MXnlxycVUIPZw&busi_data=eyJncm91cENvZGUiOiIzMzA0NzM2OTYiLCJ0b2tlbiI6IlB0NWpkSW0zWTA0UXBCTHFFdjZ0SDBsN014aUVnTitxMllFUnlMV0JpdTJEem1sdDBvRWZEM2p0RXJGVUFpZTgiLCJ1aW4iOiIyOTIwNTMzMzczIn0%3D&data=388N05tm4gkrgDLeoysN-LIYOHsCk5mUfrcBBVE9UW3WyoWG_DxkLZqDttvrptZWN5VOQWvYBwZ7d3MgKUDmTg&svctype=4&tempid=h5_group_info)
+- [**LunaBeat**](https://github.com/2755337087/LunaBeat)
+- [**Halcyon**](https://github.com/Kifranei/Halcyon)
+- [**NeriPlayer**](https://github.com/cwuom/NeriPlayer)
+- [**棱镜音乐**](https://github.com/Ryderwe/PrismMusic-Release)
 
 #### 已适配了但没有你的播放器？请[提交 issue](https://github.com/tomakino/lyricon/issues)。
 
@@ -108,22 +111,8 @@
 
 ---
 
-## ⭐ Star History
-
-<p align="center">
-  <a href="https://www.star-history.com/#kifranei/lyricon&Date">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=kifranei/lyricon&type=Date&theme=dark" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=kifranei/lyricon&type=Date" />
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=kifranei/lyricon&type=Date" width="600" />
-    </picture>
-  </a>
-</p>
-
----
-
 ### 👀 访问统计
 
 <p align="center">
-  <img src="https://count.getloli.com/get/@kifranei_lyricon?theme=moebooru-h" alt="Visitor Count" />
+  <img src="https://count.getloli.com/get/@kifranei_lyricon?theme=moebooru" alt="Visitor Count" />
 </p>

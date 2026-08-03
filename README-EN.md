@@ -4,7 +4,7 @@
   <img src="resources/logo.svg" width="100" alt="Lyricon Logo"/>
 </p>
 
-<h1 align="center">Lyricon · Fork</h1>
+<h1 align="center">Lyricon</h1>
 
 <p align="center">
   <b>An Xposed-based Android status-bar lyric enhancer (personal enhanced fork)</b>
@@ -71,7 +71,7 @@ This repository is a **personal enhanced fork** of [Lyricon](https://github.com/
 
 1. **Install the app** from [Releases](https://github.com/kifranei/lyricon/releases).
 2. **Activate the module** in LSPosed, enable the **System UI (`com.android.systemui`)** scope; on Xiaomi, also enable **`miui.systemui.plugin`** for super-island integration.
-3. **Restart** System UI or the device to inject the hooks.
+3. **Restart** System UI to inject the hooks.
 4. **Install a plugin** for your player from [LyricProvider](https://github.com/tomakino/LyricProvider).
 5. **Tune** the anchor, width and visual style in the app. To avoid overlapping the clock, `clock` is hidden by default while lyrics show; set its view rule to "Default" to keep it visible.
 6. **Test** by playing music and checking the status bar.
@@ -94,9 +94,13 @@ This repository is a **personal enhanced fork** of [Lyricon](https://github.com/
 - [**Kanade**](https://github.com/rcmiku/Kanade)
 - **Sollin Player**
 - [**QZ Music**](https://github.com/lqtmcstudio/QZMusic)
-- [**Halcyon**](https://github.com/Kifranei/Halcyon) — an experience-focused local music player; also the source of this project's About page and visual design.
-- [**NeriPlayer**](https://github.com/cwuom/NeriPlayer) — a clean and elegant music player.
-- [**Prism Music**](https://github.com/Ryderwe/PrismMusic-Release) — a feature-rich third-party music client.
+- [**Pure Music**](https://github.com/pure-music/PureMusic)
+- [**Smart Music Next**](https://qun.qq.com/universal-share/share?ac=1&authKey=k1hftnugk%2Bx5FZnOePE2RTS%2ByBftX2E87Trhz59sfxtVtvC3nw1MXnlxycVUIPZw&busi_data=eyJncm91cENvZGUiOiIzMzA0NzM2OTYiLCJ0b2tlbiI6IlB0NWpkSW0zWTA0UXBCTHFFdjZ0SDBsN014aUVnTitxMllFUnlMV0JpdTJEem1sdDBvRWZEM2p0RXJGVUFpZTgiLCJ1aW4iOiIyOTIwNTMzMzczIn0%3D&data=388N05tm4gkrgDLeoysN-LIYOHsCk5mUfrcBBVE9UW3WyoWG_DxkLZqDttvrptZWN5VOQWvYBwZ7d3MgKUDmTg&svctype=4&tempid=h5_group_info)
+- [**LunaBeat**](https://github.com/2755337087/LunaBeat)
+- [**Halcyon**](https://github.com/Kifranei/Halcyon)
+- [**NeriPlayer**](https://github.com/cwuom/NeriPlayer)
+- [**Prism Music**](https://github.com/Ryderwe/PrismMusic-Release)
+
 
 #### Adapted but your player is missing? Please [open an issue](https://github.com/tomakino/lyricon/issues).
 
@@ -108,22 +112,8 @@ This repository is a **personal enhanced fork** of [Lyricon](https://github.com/
 
 ---
 
-## ⭐ Star History
-
-<p align="center">
-  <a href="https://www.star-history.com/#kifranei/lyricon&Date">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=kifranei/lyricon&type=Date&theme=dark" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=kifranei/lyricon&type=Date" />
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=kifranei/lyricon&type=Date" width="600" />
-    </picture>
-  </a>
-</p>
-
----
-
 ### 👀 Visitors
 
 <p align="center">
-  <img src="https://count.getloli.com/get/@kifranei_lyricon?theme=moebooru-h" alt="Visitor Count" />
+  <img src="https://count.getloli.com/get/@kifranei_lyricon?theme=moebooru" alt="Visitor Count" />
 </p>
