@@ -12,7 +12,9 @@ import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -23,9 +25,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -35,6 +40,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.fontscaling.MathUtils.lerp
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
@@ -43,9 +51,14 @@ import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.BaseActivity
+import androidx.compose.runtime.getValue
+import io.github.proify.android.extensions.defaultSharedPreferences
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.MiuixScrollBehavior
+import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.TopAppBar
+import io.github.proify.lyricon.app.compose.effect.BgEffectBackground
 import io.github.proify.lyricon.app.compose.theme.AppTheme
+import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -54,6 +67,11 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Back
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
+
+val LocalBottomBarBackdrop = staticCompositionLocalOf<LayerBackdrop?> { null }
+val LocalFloatingBottomBarEnabled = staticCompositionLocalOf { false }
+val LocalLiquidGlassEnabled = staticCompositionLocalOf { false }
+private val FloatingBottomBarScrollPadding = 96.dp
 
 @Composable
 fun NavigationBackIcon(
@@ -148,8 +166,15 @@ fun AppToolBarListContainer(
     content: LazyListScope.() -> Unit
 ) {
     AppTheme {
+        val bottomBarBackdrop = rememberLayerBackdrop()
         val hazeState = remember { HazeState() }
         val scrollBehavior = MiuixScrollBehavior()
+
+        val flowingBackground by rememberBooleanPreference(
+            context.defaultSharedPreferences,
+            "enable_flowing_background",
+            false
+        )
 
         val titleText = remember(title) {
             when (title) {
@@ -158,60 +183,109 @@ fun AppToolBarListContainer(
             }
         }
 
-        Scaffold(
-            bottomBar = bottomBar,
-            topBar = {
-                BlurTopAppBar(
-                    hazeState = hazeState,
-                    navigationIcon = {
-                        if (canBack) {
-                            NavigationBackIcon(backEvent = backEvent)
-                        }
-                    },
-                    title = if (title is Int) stringResource(title) else (titleText ?: ""),
-                    scrollBehavior = scrollBehavior,
-                    actions = actions,
-                    titleDropdown = titleDropdown,
-                    titleOnClick = titleOnClick
-                )
+        androidx.compose.runtime.CompositionLocalProvider(
+            LocalBottomBarBackdrop provides bottomBarBackdrop
+        ) {
+            val floatingBottomPadding = if (LocalFloatingBottomBarEnabled.current) {
+                FloatingBottomBarScrollPadding
+            } else {
+                0.dp
             }
-        ) { paddingValues ->
-            scaffoldContent()
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = paddingValues.calculateTopPadding())
-            ) {
-
-                AnimatedVisibility(
-                    visible = !showEmpty,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .overScrollVertical()
-                            .nestedScroll(scrollBehavior.nestedScrollConnection)
-                            .hazeSource(hazeState),
-                        content = content
+            // 流光背景：开启后 Scaffold 透明，底层铺关于页同款着色器流光；四个 Tab 页共用此容器
+            val scaffold = @Composable {
+            Scaffold(
+                containerColor = if (flowingBackground) Color.Transparent
+                else MiuixTheme.colorScheme.surface,
+                bottomBar = bottomBar,
+                topBar = {
+                    BlurTopAppBar(
+                        // 流光模式下顶栏不做 haze 模糊、保持透明，让底层流光透出覆盖顶栏区域
+                        hazeState = if (flowingBackground) null else hazeState,
+                        navigationIcon = {
+                            if (canBack) {
+                                NavigationBackIcon(backEvent = backEvent)
+                            }
+                        },
+                        title = if (title is Int) stringResource(title) else (titleText ?: ""),
+                        scrollBehavior = scrollBehavior,
+                        actions = actions,
+                        titleDropdown = titleDropdown,
+                        titleOnClick = titleOnClick
                     )
                 }
+            ) { paddingValues ->
+                scaffoldContent()
 
-                AnimatedVisibility(
-                    visible = showEmpty,
-                    enter = fadeIn(),
-                    exit = fadeOut()
+                // 不消费底栏高度：内容延伸到停靠底栏之后，底栏的背景模糊才能采样到内容；
+                // 列表用 contentPadding 避让底栏，视觉上不被遮挡。
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .layerBackdrop(bottomBarBackdrop)
+                        .padding(top = paddingValues.calculateTopPadding())
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(scrollBehavior.nestedScrollConnection)
+
+                    AnimatedVisibility(
+                        visible = !showEmpty,
+                        enter = fadeIn(),
+                        exit = fadeOut()
                     ) {
-                        empty()
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .overScrollVertical()
+                                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                                .hazeSource(hazeState),
+                            contentPadding = PaddingValues(
+                                bottom = floatingBottomPadding +
+                                        paddingValues.calculateBottomPadding()
+                            ),
+                            content = content
+                        )
+                    }
+
+                    AnimatedVisibility(
+                        visible = showEmpty,
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        ) {
+                            empty()
+                        }
                     }
                 }
+            }
+            }
+
+            if (flowingBackground) {
+                // 用主题背景亮度实时判断明暗，避免全局 var（非响应式）滞后导致暗色误用亮色流光
+                val isDarkBg = MiuixTheme.colorScheme.background.luminance() < 0.5f
+                BgEffectBackground(
+                    dynamicBackground = true,
+                    modifier = Modifier.fillMaxSize(),
+                    isDarkTheme = isDarkBg,
+                ) {
+                    // 流光模式下让卡片（默认取 surfaceContainer 系列色）转为半透明，
+                    // 复用关于页的观感——透出底层流光，而不是不透明黑块
+                    val cs = MiuixTheme.colorScheme
+                    val a = if (isDarkBg) 0.42f else 0.55f
+                    MiuixTheme(
+                        colors = cs.copy(
+                            surfaceContainer = cs.surfaceContainer.copy(alpha = a),
+                            surfaceContainerHigh = cs.surfaceContainerHigh.copy(alpha = a),
+                            surfaceContainerHighest = cs.surfaceContainerHighest.copy(alpha = a),
+                            surfaceVariant = cs.surfaceVariant.copy(alpha = a),
+                            // 半透明卡片上分隔线会突出，流光模式下隐藏设置项之间的分界线
+                            dividerLine = Color.Transparent,
+                        ),
+                    ) { scaffold() }
+                }
+            } else {
+                scaffold()
             }
         }
     }
@@ -234,25 +308,42 @@ fun AppToolBarContainer(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     AppTheme {
-        Scaffold(
-            bottomBar = bottomBar,
-            topBar = {
-                BlurTopAppBar(
-                    hazeState = hazeState,
-                    navigationIcon = {
-                        if (canBack) NavigationBackIcon(
-                            backEvent = backEvent
-                        )
-                    },
-                    title = if (title is Int) stringResource(title) else title.toString(),
-                    scrollBehavior = scrollBehavior,
-                    actions = actions,
-                    titleDropdown = titleDropdown,
-                    titleOnClick = titleOnClick
-                )
+        val bottomBarBackdrop = rememberLayerBackdrop()
+        androidx.compose.runtime.CompositionLocalProvider(
+            LocalBottomBarBackdrop provides bottomBarBackdrop
+        ) {
+            val floatingBottomPadding = if (LocalFloatingBottomBarEnabled.current) {
+                FloatingBottomBarScrollPadding
+            } else {
+                0.dp
             }
-        ) { paddingValues ->
-            content(paddingValues)
+            Scaffold(
+                bottomBar = bottomBar,
+                topBar = {
+                    BlurTopAppBar(
+                        hazeState = hazeState,
+                        navigationIcon = {
+                            if (canBack) NavigationBackIcon(
+                                backEvent = backEvent
+                            )
+                        },
+                        title = if (title is Int) stringResource(title) else title.toString(),
+                        scrollBehavior = scrollBehavior,
+                        actions = actions,
+                        titleDropdown = titleDropdown,
+                        titleOnClick = titleOnClick
+                    )
+                }
+            ) { paddingValues ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .layerBackdrop(bottomBarBackdrop)
+                        .padding(bottom = floatingBottomPadding)
+                ) {
+                    content(paddingValues)
+                }
+            }
         }
     }
 }
@@ -279,4 +370,31 @@ fun IconActions(
 
 fun BasicComponentColors.color(enabled: Boolean): Color {
     return if (enabled) color else disabledColor
+}
+
+@Composable
+fun ColoredIconBox(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color,
+    iconRes: Int,
+    isMonet: Boolean = false
+) {
+    val iconSize = if (isMonet) 20.dp else 24.dp
+    Box(
+        modifier = Modifier
+            .padding(end = 16.dp)
+            .size(40.dp)
+            .background(
+                if (isMonet) MiuixTheme.colorScheme.primary else backgroundColor,
+                CircleShape
+            ),
+        contentAlignment = Alignment.Center,
+    ) {
+        androidx.compose.material3.Icon(
+            painter = androidx.compose.ui.res.painterResource(id = iconRes),
+            modifier = modifier.size(iconSize),
+            tint = Color.White,
+            contentDescription = null
+        )
+    }
 }

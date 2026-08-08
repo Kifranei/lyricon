@@ -21,7 +21,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import io.github.proify.lyricon.lyric.model.Song
-import io.github.proify.lyricon.lyric.view.RichLyricLineConfig
+import io.github.proify.lyricon.lyric.view.Highlight
+import io.github.proify.lyricon.lyric.view.LyricViewStyle
+import io.github.proify.lyricon.lyric.view.TextLook
 import io.github.proify.lyricon.lyric_test.databinding.ActivityMainBinding
 import io.github.proify.lyricon.provider.LyriconFactory
 import io.github.proify.lyricon.provider.ProviderLogo
@@ -202,19 +204,19 @@ class MainActivity : AppCompatActivity() {
             ThemeUtils.getThemeAttrColor(this, android.R.attr.textColorSecondary)
         val colorPrimary = ThemeUtils.getThemeAttrColor(this, android.R.attr.colorPrimary)
 
-        val config = RichLyricLineConfig().apply {
-            primary.run {
-                textSize = 34f.sp
-                textColor = intArrayOf(textColorPrimary)
-                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-            }
-            syllable.run { highlightColor = intArrayOf(colorPrimary) }
-            secondary.run {
-                textSize = 26f.sp
-                textColor = intArrayOf(textColorSecondary)
-                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
-            }
-        }
+        val config = LyricViewStyle().copy(
+            primary = TextLook(
+                size = 34f.sp,
+                color = intArrayOf(textColorPrimary),
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL),
+            ),
+            highlight = Highlight(foreground = intArrayOf(colorPrimary)),
+            secondary = TextLook(
+                size = 26f.sp,
+                color = intArrayOf(textColorSecondary),
+                typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL),
+            ),
+        )
 
         binding.lyric.setStyle(config)
     }

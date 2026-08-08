@@ -5,33 +5,52 @@
  */
 package io.github.proify.lyricon.app.activity
 
+import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
@@ -45,21 +64,32 @@ import androidx.core.content.edit
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.lifecycleScope
+import io.github.libxposed.service.XposedService
 import io.github.proify.android.extensions.defaultSharedPreferences
 import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.LyriconApp
+import io.github.proify.lyricon.app.LyriconApp.Companion.addXposedServiceStateListener
+import io.github.proify.lyricon.app.LyriconApp.Companion.removeXposedServiceStateListener
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.lyric.BasicLyricStyleActivity
 import io.github.proify.lyricon.app.activity.lyric.pkg.PackageStyleActivity
 import io.github.proify.lyricon.app.activity.lyric.provider.LyricProviderActivity
-import io.github.proify.lyricon.app.bridge.AppBridge
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.EmojiInfiniteQueuePlayer
+import io.github.proify.lyricon.app.compose.LocalBottomBarBackdrop
+import io.github.proify.lyricon.app.compose.LocalFloatingBottomBarEnabled
+import io.github.proify.lyricon.app.compose.MainBottomBar
+import io.github.proify.lyricon.app.compose.MainBottomBarItem
 import io.github.proify.lyricon.app.compose.MaterialPalette
+import io.github.proify.lyricon.app.compose.theme.AppTheme
+import io.github.proify.lyricon.app.ui.tabs.ConfigPage
+import io.github.proify.lyricon.app.ui.tabs.HomeTab
+import io.github.proify.lyricon.app.ui.tabs.ProviderPage
+import io.github.proify.lyricon.app.ui.tabs.SettingsPage
 import io.github.proify.lyricon.app.compose.custom.miuix.basic.AppBasicComponent
-import io.github.proify.lyricon.app.compose.custom.miuix.extra.SuperDialog
+import io.github.proify.lyricon.app.compose.custom.miuix.extra.OverlayDialog
 import io.github.proify.lyricon.app.event.SettingChangedEvent
 import io.github.proify.lyricon.app.util.AppThemeUtils
 import io.github.proify.lyricon.app.util.Utils
@@ -72,32 +102,58 @@ import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardColors
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.ListPopupDefaults
 import top.yukonga.miuix.kmp.basic.PopupPositionProvider
+import top.yukonga.miuix.kmp.basic.ProgressIndicatorDefaults.progressIndicatorColors
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Home
 import top.yukonga.miuix.kmp.icon.extended.Refresh
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 
-class MainActivity : BaseActivity() {
+class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
 
     private companion object {
         const val PREF_KEY_LAST_VERSION = "last_version"
         private const val TAG = "MainActivity"
+        private const val RESTART_DEBOUNCE_MS = 666L
     }
 
     private val viewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleVersionUpdate()
 
+        setContent {
+            MainContent(
+                model = viewModel,
+                onRestartSystemUI = ::restartSystemUI,
+                onRestartApp = ::restartApp
+            )
+        }
+        setupEventListeners()
+
+        addXposedServiceStateListener(this)
+        viewModel.startConnectTimeout()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        removeXposedServiceStateListener(this)
+    }
+
+    private fun handleVersionUpdate() {
         val sharedPreferences = defaultSharedPreferences
         val savedVersionCode = sharedPreferences.getLong(PREF_KEY_LAST_VERSION, 0)
         if (savedVersionCode <= 0) {
@@ -107,16 +163,6 @@ class MainActivity : BaseActivity() {
         } else if (savedVersionCode < BuildConfig.VERSION_CODE) {
             viewModel.setWaitingForReboot(true)
         }
-
-        setContent {
-            MainContent(
-                model = viewModel,
-                onRestartSystemUI = ::restartSystemUI,
-                onRestartApp = ::restartApp
-            )
-        }
-
-        setupEventListeners()
     }
 
     override fun onResume() {
@@ -134,7 +180,7 @@ class MainActivity : BaseActivity() {
         lifecycleScope.launch {
             try {
                 val response = LyriconBridge.with(this@MainActivity)
-                    .to(PackageNames.SYSTEM_UI_PLUGIN)
+                    .to(PackageNames.SYSTEM_UI)
                     .key(AppBridgeConstants.REQUEST_CHECK_SAFE_MODE)
                     .await()
 
@@ -149,13 +195,13 @@ class MainActivity : BaseActivity() {
         if (viewModel.isWaitingForReboot.value) {
             saveCurrentVersionCode()
             lifecycleScope.launch {
-                delay(666)
+                delay(RESTART_DEBOUNCE_MS)
                 viewModel.setWaitingForReboot(false)
             }
         }
         val result = Utils.killSystemUI()
         if (result.result == -1) {
-            viewModel.showRestartFailDialog.value = true
+            viewModel.showRestartFailedDialog.value = true
         }
     }
 
@@ -165,18 +211,36 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    override fun onServiceStateChanged(service: XposedService?) {
+        viewModel.isModuleActive.value = service != null
+    }
+
+    /**
+     * 界面状态管理层
+     */
     class MainViewModel : ViewModel() {
         private val _safeMode = mutableStateOf(false)
-        val showRestartFailDialog: MutableState<Boolean> = mutableStateOf(false)
+        val showRestartFailedDialog: MutableState<Boolean> = mutableStateOf(false)
         private val _isWaitingForReboot = mutableStateOf(false)
 
         val safeMode: State<Boolean> get() = _safeMode
         val isWaitingForReboot: State<Boolean> get() = _isWaitingForReboot
 
-        val showPopup: MutableState<Boolean> = mutableStateOf(false)
+        val showRestartMenu: MutableState<Boolean> = mutableStateOf(false)
+        val isModuleActive: MutableState<Boolean> = mutableStateOf(false)
+        var isServiceConnecting = mutableStateOf(false)
+
+        private val handler = Handler(Looper.getMainLooper())
+        fun startConnectTimeout() {
+            isServiceConnecting.value = true
+            handler.postDelayed({
+                isServiceConnecting.value = false
+            }, 2000)
+        }
+
         fun updateSafeMode(isSafe: Boolean) {
             _safeMode.value = isSafe
-            LyriconApp.updateSafeMode(isSafe)
+            LyriconApp.setSafeMode(isSafe)
         }
 
         fun setWaitingForReboot(waiting: Boolean) {
@@ -193,7 +257,8 @@ class MainActivity : BaseActivity() {
 
     private class StatusCard(
         override val colors: CardColors,
-        val icon: ImageVector,
+        val icon: ImageVector? = null,
+        val iconLayout: @Composable (BoxScope.() -> Unit)? = null,
         val title: String,
         val showAnimatedEmoji: Boolean = false,
         val summary: String? = null,
@@ -216,12 +281,16 @@ class MainActivity : BaseActivity() {
                             .size(40.dp),
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(
-                            modifier = Modifier.size(26.dp),
-                            imageVector = icon,
-                            tint = White,
-                            contentDescription = null,
-                        )
+                        if (iconLayout != null) {
+                            iconLayout()
+                        } else if (icon != null) {
+                            Icon(
+                                modifier = Modifier.size(26.dp),
+                                imageVector = icon,
+                                tint = White,
+                                contentDescription = null,
+                            )
+                        }
                     }
                 },
                 customTitle = {
@@ -251,36 +320,208 @@ class MainActivity : BaseActivity() {
         }
     }
 
+    @SuppressLint("ConfigurationScreenWidthHeight")
     @Composable
     fun MainContent(
         model: MainViewModel? = null,
         onRestartSystemUI: () -> Unit = {},
         onRestartApp: () -> Unit = {}
     ) {
-        val fallbackShowPopup = remember { mutableStateOf(false) }
-        val showPopupState = model?.showPopup ?: fallbackShowPopup
+        val isTablet = LocalConfiguration.current.screenWidthDp >= 600
+        val fallbackShowRestartMenu = remember { mutableStateOf(false) }
+        val showRestartMenuState = model?.showRestartMenu ?: fallbackShowRestartMenu
 
+        if (isTablet) {
+            TabletMainContent(
+                model = model,
+                showRestartMenuState = showRestartMenuState,
+                onRestartSystemUI = onRestartSystemUI,
+                onRestartApp = onRestartApp
+            )
+        } else {
+            PhoneMainContent(
+                model = model,
+                showRestartMenuState = showRestartMenuState,
+                onRestartSystemUI = onRestartSystemUI,
+                onRestartApp = onRestartApp
+            )
+        }
+    }
+
+    @Composable
+    private fun PhoneMainContent(
+        model: MainViewModel?,
+        showRestartMenuState: MutableState<Boolean>,
+        onRestartSystemUI: () -> Unit,
+        onRestartApp: () -> Unit
+    ) {
+        val context = LocalContext.current
+        val sharedPreferences = remember { context.defaultSharedPreferences }
+        var selectedIndex by rememberSaveable { mutableIntStateOf(0) }
+        var isFloating by remember {
+            mutableStateOf(sharedPreferences.getBoolean("enable_floating_nav_bar", false))
+        }
+        DisposableEffect(sharedPreferences) {
+            val listener = SharedPreferences.OnSharedPreferenceChangeListener { preferences, key ->
+                if (key == "enable_floating_nav_bar") {
+                    isFloating = preferences.getBoolean(key, false)
+                }
+            }
+            sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+            onDispose {
+                sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+            }
+        }
+
+        val viewModel = model ?: remember { MainViewModel() }
+        val bottomBarContent: @Composable () -> Unit = {
+            val items = listOf(
+                MainBottomBarItem(
+                    stringResource(R.string.tab_home),
+                    MiuixIcons.Home
+                ),
+                MainBottomBarItem(
+                    stringResource(R.string.tab_config),
+                    ImageVector.vectorResource(id = R.drawable.ic_palette_swatch_variant)
+                ),
+                MainBottomBarItem(
+                    stringResource(R.string.tab_provider),
+                    ImageVector.vectorResource(id = R.drawable.ic_extension)
+                ),
+                MainBottomBarItem(
+                    stringResource(R.string.tab_settings),
+                    ImageVector.vectorResource(id = R.drawable.ic_settings)
+                ),
+            )
+            MainBottomBar(
+                items = items,
+                selectedIndex = selectedIndex,
+                onSelected = { selectedIndex = it }
+            )
+        }
+
+        // 浮动液态玻璃底栏需要采样页面内容，所以在页面外层录制 backdrop 并以覆盖层绘制；
+        // 停靠底栏则交给页面 Scaffold 正常占位，避免列表尾部被遮挡。
+        val overlayBackdrop = rememberLayerBackdrop()
+        val pageBottomBar: @Composable () -> Unit = if (isFloating) ({}) else bottomBarContent
+
+        CompositionLocalProvider(
+            LocalFloatingBottomBarEnabled provides isFloating,
+            LocalBottomBarBackdrop provides overlayBackdrop,
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .layerBackdrop(overlayBackdrop)
+                ) {
+                    when (selectedIndex) {
+                        0 -> HomeTab(
+                            model = viewModel,
+                            actions = {
+                                TopBarActions(showRestartMenuState, onRestartSystemUI, onRestartApp)
+                            },
+                            bottomBar = pageBottomBar
+                        )
+
+                        1 -> ConfigPage(isMonet = viewModel.isMonet, bottomBar = pageBottomBar)
+                        2 -> ProviderPage(bottomBar = pageBottomBar)
+                        3 -> SettingsPage(bottomBar = pageBottomBar)
+                    }
+                }
+
+                if (isFloating) {
+                    // 覆盖层在各页面的 AppTheme 之外，需要自己套主题，否则暗色下取到亮色配色
+                    AppTheme {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.BottomCenter
+                        ) {
+                            bottomBarContent()
+                        }
+                    }
+                }
+
+                AppTheme {
+                    RestartFailedDialog(showState = viewModel.showRestartFailedDialog)
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun TabletMainContent(
+        model: MainViewModel?,
+        showRestartMenuState: MutableState<Boolean>,
+        onRestartSystemUI: () -> Unit,
+        onRestartApp: () -> Unit
+    ) {
         AppToolBarListContainer(
             title = stringResource(R.string.app_name),
-            actions = { TopBarActions(showPopupState, onRestartSystemUI, onRestartApp) },
+            actions = { TopBarActions(showRestartMenuState, onRestartSystemUI, onRestartApp) },
             scaffoldContent = {
-                if (model != null) RestartFailDialog(showState = model.showRestartFailDialog)
+                if (model != null) RestartFailedDialog(showState = model.showRestartFailedDialog)
             }
         ) {
-
             item("status_card") {
                 val cardStatus = determineCardStatus(
                     safeMode = model?.safeMode?.value ?: false,
                     isWaitingForReboot = model?.isWaitingForReboot?.value ?: false,
+                    isMonet = model?.isMonet ?: AppThemeUtils.isEnableMonet(LocalContext.current),
+                    isModuleActive = model?.isModuleActive?.value ?: false,
+                    isServiceConnecting = model?.isServiceConnecting?.value ?: false,
                     onRestartSystemUI = onRestartSystemUI
                 )
-
-                StatusCardItem(cardStatus)
+                TabletContentItem {
+                    StatusCardItem(
+                        cardStatus = cardStatus,
+                        modifier = Modifier
+                            .padding(horizontal = 32.dp)
+                            .padding(bottom = 20.dp)
+                    )
+                }
             }
+            item("primary_settings") {
+                TabletContentItem {
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 32.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        StyleSettingsCard(modifier = Modifier.weight(1f))
+                        ProviderSettingsCard(modifier = Modifier.weight(1f))
+                    }
+                }
+            }
+            item("other_settings") {
+                TabletContentItem {
+                    OtherSettingsCard(
+                        modifier = Modifier
+                            .padding(horizontal = 32.dp)
+                            .padding(top = 20.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            }
+        }
+    }
 
-            item("style_settings") { StyleSettingsCard() }
-            item("provider_settings") { ProviderSettingsCard() }
-            item("other_settings") { OtherSettingsCard() }
+    @Composable
+    private fun TabletContentItem(
+        content: @Composable () -> Unit
+    ) {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 900.dp)
+            ) {
+                content()
+            }
         }
     }
 
@@ -288,12 +529,18 @@ class MainActivity : BaseActivity() {
     private fun determineCardStatus(
         safeMode: Boolean,
         isWaitingForReboot: Boolean,
+        isMonet: Boolean,
+        isModuleActive: Boolean,
+        isServiceConnecting: Boolean,
         onRestartSystemUI: () -> Unit
     ): CardStatus {
-        val inspectionMode = LocalInspectionMode.current
-        val summary = stringResource(R.string.module_status_summary, BuildConfig.VERSION_NAME)
+        val isInspectionMode = LocalInspectionMode.current
+        val summary = stringResource(
+            R.string.module_status_summary,
+            LyriconApp.packageInfo.versionName ?: BuildConfig.VERSION_NAME
+        )
 
-        if (inspectionMode) {
+        if (isInspectionMode) {
             return StatusCard(
                 colors = CardColors(MaterialPalette.Green.Primary, White),
                 icon = ImageVector.vectorResource(id = R.drawable.ic_android),
@@ -310,7 +557,7 @@ class MainActivity : BaseActivity() {
             )
         }
 
-        if (AppBridge.isModuleActive()) {
+        if (isModuleActive) {
             if (isWaitingForReboot) {
                 return StatusCard(
                     colors = CardColors(MaterialPalette.Orange.Primary, White),
@@ -331,7 +578,7 @@ class MainActivity : BaseActivity() {
 
             return StatusCard(
                 colors = when {
-                    viewModel.isMonet -> CardColors(
+                    isMonet -> CardColors(
                         MiuixTheme.colorScheme.primary,
                         MiuixTheme.colorScheme.onPrimary
                     )
@@ -342,6 +589,21 @@ class MainActivity : BaseActivity() {
                 title = stringResource(id = R.string.module_status_activated),
                 summary = summary,
                 showAnimatedEmoji = true
+            )
+        } else if (isServiceConnecting) {
+            return StatusCard(
+                colors = CardColors(MaterialPalette.Blue.Primary, White),
+                iconLayout = {
+                    CircularProgressIndicator(
+                        colors = progressIndicatorColors(
+                            backgroundColor = Color.Transparent,
+                            foregroundColor = White
+                        ),
+                        size = 20.dp
+                    )
+                },
+                title = stringResource(id = R.string.module_status_connecting),
+                summary = summary,
             )
         }
 
@@ -355,13 +617,25 @@ class MainActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    private fun StatusCardItem(cardStatus: CardStatus) {
+    private fun StatusCardItem(
+        cardStatus: CardStatus,
+        modifier: Modifier = Modifier
+    ) {
+        val animatedColors by animateColorAsState(
+            targetValue = cardStatus.colors.color,
+            label = "card_color",
+            animationSpec = tween(
+                durationMillis = 300,
+                easing = FastOutSlowInEasing
+            ),
+        )
+
         Card(
-            modifier = Modifier
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-                .fillMaxWidth(),
+            modifier = modifier
+                .fillMaxWidth()
+                .animateContentSize(),
             insideMargin = PaddingValues(vertical = 7.dp),
-            colors = cardStatus.colors,
+            colors = cardStatus.colors.copy(color = animatedColors),
             pressFeedbackType = PressFeedbackType.Sink,
             onClick = {},
             content = cardStatus.content
@@ -370,23 +644,17 @@ class MainActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    private fun StyleSettingsCard() {
+    private fun StyleSettingsCard(modifier: Modifier = Modifier) {
         val context = LocalContext.current
         Card(
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .fillMaxWidth()
+            modifier = modifier
         ) {
             ArrowPreference(
                 startAction = {
-                    ColoredIconBox(
-                        Modifier,
-                        MaterialPalette.Teal.Primary,
-                        R.drawable.ic_android
-                    )
+                    ColoredIconBox(Modifier, MaterialPalette.Teal.Primary, R.drawable.ic_android)
                 },
-                title = stringResource(id = R.string.item_base_lyric_style),
-                summary = stringResource(id = R.string.item_summary_base_lyric_style),
+                title = stringResource(id = R.string.item_basic_settings),
+                summary = stringResource(id = R.string.item_summary_basic_settings),
                 onClick = {
                     context.startActivity(Intent(context, BasicLyricStyleActivity::class.java))
                 }
@@ -399,8 +667,8 @@ class MainActivity : BaseActivity() {
                         R.drawable.ic_palette_swatch_variant
                     )
                 },
-                title = stringResource(id = R.string.item_package_style_manager),
-                summary = stringResource(id = R.string.item_summary_package_style_manager),
+                title = stringResource(id = R.string.item_app_style_manager),
+                summary = stringResource(id = R.string.item_summary_app_style_manager),
                 onClick = {
                     context.startActivity(Intent(context, PackageStyleActivity::class.java))
                 }
@@ -410,23 +678,17 @@ class MainActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    private fun ProviderSettingsCard() {
+    private fun ProviderSettingsCard(modifier: Modifier = Modifier) {
         val context = LocalContext.current
         Card(
-            modifier = Modifier
-                .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                .fillMaxWidth()
+            modifier = modifier
         ) {
             ArrowPreference(
                 startAction = {
-                    ColoredIconBox(
-                        Modifier,
-                        MaterialPalette.Blue.Primary,
-                        R.drawable.ic_extension
-                    )
+                    ColoredIconBox(Modifier, MaterialPalette.Blue.Primary, R.drawable.ic_extension)
                 },
-                title = stringResource(id = R.string.item_provider_manager),
-                summary = stringResource(id = R.string.item_summary_provider_manager),
+                title = stringResource(id = R.string.item_lyric_provider_services),
+                summary = stringResource(id = R.string.item_summary_lyric_provider_services),
                 onClick = {
                     context.startActivity(Intent(context, LyricProviderActivity::class.java))
                 }
@@ -436,13 +698,10 @@ class MainActivity : BaseActivity() {
 
     @OptIn(ExperimentalMaterial3ExpressiveApi::class)
     @Composable
-    private fun OtherSettingsCard() {
+    private fun OtherSettingsCard(modifier: Modifier = Modifier) {
         val context = LocalContext.current
-
         Card(
-            modifier = Modifier
-                .padding(start = 16.dp, top = 16.dp, end = 16.dp)
-                .fillMaxWidth()
+            modifier = modifier
         ) {
             ArrowPreference(
                 startAction = {
@@ -461,11 +720,7 @@ class MainActivity : BaseActivity() {
 
             ArrowPreference(
                 startAction = {
-                    ColoredIconBox(
-                        Modifier,
-                        MaterialPalette.Green.Primary,
-                        R.drawable.ic_info_fill
-                    )
+                    ColoredIconBox(Modifier, MaterialPalette.Green.Primary, R.drawable.ic_info_fill)
                 },
                 title = stringResource(id = R.string.item_about_app),
                 summary = stringResource(id = R.string.item_summary_about_app),
@@ -483,17 +738,15 @@ class MainActivity : BaseActivity() {
         backgroundColor: Color,
         iconRes: Int
     ) {
-        val iconSize = if (viewModel.isMonet) 20.dp else 24.dp
+        val isMonet = AppThemeUtils.isEnableMonet(LocalContext.current)
+        val iconSize = if (isMonet) 20.dp else 24.dp
         Box(
             modifier = Modifier
                 .padding(end = 16.dp)
                 .size(40.dp)
                 .let {
-                    if (viewModel.isMonet) {
-                        it.background(
-                            MiuixTheme.colorScheme.primary,
-                            CircleShape
-                        )
+                    if (isMonet) {
+                        it.background(MiuixTheme.colorScheme.primary, CircleShape)
                     } else {
                         it.background(backgroundColor, CircleShape)
                     }
@@ -510,8 +763,8 @@ class MainActivity : BaseActivity() {
     }
 
     @Composable
-    private fun RestartFailDialog(showState: MutableState<Boolean>) {
-        SuperDialog(
+    private fun RestartFailedDialog(showState: MutableState<Boolean>) {
+        OverlayDialog(
             title = stringResource(R.string.restart_fail),
             summary = stringResource(R.string.message_app_restart_fail),
             show = showState.value,
@@ -527,14 +780,12 @@ class MainActivity : BaseActivity() {
 
     @Composable
     private fun TopBarActions(
-        showPopup: MutableState<Boolean>,
+        showRestartMenu: MutableState<Boolean>,
         onRestartSystemUI: () -> Unit,
         onRestartApp: () -> Unit
     ) {
         Box(modifier = Modifier.padding(end = 14.dp)) {
-            IconButton(
-                onClick = { showPopup.value = true }
-            ) {
+            IconButton(onClick = { showRestartMenu.value = true }) {
                 Icon(
                     modifier = Modifier.size(24.dp),
                     imageVector = MiuixIcons.Refresh,
@@ -544,7 +795,7 @@ class MainActivity : BaseActivity() {
             }
 
             RestartMenuPopup(
-                showPopup = showPopup,
+                showRestartMenu = showRestartMenu,
                 onRestartSystemUI = onRestartSystemUI,
                 onRestartApp = onRestartApp
             )
@@ -553,7 +804,7 @@ class MainActivity : BaseActivity() {
 
     @Composable
     private fun RestartMenuPopup(
-        showPopup: MutableState<Boolean>,
+        showRestartMenu: MutableState<Boolean>,
         onRestartSystemUI: () -> Unit,
         onRestartApp: () -> Unit
     ) {
@@ -563,15 +814,12 @@ class MainActivity : BaseActivity() {
         )
 
         OverlayListPopup(
-            show = showPopup.value,
-            popupModifier = Modifier,
+            show = showRestartMenu.value,
             popupPositionProvider = ListPopupDefaults.DropdownPositionProvider,
             alignment = PopupPositionProvider.Align.TopEnd,
             enableWindowDim = true,
-            onDismissRequest = { showPopup.value = false },
-            maxHeight = null,
+            onDismissRequest = { showRestartMenu.value = false },
             minWidth = 200.dp,
-            renderInRootScaffold = true,
             content = {
                 ListPopupColumn {
                     items.forEachIndexed { index, string ->
@@ -580,12 +828,8 @@ class MainActivity : BaseActivity() {
                             optionSize = items.size,
                             isSelected = false,
                             onSelectedIndexChange = {
-                                if (index == 0) {
-                                    onRestartSystemUI()
-                                } else {
-                                    onRestartApp()
-                                }
-                                showPopup.value = false
+                                if (index == 0) onRestartSystemUI() else onRestartApp()
+                                showRestartMenu.value = false
                             },
                             index = index
                         )
@@ -599,4 +843,5 @@ class MainActivity : BaseActivity() {
     fun MainContentPreview() {
         MainContent()
     }
+
 }

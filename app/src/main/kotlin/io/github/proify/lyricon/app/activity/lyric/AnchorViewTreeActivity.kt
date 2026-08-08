@@ -29,7 +29,6 @@ class AnchorViewTreeActivity : ViewTreeActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        preferences.registerOnSharedPreferenceChangeListener(this)
         currentAnchor =
             preferences.getString("lyric_style_base_anchor", currentAnchor) ?: currentAnchor
     }
@@ -45,11 +44,6 @@ class AnchorViewTreeActivity : ViewTreeActivity() {
         saveAnchorId(BasicStyle.Defaults.ANCHOR)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        preferences.unregisterOnSharedPreferenceChangeListener(this)
-    }
-
     internal fun saveAnchorId(id: String) {
         preferences.editCommit { putString("lyric_style_base_anchor", id) }
         currentAnchor = id
@@ -62,8 +56,8 @@ class AnchorViewTreeActivity : ViewTreeActivity() {
     object : ViewTreeViewModel() {
         override fun handleNodeClick(node: Node<ViewTreeNode>) {
             val value = node.content
-            val id = value.id ?: return
-            if (id == "status_bar" || id == currentAnchor) return
+            val id = value.id
+            if (id.isNullOrBlank() || id == "status_bar" || id == currentAnchor) return
             saveAnchorId(id)
         }
 

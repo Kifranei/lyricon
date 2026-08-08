@@ -3,7 +3,6 @@
  * Licensed under the Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0
  */
-@file:Suppress("unused")
 
 package io.github.proify.lyricon.app.util
 
@@ -45,15 +44,9 @@ object Utils {
         val brand = Build.BRAND.orEmpty().lowercase()
         val manufacturer = Build.MANUFACTURER.orEmpty().lowercase()
         val product = Build.PRODUCT.orEmpty().lowercase()
-        return brand.contains("xiaomi")
-                || brand.contains("redmi")
-                || brand.contains("poco")
-                || manufacturer.contains("xiaomi")
-                || manufacturer.contains("redmi")
-                || manufacturer.contains("poco")
-                || product.contains("xiaomi")
-                || product.contains("redmi")
-                || product.contains("poco")
+        return listOf(brand, manufacturer, product).any { source ->
+            source.contains("xiaomi") || source.contains("redmi") || source.contains("poco")
+        }
     }
 
     private fun detectHyperOsMajor(): Int {
@@ -83,12 +76,12 @@ object Utils {
         }.getOrNull()?.takeIf { it.isNotBlank() }
     }
 
-    fun forceStop(packageName: String?): ShellUtils.CommandResult =
-        ShellUtils.execCmd(
-            "am force-stop $packageName",
-            isRoot = true,
-            isNeedResultMsg = true,
-        )
+//    fun forceStop(packageName: String?): ShellUtils.CommandResult =
+//        ShellUtils.execCmd(
+//            "am force-stop $packageName",
+//            isRoot = true,
+//            isNeedResultMsg = true,
+//        )
 
     fun killSystemUI(): ShellUtils.CommandResult =
         ShellUtils.execCmd(
@@ -99,10 +92,12 @@ object Utils {
 }
 
 fun Activity.restartApp() {
-    val intent =
-        Intent(this, MainActivity::class.java).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        }
+    val intent = Intent(
+        this,
+        MainActivity::class.java
+    ).apply {
+        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    }
     startActivity(intent)
     finish()
 

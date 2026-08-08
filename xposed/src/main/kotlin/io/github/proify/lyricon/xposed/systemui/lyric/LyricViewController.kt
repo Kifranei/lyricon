@@ -6,157 +6,240 @@
 
 package io.github.proify.lyricon.xposed.systemui.lyric
 
-import android.os.SystemClock
-import android.view.View
+import android.os.Handler
+import io.github.proify.android.extensions.crc32
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric
-import io.github.proify.lyricon.statusbarlyric.SuperLogo
+import io.github.proify.lyricon.statusbarlyric.logo.CoverStrategy
 import io.github.proify.lyricon.subscriber.ActivePlayerListener
 import io.github.proify.lyricon.subscriber.ProviderInfo
 import io.github.proify.lyricon.xposed.logger.YLog
+import android.view.View
+import io.github.proify.lyricon.xposed.systemui.hook.HdrStatusBarController
 import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
+import io.github.proify.lyricon.xposed.systemui.hook.XiaomiIslandHooker
+import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager.MAIN_LOOPER
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
-import io.github.proify.lyricon.xposed.systemui.util.XiaomiIslandHooker
 import java.io.File
 
+/**
+ * 歌词视图核心控制器 (Lyric View Controller)
+ * * 负责接收播放器状态、歌曲信息及系统 UI 变更，并将数据分发至所有已注册的状态栏控制器。
+ * 实现了 [ActivePlayerListener]、[OplusCapsuleHooker.CapsuleStateChangeListener] 等核心接口。
+ * * @author Tomakino
+ * @since 2026
+ */
 object LyricViewController : ActivePlayerListener,
     OplusCapsuleHooker.CapsuleStateChangeListener,
+    XiaomiIslandHooker.IslandStateChangeListener,
     NotificationCoverHelper.OnCoverUpdateListener {
 
     private const val TAG = "LyricViewController"
     private const val DEBUG = true
-    private const val PLAYBACK_ACTIVE_STALE_MS = 2500L
 
+    /** 当前播放状态 */
     @Volatile
     var isPlaying: Boolean = false
         private set
 
+    /** 当前活跃播放器的包名 */
     @Volatile
     var activePackage: String = ""
         private set
 
+    /** 是否显示翻译内容 */
     @Volatile
     private var isDisplayTranslation: Boolean = true
 
+    /** 是否显示罗马音内容 */
     @Volatile
     private var isDisplayRoma: Boolean = true
 
+    /** 当前歌曲的逻辑播放进度（毫秒） */
     @Volatile
-    private var lastKnownPosition: Long = 0L
+    private var currentLogicPosition: Long = 0
 
-    @Volatile
-    private var lastPositionUpdateAt: Long = 0L
+    /** 用于处理 UI 刷新任务的 Handler */
+    private val mainHandler by lazy { Handler(MAIN_LOOPER) }
 
+    /** * 高频进度更新任务。
+     * 使用单例 Runnable 减少 GC 压力，仅在进度变更时由主线程调度。
+     */
+    private val frameUpdater = Runnable {
+        val controllers = StatusBarViewManager.controllers
+        for (i in controllers.indices) {
+            controllers[i].lyricView.setPosition(currentLogicPosition)
+        }
+        syncXiaomiIslandHide()
+    }
+
+    /** ColorOS 胶囊当前是否显示 */
     @Volatile
-    private var lastRenderedSong: Song? = null
+    private var isOplusCapsuleShowing: Boolean = false
+
+    /** 小米超级岛当前是否想要显示（含被抑制中） */
+    @Volatile
+    private var isXiaomiIslandShowing: Boolean = false
 
     init {
-        if (DEBUG) YLog.debug(tag = TAG, msg = "Initializing LyricViewController...")
+        if (DEBUG) YLog.debug(TAG, "Initializing LyricViewController...")
+        // 注册数据总线、系统钩子及封面更新监听
         LyricDataHub.addListener(this)
         OplusCapsuleHooker.registerListener(this)
+        XiaomiIslandHooker.registerListener(this)
         NotificationCoverHelper.registerListener(this)
     }
 
+    /**
+     * 当歌曲发生切换时回调。
+     * @param song 新歌曲对象，若停止播放则为 null
+     */
     override fun onSongChanged(song: Song?) {
-        lastRenderedSong = song
-        if (DEBUG) YLog.debug(tag = TAG, msg = "Rendering UI for song: ${song?.name ?: "None"}")
+        YLog.info(TAG, "onSongChanged: $song")
+
         updateAllControllers {
             lyricView.setSong(song)
-            if (song != null && lastKnownPosition > 0L) {
-                lyricView.seekTo(lastKnownPosition)
-                lyricView.setPosition(lastKnownPosition)
-            }
             refreshTranslationVisibility(lyricView)
         }
-        scheduleVendorSync()
+
+        updateCoverFileFromSong(song)
     }
 
+    private fun updateCoverFileFromSong(song: Song?) {
+        val activePackage = this.activePackage
+        val name = song?.name
+        val artist = song?.artist
+        if (activePackage.isBlank() || name.isNullOrBlank() || artist.isNullOrBlank()) {
+            return
+        }
+        val file = NotificationCoverHelper.getCachedCoverFile(activePackage, name, artist)
+        if (file != null && file.exists()) {
+            YLog.info(TAG, "Cover cache file found: $name - $artist")
+            updateCoverFile(file)
+        }
+    }
+
+    /**
+     * 当活跃播放源发生切换时回调（如从网易云切换至 QQ 音乐）。
+     * @param providerInfo 播放器信息
+     */
     override fun onActiveProviderChanged(providerInfo: ProviderInfo?) {
-        activePackage = providerInfo?.playerPackageName.orEmpty()
-        LyricPrefs.activePackageName = activePackage
-        lastRenderedSong = null
-        lastKnownPosition = 0L
-        lastPositionUpdateAt = 0L
+        YLog.info(TAG, "onActiveProviderChanged: $providerInfo")
+
+        this.activePackage = providerInfo?.playerPackageName.orEmpty()
+        LyricPrefs.activePackageName = this.activePackage
 
         updateAllControllers {
             resetViewForNewPlayer(this, providerInfo)
         }
-        scheduleVendorSync()
     }
 
+    /**
+     * 播放状态变更回调（播放/暂停）。
+     * @param isPlaying 播放状态
+     */
     override fun onPlaybackStateChanged(isPlaying: Boolean) {
+        if (this.isPlaying == isPlaying) return
+        YLog.info(TAG, "onPlaybackStateChanged: $isPlaying")
+
         this.isPlaying = isPlaying
-        if (isPlaying) {
-            lastPositionUpdateAt = SystemClock.uptimeMillis()
-        }
         updateAllControllers { lyricView.setPlaying(isPlaying) }
-        scheduleVendorSync()
+
+        refreshHdrHighlightState()
+        // setPlaying 的视图动画在主线程稍后生效，post 一帧后再同步超级岛状态
+        mainHandler.post { syncXiaomiIslandHide() }
     }
 
+    /**
+     * 播放进度正常步进时的回调（通常每秒触发）。
+     * @param position 当前逻辑时间戳
+     */
     override fun onPositionChanged(position: Long) {
-        lastKnownPosition = position.coerceAtLeast(0L)
-        lastPositionUpdateAt = SystemClock.uptimeMillis()
-        updateAllControllers { lyricView.setPosition(position) }
-        scheduleVendorSync()
+        this.currentLogicPosition = position
+        // 进度更新极其频繁，直接 post 到 Handler
+        mainHandler.post(frameUpdater)
     }
 
+    /**
+     * 用户手动调整进度（Seek）时的回调。
+     * @param position 目标时间戳
+     */
     override fun onSeekTo(position: Long) {
-        lastKnownPosition = position.coerceAtLeast(0L)
-        lastPositionUpdateAt = SystemClock.uptimeMillis()
-        updateAllControllers {
-            lyricView.seekTo(position)
-            lyricView.setPosition(position)
-        }
-        scheduleVendorSync()
+        this.currentLogicPosition = position
+        updateAllControllers { lyricView.seekTo(position) }
     }
 
+    /**
+     * 收到纯文本歌词时的回调（通常用于未匹配到 Lrc 的情况）。
+     * @param text 歌词文本内容
+     */
     override fun onReceiveText(text: String?) {
+        YLog.info(TAG, "onReceiveText: $text")
         updateAllControllers { lyricView.setText(text) }
-        scheduleVendorSync()
     }
 
+    /**
+     * 翻译显示开关状态变更。
+     * @param isDisplayTranslation 是否开启
+     */
     override fun onDisplayTranslationChanged(isDisplayTranslation: Boolean) {
+        YLog.info(TAG, "onDisplayTranslationChanged: $isDisplayTranslation")
+
         this.isDisplayTranslation = isDisplayTranslation
         updateAllControllers { refreshTranslationVisibility(lyricView) }
-        scheduleVendorSync()
     }
 
+    /**
+     * 罗马音显示开关状态变更。
+     * @param isDisplayRoma 是否开启
+     */
     override fun onDisplayRomaChanged(isDisplayRoma: Boolean) {
+        YLog.info(TAG, "onDisplayRomaChanged: $isDisplayRoma")
+
         this.isDisplayRoma = isDisplayRoma
         updateAllControllers { lyricView.updateDisplayTranslation(displayRoma = isDisplayRoma) }
-        scheduleVendorSync()
     }
 
+    /**
+     * 应用全局配置更新（如字体颜色、阴影等样式变更）。
+     * @param style 新的歌词样式配置
+     */
     fun applyConfigurationUpdate(style: LyricStyle) {
         updateAllControllers { updateLyricStyle(style) }
+        updateCoverFile(currentCoverFile, force = true)
+        refreshHdrHighlightState()
+        syncCapsuleWidthMode()
+        mainHandler.post { syncXiaomiIslandHide() }
         LyricDataHub.reprocessCurrentSong()
-        scheduleVendorSync()
     }
 
-    fun notifyTranslationDbChange() {
-        LyricDataHub.reprocessCurrentSong()
-    }
+    private fun refreshHdrHighlightState() {
+        val enabled = isPlaying && LyricPrefs.isHdrHighlightEnabled()
+        val ratio = if (enabled) LyricPrefs.getHdrRatio() else 1.0f
 
-    fun refreshLyricTranslationDisplayConfig() {
-        val song = lastRenderedSong
+        YLog.info(
+            TAG,
+            "refreshHdrHighlightState: enabled=$enabled ratio=$ratio " +
+                    "initialized=${HdrStatusBarController.isInitialized}"
+        )
+
         updateAllControllers {
-            if (song != null) {
-                lyricView.setSong(song)
-                if (lastKnownPosition > 0L) {
-                    lyricView.seekTo(lastKnownPosition)
-                    lyricView.setPosition(lastKnownPosition)
-                }
-            }
-            refreshTranslationVisibility(lyricView)
+            lyricView.setHdrHighlightRatio(ratio)
         }
-        scheduleVendorSync()
+
+        if (enabled && HdrStatusBarController.isInitialized) {
+            HdrStatusBarController.enable(ratio)
+        } else {
+            HdrStatusBarController.disable()
+        }
     }
 
-    fun notifyLyricVisibilityChanged() {
-        scheduleVendorSync()
-    }
-
+    /**
+     * 针对新播放器重置视图状态。
+     * @param controller 具体的控制器实例
+     * @param provider 播放源信息
+     */
     private fun resetViewForNewPlayer(
         controller: StatusBarViewController,
         provider: ProviderInfo?
@@ -168,16 +251,34 @@ object LyricViewController : ActivePlayerListener,
         view.updateVisibility()
 
         view.logoView.apply {
-            val currentPackage = provider?.playerPackageName.orEmpty()
-            activePackage = currentPackage
+            val pkg = provider?.playerPackageName.orEmpty()
+            this.activePackage = pkg
+//
+//            val cover =
+//                if (pkg.isBlank()) {
+//                    null
+//                } else {
+//                    NotificationCoverHelper.getLatestCoverFile(pkg)
+//                }
+//            this.coverFile = cover
+//            controller.updateCoverThemeColors(cover)
 
-            val cover = if (currentPackage.isBlank()) null else NotificationCoverHelper.getCoverFile(currentPackage)
-            coverFile = cover
-            controller.updateCoverThemeColors(cover)
-            post { providerLogo = provider?.logo }
+            this.providerLogo = provider?.logo
         }
     }
 
+    /**
+     * 对所有控制器重刷翻译显示配置。
+     * 双击临时隐藏恢复歌词时调用，避免副行残留为原文/空行。
+     */
+    fun refreshTranslationDisplay() {
+        updateAllControllers { refreshTranslationVisibility(lyricView) }
+    }
+
+    /**
+     * 根据当前用户配置和样式决定翻译行的显示状态。
+     * @param view 状态栏歌词视图
+     */
     private fun refreshTranslationVisibility(view: StatusBarLyric) {
         val style = LyricPrefs.activePackageStyle
         val shouldShow = isDisplayTranslation &&
@@ -186,51 +287,110 @@ object LyricViewController : ActivePlayerListener,
         view.updateDisplayTranslation(displayTranslation = shouldShow)
     }
 
+    /**
+     * 核心分发方法：在主线程遍历所有控制器并执行操作。
+     * @param block 需要在每个控制器上执行的逻辑
+     */
     private inline fun updateAllControllers(crossinline block: StatusBarViewController.() -> Unit) {
-        StatusBarViewManager.forEach { controller ->
+        StatusBarViewManager.forEachOnMainThread { controller ->
             runCatching {
-                controller.lyricView.post { controller.block() }
+                controller.block()
             }.onFailure { e ->
-                YLog.error(tag = TAG, msg = "Dispatch UI update failed", e = e)
+                YLog.error(TAG, "UI Update distribution error", e)
             }
         }
     }
 
+    /**
+     * Oplus (ColorOS) 胶囊状态变更监听。
+     * 用于在系统胶囊出现时自动隐藏歌词，避免遮挡。
+     * @param isShowing 胶囊是否正在显示
+     */
     override fun onColorOsCapsuleVisibilityChanged(isShowing: Boolean) {
-        updateAllControllers { lyricView.setOplusCapsuleVisibility(isShowing) }
-        scheduleVendorSync()
+        isOplusCapsuleShowing = isShowing
+        syncCapsuleWidthMode()
     }
 
-    override fun onCoverUpdated(packageName: String, coverFile: File) {
-        if (packageName != activePackage) return
-        updateAllControllers {
-            lyricView.logoView.apply {
-                this.coverFile = coverFile
-                (strategy as? SuperLogo.CoverStrategy)?.updateContent()
-            }
-            updateCoverThemeColors(coverFile)
-        }
-        scheduleVendorSync()
+    /**
+     * 小米超级岛状态变更监听。
+     * 超级岛出现时按配置把歌词切换到胶囊模式宽度（自动缩短）。
+     */
+    override fun onXiaomiIslandVisibilityChanged(isShowing: Boolean) {
+        isXiaomiIslandShowing = isShowing
+        syncCapsuleWidthMode()
     }
 
-    private fun scheduleVendorSync() {
-        StatusBarViewManager.controllers.firstOrNull()?.lyricView?.post { syncVendorTemporaryUi() }
-            ?: syncVendorTemporaryUi()
+    /**
+     * 汇总 ColorOS 胶囊与小米超级岛状态，驱动歌词的胶囊模式宽度。
+     * 开启"歌词显示时隐藏超级岛"后，超级岛会被抑制，不再触发缩短。
+     */
+    private fun syncCapsuleWidthMode() {
+        val baseStyle = LyricPrefs.baseStyle
+        val xiaomiShrink = isXiaomiIslandShowing &&
+                baseStyle.xiaomiIslandAutoShrinkEnabled &&
+                !baseStyle.xiaomiIslandTempHideEnabled
+        val capsuleMode = isOplusCapsuleShowing || xiaomiShrink
+        updateAllControllers { lyricView.setOplusCapsuleVisibility(capsuleMode) }
     }
 
-    private fun syncVendorTemporaryUi() {
-        val enableXiaomiIslandHide = LyricPrefs.baseStyle.xiaomiIslandTempHideEnabled
-        val now = SystemClock.uptimeMillis()
-        val playbackActive = isPlaying &&
-                (lastPositionUpdateAt <= 0L || now - lastPositionUpdateAt <= PLAYBACK_ACTIVE_STALE_MS)
-        val shouldHideXiaomiIsland = StatusBarViewManager.controllers.any { controller ->
+    /**
+     * 同步"歌词显示时隐藏超级岛"状态：歌词正在实际展示时抑制超级岛，否则恢复。
+     * 由播放状态、进度帧与配置更新触发；[XiaomiIslandHooker.setHideByLyric] 内部有
+     * 同值早退，重复调用开销极小。
+     */
+    private fun syncXiaomiIslandHide() {
+        if (!XiaomiIslandHooker.isSupported()) return
+        val enabled = LyricPrefs.baseStyle.xiaomiIslandTempHideEnabled
+        val playing = isPlaying
+        val lyricVisible = StatusBarViewManager.controllers.any { controller ->
             val view = controller.lyricView
-            enableXiaomiIslandHide &&
-                    playbackActive &&
-                    view.isAttachedToWindow &&
+            view.isAttachedToWindow &&
                     view.visibility == View.VISIBLE &&
                     view.textView.shouldShow()
         }
-        XiaomiIslandHooker.setHideByLyric(shouldHideXiaomiIsland)
+        XiaomiIslandHooker.setHideByLyric(enabled && playing && lyricVisible)
+    }
+
+    /**
+     * 专辑封面更新回调。
+     * @param packageName 触发更新的播放器包名
+     * @param coverFile 封面文件对象
+     */
+    override fun onCoverUpdated(packageName: String, coverFile: File) {
+        if (packageName != activePackage) return
+        updateCoverFile(coverFile)
+    }
+
+    private var lastCoverSignature = 0L
+    private var currentCoverFile: File? = null
+    private var lastCoverRenderStateLog: String? = null
+    private fun updateCoverFile(coverFile: File?, force: Boolean = false) {
+        currentCoverFile = coverFile
+        if (coverFile != null) {
+            val signature = coverFile.crc32()
+            if (!force && signature == lastCoverSignature) {
+                YLog.verbose(TAG, "Cover file is the same, skip update")
+                return
+            }
+            lastCoverSignature = signature
+        } else {
+            lastCoverSignature = 0
+        }
+
+        updateAllControllers {
+            lyricView.logoView.apply {
+                this.coverFile = coverFile
+                (strategy as? CoverStrategy)?.updateContent()
+            }
+            logCoverRenderState(lyricView)
+            updateCoverThemeColors(coverFile)
+        }
+    }
+
+    private fun logCoverRenderState(lyricView: StatusBarLyric) {
+        val state = lyricView.logoView.describeRenderState()
+        if (state == lastCoverRenderStateLog) return
+        lastCoverRenderStateLog = state
+        YLog.info(TAG, "Cover render state: $state")
     }
 }

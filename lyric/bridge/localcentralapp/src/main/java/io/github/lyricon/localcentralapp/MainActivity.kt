@@ -14,7 +14,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import io.github.lyricon.localcentralapp.databinding.ActivityMainBinding
 import io.github.lyricon.localcentralapp.util.FloatingPermissionUtil
-import io.github.proify.lyricon.central.provider.player.ActivePlayerDispatcher
+import io.github.proify.lyricon.central.provider.player.ActivePlayerCenter
 import io.github.proify.lyricon.central.provider.player.ActivePlayerListener
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.provider.ProviderInfo
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             onToggleClick()
         }
 
-        ActivePlayerDispatcher.addActivePlayerListener(object : ActivePlayerListener {
+        ActivePlayerCenter.addListener(object : ActivePlayerListener {
             override fun onActiveProviderChanged(providerInfo: ProviderInfo?) {
                 log("onActiveProviderChanged: $providerInfo")
             }

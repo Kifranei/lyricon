@@ -16,7 +16,7 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import io.github.proify.lyricon.central.BridgeCentral
-import io.github.proify.lyricon.central.provider.player.ActivePlayerDispatcher
+import io.github.proify.lyricon.central.provider.player.ActivePlayerCenter
 import io.github.proify.lyricon.central.provider.player.ActivePlayerListener
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.provider.ProviderInfo
@@ -58,7 +58,7 @@ class FloatWindowService : Service() {
         if (isStarted) return
         isStarted = true
         BridgeCentral.initialize(applicationContext)
-        ActivePlayerDispatcher.addActivePlayerListener(activePlayerListener)
+        ActivePlayerCenter.addListener(activePlayerListener)
         BridgeCentral.sendBootCompleted()
         Log.d(TAG, "Initialized BridgeCentral")
     }
@@ -153,7 +153,7 @@ class FloatWindowService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
-        ActivePlayerDispatcher.removeActivePlayerListener(activePlayerListener)
+        ActivePlayerCenter.removeListener(activePlayerListener)
         helper?.dismiss()
         isStarted = false
         Log.d(TAG, "onDestroy")

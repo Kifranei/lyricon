@@ -30,7 +30,10 @@ data class LogoStyle(
 
     var width: Float = Defaults.WIDTH,
     var height: Float = Defaults.HEIGHT,
-    var gravity: Int = Defaults.GRAVITY
+    var gravity: Int = Defaults.GRAVITY,
+
+    var customLogo: String? = null,
+    var colorfulCustomLogo: Boolean = false
 ) : AbstractStyle(), Parcelable {
 
     override fun onLoad(preferences: SharedPreferences) {
@@ -64,6 +67,9 @@ data class LogoStyle(
         height = preferences.getFloat("lyric_style_logo_height", Defaults.HEIGHT)
 
         gravity = preferences.getInt("lyric_style_logo_gravity", Defaults.GRAVITY)
+
+        customLogo = preferences.getString("lyric_style_logo_custom", null)
+        colorfulCustomLogo = preferences.getBoolean("lyric_style_logo_custom_colorful", false)
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -82,6 +88,8 @@ data class LogoStyle(
         editor.putFloat("lyric_style_logo_height", height)
 
         editor.putInt("lyric_style_logo_gravity", gravity)
+        editor.putString("lyric_style_logo_custom", customLogo)
+        editor.putBoolean("lyric_style_logo_custom_colorful", colorfulCustomLogo)
     }
 
     fun color(lightMode: Boolean): LogoColor = if (lightMode) lightModeColor else darkModeColor
@@ -111,5 +119,6 @@ data class LogoStyle(
         const val STYLE_COVER_SQUIRCLE: Int = 1
         const val STYLE_COVER_CIRCLE: Int = 2
         const val STYLE_APP_LOGO: Int = 3
+        const val STYLE_LOGO_CUSTOM: Int = 4
     }
 }

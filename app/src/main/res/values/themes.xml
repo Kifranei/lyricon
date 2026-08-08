@@ -6,13 +6,15 @@
 
 <resources>
 
-    <style name="Theme.Dark" parent="@android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:windowActivityTransitions">true</item>
+    <style name="Theme.Dark" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:colorBackground">#FF000000</item>
+        <item name="android:windowBackground">#FF000000</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
 
     <style name="Theme.Light" parent="@android:style/Theme.Material.Light.NoActionBar">
-        <item name="android:colorBackground">@android:color/white</item>
+        <item name="android:colorBackground">#FFF0F1F2</item>
+        <item name="android:windowBackground">#FFF0F1F2</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
 

@@ -1,9 +1,8 @@
 [versions]
 # Gradle / Kotlin / KSP
 agp = "9.1.1"
-jetbrainsKotlinJvm = "2.3.20"
-kotlin = "2.3.20"
-ksp = "2.3.6"
+jetbrainsKotlinJvm = "2.3.21"
+kotlin = "2.3.21"
 
 # AndroidX Base
 activity = "1.13.0"
@@ -16,37 +15,35 @@ lifecycle = "2.10.0"
 
 # AndroidX Compose
 activityCompose = "1.13.0"
-composeBom = "2026.03.01"
-composeFoundation = "1.10.6"
+composeBom = "2026.05.00"
 opencc4j = "1.14.0"
-remoteCreationCore = "1.0.0-alpha08"
 
 # Material
-material = "1.13.0"
-material3 = "1.5.0-alpha17"
+material = "1.14.0"
+material3 = "1.5.0-alpha19"
 
 # Network / Logic / Serialization
 kotlinxSerializationJson = "1.11.0"
 
 # UI Extensions / Third Party
-aboutlibrariesCore = "14.0.1"
+aboutlibrariesCore = "14.2.0"
 accompanistDrawablePainter = "0.37.3"
 androidsvg = "1.4"
 bonsai = "1.2.0"
 capsuleAndroid = "2.1.1-patch2"
 haze = "1.7.2"
 lottieCompose = "6.7.1"
-miuixUI = "0.9.0"
-miuixIcons = "0.9.0"
-miuixPreference = "0.9.0"
-
-# Hook / Reflection
-xposed = "82"
+miuixUI = "0.9.3"
+miuixIcons = "0.9.3"
+miuixPreference = "0.9.3"
+miuixBlur = "0.9.3"
 
 # Testing
 androidxJunit = "1.3.0"
 espresso = "3.7.0"
 junit4 = "4.13.2"
+xposed-api = "102.0.0"
+xposed-service = "102.0.0"
 
 [libraries]
 # ===== AndroidX Base =====
@@ -63,14 +60,15 @@ androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-
 # ===== AndroidX Compose =====
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
-androidx-compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "composeFoundation" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
-androidx-compose-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
 androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+
+libxposed-api = { group = "io.github.libxposed", name = "api", version.ref = "xposed-api" }
+libxposed-service = { group = "io.github.libxposed", name = "service", version.ref = "xposed-service" }
 
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
@@ -88,12 +86,11 @@ lottie-compose = { module = "com.airbnb.android:lottie-compose", version.ref = "
 miuix-android = { module = "top.yukonga.miuix.kmp:miuix-ui-android", version.ref = "miuixUI" }
 miuix-preference = { module = "top.yukonga.miuix.kmp:miuix-preference-android", version.ref = "miuixPreference" }
 miuix-icons = { module = "top.yukonga.miuix.kmp:miuix-icons-android", version.ref = "miuixIcons" }
-miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur", version.ref = "miuixUI" }
+miuix-blur = { module = "top.yukonga.miuix.kmp:miuix-blur-android", version.ref = "miuixBlur" }
 
 # ===== Hook / Reflection =====
 #noinspection UnusedVersionCatalogEntry
 opencc4j = { module = "com.github.houbb:opencc4j", version.ref = "opencc4j" }
-xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposed" }
 
 # ===== Testing =====
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso" }
@@ -108,7 +105,3 @@ android-library = { id = "com.android.library", version.ref = "agp" }
 # ===== Kotlin =====
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-
-# ===== Other =====
-#noinspection UnusedVersionCatalogEntry
-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

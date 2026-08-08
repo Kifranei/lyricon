@@ -9,6 +9,7 @@
 package io.github.proify.lyricon.lyric.view.line.model
 
 import android.graphics.Paint
+import android.graphics.Rect
 import io.github.proify.lyricon.lyric.model.LyricMetadata
 import io.github.proify.lyricon.lyric.model.interfaces.ILyricTiming
 
@@ -68,6 +69,17 @@ data class WordModel(
     val charEndPositions: FloatArray = FloatArray(text.length)
 
     /**
+     * 整词墨迹超出 advance 宽度的右侧溢出量（px，>= 0）。
+     * 斜体等字形的墨迹会越过 advance 边界，逐字绘制时需要
+     * 把裁剪区向右扩展该值，否则词尾会被裁掉。
+     */
+    var rightOverhang: Float = 0f
+        private set
+
+    /** 各字符墨迹相对自身 advance 的右侧溢出量（px，>= 0） */
+    val charRightOverhangs: FloatArray = FloatArray(text.length)
+
+    /**
      * 更新单词及其字符的尺寸和位置信息
      *
      * @param previous 上一个单词模型
@@ -84,6 +96,21 @@ data class WordModel(
             charStartPositions[i] = currentPosition
             currentPosition += charWidths[i]
             charEndPositions[i] = currentPosition
+        }
+        updateOverhangs(paint)
+    }
+
+    private fun updateOverhangs(paint: Paint) {
+        if (text.isEmpty()) {
+            rightOverhang = 0f
+            return
+        }
+        val bounds = Rect()
+        paint.getTextBounds(text, 0, text.length, bounds)
+        rightOverhang = maxOf(0f, bounds.right - textWidth)
+        for (i in chars.indices) {
+            paint.getTextBounds(text, i, i + 1, bounds)
+            charRightOverhangs[i] = maxOf(0f, bounds.right - charWidths[i])
         }
     }
 }

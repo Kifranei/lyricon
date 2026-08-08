@@ -25,10 +25,7 @@ fun rememberFrameTimeSeconds(
 
         while (playing) {
             val now = withFrameNanos { it }
-
-            time =
-                startOffset +
-                (now - start) / 1_000_000_000f
+            time = startOffset + (now - start) / 1_000_000_000f
         }
     }
 

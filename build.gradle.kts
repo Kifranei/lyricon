@@ -5,22 +5,21 @@ plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.kotlin.compose) apply false
-    //alias(libs.plugins.ksp) apply false
     id("com.vanniktech.maven.publish") version "0.36.0" apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
-    id("com.mikepenz.aboutlibraries.plugin.android") version "14.0.1" apply false
+    id("com.mikepenz.aboutlibraries.plugin.android") version "14.2.0" apply false
 }
 
 extra["appPackageName"] = "io.github.kifranei.lyricon.fork"
-extra["appVersionCode"] = 32
-extra["appVersionName"] = "1.0.32"
+extra["appVersionCode"] = 44
+extra["appVersionName"] = "1.0.30-beta14"
 extra["compileSdkVersion"] = 37
 extra["targetSdkVersion"] = 37
-extra["minSdkVersion"] = 28
+extra["minSdkVersion"] = 29
 
-extra["providerSdkVersion"] = "0.1.69"
-extra["subscriberSdkVersion"] = "0.1.69"
-extra["lyricModelVersion"] = "0.1.69"
+extra["providerSdkVersion"] = "0.1.71"
+extra["subscriberSdkVersion"] = "0.1.71"
+extra["lyricModelVersion"] = "0.1.71"
 
 // apk自动导出
 /**

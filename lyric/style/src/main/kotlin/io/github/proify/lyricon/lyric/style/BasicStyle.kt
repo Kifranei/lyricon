@@ -11,6 +11,19 @@ import android.os.Parcelable
 import io.github.proify.android.extensions.json
 import io.github.proify.android.extensions.safeDecode
 import io.github.proify.android.extensions.toJson
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_API_KEY
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_BASE_URL
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_ENABLED
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_FREQUENCY_PENALTY
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_IGNORE_CHINESE
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_MAX_TOKENS
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_MODEL
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_PRESENCE_PENALTY
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_PROMPT
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_PROVIDER
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_TARGET_LANGUAGE
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_TEMPERATURE
+import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_TOP_P
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -25,15 +38,16 @@ import kotlinx.serialization.Transient
 data class BasicStyle(
     var anchor: String = Defaults.ANCHOR,
     var insertionOrder: Int = Defaults.INSERTION_ORDER,
-    var width: Float = Defaults.WIDTH,
-    var widthInColorOSCapsuleMode: Float = Defaults.WIDTH_IN_COLOROS_CAPSULE_MODE,
-    var dynamicWidthEnabled: Boolean = Defaults.DYNAMIC_WIDTH_ENABLED,
-    var dynamicWidthAutoHideClock: Boolean = Defaults.DYNAMIC_WIDTH_AUTO_HIDE_CLOCK,
-    var doubleTapSwitchClock: Boolean = Defaults.DOUBLE_TAP_SWITCH_CLOCK,
-    var xiaomiIslandTempHideEnabled: Boolean = Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
+
+    private var width: Float = Defaults.WIDTH,
+    private var widthInLand: Float = Defaults.WIDTH_LAND,
+
+    private var widthInColorOSCapsuleMode: Float = Defaults.WIDTH_IN_COLOROS_CAPSULE_MODE,
+    private var widthInColorOSCapsuleModeLand: Float = Defaults.WIDTH_IN_COLOROS_CAPSULE_MODE_LAND,
+
     var margins: RectF = Defaults.MARGINS,
     var paddings: RectF = Defaults.PADDINGS,
-    var visibilityRules: List<VisibilityRule> = Defaults.VISIBILITY_RULES,
+    var visibilityRules: List<VisibilityRule> = defaultVisibilityRules(),
     var hideOnLockScreen: Boolean = Defaults.HIDE_ON_LOCK_SCREEN,
     var noLyricHideTimeout: Int = Defaults.NO_LYRIC_HIDE_TIMEOUT,
     var noUpdateHideTimeout: Int = Defaults.NO_UPDATE_HIDE_TIMEOUT,
@@ -41,7 +55,33 @@ data class BasicStyle(
     var keywordHideMatches: List<String> = Defaults.KEYWORD_HIDE_MATCH,
     var blockedWordsRegexString: String = Defaults.BLOCKED_WORDS_REGEX,
     var chineseConversionMode: Int = Defaults.CHINESE_CONVERSION_MODE,
-) : AbstractStyle(), Parcelable {
+
+    var isAiTranslationEnable: Boolean = false,
+    var aiTranslationConfigs: AiTranslationConfigs? = null,
+    var isAiTranslationAutoIgnoreChinese: Boolean = false,
+
+    var hdrHighlightEnabled: Boolean = Defaults.HDR_HIGHLIGHT_ENABLED,
+    var hdrBrightnessRatio: Float = Defaults.HDR_BRIGHTNESS_RATIO,
+
+    var xiaomiIslandTempHideEnabled: Boolean = Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
+    var xiaomiIslandAutoShrinkEnabled: Boolean = Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED,
+
+    var doubleTapSwitchClock: Boolean = Defaults.DOUBLE_TAP_SWITCH_CLOCK,
+
+    ) : AbstractStyle(), Parcelable {
+
+    fun getAutoWidth(isLand: Boolean, isOplusCapsuleShowing: Boolean): Float {
+        if (isOplusCapsuleShowing) return getWidthInColorOSCapsuleMode(isLand)
+        return getWidth(isLand)
+    }
+
+    fun getWidth(isLand: Boolean): Float {
+        return if (isLand) widthInLand else width
+    }
+
+    fun getWidthInColorOSCapsuleMode(isLand: Boolean): Float {
+        return if (isLand) widthInColorOSCapsuleModeLand else widthInColorOSCapsuleMode
+    }
 
     /** 缓存的屏蔽词正则表达式对象 */
     @IgnoredOnParcel
@@ -77,26 +117,17 @@ data class BasicStyle(
             preferences.getString("lyric_style_base_anchor", Defaults.ANCHOR) ?: Defaults.ANCHOR
         insertionOrder =
             preferences.getInt("lyric_style_base_insertion_order", Defaults.INSERTION_ORDER)
+
         width = preferences.getFloat("lyric_style_base_width", Defaults.WIDTH)
+        widthInLand =
+            preferences.getFloat("lyric_style_base_width_in_landscape", Defaults.WIDTH_LAND)
         widthInColorOSCapsuleMode = preferences.getFloat(
             "lyric_style_base_width_in_coloros_capsule_mode",
             Defaults.WIDTH_IN_COLOROS_CAPSULE_MODE
         )
-        dynamicWidthEnabled = preferences.getBoolean(
-            "lyric_style_base_dynamic_width_enabled",
-            Defaults.DYNAMIC_WIDTH_ENABLED
-        )
-        dynamicWidthAutoHideClock = preferences.getBoolean(
-            "lyric_style_base_dynamic_width_auto_hide_clock",
-            Defaults.DYNAMIC_WIDTH_AUTO_HIDE_CLOCK
-        )
-        doubleTapSwitchClock = preferences.getBoolean(
-            "lyric_style_base_double_tap_switch_clock",
-            Defaults.DOUBLE_TAP_SWITCH_CLOCK
-        )
-        xiaomiIslandTempHideEnabled = preferences.getBoolean(
-            "lyric_style_base_xiaomi_island_temp_hide_enabled",
-            Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED
+        widthInColorOSCapsuleModeLand = preferences.getFloat(
+            "lyric_style_base_width_in_coloros_capsule_mode_in_landscape",
+            Defaults.WIDTH_IN_COLOROS_CAPSULE_MODE_LAND
         )
 
         margins = json.safeDecode<RectF>(
@@ -107,12 +138,11 @@ data class BasicStyle(
             preferences.getString("lyric_style_base_paddings", null),
             Defaults.PADDINGS
         )
-        visibilityRules = json.safeDecode<MutableList<VisibilityRule>>(
-            preferences.getString(
-                "lyric_style_base_visibility_rules",
-                null
-            ), Defaults.VISIBILITY_RULES.toMutableList()
+        val configuredVisibilityRules = json.safeDecode<MutableList<VisibilityRule>>(
+            preferences.getString(PREF_KEY_VISIBILITY_RULES, null),
+            mutableListOf()
         )
+        visibilityRules = resolveVisibilityRules(configuredVisibilityRules)
 
         hideOnLockScreen = preferences.getBoolean(
             "lyric_style_base_hide_on_lock_screen",
@@ -146,29 +176,57 @@ data class BasicStyle(
             "lyric_style_base_chinese_conversion_mode",
             Defaults.CHINESE_CONVERSION_MODE
         )
+
+        isAiTranslationEnable =
+            preferences.getBoolean(
+                KEY_AI_TRANSLATION_ENABLED,
+                TextStyle.Defaults.AI_TRANSLATION_ENABLED
+            )
+        aiTranslationConfigs = getAiTranslationConfigs(preferences)
+        isAiTranslationAutoIgnoreChinese =
+            preferences.getBoolean(
+                KEY_AI_TRANSLATION_IGNORE_CHINESE,
+                TextStyle.Defaults.AI_TRANSLATION_IGNORE_CHINESE
+            )
+
+        hdrHighlightEnabled = preferences.getBoolean(
+            "lyric_style_base_hdr_highlight_enabled",
+            Defaults.HDR_HIGHLIGHT_ENABLED
+        )
+        hdrBrightnessRatio = preferences.getFloatCompat(
+            "lyric_style_base_hdr_brightness_ratio",
+            Defaults.HDR_BRIGHTNESS_RATIO
+        )
+        xiaomiIslandTempHideEnabled = preferences.getBoolean(
+            "lyric_style_base_xiaomi_island_temp_hide_enabled",
+            Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED
+        )
+        xiaomiIslandAutoShrinkEnabled = preferences.getBoolean(
+            "lyric_style_base_xiaomi_island_auto_shrink_enabled",
+            Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED
+        )
+        doubleTapSwitchClock = preferences.getBoolean(
+            "lyric_style_base_double_tap_switch_clock",
+            Defaults.DOUBLE_TAP_SWITCH_CLOCK
+        )
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
         editor.putString("lyric_style_base_anchor", anchor)
         editor.putInt("lyric_style_base_insertion_order", insertionOrder)
+
         editor.putFloat("lyric_style_base_width", width)
+        editor.putFloat("lyric_style_base_width_in_landscape", widthInLand)
+
         editor.putFloat("lyric_style_base_width_in_coloros_capsule_mode", widthInColorOSCapsuleMode)
-        editor.putBoolean("lyric_style_base_dynamic_width_enabled", dynamicWidthEnabled)
-        editor.putBoolean(
-            "lyric_style_base_dynamic_width_auto_hide_clock",
-            dynamicWidthAutoHideClock
+        editor.putFloat(
+            "lyric_style_base_width_in_coloros_capsule_mode_in_landscape",
+            widthInColorOSCapsuleModeLand
         )
-        editor.putBoolean(
-            "lyric_style_base_double_tap_switch_clock",
-            doubleTapSwitchClock
-        )
-        editor.putBoolean(
-            "lyric_style_base_xiaomi_island_temp_hide_enabled",
-            xiaomiIslandTempHideEnabled
-        )
+
         editor.putString("lyric_style_base_margins", margins.toJson())
         editor.putString("lyric_style_base_paddings", paddings.toJson())
-        editor.putString("lyric_style_base_visibility_rules", visibilityRules.toJson())
+        editor.putString(PREF_KEY_VISIBILITY_RULES, visibilityRules.toJson())
         editor.putBoolean("lyric_style_base_hide_on_lock_screen", hideOnLockScreen)
         editor.putInt("lyric_style_base_no_lyric_hide_timeout", noLyricHideTimeout)
         editor.putInt("lyric_style_base_no_update_hide_timeout", noUpdateHideTimeout)
@@ -176,22 +234,146 @@ data class BasicStyle(
         editor.putString("lyric_style_base_timeout_hide_keywords", keywordHideMatches.toJson())
         editor.putString("lyric_style_base_blocked_words_regex", blockedWordsRegexString)
 
-        // 写入中文转换配置
         editor.putInt("lyric_style_base_chinese_conversion_mode", chineseConversionMode)
+
+        editor.putBoolean(KEY_AI_TRANSLATION_ENABLED, isAiTranslationEnable)
+        aiTranslationConfigs?.let { writeAiTranslationConfigs(editor, it) }
+        editor.putBoolean(KEY_AI_TRANSLATION_IGNORE_CHINESE, isAiTranslationAutoIgnoreChinese)
+
+        editor.putBoolean("lyric_style_base_hdr_highlight_enabled", hdrHighlightEnabled)
+        editor.putFloat("lyric_style_base_hdr_brightness_ratio", hdrBrightnessRatio)
+
+        editor.putBoolean(
+            "lyric_style_base_xiaomi_island_temp_hide_enabled",
+            xiaomiIslandTempHideEnabled
+        )
+        editor.putBoolean(
+            "lyric_style_base_xiaomi_island_auto_shrink_enabled",
+            xiaomiIslandAutoShrinkEnabled
+        )
+        editor.putBoolean(
+            "lyric_style_base_double_tap_switch_clock",
+            doubleTapSwitchClock
+        )
+    }
+
+    private fun getAiTranslationConfigs(preferences: SharedPreferences): AiTranslationConfigs {
+        val providerName =
+            preferences.getString(
+                KEY_AI_TRANSLATION_PROVIDER,
+                TextStyle.Defaults.AI_TRANSLATION_PROVIDER
+            )
+        val provider = AiTranslationProvider.entries.firstOrNull {
+            it.name.equals(providerName, ignoreCase = true)
+        }
+
+        val model = preferences.getString(KEY_AI_TRANSLATION_MODEL, provider?.model)
+        val baseUrl = preferences.getString(KEY_AI_TRANSLATION_BASE_URL, provider?.url)
+
+        val customPrompt =
+            preferences.getString(
+                KEY_AI_TRANSLATION_PROMPT,
+                TextStyle.Defaults.AI_TRANSLATION_PROMPT
+            )
+
+        val targetLanguage =
+            preferences.getString(
+                KEY_AI_TRANSLATION_TARGET_LANGUAGE,
+                TextStyle.Defaults.AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME
+            )
+
+        val apiKey = preferences.getString(KEY_AI_TRANSLATION_API_KEY, null)
+        val temperature = preferences.getFloatCompat(
+            KEY_AI_TRANSLATION_TEMPERATURE,
+            TextStyle.Defaults.AI_TRANSLATION_TEMPERATURE
+        )
+        val topP = preferences.getFloatCompat(
+            KEY_AI_TRANSLATION_TOP_P,
+            TextStyle.Defaults.AI_TRANSLATION_TOP_P
+        )
+        val maxTokens = preferences.getIntCompat(
+            KEY_AI_TRANSLATION_MAX_TOKENS,
+            TextStyle.Defaults.AI_TRANSLATION_MAX_TOKENS
+        )
+        val presencePenalty = preferences.getFloatCompat(
+            KEY_AI_TRANSLATION_PRESENCE_PENALTY,
+            TextStyle.Defaults.AI_TRANSLATION_PRESENCE_PENALTY
+        )
+        val frequencyPenalty = preferences.getFloatCompat(
+            KEY_AI_TRANSLATION_FREQUENCY_PENALTY,
+            TextStyle.Defaults.AI_TRANSLATION_FREQUENCY_PENALTY
+        )
+
+        return AiTranslationConfigs(
+            provider = provider?.name,
+            targetLanguage = targetLanguage,
+            apiKey = apiKey,
+            model = model,
+            baseUrl = baseUrl,
+            prompt = customPrompt ?: TextStyle.Defaults.AI_TRANSLATION_PROMPT,
+            temperature = temperature,
+            topP = topP,
+            maxTokens = maxTokens,
+            presencePenalty = presencePenalty,
+            frequencyPenalty = frequencyPenalty
+        )
+    }
+
+    private fun writeAiTranslationConfigs(
+        editor: SharedPreferences.Editor,
+        configs: AiTranslationConfigs
+    ) {
+        editor.putString(KEY_AI_TRANSLATION_PROVIDER, configs.provider)
+        editor.putString(KEY_AI_TRANSLATION_MODEL, configs.model)
+        editor.putString(KEY_AI_TRANSLATION_BASE_URL, configs.baseUrl)
+        editor.putString(KEY_AI_TRANSLATION_PROMPT, configs.prompt)
+        editor.putString(KEY_AI_TRANSLATION_TARGET_LANGUAGE, configs.targetLanguage)
+        editor.putString(KEY_AI_TRANSLATION_TEMPERATURE, configs.temperature.toString())
+        editor.putString(KEY_AI_TRANSLATION_TOP_P, configs.topP.toString())
+        editor.putString(KEY_AI_TRANSLATION_MAX_TOKENS, configs.maxTokens.toString())
+        editor.putString(KEY_AI_TRANSLATION_PRESENCE_PENALTY, configs.presencePenalty.toString())
+        editor.putString(KEY_AI_TRANSLATION_FREQUENCY_PENALTY, configs.frequencyPenalty.toString())
+    }
+
+    private fun SharedPreferences.getFloatCompat(key: String, defaultValue: Float): Float {
+        return when (val value = all[key]) {
+            is Float -> value
+            is String -> value.toFloatOrNull() ?: defaultValue
+            is Int -> value.toFloat()
+            is Long -> value.toFloat()
+            is Double -> value.toFloat()
+            else -> defaultValue
+        }
+    }
+
+    private fun SharedPreferences.getIntCompat(key: String, defaultValue: Int): Int {
+        return when (val value = all[key]) {
+            is Int -> value
+            is String -> value.toIntOrNull() ?: defaultValue
+            is Long -> value.toInt()
+            is Float -> value.toInt()
+            is Double -> value.toInt()
+            else -> defaultValue
+        }
     }
 
     object Defaults {
-        const val ANCHOR: String = "clock"
+        const val ANCHOR: String = CLOCK_VIEW_ID
         const val INSERTION_ORDER: Int = INSERTION_ORDER_BEFORE
-        const val WIDTH: Float = 100f
-        const val WIDTH_IN_COLOROS_CAPSULE_MODE: Float = 70f
-        const val DYNAMIC_WIDTH_ENABLED: Boolean = false
-        const val DYNAMIC_WIDTH_AUTO_HIDE_CLOCK: Boolean = false
-        const val DOUBLE_TAP_SWITCH_CLOCK: Boolean = false
-        const val XIAOMI_ISLAND_TEMP_HIDE_ENABLED: Boolean = true
+        const val WIDTH: Float = 150f
+        const val WIDTH_LAND: Float = 200f
+
+        const val WIDTH_IN_COLOROS_CAPSULE_MODE: Float = 120f
+        const val WIDTH_IN_COLOROS_CAPSULE_MODE_LAND: Float = 120f
+
         val MARGINS: RectF = RectF()
         val PADDINGS: RectF = RectF()
-        val VISIBILITY_RULES: List<VisibilityRule> = emptyList()
+        val VISIBILITY_RULES: List<VisibilityRule> = listOf(
+            VisibilityRule(
+                id = CLOCK_VIEW_ID,
+                mode = VisibilityRule.MODE_HIDE_WHEN_PLAYING
+            )
+        )
         const val HIDE_ON_LOCK_SCREEN: Boolean = true
         const val NO_LYRIC_HIDE_TIMEOUT: Int = 0
         const val NO_UPDATE_HIDE_TIMEOUT: Int = 0
@@ -199,11 +381,49 @@ data class BasicStyle(
         val KEYWORD_HIDE_MATCH: List<String> = listOf()
         const val BLOCKED_WORDS_REGEX: String = ""
         const val CHINESE_CONVERSION_MODE: Int = CHINESE_CONVERSION_OFF
+        const val HDR_HIGHLIGHT_ENABLED: Boolean = false
+        const val HDR_BRIGHTNESS_RATIO: Float = 1.5f
+        const val XIAOMI_ISLAND_TEMP_HIDE_ENABLED: Boolean = true
+        const val XIAOMI_ISLAND_AUTO_SHRINK_ENABLED: Boolean = true
+        const val DOUBLE_TAP_SWITCH_CLOCK: Boolean = false
     }
 
     companion object {
+        const val CLOCK_VIEW_ID: String = "clock"
+        const val PREF_KEY_VISIBILITY_RULES: String = "lyric_style_base_visibility_rules"
+
         const val INSERTION_ORDER_BEFORE: Int = 0
         const val INSERTION_ORDER_AFTER: Int = 1
+
+        fun defaultVisibilityRules(): List<VisibilityRule> =
+            Defaults.VISIBILITY_RULES.map(VisibilityRule::copy)
+
+        fun resolveVisibilityRules(
+            configuredRules: List<VisibilityRule>?
+        ): List<VisibilityRule> {
+            val resolvedRules = linkedMapOf<String, VisibilityRule>()
+            defaultVisibilityRules().forEach { rule ->
+                resolvedRules[rule.id] = rule
+            }
+            configuredRules.orEmpty().forEach { rule ->
+                resolvedRules[rule.id] = rule.copy()
+            }
+            return resolvedRules.values.toList()
+        }
+
+        fun compactVisibilityRulesForStorage(
+            rules: List<VisibilityRule>
+        ): List<VisibilityRule> {
+            val defaultRules = Defaults.VISIBILITY_RULES.associateBy { it.id }
+            return rules.filterNot { rule ->
+                val defaultRule = defaultRules[rule.id]
+                if (defaultRule != null) {
+                    rule.mode == defaultRule.mode
+                } else {
+                    rule.mode == VisibilityRule.MODE_NORMAL
+                }
+            }
+        }
 
         /** 中文转换模式：关闭 */
         const val CHINESE_CONVERSION_OFF = 0

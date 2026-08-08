@@ -16,24 +16,22 @@ import io.github.proify.lyricon.subscriber.ProviderLogo.Companion.TYPE_SVG
 import kotlinx.serialization.Serializable
 
 /**
- * 提供者 Logo 数据类。
+ * 提供端图标数据。
  *
- * 支持 Bitmap 和 SVG 两种类型。
+ * 支持位图和 SVG 两种格式。该类会跨进程传输，因此只保存原始字节和格式标记。
  *
- * @property data 原始字节数据
- * @property type 类型，取值见 [TYPE_BITMAP]、[TYPE_SVG]
- * @property colorful 是否为彩色图标
+ * @property data 图标原始字节数据。
+ * @property type 图标类型，取值见 [TYPE_BITMAP]、[TYPE_SVG]。
+ * @property colorful 是否为彩色图标；中心服务可据此决定是否应用着色。
  */
 @Serializable
 data class ProviderLogo(
     val data: ByteArray,
     val type: Int,
     val colorful: Boolean = false
-)  {
+) {
 
-    /**
-     * 将数据解析为 [Bitmap]，仅在 [type] 为 [TYPE_BITMAP] 时有效
-     */
+    /** 将位图格式的 [data] 解码为 [Bitmap]，非 [TYPE_BITMAP] 类型返回 `null`。 */
     fun toBitmap(): Bitmap? = if (type == TYPE_BITMAP) {
         runCatching {
             BitmapFactory.decodeByteArray(
@@ -45,13 +43,14 @@ data class ProviderLogo(
         }.getOrNull()
     } else null
 
-    /**
-     * 将数据解析为 SVG 字符串，仅在 [type] 为 [TYPE_SVG] 时有效
-     */
+    /** 将 SVG 格式的 [data] 解码为字符串，非 [TYPE_SVG] 类型返回 `null`。 */
     fun toSvg(): String? = if (type == TYPE_SVG) data.toString(Charsets.UTF_8) else null
 
     companion object {
+        /** PNG/Bitmap 字节图标。 */
         const val TYPE_BITMAP: Int = 0
+
+        /** SVG 文本图标。 */
         const val TYPE_SVG: Int = 1
 
         /** 获取图标类型名称 */

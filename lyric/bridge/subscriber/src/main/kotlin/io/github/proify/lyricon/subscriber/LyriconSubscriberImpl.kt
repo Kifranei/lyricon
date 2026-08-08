@@ -9,199 +9,162 @@ package io.github.proify.lyricon.subscriber
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
 import androidx.annotation.RequiresApi
-import androidx.core.os.bundleOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.concurrent.CopyOnWriteArraySet
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Lyricon 订阅者实现类。
+ * 默认订阅端实现。
  *
- * 负责管理与系统 Lyricon 服务的远程连接、超时自动重试以及状态监听分发。
- * 能够区分用户主动触发的连接序列与系统自动触发的恢复逻辑。
- *
- * @property context Android 上下文，用于发送广播。
- * @property subscriberInfo 订阅者元数据信息。
+ * 负责发送注册广播、处理连接超时重试、维护连接状态，并把远端服务交给
+ * [SubscriberRemoteEndpoint] 管理。
  */
 @RequiresApi(Build.VERSION_CODES.O_MR1)
 internal class LyriconSubscriberImpl(
-    val context: Context,
-    override val subscriberInfo: SubscriberInfo
+    private val context: Context,
+    override val subscriberInfo: SubscriberInfo,
 ) : LyriconSubscriber {
-    private val service = RemoteSubscriberService(this)
-
-    /** 状态监听器集合，确保回调的顺序与唯一性 */
-    private val connectionListeners = LinkedHashSet<ConnectionListener>()
-
-    /** 当前连接任务的重试计数 */
-    private var currentRetryCount = 0
-
-    /**
-     * 标记当前连接尝试的性质。
-     * - `true`: 由系统服务重启或重试机制发起的被动行为。
-     * - `false`: 由用户手动调用 [register] 发起的主动行为。
-     */
-    private var isPassiveAttempt = false
-
-    private companion object {
-        private const val MAX_RETRY_COUNT = 3
-        private const val CONNECT_TIMEOUT_MS = 3000L
-    }
-
-    private val binder: SubscriberBinder = SubscriberBinder(subscriberInfo).apply {
-        addRegistrationCallback(object : SubscriberBinder.RegistrationCallback {
-            override fun onRegistered(service: IRemoteService?) {
-                val isPassive = isPassiveAttempt
-
-                status = SubscriberStatus.CONNECTED
-                currentRetryCount = 0
-                this@LyriconSubscriberImpl.service.bindService(service)
-
-                // 根据触发源分发对应的成功回调
-                connectionListeners.forEach {
-                    if (isPassive) {
-                        it.onReconnected(this@LyriconSubscriberImpl)
-                    } else {
-                        it.onConnected(this@LyriconSubscriberImpl)
-                    }
-                }
-            }
-        })
-    }
-
+    private val destroyed = AtomicBoolean(false)
+    private val listeners = CopyOnWriteArraySet<ConnectionListener>()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val remote =
+        SubscriberRemoteEndpoint { disconnect(remote = true, notifyRemote = false) }
+    private val registration = Registration()
 
-    /** 当前订阅者的连接状态 */
+    @Volatile
     var status = SubscriberStatus.DISCONNECTED
         private set
 
-    /**
-     * 注册连接状态监听器。
-     */
     override fun addConnectionListener(listener: ConnectionListener) {
-        connectionListeners.add(listener)
+        listeners.add(listener)
     }
 
-    /**
-     * 注销连接状态监听器。
-     */
     override fun removeConnectionListener(listener: ConnectionListener) {
-        connectionListeners.remove(listener)
+        listeners.remove(listener)
     }
 
-    override fun subscribeActivePlayer(listener: ActivePlayerListener) =
-        service.registerActivePlayerListener(listener)
+    override fun subscribeActivePlayer(listener: ActivePlayerListener): Boolean =
+        remote.addActivePlayerListener(listener)
 
-    override fun unsubscribeActivePlayer(listener: ActivePlayerListener) =
-        service.unregisterActivePlayerListener(listener)
+    override fun unsubscribeActivePlayer(listener: ActivePlayerListener): Boolean =
+        remote.removeActivePlayerListener(listener)
 
-    private var isDestroy = false
-
-    /**
-     * 用户主动发起注册。
-     * 该操作会重置重试计数并标记为主动连接任务。
-     */
     override fun register() {
-        if (status == SubscriberStatus.CONNECTED) return
-
-        isPassiveAttempt = false
-        currentRetryCount = 0
-        performRegistration()
+        registration.start(manual = true)
     }
 
-    /**
-     * 执行底层 Binder 注册广播的发送逻辑。
-     */
-    private fun performRegistration() {
-        if (isDestroy) return
-
-        status = SubscriberStatus.CONNECTING
-        val intent = Intent(SubscriberConstants.ACTION_REGISTER_SUBSCRIBER)
-
-        intent.putExtra(SubscriberConstants.EXTRA_BUNDLE, bundleOf(
-            SubscriberConstants.EXTRA_BINDER to binder
-        ))
-        intent.setPackage(SubscriberConstants.SYSTEM_UI_PACKAGE_NAME)
-        context.sendBroadcast(intent)
-
-        launchConnectTimeoutTask()
+    override fun unregister() {
+        if (!destroyed.get()) disconnect(remote = false)
     }
 
-    private var connectTimeoutTaskJob: Job? = null
+    override fun destroy() {
+        if (!destroyed.compareAndSet(false, true)) return
+        registration.close()
+        disconnect(remote = false, destroy = true)
+        scope.cancel()
+        listeners.clear()
+    }
 
-    private val serviceListener = object : CentralServiceReceiver.ServiceListener {
-        override fun onServiceBootCompleted() {
-            if (status.isDisconnectedByRemote()) {
-                // 系统服务重启引发的恢复属于被动行为
-                isPassiveAttempt = true
-                currentRetryCount = 0
-                performRegistration()
-            }
+    private fun onRegistered(service: IRemoteService?, reconnect: Boolean) {
+        status = SubscriberStatus.CONNECTED
+        remote.bind(service)
+        listeners.forEach {
+            if (reconnect) it.onReconnected(this) else it.onConnected(this)
         }
     }
 
-    init {
-        CentralServiceReceiver.addServiceListener(serviceListener)
+    private fun disconnect(
+        remote: Boolean,
+        notifyRemote: Boolean = true,
+        destroy: Boolean = false
+    ) {
+        registration.cancelTimeout()
+        this.remote.disconnect(notifyRemote, destroy)
+        status =
+            if (remote) SubscriberStatus.DISCONNECTED_BY_REMOTE else SubscriberStatus.DISCONNECTED
+        listeners.forEach { it.onDisconnected(this) }
     }
 
-    /**
-     * 启动超时监控任务。
-     * 若在指定时间内未连接成功，将根据重试次数决定再次尝试或宣告超时。
-     */
-    private fun launchConnectTimeoutTask() {
-        connectTimeoutTaskJob?.cancel()
-        connectTimeoutTaskJob = scope.launch {
-            delay(CONNECT_TIMEOUT_MS)
-            if (isDestroy) return@launch
+    /** 管理注册广播、超时重试和中心服务重启后的恢复注册。 */
+    private inner class Registration : CentralServiceReceiver.ServiceListener {
+        private val binder = SubscriberBinder(subscriberInfo)
+        private var timeoutJob: Job? = null
+        private var retryCount = 0
+        private var reconnect = false
+        private val callback = object : SubscriberBinder.RegistrationCallback {
+            override fun onRegistered(service: IRemoteService?) {
+                cancelTimeout()
+                retryCount = 0
+                this@LyriconSubscriberImpl.onRegistered(service, reconnect)
+            }
+        }
 
-            if (status.isConnecting()) {
-                if (currentRetryCount < MAX_RETRY_COUNT) {
-                    currentRetryCount++
-                    performRegistration()
-                } else {
+        init {
+            binder.addRegistrationCallback(callback)
+            CentralServiceReceiver.addServiceListener(this)
+        }
+
+        fun start(manual: Boolean) {
+            if (destroyed.get() || status == SubscriberStatus.CONNECTED) return
+            reconnect = !manual || status.isDisconnectedByRemote()
+            retryCount = 0
+            send()
+        }
+
+        override fun onServiceBootCompleted() {
+            if (status.isDisconnectedByRemote()) start(manual = false)
+        }
+
+        fun cancelTimeout() {
+            timeoutJob?.cancel()
+            timeoutJob = null
+        }
+
+        fun close() {
+            cancelTimeout()
+            binder.removeRegistrationCallback(callback)
+            CentralServiceReceiver.removeServiceListener(this)
+        }
+
+        private fun send() {
+            if (destroyed.get()) return
+            status = SubscriberStatus.CONNECTING
+            context.sendBroadcast(Intent(SubscriberConstants.ACTION_REGISTER_SUBSCRIBER).apply {
+                setPackage(SubscriberConstants.SYSTEM_UI_PACKAGE_NAME)
+                putExtra(
+                    SubscriberConstants.EXTRA_BUNDLE,
+                    Bundle().apply {
+                        putBinder(SubscriberConstants.EXTRA_BINDER, binder)
+                    }
+                )
+            })
+            scheduleTimeout()
+        }
+
+        private fun scheduleTimeout() {
+            cancelTimeout()
+            timeoutJob = scope.launch {
+                delay(CONNECT_TIMEOUT_MS)
+                if (destroyed.get() || !status.isConnecting()) return@launch
+                if (retryCount++ < MAX_RETRY_COUNT) send() else {
+                    retryCount = 0
                     status = SubscriberStatus.DISCONNECTED
-                    currentRetryCount = 0
-                    connectionListeners.forEach { it.onConnectTimeout(this@LyriconSubscriberImpl) }
+                    listeners.forEach { it.onConnectTimeout(this@LyriconSubscriberImpl) }
                 }
             }
         }
     }
 
-    override fun unregister() {
-        unregisterInternal()
-    }
-
-    /**
-     * 内部断开逻辑。
-     * @param isFromRemote 是否由服务端主动断开。
-     */
-    internal fun unregisterInternal(isFromRemote: Boolean = false) {
-        if (isDestroy) return
-        service.disconnect()
-
-        status = if (isFromRemote) {
-            SubscriberStatus.DISCONNECTED_BY_REMOTE
-        } else {
-            SubscriberStatus.DISCONNECTED
-        }
-
-        connectionListeners.forEach { it.onDisconnected(this@LyriconSubscriberImpl) }
-    }
-
-    /**
-     * 销毁订阅者，释放协程作用域并移除系统监听。
-     */
-    override fun destroy() {
-        if (isDestroy) return
-        isDestroy = true
-        connectTimeoutTaskJob?.cancel()
-        connectTimeoutTaskJob = null
-        unregister()
-        CentralServiceReceiver.removeServiceListener(serviceListener)
-        connectionListeners.clear()
+    private companion object {
+        private const val MAX_RETRY_COUNT = 3
+        private const val CONNECT_TIMEOUT_MS = 3_000L
     }
 }

@@ -5,7 +5,6 @@ import top.yukonga.miuix.kmp.blur.RuntimeShader
 import top.yukonga.miuix.kmp.blur.asBrush
 
 class BgEffectPainter {
-
     val runtimeShader by lazy {
         RuntimeShader(OS3_BG_FRAG).also {
             initStaticUniforms(it)
@@ -16,13 +15,10 @@ class BgEffectPainter {
 
     private val resolution = FloatArray(2)
     private val bound = FloatArray(4)
-
     private var animTime = Float.NaN
     private var isDarkCached: Boolean? = null
     private var deviceTypeCached: DeviceType? = null
-
     private var presetApplied = false
-
     private var deviceType = DeviceType.PHONE
 
     companion object {
@@ -60,17 +56,10 @@ class BgEffectPainter {
         runtimeShader.setFloatUniform("uColors", colors)
     }
 
-    fun updatePresetIfNeeded(
-        logoHeight: Float,
-        height: Float,
-        width: Float,
-        isDark: Boolean,
-    ) {
+    fun updatePresetIfNeeded(logoHeight: Float, height: Float, width: Float, isDark: Boolean) {
         if (presetApplied && isDarkCached == isDark && deviceTypeCached == deviceType) return
-
         updateBound(logoHeight, height, width)
         applyPreset(isDark)
-
         isDarkCached = isDark
         deviceTypeCached = deviceType
         presetApplied = true
@@ -78,7 +67,6 @@ class BgEffectPainter {
 
     private fun applyPreset(isDark: Boolean) {
         val preset = BgEffectConfig.get(deviceType, isDark)
-
         runtimeShader.setFloatUniform("uPoints", preset.points)
         runtimeShader.setFloatUniform("uPointOffset", preset.pointOffset)
         runtimeShader.setFloatUniform("uLightOffset", preset.lightOffset)
@@ -89,11 +77,7 @@ class BgEffectPainter {
         runtimeShader.setFloatUniform("uShadowNoiseScale", preset.shadowNoiseScale)
     }
 
-    private fun updateBound(
-        logoHeight: Float,
-        totalHeight: Float,
-        totalWidth: Float,
-    ) {
+    private fun updateBound(logoHeight: Float, totalHeight: Float, totalWidth: Float) {
         val heightRatio = logoHeight / totalHeight
         if (totalWidth <= totalHeight) {
             bound[0] = 0f

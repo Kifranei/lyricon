@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright 2026 Proify, Tomakino
  * Licensed under the Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -11,8 +11,8 @@ package io.github.proify.lyricon.xposed.systemui.hook
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.ViewGroup
-import de.robv.android.xposed.XC_MethodHook
-import de.robv.android.xposed.XposedHelpers
+import io.github.libxposed.api.XposedInterface
+import io.github.libxposed.api.XposedModule
 import io.github.proify.lyricon.xposed.logger.YLog
 
 /**
@@ -49,11 +49,16 @@ object StatusBarViewResolver {
 
     /**
      * 启动拦截任务
-     * * @param context 系统上下文（建议使用 SystemUI 的 Context）
+     * @param module XposedModule 实例
+     * @param context 系统上下文（建议使用 SystemUI 的 Context）
      * @param classLoader 对应的 ClassLoader
      */
     @SuppressLint("DiscouragedApi")
-    fun init(context: Context, classLoader: ClassLoader = context.classLoader) {
+    fun init(
+        module: XposedModule,
+        context: Context,
+        classLoader: ClassLoader = context.classLoader
+    ) {
         if (isInitialized) return
 
         val targetId = context.resources.getIdentifier(
@@ -65,27 +70,30 @@ object StatusBarViewResolver {
         if (targetId == 0) return
 
         try {
-            XposedHelpers.findAndHookMethod(
-                "android.view.LayoutInflater",
-                classLoader,
+            val inflaterClass = classLoader.loadClass("android.view.LayoutInflater")
+            val inflateMethod = inflaterClass.getDeclaredMethod(
                 "inflate",
                 Int::class.javaPrimitiveType,
                 ViewGroup::class.java,
-                Boolean::class.javaPrimitiveType,
-                object : XC_MethodHook() {
-                    @Throws(Throwable::class)
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val currentLayoutId = param.args[0] as Int
+                Boolean::class.javaPrimitiveType
+            )
 
-                        if (currentLayoutId == targetId) {
-                            val viewGroup = param.result as? ViewGroup
-                            viewGroup?.let { root ->
-                                notifyAll(root)
-                            }
+            @Suppress("ObjectLiteralToLambda")
+            module.hook(inflateMethod).intercept(object : XposedInterface.Hooker {
+                override fun intercept(chain: XposedInterface.Chain): Any? {
+                    val result = chain.proceed()
+                    val currentLayoutId = chain.args[0] as Int
+
+                    if (currentLayoutId == targetId) {
+                        val viewGroup = result as? ViewGroup
+                        viewGroup?.let { root ->
+                            notifyAll(root)
                         }
                     }
+                    return result
                 }
-            )
+
+            })
             isInitialized = true
         } catch (t: Throwable) {
             YLog.error("StatusBarViewResolver", "Error during LayoutInflater inflation hook", t)

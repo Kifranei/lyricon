@@ -3,28 +3,82 @@
  * Licensed under the Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0
  */
+
 @file:Suppress("unused")
 
 package io.github.proify.android.extensions
 
 import java.io.File
 import java.io.FileInputStream
+import java.nio.ByteBuffer
+import java.nio.channels.Channels
+import java.nio.file.Files
+import java.security.DigestInputStream
 import java.security.MessageDigest
+import java.util.zip.CRC32
+import java.util.zip.CheckedInputStream
 
+/**
+ * 计算文件的 MD5 哈希值
+ * @return MD5 哈希字符串，如果文件不存在或不可读则返回空字符串
+ */
 fun File.md5(): String {
     if (!exists() || !canRead()) return ""
-    try {
-        val buffer = ByteArray(8192)
+    return try {
         val digest = MessageDigest.getInstance("MD5")
         FileInputStream(this).use { fis ->
-            var bytesRead: Int
-            while (fis.read(buffer).also { bytesRead = it } != -1) {
-                digest.update(buffer, 0, bytesRead)
+            DigestInputStream(fis, digest).use { dis ->
+                val buffer = ByteArray(8192)
+                while (dis.read(buffer) != -1) {
+                    // DigestInputStream 自动更新 digest
+                }
             }
         }
-        return digest.digest().joinToString("") { "%02x".format(it) }
+        digest.digest().joinToString("") { "%02x".format(it) }
     } catch (e: Exception) {
         e.printStackTrace()
-        return ""
+        ""
+    }
+}
+
+/**
+ * 计算文件的 CRC32 校验值
+ * @return CRC32 校验值
+ */
+fun File.crc32(): Long {
+    val crc = CRC32()
+    inputStream().use { input ->
+        CheckedInputStream(input, crc).use { cis ->
+            val buffer = ByteArray(8192)
+            while (cis.read(buffer) != -1) {
+                // CheckedInputStream 自动更新 CRC
+            }
+        }
+    }
+    return crc.value
+}
+
+/**
+ * 计算大文件的 MD5 哈希值（使用 NIO 以获得更好性能）
+ * @return MD5 哈希字符串，如果文件不存在或不可读则返回空字符串
+ */
+fun File.md5Nio(): String {
+    if (!exists() || !canRead()) return ""
+    return try {
+        val digest = MessageDigest.getInstance("MD5")
+        Files.newInputStream(toPath()).use { fis ->
+            Channels.newChannel(fis).use { channel ->
+                val buffer = ByteBuffer.allocateDirect(8192)
+                while (channel.read(buffer) != -1) {
+                    buffer.flip()
+                    digest.update(buffer)
+                    buffer.clear()
+                }
+            }
+        }
+        digest.digest().joinToString("") { "%02x".format(it) }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        ""
     }
 }

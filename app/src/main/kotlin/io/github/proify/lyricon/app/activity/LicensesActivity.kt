@@ -77,7 +77,7 @@ class LicensesActivity : BaseActivity() {
         val sourceLibraries = libs.libraries
 
         AppToolBarListContainer(
-            title = stringResource(R.string.activity_open_source_license),
+            title = stringResource(R.string.activity_open_source_licenses),
             canBack = true,
         ) {
             items(

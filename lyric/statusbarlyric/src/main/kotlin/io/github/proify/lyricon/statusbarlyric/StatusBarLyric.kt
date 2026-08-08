@@ -10,12 +10,12 @@ import android.animation.LayoutTransition
 import android.annotation.SuppressLint
 import android.app.KeyguardManager
 import android.content.Context
+import android.content.res.Configuration
 import android.os.Handler
 import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.contains
@@ -29,11 +29,11 @@ import io.github.proify.lyricon.lyric.style.LogoStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
 import io.github.proify.lyricon.lyric.view.LayoutTransitionX
 import io.github.proify.lyricon.lyric.view.LyricPlayerView
-import io.github.proify.lyricon.lyric.view.visibleIfChanged
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.NONE
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.SONG
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.TEXT
-import kotlin.math.max
+import io.github.proify.lyricon.statusbarlyric.logo.SuperLogo
+import kotlin.math.min
 
 @SuppressLint("ViewConstructor")
 class StatusBarLyric(
@@ -56,35 +56,12 @@ class StatusBarLyric(
         eventListener = object : SuperText.EventListener {
             override fun enteringInterludeMode(duration: Long) {
                 logoView.syncProgress(0, duration)
-                setInterludeIndicatorVisible(true, duration)
             }
 
             override fun exitInterludeMode() {
                 logoView.clearProgress()
-                setInterludeIndicatorVisible(false, 0L)
             }
         }
-    }
-
-    val interludeIndicatorView: InterludeIndicatorView = InterludeIndicatorView(context)
-
-    private val contentView: FrameLayout = FrameLayout(context).apply {
-        addView(
-            textView,
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                Gravity.START or Gravity.CENTER_VERTICAL
-            )
-        )
-        addView(
-            interludeIndicatorView,
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                FrameLayout.LayoutParams.WRAP_CONTENT,
-                Gravity.START or Gravity.CENTER_VERTICAL
-            )
-        )
     }
 
     // --- 对外状态 ---
@@ -110,8 +87,6 @@ class StatusBarLyric(
     private var currentStyle: LyricStyle = initialStyle
     private var isPlaying: Boolean = false
     private var isOplusCapsuleShowing: Boolean = false
-    private var isDynamicWidthFrozen: Boolean = false
-    private var frozenDynamicWidthPx: Int = 0
 
     var onPlayingChanged: ((Boolean) -> Unit)? = null
 
@@ -126,14 +101,20 @@ class StatusBarLyric(
     private var hasLyricContent: Boolean = false
     private var lyricTimedOut: Boolean = false
     private var currentLyric: String? = null
-    private var isUserHideLyric: Boolean = false
-    private var isInterludeIndicatorVisible: Boolean = false
 
     // 主线程调度器
     private val mainHandler: Handler = Handler(context.mainLooper)
 
     // 当前生效的超时 Runnable
     private var lyricTimeoutTask: Runnable? = null
+
+    // 用户双击临时隐藏歌词（显示时钟），播放停止或再次双击时钟时复位
+    var userHideLyric = false
+        set(value) {
+            if (field == value) return
+            field = value
+            updateVisibility()
+        }
 
     // 跟随系统隐藏状态栏内容
     var isDisabledVisible = false
@@ -158,6 +139,29 @@ class StatusBarLyric(
      * 用于样式或尺寸突变时的过渡
      */
     private val singleLayoutTransition: LayoutTransition = LayoutTransitionX().apply {
+        // 不向状态栏父级层次传播动画：灵动岛/胶囊拖动引发的父级布局
+        // 会被传播动画放大成歌词与系统图标互相抽搐
+        setAnimateParentHierarchy(false)
+        addTransitionListener(object : LayoutTransition.TransitionListener {
+
+            override fun startTransition(
+                transition: LayoutTransition?, container: ViewGroup?,
+                view: View?, transitionType: Int
+            ) = Unit
+
+            override fun endTransition(
+                transition: LayoutTransition?, container: ViewGroup?,
+                view: View?, transitionType: Int
+            ) {
+                disableTransitionType(LayoutTransition.CHANGING)
+                layoutTransition = null
+            }
+        })
+    }
+
+    private val singleVisibilityLayoutTransition: LayoutTransition = LayoutTransitionX().apply {
+        setAnimateParentHierarchy(false)
+        setDuration(500)
         addTransitionListener(object : LayoutTransition.TransitionListener {
 
             override fun startTransition(
@@ -206,10 +210,11 @@ class StatusBarLyric(
         layoutTransition = null
 
         addView(
-            contentView,
-            LayoutParams(0, LayoutParams.WRAP_CONTENT).apply {
-                weight = 1f
-            }
+            textView,
+            LayoutParams(0, LayoutParams.WRAP_CONTENT)
+                .apply {
+                    weight = 1f
+                }
         )
 
         updateLogoLocation()
@@ -227,12 +232,6 @@ class StatusBarLyric(
         logoView.applyStyle(style)
         updateLogoLocation()
         textView.applyStyle(style)
-        interludeIndicatorView.applyStyle(style)
-        if (style.packageStyle.text.interludeIndicatorStyle ==
-            io.github.proify.lyricon.lyric.style.TextStyle.InterludeIndicatorStyle.NONE
-        ) {
-            setInterludeIndicatorVisible(false, 0L)
-        }
         updateLayoutConfig(style)
 
         refreshLyricTimeoutState()
@@ -243,7 +242,11 @@ class StatusBarLyric(
         currentStatusColor = color
         logoView.setStatusBarColor(color)
         textView.setStatusBarColor(color)
-        interludeIndicatorView.setStatusBarColor(color)
+    }
+
+    fun setHdrHighlightRatio(ratio: Float) {
+        textView.hdrHighlightRatio = ratio
+        logoView.hdrHighlightRatio = ratio
     }
 
     private var lastPlaying: Boolean? = null
@@ -260,7 +263,6 @@ class StatusBarLyric(
         onPlayingChanged?.invoke(playing)
 
         if (!playing) {
-            setInterludeIndicatorVisible(false, 0L)
             textView.reset()
         } else {
             when (lyricType) {
@@ -277,24 +279,32 @@ class StatusBarLyric(
     fun isHideOnLockScreen() =
         currentStyle.basicStyle.hideOnLockScreen && keyguardManager.isKeyguardLocked
 
+    val enableEnterAnim get() = currentStyle.packageStyle.text.enableEnterAnim
+    private var lastDisabledVisible: Boolean = false
     fun updateVisibility() {
         val shouldShow = isPlaying
                 && !isHideOnLockScreen()
-                && (textView.shouldShow() || isInterludeIndicatorVisible)
+                && textView.shouldShow()
                 && !lyricTimedOut
                 && !isDisabledVisible
-                && !isUserHideLyric
+                && !userHideLyric
 
-        visibleIfChanged = shouldShow
+        if (shouldShow == isVisible) {
+            return
+        }
 
-        Log.d(TAG, "updateVisibility: $shouldShow")
-        Log.d(TAG, "textVisibility: ${textView.isVisible}")
-    }
+        if (enableEnterAnim && shouldShow && !lastDisabledVisible) {
+            isVisible = shouldShow
+            postDelayed({
+                triggerSingleVisibilityLayoutTransition()
+                logoView.forceHide = false
+            }, 0)
+        } else {
+            isVisible = shouldShow
+            logoView.forceHide = enableEnterAnim && !shouldShow && !isDisabledVisible
+        }
 
-    fun setUserHideLyric(hide: Boolean) {
-        if (isUserHideLyric == hide) return
-        isUserHideLyric = hide
-        updateVisibility()
+        lastDisabledVisible = isDisabledVisible
     }
 
     fun setSong(song: Song?) {
@@ -341,37 +351,12 @@ class StatusBarLyric(
     }
 
     fun setOplusCapsuleVisibility(visible: Boolean) {
+        // 同状态重复调用不应重新武装过渡动画，否则胶囊/灵动岛拖动期间会反复触发布局动画
+        if (isOplusCapsuleShowing == visible) return
         isOplusCapsuleShowing = visible
         triggerSingleTransition()
         updateWidthInternal(currentStyle)
-        logoView.oplusCapsuleShowing = visible
-    }
-
-    fun setDynamicWidthFrozen(frozen: Boolean) {
-        val basicStyle = currentStyle.basicStyle
-        if (!basicStyle.dynamicWidthEnabled) {
-            if (isDynamicWidthFrozen || frozenDynamicWidthPx != 0) {
-                isDynamicWidthFrozen = false
-                frozenDynamicWidthPx = 0
-                updateWidthInternal(currentStyle)
-            }
-            return
-        }
-
-        if (frozen) {
-            val targetWidth = resolveCurrentDynamicWidthPx(basicStyle)
-            if (targetWidth <= 0) return
-            if (isDynamicWidthFrozen && frozenDynamicWidthPx == targetWidth) return
-            isDynamicWidthFrozen = true
-            frozenDynamicWidthPx = targetWidth
-            updateWidthInternal(currentStyle)
-            return
-        }
-
-        if (!isDynamicWidthFrozen && frozenDynamicWidthPx == 0) return
-        isDynamicWidthFrozen = false
-        frozenDynamicWidthPx = 0
-        updateWidthInternal(currentStyle)
+        logoView.isOplusCapsuleShowing = visible
     }
 
     // --- 内部逻辑 ---
@@ -380,7 +365,6 @@ class StatusBarLyric(
         currentStyle = style
         logoView.applyStyle(style)
         textView.applyStyle(style)
-        interludeIndicatorView.applyStyle(style)
         updateLayoutConfig(style)
     }
 
@@ -391,7 +375,7 @@ class StatusBarLyric(
         if (gravity == lastLogoGravity) return; lastLogoGravity = gravity
 
         if (contains(logoView)) removeView(logoView)
-        val textIndex = indexOfChild(contentView).coerceAtLeast(0)
+        val textIndex = indexOfChild(textView).coerceAtLeast(0)
 
         when (gravity) {
             LogoStyle.GRAVITY_START -> addView(logoView, textIndex)
@@ -402,21 +386,17 @@ class StatusBarLyric(
 
     private fun updateLayoutConfig(style: LyricStyle) {
         val basic = style.basicStyle
-        if (!basic.dynamicWidthEnabled) {
-            isDynamicWidthFrozen = false
-            frozenDynamicWidthPx = 0
-        }
         val margins = basic.margins
         val paddings = basic.paddings
 
-        ensureMarginLayoutParams().apply {
+        ensureOuterLayoutParams().apply {
             width = calculateContainerWidth(basic)
             leftMargin = margins.left.dp
             topMargin = margins.top.dp
             rightMargin = margins.right.dp
             bottomMargin = margins.bottom.dp
         }
-        updateTextViewWidthMode(basic)
+        updateTextViewWidthMode()
 
         updatePadding(
             paddings.left.dp,
@@ -428,76 +408,59 @@ class StatusBarLyric(
 
     private fun updateWidthInternal(style: LyricStyle) {
         val width = calculateContainerWidth(style.basicStyle)
-        ensureMarginLayoutParams().width = width
+        val lp = ensureOuterLayoutParams()
+        lp.width = width
         requestLayout()
-        Log.d(TAG, "updateWidthInternal: $width")
+        Log.d(
+            TAG,
+            "updateWidthInternal: requested=$width lpWidth=${lp.width} " +
+                    "lpClass=${lp.javaClass.name} measured=${measuredWidth} " +
+                    "parent=${parent?.javaClass?.name} parentWidth=${(parent as? View)?.width}"
+        )
     }
 
     private fun calculateContainerWidth(basicStyle: BasicStyle): Int {
-        return if (basicStyle.dynamicWidthEnabled) {
-            if (isDynamicWidthFrozen && frozenDynamicWidthPx > 0) {
-                frozenDynamicWidthPx
-            } else {
-                LayoutParams.WRAP_CONTENT
-            }
+        val isLandScape = isLandScape()
+        val requested = basicStyle.getAutoWidth(isLandScape, isOplusCapsuleShowing).dp
+        val screenWidth = resources.displayMetrics.widthPixels
+        return if (screenWidth > 0 && requested > 0) {
+            min(requested, screenWidth)
         } else {
-            calculateTargetWidth(basicStyle).dp
+            requested
         }
     }
 
-    private fun resolveCurrentDynamicWidthPx(basicStyle: BasicStyle): Int {
-        var contentWidth = width
-        contentWidth = max(contentWidth, measuredWidth)
-        contentWidth = max(contentWidth, contentView.width)
-        contentWidth = max(contentWidth, contentView.measuredWidth)
-        if (contentWidth <= 0) {
-            contentWidth = calculateTargetWidth(basicStyle).dp
-        }
-        return contentWidth
-    }
-
-    private fun updateTextViewWidthMode(basicStyle: BasicStyle) {
-        val lp = (contentView.layoutParams as? LayoutParams)
+    private fun updateTextViewWidthMode() {
+        val lp = (textView.layoutParams as? LayoutParams)
             ?: LayoutParams(0, LayoutParams.WRAP_CONTENT)
-        if (basicStyle.dynamicWidthEnabled) {
-            lp.width = LayoutParams.WRAP_CONTENT
-            lp.weight = 0f
-        } else {
-            lp.width = 0
-            lp.weight = 1f
-        }
-        contentView.layoutParams = lp
+        lp.width = 0
+        lp.weight = 1f
+        textView.layoutParams = lp
     }
 
-    private fun setInterludeIndicatorVisible(visible: Boolean, duration: Long) {
-        if (visible) {
-            val isShown = interludeIndicatorView.show(duration)
-            isInterludeIndicatorVisible = isShown
-            textView.visibleIfChanged = !isShown
-        } else {
-            isInterludeIndicatorVisible = false
-            interludeIndicatorView.hide()
-            textView.visibleIfChanged = true
-        }
-        updateVisibility()
-    }
-
-    private fun calculateTargetWidth(basicStyle: BasicStyle) =
-        if (isOplusCapsuleShowing) basicStyle.widthInColorOSCapsuleMode else basicStyle.width
-
-    private fun ensureMarginLayoutParams(): MarginLayoutParams {
-        val lp = layoutParams as? MarginLayoutParams
-            ?: MarginLayoutParams(
-                LayoutParams.WRAP_CONTENT,
-                LayoutParams.MATCH_PARENT
+    private fun ensureOuterLayoutParams(): ViewGroup.MarginLayoutParams {
+        val current = layoutParams
+        val lp = when (current) {
+            is ViewGroup.MarginLayoutParams -> current
+            null -> ViewGroup.MarginLayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
             )
-        if (layoutParams == null) layoutParams = lp
+
+            else -> ViewGroup.MarginLayoutParams(current)
+        }
+        if (current !== lp) layoutParams = lp
         return lp
     }
 
     private fun triggerSingleTransition() {
         singleLayoutTransition.enableTransitionType(LayoutTransition.CHANGING)
         layoutTransition = singleLayoutTransition
+    }
+
+    private fun triggerSingleVisibilityLayoutTransition() {
+        singleVisibilityLayoutTransition.enableTransitionType(LayoutTransition.CHANGING)
+        layoutTransition = singleVisibilityLayoutTransition
     }
 
     private fun refreshLyricTimeoutState() {
@@ -549,6 +512,14 @@ class StatusBarLyric(
         lyricTimeoutTask?.let { mainHandler.removeCallbacks(it) }
         lyricTimeoutTask = null
     }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        updateWidthInternal(currentStyle)
+    }
+
+    private fun isLandScape(): Boolean =
+        resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     private class PendingData(var position: Long = 0)
 

@@ -63,9 +63,9 @@ import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.AddCircle
-import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.overScrollVertical
+import top.yukonga.miuix.kmp.window.WindowBottomSheet
 
 data class PackageSwitchUiState(
     val configureds: List<PackageItem> = emptyList(),
@@ -373,10 +373,10 @@ private fun PackageSwitchSheetContent(
     val packageItems = state.configureds
     val showState = remember { mutableStateOf(true) }
 
-    OverlayBottomSheet(
+    WindowBottomSheet(
         show = showState.value,
         modifier = Modifier,
-        title = stringResource(R.string.manager_package_config),
+        title = stringResource(R.string.manage_app_styles),
         startAction = null,
         endAction = {
             Row {
