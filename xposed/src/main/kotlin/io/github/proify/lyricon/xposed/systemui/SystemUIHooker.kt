@@ -95,10 +95,7 @@ object SystemUIHooker : PackageHooker() {
             return
         }
 
-        val packageName = context.packageName
-        val processName = currentProcessName()
-        if (processName != null && processName != packageName) {
-            YLog.info(TAG, "Skip SystemUI hook in non-main process: $processName")
+        if (shouldSkipNonMainProcess(context)) {
             return
         }
 
@@ -129,6 +126,28 @@ object SystemUIHooker : PackageHooker() {
                 method.invoke(null) as? String
             }
         }.getOrNull()
+    }
+
+    /**
+     * One UI 的 ApplicationInfo.processName 在部分版本上不能可靠代表当前进程，
+     * 因此需要在 Application 创建后再做一次运行时校验。这个补充校验只针对三星设备：
+     * 小米的 SystemUI 与 miui.systemui.plugin 可能共享宿主进程或 ClassLoader，不能用
+     * One UI 的进程假设去拦截超级岛初始化。
+     */
+    private fun shouldSkipNonMainProcess(context: Application): Boolean {
+        if (!isSamsungDevice()) return false
+
+        val processName = currentProcessName() ?: return false
+        val expectedProcessName = packageName.ifBlank { context.packageName }
+        if (processName == expectedProcessName) return false
+
+        YLog.info(TAG, "Skip One UI SystemUI hook in non-main process: $processName")
+        return true
+    }
+
+    private fun isSamsungDevice(): Boolean {
+        return Build.MANUFACTURER.equals("samsung", ignoreCase = true) ||
+                Build.BRAND.equals("samsung", ignoreCase = true)
     }
 
     private fun onAppCreate() {

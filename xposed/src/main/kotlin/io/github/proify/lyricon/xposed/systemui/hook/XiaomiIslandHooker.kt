@@ -20,7 +20,8 @@ import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.proify.lyricon.xposed.logger.YLog
 import java.lang.ref.WeakReference
-import java.lang.reflect.Method
+import java.util.Collections
+import java.util.WeakHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -72,8 +73,16 @@ object XiaomiIslandHooker {
     /** 已捕获的灵动岛窗口根视图（DynamicIslandWindowView），绘制被拦截以整体隐藏 */
     private val windowViews = mutableListOf<WeakReference<View>>()
     private val windowViewsLock = Any()
-    private var dispatchDrawHooked = false
-    private var dispatchDrawHandle: XposedInterface.HookHandle? = null
+
+    /**
+     * SystemUI 与 miui.systemui.plugin 可能使用不同的 ClassLoader；hook 状态必须按
+     * ClassLoader 记录，否则先初始化的加载器会把后来的插件加载器误判为已完成。
+     */
+    private val hookStateLock = Any()
+    private val contentClassLoaders =
+        Collections.newSetFromMap(WeakHashMap<ClassLoader, Boolean>())
+    private val windowClassLoaders =
+        Collections.newSetFromMap(WeakHashMap<ClassLoader, Boolean>())
 
     /** 防止本模块调用 show/hideIslandLayout 时触发自身 hook 递归判定 */
     private val selfCalling = ThreadLocal.withInitial { false }
@@ -84,13 +93,6 @@ object XiaomiIslandHooker {
 
     private var module: XposedModule? = null
     private var attachHookHandle: XposedInterface.HookHandle? = null
-    private var showHookHandle: XposedInterface.HookHandle? = null
-    private var hideHookHandle: XposedInterface.HookHandle? = null
-
-    @Volatile
-    private var islandClassHooked = false
-    private var showMethod: Method? = null
-    private var hideMethod: Method? = null
 
     /* --------------- 诊断（Settings.Global，adb 可实时读取） --------------- */
     private const val DIAG_KEY = "lyricon_island_diag"
@@ -150,51 +152,59 @@ object XiaomiIslandHooker {
 
     /** 用给定 ClassLoader hook DynamicIslandContentView 的显隐方法（仅一次） */
     private fun hookIslandContentClass(classLoader: ClassLoader?) {
-        if (islandClassHooked || classLoader == null) return
+        if (classLoader == null) return
         val mod = module ?: return
-        val clazz = runCatching { classLoader.loadClass(ISLAND_CONTENT_CLASS) }.getOrNull() ?: return
 
-        val show = runCatching { clazz.getDeclaredMethod("showIslandLayout") }.getOrNull() ?: return
-        val hide = runCatching { clazz.getDeclaredMethod("hideIslandLayout") }.getOrNull() ?: return
-        show.isAccessible = true
-        hide.isAccessible = true
-        showMethod = show
-        hideMethod = hide
-        islandClassHooked = true
+        synchronized(hookStateLock) {
+            if (!contentClassLoaders.contains(classLoader)) {
+                val clazz = runCatching { classLoader.loadClass(ISLAND_CONTENT_CLASS) }.getOrNull()
+                    ?: return
+                val show = runCatching { clazz.getDeclaredMethod("showIslandLayout") }
+                    .getOrNull() ?: return
+                val hide = runCatching { clazz.getDeclaredMethod("hideIslandLayout") }
+                    .getOrNull() ?: return
+                show.isAccessible = true
+                hide.isAccessible = true
 
-        @Suppress("ObjectLiteralToLambda")
-        showHookHandle = mod.hook(show).intercept(object : XposedInterface.Hooker {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                val self = selfCalling.get() == true
-                val thisObj = chain.thisObject
-                if (thisObj != null) trackContentView(thisObj)
-                if (self) return chain.proceed()
+                @Suppress("ObjectLiteralToLambda")
+                mod.hook(show).intercept(object : XposedInterface.Hooker {
+                    override fun intercept(chain: XposedInterface.Chain): Any? {
+                        val self = selfCalling.get() == true
+                        val thisObj = chain.thisObject
+                        if (thisObj != null) trackContentView(thisObj)
+                        if (self) return chain.proceed()
 
-                // 系统要显示岛
-                isShowing = true
-                notifyIfChanged()
-                val result = chain.proceed()
-                // 抑制期内触发窗口根视图重绘，让 dispatchDraw 拦截立即生效，避免闪现
-                if (hideByLyric) collectWindowViews().forEach { runCatching { it.invalidate() } }
-                publishDiag()
-                return result
+                        // 系统要显示岛
+                        isShowing = true
+                        notifyIfChanged()
+                        val result = chain.proceed()
+                        // 抑制期内触发窗口根视图重绘，让 dispatchDraw 拦截立即生效，避免闪现
+                        if (hideByLyric) {
+                            collectWindowViews().forEach { runCatching { it.invalidate() } }
+                        }
+                        publishDiag()
+                        return result
+                    }
+                })
+
+                @Suppress("ObjectLiteralToLambda")
+                mod.hook(hide).intercept(object : XposedInterface.Hooker {
+                    override fun intercept(chain: XposedInterface.Chain): Any? {
+                        val self = selfCalling.get() == true
+                        val result = chain.proceed()
+                        if (!self) {
+                            // 系统主动隐藏岛
+                            isShowing = false
+                            notifyIfChanged()
+                            publishDiag()
+                        }
+                        return result
+                    }
+                })
+
+                contentClassLoaders.add(classLoader)
             }
-        })
-
-        @Suppress("ObjectLiteralToLambda")
-        hideHookHandle = mod.hook(hide).intercept(object : XposedInterface.Hooker {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                val self = selfCalling.get() == true
-                val result = chain.proceed()
-                if (!self) {
-                    // 系统主动隐藏岛
-                    isShowing = false
-                    notifyIfChanged()
-                    publishDiag()
-                }
-                return result
-            }
-        })
+        }
 
         hookWindowDispatchDraw(classLoader)
         YLog.info(TAG, "Island content class hooked via ${classLoader}")
@@ -206,24 +216,28 @@ object XiaomiIslandHooker {
      * 不可见。绘制级拦截不会被系统的显示/动画流程重置，比 setVisibility 更稳。
      */
     private fun hookWindowDispatchDraw(classLoader: ClassLoader) {
-        if (dispatchDrawHooked) return
         val mod = module ?: return
-        val clazz = runCatching { classLoader.loadClass(ISLAND_WINDOW_CLASS) }.getOrNull() ?: return
-        val method = runCatching {
-            clazz.getDeclaredMethod("dispatchDraw", Canvas::class.java)
-        }.getOrNull() ?: return
-        method.isAccessible = true
-        dispatchDrawHooked = true
+        synchronized(hookStateLock) {
+            if (windowClassLoaders.contains(classLoader)) return
 
-        @Suppress("ObjectLiteralToLambda")
-        dispatchDrawHandle = mod.hook(method).intercept(object : XposedInterface.Hooker {
-            override fun intercept(chain: XposedInterface.Chain): Any? {
-                (chain.thisObject as? View)?.let { trackWindowView(it) }
-                // 抑制期：跳过 dispatchDraw，子视图（背景 + 内容）不绘制
-                if (hideByLyric) return null
-                return chain.proceed()
-            }
-        })
+            val clazz = runCatching { classLoader.loadClass(ISLAND_WINDOW_CLASS) }.getOrNull()
+                ?: return
+            val method = runCatching {
+                clazz.getDeclaredMethod("dispatchDraw", Canvas::class.java)
+            }.getOrNull() ?: return
+            method.isAccessible = true
+
+            @Suppress("ObjectLiteralToLambda")
+            mod.hook(method).intercept(object : XposedInterface.Hooker {
+                override fun intercept(chain: XposedInterface.Chain): Any? {
+                    (chain.thisObject as? View)?.let { trackWindowView(it) }
+                    // 抑制期：跳过 dispatchDraw，子视图（背景 + 内容）不绘制
+                    if (hideByLyric) return null
+                    return chain.proceed()
+                }
+            })
+            windowClassLoaders.add(classLoader)
+        }
         YLog.info(TAG, "Island window dispatchDraw hooked")
     }
 
@@ -376,9 +390,17 @@ object XiaomiIslandHooker {
                 "supported=${isXiaomiFamilyDevice() && detectHyperOsMajor() >= 3} " +
                 "hyperOsMajor=${detectHyperOsMajor()} " +
                 "attachHooked=${attachHookHandle != null} " +
-                "islandClassHooked=$islandClassHooked drawHooked=$dispatchDrawHooked " +
+                "islandClassHooked=${isContentHooked()} drawHooked=${isWindowHooked()} " +
                 "contentViews=${collectContentViews().size} windowViews=${collectWindowViews().size} " +
                 "isShowing=$isShowing hideByLyric=$hideByLyric"
+    }
+
+    private fun isWindowHooked(): Boolean = synchronized(hookStateLock) {
+        windowClassLoaders.isNotEmpty()
+    }
+
+    private fun isContentHooked(): Boolean = synchronized(hookStateLock) {
+        contentClassLoaders.isNotEmpty()
     }
 
     private fun processName(): String = runCatching {
