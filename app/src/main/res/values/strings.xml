@@ -273,10 +273,10 @@
     <string name="section_hdr">HDR</string>
     <string name="section_translation">Translation</string>
     <string name="section_visibility">Visibility</string>
-    <string name="item_base_width_in_landscape">宽度（横屏模式下）</string>
-    <string name="dialog_summary_base_width_in_landscape">控制歌词视图在状态栏中可使用的最大宽度。</string>
-    <string name="item_base_width_color_os_capsule_in_landscape"><![CDATA[宽度（显示岛 / 横屏时）]]></string>
-    <string name="dialog_summary_base_width_color_os_capsule_in_landscape">控制小米超级岛或 ColorOS 胶囊显示时使用的歌词视图宽度。</string>
+    <string name="item_base_width_in_landscape">Width (landscape)</string>
+    <string name="dialog_summary_base_width_in_landscape">Controls the maximum width available to the lyric view in landscape mode.</string>
+    <string name="item_base_width_color_os_capsule_in_landscape">Width (island / landscape shown)</string>
+    <string name="dialog_summary_base_width_color_os_capsule_in_landscape">Lyric view width used in landscape mode while the Xiaomi super island or ColorOS capsule is shown.</string>
     <string name="tab_home">Home</string>
     <string name="tab_config">Config</string>
     <string name="tab_provider">Provider</string>

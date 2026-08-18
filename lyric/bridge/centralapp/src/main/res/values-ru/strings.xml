@@ -5,6 +5,6 @@
   -->
 
 <resources>
-    <string name="app_name">localcentralapp</string>
-    <string name="floating_visible_toggle">Show/hide floating window</string>
+    <string name="app_name">Служба Lyricon</string>
+    <string name="xposed_description">Служба API Lyricon</string>
 </resources>

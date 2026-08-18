@@ -275,6 +275,10 @@
     <string name="section_hdr">HDR</string>
     <string name="section_translation">翻译</string>
     <string name="section_visibility">可见性</string>
+    <string name="item_base_width_in_landscape">宽度（横屏模式下）</string>
+    <string name="dialog_summary_base_width_in_landscape">控制歌词视图在状态栏中可使用的最大宽度。</string>
+    <string name="item_base_width_color_os_capsule_in_landscape"><![CDATA[宽度（显示岛 / 横屏时）]]></string>
+    <string name="dialog_summary_base_width_color_os_capsule_in_landscape">控制小米超级岛或 ColorOS 胶囊显示时使用的歌词视图宽度。</string>
     <string name="item_text_enable_enter_anim">歌词进场动画</string>
     <string name="tab_home">主页</string>
     <string name="tab_config">配置</string>

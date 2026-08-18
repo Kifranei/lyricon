@@ -8,6 +8,7 @@
 
     <string-array name="language_codes">
         <item>en</item>
+        <item>ru</item>
         <item>zh-Hans</item>
         <item>zh-Hant</item>
     </string-array>

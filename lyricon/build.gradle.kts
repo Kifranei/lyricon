@@ -42,6 +42,7 @@ configure<ApplicationExtension> {
             @Suppress("UnstableApiUsage")
             localeFilters += listOf(
                 "en",
+                "ru",
                 "zh-rCN",
                 "zh-rTW",
                 "zh-rHK"

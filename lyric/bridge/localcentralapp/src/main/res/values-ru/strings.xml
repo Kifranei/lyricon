@@ -6,5 +6,5 @@
 
 <resources>
     <string name="app_name">localcentralapp</string>
-    <string name="floating_visible_toggle">Show/hide floating window</string>
+    <string name="floating_visible_toggle">Показать/скрыть плавающее окно</string>
 </resources>

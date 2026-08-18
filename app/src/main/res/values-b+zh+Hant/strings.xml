@@ -272,6 +272,10 @@
     <string name="section_hdr">HDR</string>
     <string name="section_translation">翻译</string>
     <string name="section_visibility">可見性</string>
+    <string name="item_base_width_in_landscape">寬度（橫屏模式下）</string>
+    <string name="dialog_summary_base_width_in_landscape">控制歌詞視圖在狀態列中可使用的最大寬度。</string>
+    <string name="item_base_width_color_os_capsule_in_landscape"><![CDATA[寬度（顯示島 / 橫屏時）]]></string>
+    <string name="dialog_summary_base_width_color_os_capsule_in_landscape">控制小米超級島或 ColorOS 膠囊顯示時使用的歌詞視圖寬度。</string>
     <string name="item_text_enable_enter_anim">歌詞進場動畫</string>
     <string name="item_text_enable_enter_anim_summary">控制歌词可见性变换时的动</string>
     <string name="tab_home">首頁</string>
