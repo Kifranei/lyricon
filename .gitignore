@@ -26,3 +26,5 @@ docs/.vitepress/dist/
 
 package.json
 package-lock.json
+# build outputs in any module
+build/

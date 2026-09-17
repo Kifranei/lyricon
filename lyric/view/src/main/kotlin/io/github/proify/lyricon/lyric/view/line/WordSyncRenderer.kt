@@ -9,16 +9,13 @@
 package io.github.proify.lyricon.lyric.view.line
 
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
-import android.os.Build
-import android.os.SystemClock
 import android.text.TextPaint
 import io.github.proify.lyricon.lyric.view.LyricPlayListener
+import io.github.proify.lyricon.lyric.view.line.WordSyncRenderer.Companion.MAX_SILENT_EXTRAPOLATION_MS
 import io.github.proify.lyricon.lyric.view.line.model.LyricModel
 import io.github.proify.lyricon.lyric.view.line.model.WordModel
-import kotlin.math.max
 
 internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer {
 
@@ -27,48 +24,11 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
 
     private val progressAnimator = ProgressAnimator()
     private val scrollStepper = ScrollStepper()
-    private val textDrawer = TextDrawer()
-    private var sustainEffects: List<SustainEffectState> = emptyList()
-    private var activeSustainWord: WordModel? = null
-    private var activeSustainIntensity = 0f
-    private var activeSustainPeakIntensity = 0f
-    private var releaseSustainWord: WordModel? = null
-    private var releaseStartRealtimeMs = 0L
-    private var releaseSeedIntensity = 0f
+    private val textDrawer = TextDrawer(view.effectEngine)
 
     var isScrollOnly = false
 
     var isCharMotionEnabled = true
-
-    var sustainGlowEnabled: Boolean
-        get() = textDrawer.sustainGlowEnabled
-        set(value) {
-            textDrawer.sustainGlowEnabled = value
-        }
-
-    var cjkMotionLiftFactor: Float
-        get() = textDrawer.cjkLiftFactor
-        set(value) {
-            textDrawer.cjkLiftFactor = value
-        }
-
-    var cjkMotionWaveFactor: Float
-        get() = textDrawer.cjkWaveFactor
-        set(value) {
-            textDrawer.cjkWaveFactor = value
-        }
-
-    var latinMotionLiftFactor: Float
-        get() = textDrawer.latinLiftFactor
-        set(value) {
-            textDrawer.latinLiftFactor = value
-        }
-
-    var latinMotionWaveFactor: Float
-        get() = textDrawer.latinWaveFactor
-        set(value) {
-            textDrawer.latinWaveFactor = value
-        }
 
     var isGradientEnabled = true
         set(value) {
@@ -76,16 +36,6 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
                 field = value
                 textDrawer.clearShaderCache()
             }
-        }
-
-    var hdrHighlightRatio: Float = MIN_HDR_HIGHLIGHT_RATIO
-        set(value) {
-            val ratio = value.normalizedHdrHighlightRatio()
-            if (field == ratio) return
-            field = ratio
-            textDrawer.hdrHighlightRatio = ratio
-            applyHighlightColor()
-            textDrawer.clearShaderCache()
         }
 
     var playListener: LyricPlayListener? = null
@@ -99,11 +49,29 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
     var lastPosition = Long.MIN_VALUE
         private set
 
+    /**
+     * 逐帧平滑的动画时钟（毫秒）：与高亮推进同步驱动时间特效（浮动/浮现）。
+     *
+     * 外部 `updatePosition` 可能低频（数 Hz），若直接以 posMs 作特效时间会使位移动画
+     * 出现低帧率；本时钟在 progressAnimator 播放动画期间逐帧外推（60fps），
+     * 并通过 [seek]/[update] 校准到真实播放进度。
+     */
+    private var playbackClockMs = 0L
+
+    /** 外推时钟的纳秒余量：避免每帧整数截断导致特效时钟滞后（60fps 下约 4%）。 */
+    private var playbackClockRemainderNanos = 0L
+
+    /**
+     * 词间隙（progressAnimator 停摆）期间的特效时钟连续外推时长（ms）。
+     * 行仍在播放窗口内时继续外推，消除词与词之间特效冻结的卡顿感；
+     * 超过 [MAX_SILENT_EXTRAPOLATION_MS] 视为外部暂停，停止推进，
+     * 恢复播放时由 [update] 校准时钟。
+     */
+    private var silentExtrapolationMs = 0L
+
     override val isPlaying get() = progressAnimator.isAnimating
     override val isFinished get() = progressAnimator.hasFinished
     override val isStarted get() = progressAnimator.hasStarted
-
-    private var highlightColor: Int = Color.WHITE
 
     fun setTextSize(size: Float) {
         bgPaint.textSize = size
@@ -119,13 +87,17 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
 
     fun setColors(background: IntArray, highlight: IntArray) {
         if (background.isNotEmpty()) bgPaint.color = background[0]
-        if (highlight.isNotEmpty()) {
-            highlightColor = highlight[0]
-            applyHighlightColor()
-        }
+        if (highlight.isNotEmpty()) hlPaint.color = highlight[0]
         textDrawer.setColors(background, highlight)
         textDrawer.clearShaderCache()
     }
+
+    /** HDR 亮度比率；转发给 [TextDrawer]，决定高亮是否走扩展色域着色。 */
+    var hdrHighlightRatio: Float
+        get() = textDrawer.hdrHighlightRatio
+        set(value) {
+            textDrawer.hdrHighlightRatio = value
+        }
 
     fun updateLayout(model: LyricModel, state: LineState, viewWidth: Int, viewHeight: Int) {
         textDrawer.updateMetrics(bgPaint)
@@ -144,9 +116,11 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
     ) {
         val target = targetWidth(posMs, model)
         progressAnimator.jumpTo(target)
+        playbackClockMs = posMs
+        playbackClockRemainderNanos = 0L
+        silentExtrapolationMs = 0L
+        textDrawer.currentTimeMs = posMs
         updateScrollState(model, state, viewWidth)
-        resetSustainState()
-        sustainEffects = buildSustainEffects(model.wordTimingNavigator.first(posMs), posMs)
         lastPosition = posMs
         notifyProgress(model)
     }
@@ -172,8 +146,11 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
         if (target != progressAnimator.targetWidth) {
             progressAnimator.animateTo(target, word?.duration ?: 0)
         }
-        sustainEffects = buildSustainEffects(word, posMs)
         lastPosition = posMs
+        playbackClockMs = posMs
+        playbackClockRemainderNanos = 0L
+        silentExtrapolationMs = 0L
+        textDrawer.currentTimeMs = posMs
     }
 
     override fun step(
@@ -182,17 +159,25 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
         state: LineState,
         viewWidth: Int
     ): Boolean {
-        val progressUpdated = progressAnimator.step(deltaNanos)
-        if (progressUpdated) {
-            updateScrollState(model, state, viewWidth)
-            notifyProgress(model)
-        }
-        if (progressUpdated || releaseSustainWord != null) {
-            sustainEffects =
-                buildSustainEffects(model.wordTimingNavigator.first(lastPosition), lastPosition)
+        if (progressAnimator.isAnimating) {
+            // 动画期间逐帧外推特效时钟：保证位移动画与高亮同样平滑（不依赖外部更新频率）。
+            advancePlaybackClock(deltaNanos)
+            if (progressAnimator.step(deltaNanos)) {
+                updateScrollState(model, state, viewWidth)
+                notifyProgress(model)
+            }
+            // 动画播放中（含恰好结束的这一帧）始终重绘：特效时钟已推进。
             return true
         }
-        return progressUpdated
+
+        // 词间隙：行仍在播放窗口内时继续外推特效时钟，消除动画冻结；
+        // 超过上限视为外部暂停（如用户暂停播放），停止推进以定格特效。
+        if (isStarted && !isFinished && silentExtrapolationMs < MAX_SILENT_EXTRAPOLATION_MS) {
+            silentExtrapolationMs += deltaNanos / 1_000_000L
+            advancePlaybackClock(deltaNanos)
+            return true
+        }
+        return false
     }
 
     override fun draw(
@@ -207,7 +192,7 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
             canvas, model, viewWidth, viewHeight,
             state.scrollOffset, model.width > viewWidth,
             progressAnimator.currentWidth,
-            sustainEffects, isGradientEnabled, isScrollOnly, isCharMotionEnabled,
+            isGradientEnabled, isScrollOnly, isCharMotionEnabled,
             bgPaint, hlPaint, paint
         )
     }
@@ -216,149 +201,11 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
         progressAnimator.reset()
         state.reset()
         lastPosition = Long.MIN_VALUE
-        resetSustainState()
-        sustainEffects = emptyList()
+        playbackClockMs = 0L
+        playbackClockRemainderNanos = 0L
+        silentExtrapolationMs = 0L
+        textDrawer.currentTimeMs = 0L
         textDrawer.clearShaderCache()
-    }
-
-    private fun resetSustainState() {
-        activeSustainWord = null
-        activeSustainIntensity = 0f
-        activeSustainPeakIntensity = 0f
-        releaseSustainWord = null
-        releaseStartRealtimeMs = 0L
-        releaseSeedIntensity = 0f
-    }
-
-    private fun resolveReleaseSeedIntensity(fallback: Float): Float {
-        val peakBased = activeSustainPeakIntensity.takeIf { it > 0f } ?: fallback
-        return max(0.68f, max(peakBased * 0.9f, fallback)).coerceIn(0f, 1f)
-    }
-
-    private fun beginSustainRelease(word: WordModel, seedIntensity: Float) {
-        releaseSustainWord = word
-        releaseStartRealtimeMs = SystemClock.elapsedRealtime()
-        releaseSeedIntensity = seedIntensity.coerceIn(0f, 1f)
-    }
-
-    private fun buildSustainEffects(word: WordModel?, position: Long): List<SustainEffectState> {
-        if (!sustainGlowEnabled) {
-            resetSustainState()
-            return emptyList()
-        }
-        if (position == Long.MIN_VALUE) return emptyList()
-
-        val activeEffect = buildActiveSustainEffect(word, position)
-        if (activeEffect != null && word != null) {
-            if (activeSustainWord != null && activeSustainWord != word) {
-                releaseSustainWord = null
-                releaseStartRealtimeMs = 0L
-                releaseSeedIntensity = 0f
-                activeSustainPeakIntensity = 0f
-            }
-            activeSustainWord = word
-            activeSustainIntensity = activeEffect.intensity
-            activeSustainPeakIntensity = max(activeSustainPeakIntensity, activeEffect.intensity)
-            if (releaseSustainWord == word) {
-                releaseSustainWord = null
-            }
-        } else {
-            activeSustainWord?.let {
-                beginSustainRelease(
-                    it,
-                    resolveReleaseSeedIntensity(activeSustainIntensity.takeIf { s -> s > 0f } ?: 1f)
-                )
-            }
-            activeSustainWord = null
-            activeSustainIntensity = 0f
-            activeSustainPeakIntensity = 0f
-        }
-
-        val releaseEffect = buildReleaseSustainEffect()
-        if (releaseEffect == null && activeEffect == null) return emptyList()
-
-        return buildList(2) {
-            releaseEffect?.let { add(it) }
-            activeEffect?.let { add(it) }
-        }
-    }
-
-    private fun buildActiveSustainEffect(word: WordModel?, position: Long): SustainEffectState? {
-        if (!sustainGlowEnabled) return null
-        word ?: return null
-        if (word.duration < SUSTAIN_EFFECT_MIN_DURATION_MS) return null
-
-        val wordWidth = (word.endPosition - word.startPosition).coerceAtLeast(0f)
-        if (wordWidth <= 0f) return null
-
-        val elapsedInWord = (position - word.begin).coerceIn(0L, word.duration)
-        val triggerDelayMs = minOf(
-            SUSTAIN_EFFECT_TRIGGER_DELAY_MS,
-            (word.duration * SUSTAIN_EFFECT_TRIGGER_MAX_RATIO).toLong().coerceAtLeast(1L)
-        )
-        if (elapsedInWord < triggerDelayMs) return null
-
-        val effectiveDuration = (word.duration - triggerDelayMs).coerceAtLeast(1L)
-        val progress =
-            ((elapsedInWord - triggerDelayMs).toFloat() / effectiveDuration).coerceIn(0f, 1f)
-        if (progress <= 0f || progress >= 1f) return null
-
-        val edgeFade = when {
-            progress < 0.18f -> progress / 0.18f
-            progress > 0.82f -> (1f - progress) / 0.18f
-            else -> 1f
-        }.coerceIn(0f, 1f)
-        if (edgeFade <= 0f) return null
-
-        val density = view.resources.displayMetrics.density
-        val glowRadius = density * SUSTAIN_EFFECT_MAX_GLOW_RADIUS_DP * (0.64f + edgeFade * 0.32f)
-        val glowAlpha = (SUSTAIN_EFFECT_MAX_GLOW_ALPHA * (0.34f + edgeFade * 0.56f))
-            .toInt()
-            .coerceIn(0, 255)
-
-        return SustainEffectState(
-            startX = word.startPosition,
-            endX = word.endPosition,
-            glowRadiusPx = glowRadius,
-            glowAlpha = glowAlpha,
-            intensity = edgeFade
-        )
-    }
-
-    private fun buildReleaseSustainEffect(): SustainEffectState? {
-        if (!sustainGlowEnabled) return null
-        val word = releaseSustainWord ?: return null
-        if (releaseStartRealtimeMs <= 0L) return null
-
-        val elapsed = (SystemClock.elapsedRealtime() - releaseStartRealtimeMs).coerceAtLeast(0L)
-        val progress =
-            (elapsed.toFloat() / SUSTAIN_EFFECT_RELEASE_DURATION_MS.toFloat()).coerceIn(0f, 1f)
-        if (progress >= 1f) {
-            releaseSustainWord = null
-            releaseStartRealtimeMs = 0L
-            releaseSeedIntensity = 0f
-            return null
-        }
-
-        val tailProgress = ((progress - 0.25f) / 0.75f).coerceIn(0f, 1f)
-        val easedTail = tailProgress * tailProgress * (3f - 2f * tailProgress)
-        val falloff = 1f - easedTail
-        val intensity = (releaseSeedIntensity * falloff).coerceIn(0f, 1f)
-        if (intensity <= 0.02f) return null
-
-        val density = view.resources.displayMetrics.density
-        val glowRadius = density * SUSTAIN_EFFECT_MAX_GLOW_RADIUS_DP * (0.42f + intensity * 0.34f)
-        val glowAlpha = (SUSTAIN_EFFECT_MAX_GLOW_ALPHA * (0.16f + intensity * 0.38f))
-            .toInt()
-            .coerceIn(0, 255)
-
-        return SustainEffectState(
-            startX = word.startPosition,
-            endX = word.endPosition,
-            glowRadiusPx = glowRadius,
-            glowAlpha = glowAlpha,
-            intensity = intensity
-        )
     }
 
     private fun updateScrollState(model: LyricModel, state: LineState, viewWidth: Int) {
@@ -375,9 +222,7 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
     private fun targetWidth(posMs: Long, model: LyricModel, word: WordModel? = null): Float {
         val w = word ?: model.wordTimingNavigator.first(posMs)
         return when {
-            // 末词的高亮目标取整行宽度（含墨迹溢出），否则斜体等字形
-            // 超出 advance 求和的尾部永远到不了高亮态
-            w != null -> if (w.next == null) max(w.endPosition, model.width) else w.endPosition
+            w != null -> w.endPosition
             posMs >= model.end -> model.width
             posMs <= model.begin -> 0f
             else -> progressAnimator.currentWidth
@@ -399,38 +244,17 @@ internal class WordSyncRenderer(private val view: LyricLineView) : LineRenderer 
         _playListener.onPlayProgress(view, total, current)
     }
 
-    private fun applyHighlightColor() {
-        if (hdrHighlightRatio <= MIN_HDR_HIGHLIGHT_RATIO ||
-            Build.VERSION.SDK_INT < Build.VERSION_CODES.Q
-        ) {
-            hlPaint.color = highlightColor
-            return
-        }
-
-        runCatching {
-            hlPaint.setColor(HdrColor.packHighlightColor(highlightColor, hdrHighlightRatio))
-        }.onFailure {
-            hlPaint.color = highlightColor
-        }
+    /** 逐帧外推特效时钟（纳秒余量避免整数截断）。 */
+    private fun advancePlaybackClock(deltaNanos: Long) {
+        playbackClockRemainderNanos += deltaNanos
+        playbackClockMs += playbackClockRemainderNanos / 1_000_000L
+        playbackClockRemainderNanos %= 1_000_000L
+        textDrawer.currentTimeMs = playbackClockMs
     }
 
-    private fun Float.normalizedHdrHighlightRatio(): Float =
-        if (isFinite() && this > MIN_HDR_HIGHLIGHT_RATIO) {
-            coerceAtMost(MAX_HDR_HIGHLIGHT_RATIO)
-        } else {
-            MIN_HDR_HIGHLIGHT_RATIO
-        }
-
     companion object {
-        private const val MIN_HDR_HIGHLIGHT_RATIO = 1.0f
-        private const val MAX_HDR_HIGHLIGHT_RATIO = 8.0f
-
-        private const val SUSTAIN_EFFECT_MIN_DURATION_MS = 420L
-        private const val SUSTAIN_EFFECT_TRIGGER_DELAY_MS = 180L
-        private const val SUSTAIN_EFFECT_TRIGGER_MAX_RATIO = 0.35f
-        private const val SUSTAIN_EFFECT_MAX_GLOW_RADIUS_DP = 3.4f
-        private const val SUSTAIN_EFFECT_MAX_GLOW_ALPHA = 160
-        private const val SUSTAIN_EFFECT_RELEASE_DURATION_MS = 170L
+        /** 词间隙特效时钟的最大连续外推时长（ms）：超过视为外部暂停。 */
+        private const val MAX_SILENT_EXTRAPOLATION_MS = 300L
 
         private val NoOpPlayListener = object : LyricPlayListener {
             override fun onPlayStarted(view: LyricLineView) {}

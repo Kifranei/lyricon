@@ -120,18 +120,6 @@ configure<LibraryExtension> {
         buildConfigField("long", "BUILD_TIME", "${buildTime}L")
     }
 
-    flavorDimensions += "locale"
-    productFlavors {
-        create("standard") {
-            dimension = "locale"
-            buildConfigField("boolean", "ENABLE_CHINESE_CONVERSION", "false")
-        }
-        create("zh") {
-            dimension = "locale"
-            buildConfigField("boolean", "ENABLE_CHINESE_CONVERSION", "true")
-        }
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -158,6 +146,7 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":lyric:style"))
     implementation(project(":lyric:view"))
+    implementation(project(":lyric:ai"))
 
     // --- 第三方 UI 库 ---
     implementation(libs.miuix.android)
@@ -165,6 +154,8 @@ dependencies {
     implementation(libs.miuix.icons)
     implementation(libs.miuix.preference)
     implementation(libs.miuix.blur)
+    implementation(libs.multiplatform.markdown.renderer)
+    implementation(libs.okhttp)
 
     implementation(libs.libxposed.service)
 

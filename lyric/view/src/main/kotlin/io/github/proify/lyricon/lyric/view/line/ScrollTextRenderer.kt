@@ -42,8 +42,6 @@ internal class ScrollTextRenderer : LineRenderer {
     private var currentRepeat = 0
     private var delayRemainingNanos = 0L
     private var currentUnitOffset = 0f
-    private var lastViewWidth = 0
-    private var lastLyricWidth = 0f
     private var cachedBaseline = 0f
     private var cachedViewHeight = -1
 
@@ -53,9 +51,6 @@ internal class ScrollTextRenderer : LineRenderer {
         state: LineState,
         viewWidth: Int
     ): Boolean {
-        lastViewWidth = viewWidth
-        lastLyricWidth = model.width
-
         if (finished) return false
 
         val vw = viewWidth.toFloat()
@@ -160,8 +155,6 @@ internal class ScrollTextRenderer : LineRenderer {
         viewWidth: Int,
         viewHeight: Int
     ) {
-        lastViewWidth = viewWidth
-        lastLyricWidth = model.width
         startFromBeginning(model, state)
     }
 
@@ -172,8 +165,6 @@ internal class ScrollTextRenderer : LineRenderer {
         viewWidth: Int,
         viewHeight: Int
     ) {
-        lastViewWidth = viewWidth
-        lastLyricWidth = model.width
         startFromBeginning(model, state)
     }
 

@@ -55,7 +55,7 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
     ) {
         item(key = "base") {
             SmallTitle(
-                text = stringResource(R.string.basic),
+                text = stringResource(R.string.section_basic),
                 insideMargin = PaddingValues(
                     start = 26.dp,
                     top = 0.dp,

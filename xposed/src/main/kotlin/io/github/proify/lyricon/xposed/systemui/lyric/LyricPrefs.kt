@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright 2026 Proify, Tomakino
  * Licensed under the Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0
@@ -11,6 +11,7 @@ import android.content.SharedPreferences
 import android.os.Looper
 import android.util.Log
 import io.github.proify.lyricon.app.bridge.AppBridge
+import io.github.proify.lyricon.app.bridge.AppBridge.LyricGesturePrefs
 import io.github.proify.lyricon.common.StateSharedPreferences
 import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LyricStyle
@@ -47,7 +48,7 @@ object LyricPrefs {
     /* ---------------- base style ---------------- */
 
     /** 基础样式偏好（全局生效） */
-    private val baseStylePrefs: StateSharedPreferences =
+    val baseStylePrefs: StateSharedPreferences =
         createPrefs(AppBridge.LyricStylePrefs.PREF_NAME_BASE)
 
     /** 基础样式，访问时自动检测变更并重新加载 */
@@ -233,6 +234,30 @@ object LyricPrefs {
     fun isHdrHighlightEnabled(): Boolean {
         return baseStyle.hdrHighlightEnabled
     }
+    /* ---------------- gesture control ---------------- */
+
+    /** 是否启用状态栏歌词手势控制 */
+    val gestureEnabled: Boolean
+        get() = baseStylePrefs.getBoolean(
+            LyricGesturePrefs.KEY_ENABLED,
+            LyricGesturePrefs.DEFAULT_ENABLED
+        )
+
+    /** 是否启用震动反馈(手势识别时震动) */
+    val gestureHapticEnabled: Boolean
+        get() = baseStylePrefs.getBoolean(
+            LyricGesturePrefs.KEY_HAPTIC,
+            LyricGesturePrefs.DEFAULT_HAPTIC
+        )
+
+    /**
+     * 读取指定手势对应的动作 ID,不存在或内容异常时返回 [default]
+     *
+     * @param key [LyricGesturePrefs.KEY_SWIPE_LEFT] 等手势偏好键
+     * @param default 默认动作 ID
+     */
+    fun gestureAction(key: String, default: Int): Int =
+        baseStylePrefs.getInt(key, default)
 
     /* ---------------- helper classes ---------------- */
 

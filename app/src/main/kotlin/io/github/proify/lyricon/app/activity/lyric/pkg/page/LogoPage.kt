@@ -51,10 +51,10 @@ import io.github.proify.lyricon.lyric.style.BasicStyle
 import io.github.proify.lyricon.lyric.style.LogoStyle
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.SmallTitle
-import top.yukonga.miuix.kmp.basic.SpinnerEntry
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
@@ -94,7 +94,7 @@ fun LogoPage(
     ) {
         item(key = "enable") {
             SmallTitle(
-                text = stringResource(R.string.item_logo_section_basic),
+                text = stringResource(R.string.section_basic),
                 insideMargin = PaddingValues(
                     start = 26.dp,
                     end = 26.dp,
@@ -341,7 +341,7 @@ private fun LogoGravity(preferences: SharedPreferences) {
     OverlaySpinnerPreference(
         startAction = { IconActions(painterResource(R.drawable.ic_stack)) },
         title = stringResource(R.string.item_logo_position),
-        items = optionResIds.map { SpinnerEntry(title = stringResource(it)) },
+        items = optionResIds.map { DropdownItem(title = stringResource(it)) },
         selectedIndex = selectedIndex,
         onSelectedIndexChange = { index ->
             order = optionKeys[index]

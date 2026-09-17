@@ -44,6 +44,9 @@ data class WordModel(
     /** 下一个单词 */
     var next: WordModel? = null
 
+    /** 该词文本在 [LyricModel.wordText] 中的起始偏移（构建时设置，供批量绘制定位）。 */
+    var textOffset: Int = 0
+
     /** 单词文本总宽度 */
     var textWidth: Float = 0f
         private set
@@ -55,6 +58,18 @@ data class WordModel(
     /** 单词结束绘制位置 */
     var endPosition: Float = 0f
         private set
+
+    /** 该词是否含 CJK 字符（决定逐字动画策略；仅在构建时计算一次，避免每帧重复判定）。 */
+    val isCjk: Boolean = text.any { it.isCjkChar() }
+
+    /**
+     * 强调辉光组（Apple Music 式 emphasize 特效预计算参数）。
+     * 非空表示本词参与强调动画；组内多个词（合并的非 CJK 词）共享同一实例。
+     */
+    internal var emphasisGroup: EmphasisGroup? = null
+
+    /** 本词在强调组内的字符起始索引（去除空白字符后计数，跨组合并时连续累加）。 */
+    internal var emphasisCharOffset: Int = 0
 
     /** 拆分后的字符数组 */
     val chars: CharArray = text.toCharArray()
@@ -116,3 +131,21 @@ data class WordModel(
 }
 
 internal fun List<WordModel>.toText(): String = joinToString("") { it.text }
+
+/**
+ * 判断字符是否属于需要逐字动画的 CJK/日文/韩文区间。
+ *
+ * 与绘制无关，仅用于动画策略；集中在此以便一次计算后缓存到 [WordModel.isCjk]。
+ */
+internal fun Char.isCjkChar(): Boolean {
+    val block = Character.UnicodeBlock.of(this)
+    return block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS ||
+            block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A ||
+            block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B ||
+            block == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS ||
+            block == Character.UnicodeBlock.HIRAGANA ||
+            block == Character.UnicodeBlock.KATAKANA ||
+            block == Character.UnicodeBlock.HANGUL_SYLLABLES ||
+            block == Character.UnicodeBlock.HANGUL_JAMO ||
+            block == Character.UnicodeBlock.HANGUL_COMPATIBILITY_JAMO
+}

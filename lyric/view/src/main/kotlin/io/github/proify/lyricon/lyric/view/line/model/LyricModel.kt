@@ -109,7 +109,10 @@ internal fun LyricLine.createModel(): LyricModel = LyricModel(
     words = words?.toWordModels() ?: emptyList(),
     isAlignedRight = isAlignedRight,
     metadata = metadata
-)
+).also { model ->
+    // 构建强调辉光组：行级预计算，渲染层逐字错峰播放缩放 + 位移 + 辉光动画。
+    model.words.assignEmphasisGroups(model.begin)
+}
 
 /**
  * 将 LyricWord 列表转换为 WordModel 列表，并建立前后引用关系
@@ -117,6 +120,7 @@ internal fun LyricLine.createModel(): LyricModel = LyricModel(
 private fun List<LyricWord>.toWordModels(): List<WordModel> {
     val models = mutableListOf<WordModel>()
     var previousModel: WordModel? = null
+    var textOffset = 0
 
     forEach { word ->
         val model = WordModel(
@@ -126,6 +130,8 @@ private fun List<LyricWord>.toWordModels(): List<WordModel> {
             text = word.text.orEmpty(),
             metadata = word.metadata
         )
+        model.textOffset = textOffset
+        textOffset += model.text.length
 
         model.previous = previousModel
         previousModel?.next = model

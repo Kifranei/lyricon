@@ -64,6 +64,25 @@ It is useful for blocking:
 
 A timeout value of `0` means never hide.
 
+## Gestures
+
+With **Enable lyrics gestures** turned on, you can swipe or tap the status bar lyrics to control
+playback.
+
+| Gesture    | Default action    | Available actions                                                    |
+|:-----------|:------------------|:---------------------------------------------------------------------|
+| Swipe left | Next track        | No action / Play-Pause / Previous track / Next track / Open control panel |
+| Swipe right| Previous track    | Same as above                                                        |
+| Tap        | Open control panel| Same as above                                                        |
+| Long press | Play / Pause      | Same as above                                                        |
+
+Slow horizontal dragging is recognized as a swipe, no flick velocity is required. With gestures
+disabled, tapping the lyrics still opens the control panel.
+
+Gestures come with touch feedback: a subtle shrink while pressed, the lyric content follows your
+finger when swiping and springs back, long press slightly enlarges it, and tap / long press / swipe
+can trigger haptic vibration when recognized (switch it off under "Gestures" if undesired).
+
 ## Tuning Recommendations
 
 1. Choose the anchor and insertion order first.

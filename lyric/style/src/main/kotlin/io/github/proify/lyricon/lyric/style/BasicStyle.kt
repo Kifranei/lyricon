@@ -13,19 +13,10 @@ import io.github.proify.android.extensions.safeDecode
 import io.github.proify.android.extensions.toJson
 import io.github.proify.lyricon.lyric.style.BasicStyle.Companion.STATUS_COLOR_STRATEGY_COMPAT
 import io.github.proify.lyricon.lyric.style.BasicStyle.Companion.STATUS_COLOR_STRATEGY_PRECISE
-import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_API_KEY
-import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_BASE_URL
 import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_ENABLED
-import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_FREQUENCY_PENALTY
 import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_IGNORE_CHINESE
-import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_MAX_TOKENS
-import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_MODEL
-import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_PRESENCE_PENALTY
 import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_PROMPT
-import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_PROVIDER
 import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_TARGET_LANGUAGE
-import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_TEMPERATURE
-import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_TOP_P
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Serializable
@@ -66,7 +57,8 @@ data class BasicStyle(
     var chineseConversionMode: Int = Defaults.CHINESE_CONVERSION_MODE,
 
     var isAiTranslationEnable: Boolean = false,
-    var aiTranslationConfigs: AiTranslationConfigs? = null,
+    var aiTranslationTargetLanguage: String = TextStyle.Defaults.AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME,
+    var aiTranslationPrompt: String = TextStyle.Defaults.AI_TRANSLATION_PROMPT,
     var isAiTranslationAutoIgnoreChinese: Boolean = false,
 
     var hdrHighlightEnabled: Boolean = Defaults.HDR_HIGHLIGHT_ENABLED,
@@ -75,7 +67,6 @@ data class BasicStyle(
     var xiaomiIslandTempHideEnabled: Boolean = Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
     var xiaomiIslandAutoShrinkEnabled: Boolean = Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED,
 
-    var doubleTapSwitchClock: Boolean = Defaults.DOUBLE_TAP_SWITCH_CLOCK,
 
     ) : AbstractStyle(), Parcelable {
 
@@ -195,7 +186,16 @@ data class BasicStyle(
                 KEY_AI_TRANSLATION_ENABLED,
                 TextStyle.Defaults.AI_TRANSLATION_ENABLED
             )
-        aiTranslationConfigs = getAiTranslationConfigs(preferences)
+        aiTranslationTargetLanguage =
+            preferences.getString(
+                KEY_AI_TRANSLATION_TARGET_LANGUAGE,
+                TextStyle.Defaults.AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME
+            ) ?: TextStyle.Defaults.AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME
+        aiTranslationPrompt =
+            preferences.getString(
+                KEY_AI_TRANSLATION_PROMPT,
+                TextStyle.Defaults.AI_TRANSLATION_PROMPT
+            ) ?: TextStyle.Defaults.AI_TRANSLATION_PROMPT
         isAiTranslationAutoIgnoreChinese =
             preferences.getBoolean(
                 KEY_AI_TRANSLATION_IGNORE_CHINESE,
@@ -217,10 +217,6 @@ data class BasicStyle(
         xiaomiIslandAutoShrinkEnabled = preferences.getBoolean(
             "lyric_style_base_xiaomi_island_auto_shrink_enabled",
             Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED
-        )
-        doubleTapSwitchClock = preferences.getBoolean(
-            "lyric_style_base_double_tap_switch_clock",
-            Defaults.DOUBLE_TAP_SWITCH_CLOCK
         )
     }
 
@@ -254,7 +250,8 @@ data class BasicStyle(
         editor.putInt("lyric_style_base_chinese_conversion_mode", chineseConversionMode)
 
         editor.putBoolean(KEY_AI_TRANSLATION_ENABLED, isAiTranslationEnable)
-        aiTranslationConfigs?.let { writeAiTranslationConfigs(editor, it) }
+        editor.putString(KEY_AI_TRANSLATION_TARGET_LANGUAGE, aiTranslationTargetLanguage)
+        editor.putString(KEY_AI_TRANSLATION_PROMPT, aiTranslationPrompt)
         editor.putBoolean(KEY_AI_TRANSLATION_IGNORE_CHINESE, isAiTranslationAutoIgnoreChinese)
 
         editor.putBoolean("lyric_style_base_hdr_highlight_enabled", hdrHighlightEnabled)
@@ -268,110 +265,6 @@ data class BasicStyle(
             "lyric_style_base_xiaomi_island_auto_shrink_enabled",
             xiaomiIslandAutoShrinkEnabled
         )
-        editor.putBoolean(
-            "lyric_style_base_double_tap_switch_clock",
-            doubleTapSwitchClock
-        )
-    }
-
-    private fun getAiTranslationConfigs(preferences: SharedPreferences): AiTranslationConfigs {
-        val providerName =
-            preferences.getString(
-                KEY_AI_TRANSLATION_PROVIDER,
-                TextStyle.Defaults.AI_TRANSLATION_PROVIDER
-            )
-        val provider = AiTranslationProvider.entries.firstOrNull {
-            it.name.equals(providerName, ignoreCase = true)
-        }
-
-        val model = preferences.getString(KEY_AI_TRANSLATION_MODEL, provider?.model)
-        val baseUrl = preferences.getString(KEY_AI_TRANSLATION_BASE_URL, provider?.url)
-
-        val customPrompt =
-            preferences.getString(
-                KEY_AI_TRANSLATION_PROMPT,
-                TextStyle.Defaults.AI_TRANSLATION_PROMPT
-            )
-
-        val targetLanguage =
-            preferences.getString(
-                KEY_AI_TRANSLATION_TARGET_LANGUAGE,
-                TextStyle.Defaults.AI_TRANSLATION_TARGET_LANGUAGE_DISPLAY_NAME
-            )
-
-        val apiKey = preferences.getString(KEY_AI_TRANSLATION_API_KEY, null)
-        val temperature = preferences.getFloatCompat(
-            KEY_AI_TRANSLATION_TEMPERATURE,
-            TextStyle.Defaults.AI_TRANSLATION_TEMPERATURE
-        )
-        val topP = preferences.getFloatCompat(
-            KEY_AI_TRANSLATION_TOP_P,
-            TextStyle.Defaults.AI_TRANSLATION_TOP_P
-        )
-        val maxTokens = preferences.getIntCompat(
-            KEY_AI_TRANSLATION_MAX_TOKENS,
-            TextStyle.Defaults.AI_TRANSLATION_MAX_TOKENS
-        )
-        val presencePenalty = preferences.getFloatCompat(
-            KEY_AI_TRANSLATION_PRESENCE_PENALTY,
-            TextStyle.Defaults.AI_TRANSLATION_PRESENCE_PENALTY
-        )
-        val frequencyPenalty = preferences.getFloatCompat(
-            KEY_AI_TRANSLATION_FREQUENCY_PENALTY,
-            TextStyle.Defaults.AI_TRANSLATION_FREQUENCY_PENALTY
-        )
-
-        return AiTranslationConfigs(
-            provider = provider?.name,
-            targetLanguage = targetLanguage,
-            apiKey = apiKey,
-            model = model,
-            baseUrl = baseUrl,
-            prompt = customPrompt ?: TextStyle.Defaults.AI_TRANSLATION_PROMPT,
-            temperature = temperature,
-            topP = topP,
-            maxTokens = maxTokens,
-            presencePenalty = presencePenalty,
-            frequencyPenalty = frequencyPenalty
-        )
-    }
-
-    private fun writeAiTranslationConfigs(
-        editor: SharedPreferences.Editor,
-        configs: AiTranslationConfigs
-    ) {
-        editor.putString(KEY_AI_TRANSLATION_PROVIDER, configs.provider)
-        editor.putString(KEY_AI_TRANSLATION_MODEL, configs.model)
-        editor.putString(KEY_AI_TRANSLATION_BASE_URL, configs.baseUrl)
-        editor.putString(KEY_AI_TRANSLATION_PROMPT, configs.prompt)
-        editor.putString(KEY_AI_TRANSLATION_TARGET_LANGUAGE, configs.targetLanguage)
-        editor.putString(KEY_AI_TRANSLATION_TEMPERATURE, configs.temperature.toString())
-        editor.putString(KEY_AI_TRANSLATION_TOP_P, configs.topP.toString())
-        editor.putString(KEY_AI_TRANSLATION_MAX_TOKENS, configs.maxTokens.toString())
-        editor.putString(KEY_AI_TRANSLATION_PRESENCE_PENALTY, configs.presencePenalty.toString())
-        editor.putString(KEY_AI_TRANSLATION_FREQUENCY_PENALTY, configs.frequencyPenalty.toString())
-    }
-
-    private fun SharedPreferences.getFloatCompat(key: String, defaultValue: Float): Float {
-        return when (val value = all[key]) {
-            is Float -> value
-            is String -> value.toFloatOrNull() ?: defaultValue
-            is Int -> value.toFloat()
-            is Long -> value.toFloat()
-            is Double -> value.toFloat()
-            else -> defaultValue
-        }
-    }
-
-    private fun SharedPreferences.getIntCompat(key: String, defaultValue: Int): Int {
-        return when (val value = all[key]) {
-            is Int -> value
-            is String -> value.toIntOrNull() ?: defaultValue
-            is Long -> value.toInt()
-            is Float -> value.toInt()
-            is Double -> value.toInt()
-            else -> defaultValue
-        }
     }
 
     object Defaults {
@@ -403,7 +296,6 @@ data class BasicStyle(
         const val HDR_BRIGHTNESS_RATIO: Float = 1.5f
         const val XIAOMI_ISLAND_TEMP_HIDE_ENABLED: Boolean = true
         const val XIAOMI_ISLAND_AUTO_SHRINK_ENABLED: Boolean = true
-        const val DOUBLE_TAP_SWITCH_CLOCK: Boolean = false
     }
 
     companion object {
@@ -457,5 +349,20 @@ data class BasicStyle(
 
         /** 中文转换模式：繁体中文 */
         const val CHINESE_CONVERSION_TRADITIONAL = 2
+    }
+
+    /**
+     * 容错读取 Float：历史版本可能把该键写成 String/Int/Long/Double，
+     * 直接 getFloat 会抛 ClassCastException。
+     */
+    private fun SharedPreferences.getFloatCompat(key: String, defaultValue: Float): Float {
+        return when (val value = all[key]) {
+            is Float -> value
+            is String -> value.toFloatOrNull() ?: defaultValue
+            is Int -> value.toFloat()
+            is Long -> value.toFloat()
+            is Double -> value.toFloat()
+            else -> defaultValue
+        }
     }
 }

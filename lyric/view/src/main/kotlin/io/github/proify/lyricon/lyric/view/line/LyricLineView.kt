@@ -6,16 +6,10 @@
 
 package io.github.proify.lyricon.lyric.view.line
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.LinearGradient
-import android.graphics.Shader
-import android.os.Build
 import android.text.TextPaint
 import android.util.AttributeSet
-import android.view.Choreographer
 import android.view.View
 import androidx.core.view.doOnAttach
 import io.github.proify.lyricon.lyric.model.LyricLine
@@ -26,11 +20,14 @@ import io.github.proify.lyricon.lyric.view.TextLook
 import io.github.proify.lyricon.lyric.view.UpdatableColor
 import io.github.proify.lyricon.lyric.view.WordMotion
 import io.github.proify.lyricon.lyric.view.dp
+import io.github.proify.lyricon.lyric.view.line.effect.EmphasizeGlowEffect
+import io.github.proify.lyricon.lyric.view.line.effect.LyricEffectEngine
+import io.github.proify.lyricon.lyric.view.line.effect.LyricUnitEffect
+import io.github.proify.lyricon.lyric.view.line.effect.WaveLiftEffect
 import io.github.proify.lyricon.lyric.view.line.model.LyricModel
 import io.github.proify.lyricon.lyric.view.line.model.createModel
 import io.github.proify.lyricon.lyric.view.line.model.emptyLyricModel
 import io.github.proify.lyricon.lyric.view.sp
-import kotlin.math.ceil
 
 open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
     View(context, attrs), UpdatableColor {
@@ -56,8 +53,11 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
     var isScrollOnly: Boolean = false
         set(value) {
+            if (field == value) return
             field = value
             syncRenderer.isScrollOnly = value
+            // 纯滚动行不预留动画高度，行高可能变化，需重新测量。
+            requestLayout()
         }
 
     var playListener: LyricPlayListener? = null
@@ -80,38 +80,98 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
             if (field == value) return
             field = value
             syncRenderer.isCharMotionEnabled = value.enabled
-            syncRenderer.cjkMotionLiftFactor = value.cjkLiftFactor
-            syncRenderer.cjkMotionWaveFactor = value.cjkWaveFactor
-            syncRenderer.latinMotionLiftFactor = value.latinLiftFactor
-            syncRenderer.latinMotionWaveFactor = value.latinWaveFactor
+            waveEffect.cjkLiftFactor = value.cjkLiftFactor
+            waveEffect.cjkWaveFactor = value.cjkWaveFactor
+            waveEffect.latinLiftFactor = value.latinLiftFactor
+            waveEffect.latinWaveFactor = value.latinWaveFactor
             requestLayout()
             invalidate()
         }
 
-    var sustainGlowEnabled: Boolean
-        get() = syncRenderer.sustainGlowEnabled
+    /**
+     * 拉长音辉光开关。
+     *
+     * 关闭时把上游的 [EmphasizeGlowEffect] 从特效链中摘除，其余特效不受影响；
+     * 重新打开时按原顺序（[WaveLiftEffect] 之后）挂回。
+     */
+    var sustainGlowEnabled: Boolean = true
         set(value) {
-            if (syncRenderer.sustainGlowEnabled == value) return
-            syncRenderer.sustainGlowEnabled = value
+            if (field == value) return
+            field = value
+            if (value) {
+                effectEngine.add(emphasizeGlowEffect)
+            } else {
+                effectEngine.remove(emphasizeGlowEffect.name)
+            }
             invalidate()
         }
 
-    var hdrHighlightRatio: Float
-        get() = syncRenderer.hdrHighlightRatio
+    /**
+     * 当前特效链（默认为内置 [WaveLiftEffect] + 强调辉光 [EmphasizeGlowEffect]；
+     * 可整体替换以实现自定义歌词特效）。
+     */
+    var effects: List<LyricUnitEffect>
+        get() = effectEngine.effectList
         set(value) {
-            val old = syncRenderer.hdrHighlightRatio
-            syncRenderer.hdrHighlightRatio = value
-            if (syncRenderer.hdrHighlightRatio != old) {
-                clearPrimaryShaderCache()
-                applyPrimaryTextPaint()
-                invalidate()
-            }
+            effectEngine.setEffects(value)
+            invalidate()
         }
+
+    /**
+     * HDR 高亮亮度比率（1f 表示关闭）。
+     *
+     * 大于 1 且系统支持扩展色域时，正文与逐词高亮会亮过 SDR 白点；
+     * 设备不支持时自动回退为普通 SDR 着色。
+     */
+    var hdrHighlightRatio: Float = 1f
+        set(value) {
+            val normalized = value.normalizedHdrRatio()
+            if (field == normalized) return
+            field = normalized
+            textStyle.hdrHighlightRatio = normalized
+            syncRenderer.hdrHighlightRatio = normalized
+            textStyle.applyTo(textPaint, lineWidth)
+            invalidate()
+        }
+
+    /** 追加一个特效（按注册顺序叠加到当前特效链之后）。 */
+    fun addEffect(effect: LyricUnitEffect) {
+        effectEngine.add(effect)
+        invalidate()
+    }
+
+    /** 按名称移除特效（例如移除默认的 [WaveLiftEffect] 的 "wave_lift" 或 [EmphasizeGlowEffect] 的 "emphasize_glow"）。 */
+    fun removeEffect(name: String) {
+        effectEngine.remove(name)
+        invalidate()
+    }
 
     private val lineState = LineState()
     private val scrollRenderer = ScrollTextRenderer()
+
+    /** 默认特效：与旧版逐字波峰动画逐值等价。 */
+    private val waveEffect = WaveLiftEffect()
+
+    /** 强调辉光特效：时长 >= 1s 的词逐字缩放 + 位移 + 白色辉光。 */
+    private val emphasizeGlowEffect = EmphasizeGlowEffect()
+
+    /** 特效引擎：按注册顺序叠加 [effects] 并对每个单元求变换。 */
+    val effectEngine: LyricEffectEngine = LyricEffectEngine(listOf(waveEffect, emphasizeGlowEffect))
+
     private val syncRenderer = WordSyncRenderer(this)
-    private val animator = Animator()
+
+    /** 配色统一入口：正文着色与彩虹渐变缓存。 */
+    private val textStyle = LyricTextStyle()
+
+    /** 帧调度：每帧步进当前渲染器，有变化时请求重绘。 */
+    private val animator = FrameAnimator(
+        onFrame = { deltaNanos ->
+            activeRenderer.step(deltaNanos, _model, lineState, measuredWidth)
+        },
+        requestInvalidate = { postInvalidateOnAnimation() },
+        shouldRun = { isAttachedToWindow },
+        post = { runnable -> post(runnable) },
+    )
 
     private var activeRenderer: LineRenderer = scrollRenderer
 
@@ -132,6 +192,8 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         syncRenderer.setTextSize(size)
         refreshSizes()
         syncRenderer.updateLayout(_model, lineState, measuredWidth, measuredHeight)
+        // 字号影响测量高度（文本高度与动画预留），需重新测量。
+        requestLayout()
         invalidate()
     }
 
@@ -146,6 +208,8 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         activeRenderer = if (_model.isPlainText) scrollRenderer else syncRenderer
         refreshSizes()
         updateColorsIfReady()
+        // 普通文字与逐词同步行的动画高度预留不同，行高可能变化，需重新测量。
+        requestLayout()
         invalidate()
     }
 
@@ -224,9 +288,11 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         backgroundColors = background
         highlightColors = highlight
 
-        clearPrimaryShaderCache()
-        applyPrimaryTextPaint()
+        textStyle.configure(primary, background, highlight)
+        textStyle.hdrHighlightRatio = hdrHighlightRatio
+        textStyle.applyTo(textPaint, lineWidth)
         syncRenderer.setColors(background, highlight)
+        syncRenderer.hdrHighlightRatio = hdrHighlightRatio
         invalidate()
     }
 
@@ -297,12 +363,19 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
 
     override fun onMeasure(wSpec: Int, hSpec: Int) {
         val w = MeasureSpec.getSize(wSpec)
-        val charMotionPadding = if (isWordCharMotionEnabled) {
-            val maxLift = maxOf(wordMotion.cjkLiftFactor, wordMotion.latinLiftFactor)
-            ceil(textPaint.textSize * maxLift).toInt()
-        } else {
-            0
-        }
+        // 仅逐词同步行（非普通文字、非纯滚动）实际渲染逐字特效，才需要预留动画高度；
+        // 普通文字行无单词数据、无特效，预留会使其行高变大造成不必要的初始偏移。
+//        val charMotionPadding = if (isWordCharMotionEnabled && isWordSync && !isScrollOnly) {
+//            val maxLift = maxOf(wordMotion.cjkLiftFactor, wordMotion.latinLiftFactor)
+//            val textHeight = textPaint.descent() - textPaint.ascent()
+//            // WaveLift 上浮 + 强调上浮 + 强调缩放（1.12 上限）的对称溢出：
+//            // 为逐字动画预留高度，空间充足时动画完整展示；高度被外部压缩时
+//            // 由 TextDrawer 的 strength 机制按比例收缩动画幅度。
+//            ceil(textPaint.textSize * (maxLift + EMPHASIS_LIFT_EM) + textHeight * SCALE_OVERFLOW_FRACTION).toInt()
+//        } else {
+//            0
+//        }
+        val charMotionPadding = 0
         val textHeight = (textPaint.descent() - textPaint.ascent()).toInt() + charMotionPadding
         setMeasuredDimension(w, resolveSize(textHeight, hSpec))
     }
@@ -330,144 +403,17 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         }
     }
 
-    private var rainbowShader: Shader? = null
-    private var rainbowShaderHash = 0
-    private var rainbowShaderWidth = -1f
-    private var hdrRainbowShader: Shader? = null
-    private var hdrRainbowShaderHash = 0
-    private var hdrRainbowShaderWidth = -1f
-    private var hdrRainbowShaderRatio = 1.0f
 
-    private fun applyPrimaryTextPaint() {
-        val primary = primaryColors
-        if (primary.isEmpty()) {
-            textPaint.color = Color.BLACK
-            textPaint.shader = null
-            return
-        }
-
-        val firstColor = primary.firstOrNull() ?: Color.BLACK
-        if (primary.size > 1) {
-            textPaint.color = firstColor
-            textPaint.shader = makePrimaryShader(primary)
+    /** HDR 比率归一化：非法值或 <= 1 视为关闭，上限避免过曝。 */
+    private fun Float.normalizedHdrRatio(): Float =
+        if (isFinite() && this > MIN_HDR_HIGHLIGHT_RATIO) {
+            coerceAtMost(MAX_HDR_HIGHLIGHT_RATIO)
         } else {
-            textPaint.shader = null
-            applyPrimaryTextColor(firstColor)
-        }
-    }
-
-    private fun makePrimaryShader(colors: IntArray): Shader {
-        return if (shouldUseHdrPrimaryColor()) {
-            makeHdrRainbowShader(colors) ?: makeRainbowShader(colors)
-        } else {
-            makeRainbowShader(colors)
-        }
-    }
-
-    @SuppressLint("NewApi")
-    private fun applyPrimaryTextColor(color: Int) {
-        if (!shouldUseHdrPrimaryColor()) {
-            textPaint.color = color
-            return
+            MIN_HDR_HIGHLIGHT_RATIO
         }
 
-        runCatching {
-            textPaint.setColor(HdrColor.packHighlightColor(color, hdrHighlightRatio))
-        }.onFailure {
-            textPaint.color = color
-        }
-    }
-
-    private fun shouldUseHdrPrimaryColor(): Boolean =
-        hdrHighlightRatio > 1.0f && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-
-    private fun clearPrimaryShaderCache() {
-        rainbowShader = null
-        hdrRainbowShader = null
-        rainbowShaderWidth = -1f
-        hdrRainbowShaderWidth = -1f
-    }
-
-    private fun makeRainbowShader(colors: IntArray): Shader {
-        val hash = colors.contentHashCode()
-        if (rainbowShader != null && rainbowShaderHash == hash && rainbowShaderWidth == lineWidth) {
-            return rainbowShader!!
-        }
-        val positions = FloatArray(colors.size) { i -> i.toFloat() / (colors.size - 1) }
-        rainbowShader =
-            LinearGradient(0f, 0f, lineWidth, 0f, colors, positions, Shader.TileMode.CLAMP)
-        rainbowShaderHash = hash
-        rainbowShaderWidth = lineWidth
-        return rainbowShader!!
-    }
-
-    @SuppressLint("NewApi")
-    private fun makeHdrRainbowShader(colors: IntArray): Shader? {
-        val hash = colors.contentHashCode()
-        val ratio = hdrHighlightRatio
-        if (hdrRainbowShader != null &&
-            hdrRainbowShaderHash == hash &&
-            hdrRainbowShaderWidth == lineWidth &&
-            hdrRainbowShaderRatio == ratio
-        ) {
-            return hdrRainbowShader!!
-        }
-
-        val positions = FloatArray(colors.size) { i -> i.toFloat() / (colors.size - 1) }
-        hdrRainbowShader = runCatching {
-            LinearGradient(
-                0f,
-                0f,
-                lineWidth,
-                0f,
-                colors.mapToLongArray { HdrColor.packHighlightColor(it, ratio) },
-                positions,
-                Shader.TileMode.CLAMP
-            )
-        }.getOrNull()
-        hdrRainbowShaderHash = hash
-        hdrRainbowShaderWidth = lineWidth
-        hdrRainbowShaderRatio = ratio
-        return hdrRainbowShader
-    }
-
-    private inline fun IntArray.mapToLongArray(transform: (Int) -> Long): LongArray =
-        LongArray(size) { index -> transform(this[index]) }
-
-    private inner class Animator : Choreographer.FrameCallback {
-        private var running = false
-        private var lastFrameNanos = 0L
-
-        fun startIfNeeded() {
-            if (!running && isAttachedToWindow) {
-                running = true
-                lastFrameNanos = 0L
-                post { Choreographer.getInstance().postFrameCallback(this) }
-            }
-        }
-
-        fun stop() {
-            running = false
-            Choreographer.getInstance().removeFrameCallback(this)
-            lastFrameNanos = 0L
-        }
-
-        override fun doFrame(frameTimeNanos: Long) {
-            if (!running || !isAttachedToWindow) {
-                running = false
-                return
-            }
-
-            val deltaNanos = if (lastFrameNanos == 0L) 0L else frameTimeNanos - lastFrameNanos
-            lastFrameNanos = frameTimeNanos
-
-            val renderer = activeRenderer
-            val changed = renderer.step(deltaNanos, _model, lineState, measuredWidth)
-            if (changed) postInvalidateOnAnimation()
-
-            if (running) {
-                Choreographer.getInstance().postFrameCallback(this)
-            }
-        }
+    private companion object {
+        private const val MIN_HDR_HIGHLIGHT_RATIO = 1.0f
+        private const val MAX_HDR_HIGHLIGHT_RATIO = 8.0f
     }
 }

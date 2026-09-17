@@ -3,6 +3,7 @@ package io.github.proify.lyricon.app.ui.about
 import android.content.Intent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -29,6 +31,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
@@ -67,6 +70,26 @@ import top.yukonga.miuix.kmp.utils.overScrollVertical
 import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
 private const val GITHUB_REPO_URL = "https://github.com/kifranei/lyricon"
+
+/** 与主界面一致的平板判定阈值与内容宽度上限。 */
+private const val TABLET_MIN_WIDTH_DP = 600
+private val TABLET_MAX_CONTENT_WIDTH = 900.dp
+
+/** 关于页「开源项目」分区条目：名称、说明文案、仓库地址。 */
+private val OPEN_SOURCE_PROJECTS: List<Triple<String, Int, String>> = listOf(
+    Triple("Miuix", R.string.about_summary_miuix,
+        "https://github.com/miuix-kotlin-multiplatform/miuix"),
+    Triple("AndroidLiquidGlass", R.string.about_summary_liquid_glass,
+        "https://github.com/Kyant0/AndroidLiquidGlass"),
+    Triple("libxposed", R.string.about_summary_libxposed,
+        "https://github.com/libxposed/api"),
+    Triple("LSPosed", R.string.about_summary_lsposed,
+        "https://github.com/LSPosed/LSPosed"),
+    Triple("Haze", R.string.about_summary_haze,
+        "https://github.com/chrisbanes/haze"),
+    Triple("Lottie", R.string.about_summary_lottie,
+        "https://github.com/airbnb/lottie-android"),
+)
 
 @Composable
 fun AboutScreen(
@@ -207,6 +230,7 @@ private fun AboutContent(
             }
 
             item {
+                AboutSection {
                 SmallTitle(text = stringResource(R.string.about_project))
                 FrostedCard(
                     backdrop = backdrop,
@@ -227,9 +251,11 @@ private fun AboutContent(
                         },
                     )
                 }
+                }
             }
 
             item {
+                AboutSection {
                 SmallTitle(text = stringResource(R.string.about_acknowledgements))
                 FrostedCard(
                     backdrop = backdrop,
@@ -243,15 +269,31 @@ private fun AboutContent(
                         onClick = { uriHandler.openUri("https://github.com/tomakino/lyricon") },
                     )
                     BasicComponent(
-                        title = "InstallerX Revived",
-                        summary = stringResource(R.string.about_summary_installerx),
-                        onClick = { uriHandler.openUri("https://github.com/wxxsfxyzm/InstallerX-Revived") },
-                    )
-                    BasicComponent(
                         title = "Halcyon",
                         summary = stringResource(R.string.about_summary_halcyon),
                         onClick = { uriHandler.openUri("https://github.com/Kifranei/Halcyon") },
                     )
+                }
+                }
+            }
+
+            item {
+                AboutSection {
+                SmallTitle(text = stringResource(R.string.about_open_source_projects))
+                FrostedCard(
+                    backdrop = backdrop,
+                    blurEnable = blurEnable,
+                    cardBlendColors = cardBlendColors,
+                    scrollProgress = scrollProgress,
+                ) {
+                    OPEN_SOURCE_PROJECTS.forEach { (name, summaryRes, url) ->
+                        BasicComponent(
+                            title = name,
+                            summary = stringResource(summaryRes),
+                            onClick = { uriHandler.openUri(url) },
+                        )
+                    }
+                }
                 }
             }
 
@@ -263,6 +305,30 @@ private fun AboutContent(
                 )
             }
         }
+    }
+}
+
+/**
+ * 分区容器：手机上直接铺满，平板上限制最大宽度并居中，
+ * 与主界面 [io.github.proify.lyricon.app.activity.MainActivity] 的 900dp 约定一致。
+ */
+@Composable
+private fun AboutSection(content: @Composable ColumnScope.() -> Unit) {
+    val isTablet = LocalConfiguration.current.screenWidthDp >= TABLET_MIN_WIDTH_DP
+    if (!isTablet) {
+        Column(content = content)
+        return
+    }
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .widthIn(max = TABLET_MAX_CONTENT_WIDTH),
+            content = content,
+        )
     }
 }
 

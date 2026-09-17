@@ -114,6 +114,8 @@ This repository is a **personal enhanced fork** of [Lyricon](https://github.com/
 
 ### 👀 Visitors
 
+## ⭐ Star History
+
 <p align="center">
   <img src="https://count.getloli.com/get/@kifranei_lyricon?theme=moebooru" alt="Visitor Count" />
 </p>

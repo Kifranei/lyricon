@@ -120,6 +120,8 @@ fun StringInputPreference(
     enabled: Boolean = true,
     label: String? = null,
     maxLines: Int = 10,
+    value: String? = null,
+    onValueChange: ((String) -> Unit)? = null,
 ) {
     TypedInputPreference(
         modifier = modifier,
@@ -144,6 +146,8 @@ fun StringInputPreference(
         format = { it },
         isSavable = { true },
         display = { it.orEmpty() },
+        controlledText = value,
+        onControlledSave = onValueChange,
     ) { dialogTitle, dialogDescription, initialValue, isValid, save, dismiss ->
         StringInputPreferenceDialog(
             title = dialogTitle,
@@ -190,6 +194,8 @@ fun IntInputPreference(
     holdDownState: Boolean = false,
     enabled: Boolean = true,
     label: String? = null,
+    value: Int? = null,
+    onValueChange: ((Int?) -> Unit)? = null,
 ) {
     NumberInputPreference(
         modifier = modifier,
@@ -217,6 +223,8 @@ fun IntInputPreference(
         format = { it.toString() },
         display = PreferenceValueDisplay.Raw(Int::toString),
         isInRange = { range == null || it in range },
+        controlledValue = value,
+        onControlledValueChange = onValueChange,
     )
 }
 
@@ -315,6 +323,8 @@ fun DoubleInputPreference(
     holdDownState: Boolean = false,
     enabled: Boolean = true,
     label: String? = null,
+    value: Double? = null,
+    onValueChange: ((Double?) -> Unit)? = null,
     display: PreferenceValueDisplay<Double> = PreferenceValueDisplay.Raw { it.formatToString() },
 ) {
     NumberInputPreference(
@@ -343,6 +353,8 @@ fun DoubleInputPreference(
         format = { it.formatToString() },
         display = display,
         isInRange = { range == null || it in range },
+        controlledValue = value,
+        onControlledValueChange = onValueChange,
     )
 }
 
@@ -378,6 +390,8 @@ private fun <T> NumberInputPreference(
     format: (T) -> String,
     display: PreferenceValueDisplay<T>,
     isInRange: (T) -> Boolean,
+    controlledValue: T? = null,
+    onControlledValueChange: ((T?) -> Unit)? = null,
 ) {
     val isSavable: (String) -> Boolean = { text ->
         text.isEmpty() || parse(text)?.let(isInRange) == true
@@ -406,6 +420,10 @@ private fun <T> NumberInputPreference(
         format = format,
         isSavable = isSavable,
         display = { value -> summary?.invoke(value) ?: display.format(value).orEmpty() },
+        controlledText = if (onControlledValueChange != null) controlledValue?.let(format) else null,
+        onControlledSave = onControlledValueChange?.let { cb ->
+            { text -> cb(parse(text)) }
+        },
     ) { dialogTitle, dialogDescription, initialValue, isValid, save, dismiss ->
         NumberInputPreferenceDialog(
             title = dialogTitle,
@@ -428,6 +446,9 @@ private fun <T> NumberInputPreference(
  *
  * 负责读取 SharedPreferences、展示 ArrowPreference、打开输入弹窗、保存主 key 与同步 key。
  * 具体输入 UI 和合法性规则由调用方通过参数注入。
+ *
+ * 传入 [onControlledSave] 时进入受控模式：不读写 SharedPreferences，
+ * 而是以 [controlledText] 展示、通过 [onControlledSave] 回调保存。
  */
 @Composable
 private fun <T> TypedInputPreference(
@@ -453,6 +474,8 @@ private fun <T> TypedInputPreference(
     format: (T) -> String,
     isSavable: (String) -> Boolean,
     display: @Composable (T?) -> String,
+    controlledText: String? = null,
+    onControlledSave: ((String) -> Unit)? = null,
     dialog: @Composable (
         title: String,
         summary: String?,
@@ -462,8 +485,10 @@ private fun <T> TypedInputPreference(
         onDismiss: () -> Unit,
     ) -> Unit,
 ) {
-    val prefValueState = rememberStringPreference(preferences, key, defaultText)
-    val currentText = prefValueState.value ?: defaultText
+    val isControlled = onControlledSave != null
+    val prefValueState =
+        if (isControlled) null else rememberStringPreference(preferences, key, defaultText)
+    val currentText = if (isControlled) controlledText else (prefValueState?.value ?: defaultText)
     val currentValue = currentText?.let(parse)
     val rawSummary = summary ?: display(currentValue)
     val finalSummary = rawSummary.ifBlank { stringResource(id = R.string.default_text) }
@@ -498,15 +523,19 @@ private fun <T> TypedInputPreference(
             isSavable,
             { text ->
                 showDialog = false
-                preferences.editCommit {
-                    if (text.isEmpty()) {
-                        remove(key)
-                        prefValueState.value = null
-                        syncKeys.forEach { remove(it) }
-                    } else {
-                        val storedValue = parse(text)?.let(format) ?: text
-                        putString(key, storedValue)
-                        syncKeys.forEach { putString(it, storedValue) }
+                val storedValue = parse(text)?.let(format) ?: text
+                if (isControlled) {
+                    onControlledSave.invoke(storedValue)
+                } else {
+                    preferences.editCommit {
+                        if (text.isEmpty()) {
+                            remove(key)
+                            prefValueState?.value = null
+                            syncKeys.forEach { remove(it) }
+                        } else {
+                            putString(key, storedValue)
+                            syncKeys.forEach { putString(it, storedValue) }
+                        }
                     }
                 }
             },

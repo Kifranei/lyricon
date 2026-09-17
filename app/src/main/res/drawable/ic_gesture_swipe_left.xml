@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright 2026 Proify, Tomakino
+  ~ Licensed under the Apache License, Version 2.0
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  -->
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:tint="?android:attr/colorControlNormal"
+    android:viewportWidth="960"
+    android:viewportHeight="960">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M456,480L612,324Q623,313 623,296Q623,279 612,268Q601,257 584,257Q567,257 556,268L372,452Q366,458 363.5,465Q361,472 361,480Q361,488 363.5,495Q366,502 372,508L556,692Q567,703 584,703Q601,703 612,692Q623,681 623,664Q623,647 612,636L456,480Z" />
+</vector>

@@ -10,7 +10,6 @@
 
     <string name="ok" translatable="false">@android:string/ok</string>
     <string name="yes" translatable="false">@android:string/yes</string>
-    <string name="no" translatable="false">@android:string/no</string>
     <string name="cancel" translatable="false">@android:string/cancel</string>
     <string name="copy" translatable="false">@android:string/copy</string>
     <string name="paste" translatable="false">@android:string/paste</string>

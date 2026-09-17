@@ -73,10 +73,10 @@ data class Marquee(
 
 data class WordMotion(
     val enabled: Boolean = true,
-    val cjkLiftFactor: Float = 0.055f,
-    val cjkWaveFactor: Float = 2.8f,
-    val latinLiftFactor: Float = 0.065f,
-    val latinWaveFactor: Float = 3.6f,
+    val cjkLiftFactor: Float = 0.05f,
+    val cjkWaveFactor: Float = 5.5f,
+    val latinLiftFactor: Float = 0.05f,
+    val latinWaveFactor: Float = 6.5f,
 )
 
 data class AnimParams(

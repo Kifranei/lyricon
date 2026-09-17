@@ -6,57 +6,60 @@
 
 package io.github.proify.lyricon.lyric.view.line
 
-import android.annotation.SuppressLint
 import android.graphics.Canvas
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.ComposeShader
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.Shader
-import android.os.Build
 import android.text.TextPaint
 import androidx.core.graphics.withSave
+import io.github.proify.lyricon.lyric.view.line.effect.DEFAULT_WAVE_LIFT_EM
+import io.github.proify.lyricon.lyric.view.line.effect.EMPHASIS_LIFT_EM
+import io.github.proify.lyricon.lyric.view.line.effect.LyricEffectEngine
+import io.github.proify.lyricon.lyric.view.line.effect.MIN_STRENGTH
+import io.github.proify.lyricon.lyric.view.line.effect.SCALE_OVERFLOW_FRACTION
+import io.github.proify.lyricon.lyric.view.line.effect.UnitTransform
+import io.github.proify.lyricon.lyric.view.line.model.EmphasisGroup
 import io.github.proify.lyricon.lyric.view.line.model.LyricModel
-import io.github.proify.lyricon.lyric.view.line.model.WordModel
 import kotlin.math.abs
 import kotlin.math.max
 
-internal data class SustainEffectState(
-    val startX: Float,
-    val endX: Float,
-    val glowRadiusPx: Float,
-    val glowAlpha: Int,
-    val intensity: Float
-)
-
-internal class TextDrawer {
+internal class TextDrawer(private val effectEngine: LyricEffectEngine) {
     private var bgColors = intArrayOf(Color.GRAY)
     private var hlColors = intArrayOf(Color.WHITE)
-
-    var cjkLiftFactor = DEFAULT_CJK_LIFT_FACTOR
-    var cjkWaveFactor = DEFAULT_CJK_WAVE_FACTOR
-    var latinLiftFactor = DEFAULT_LATIN_LIFT_FACTOR
-    var latinWaveFactor = DEFAULT_LATIN_WAVE_FACTOR
-    var sustainGlowEnabled = false
 
     val isRainbowBg get() = bgColors.size > 1
     val isRainbowHl get() = hlColors.size > 1
 
-    var hdrHighlightRatio: Float = 1.0f
-
     private val fontMetrics = Paint.FontMetrics()
     private var baselineOffset = 0f
-    private val sustainPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
 
-    private var cachedRainbowShader: LinearGradient? = null
-    private var cachedHdrRainbowShader: LinearGradient? = null
+    /** 文本自然高度（descent - ascent），用于计算空间受限时的动画强度。 */
+    private var textHeight = 0f
+
+    private val bgRainbowCache = RainbowGradientCache()
+    private val hlRainbowCache = RainbowGradientCache()
     private var cachedAlphaMaskShader: LinearGradient? = null
-    private var lastTotalWidth = -1f
     private var lastHighlightWidth = -1f
-    private var lastColorsHash = 0
-    private var lastHdrColorsHash = 0
-    private var lastHdrRatio = 1.0f
+    private var cachedSolidShader: LinearGradient? = null
+    private var lastSolidWidth = -1f
+    private var lastSolidColor = 0
+
+    /** 当前播放时间（毫秒）；由 [WordSyncRenderer] 在 update/seek 时更新，供时间驱动特效使用。 */
+    var currentTimeMs: Long = 0
+
+    /** HDR 亮度比率；大于 1 且系统支持时高亮走扩展色域，使其亮过 SDR 白点。 */
+    var hdrHighlightRatio: Float = 1f
+        set(value) {
+            if (field == value) return
+            field = value
+            hlRainbowCache.clear()
+            cachedSolidShader = null
+            lastSolidWidth = -1f
+        }
 
     fun setColors(background: IntArray, highlight: IntArray) {
         if (background.isNotEmpty()) bgColors = background
@@ -66,13 +69,16 @@ internal class TextDrawer {
     fun updateMetrics(paint: TextPaint) {
         paint.getFontMetrics(fontMetrics)
         baselineOffset = -(fontMetrics.descent + fontMetrics.ascent) / 2f
+        textHeight = fontMetrics.descent - fontMetrics.ascent
     }
 
     fun clearShaderCache() {
-        cachedRainbowShader = null
-        cachedHdrRainbowShader = null
+        bgRainbowCache.clear()
+        hlRainbowCache.clear()
         cachedAlphaMaskShader = null
-        lastTotalWidth = -1f
+        lastHighlightWidth = -1f
+        cachedSolidShader = null
+        lastSolidWidth = -1f
     }
 
     fun draw(
@@ -83,7 +89,6 @@ internal class TextDrawer {
         scrollX: Float,
         isOverflow: Boolean,
         highlightWidth: Float,
-        sustainEffects: List<SustainEffectState>,
         useGradient: Boolean,
         scrollOnly: Boolean,
         charMotionEnabled: Boolean,
@@ -121,7 +126,8 @@ internal class TextDrawer {
                     Float.MAX_VALUE,
                     viewHeight,
                     y,
-                    bgPaint
+                    bgPaint,
+                    renderGlow = true
                 )
             } else if (!useGradient) {
                 canvas.withSave {
@@ -133,39 +139,28 @@ internal class TextDrawer {
             }
 
             if (highlightWidth > 0f) {
-                val sustainRanges = sustainEffects
-                    .mapNotNull {
-                        val start = it.startX.coerceAtLeast(0f)
-                        val end = it.endX.coerceAtMost(model.width)
-                        if (end > start) start to end else null
-                    }
-                    .sortedBy { it.first }
                 canvas.withSave {
                     canvas.clipRect(0f, 0f, highlightWidth, viewHeight.toFloat())
 
-                    //val atEnd = highlightWidth >= model.width
-                    val atEnd = false
-                    val useHdrSingleColor = hdrHighlightRatio > 1.0f && !isRainbowHl
-                    if (useGradient && !atEnd && !useHdrSingleColor) {
+                    if (useGradient) {
                         val baseShader = if (isRainbowHl) {
-                            getOrCreateHighlightShader(model.width)
+                            getOrCreateRainbowShader(model.width, hlColors, hdr = true)
                         } else {
-                            LinearGradient(
-                                0f, 0f, model.width, 0f,
-                                hlPaint.color, hlPaint.color,
-                                Shader.TileMode.CLAMP
-                            )
+                            getOrCreateSolidGradientShader(model.width, hlColors.first())
                         }
                         val maskShader = getOrCreateAlphaMaskShader(model.width, highlightWidth)
                         hlPaint.shader = ComposeShader(baseShader, maskShader, PorterDuff.Mode.DST_IN)
                     } else {
                         if (isRainbowHl) {
-                            hlPaint.shader = getOrCreateHighlightShader(model.width)
+                            hlPaint.shader = getOrCreateRainbowShader(model.width, hlColors, hdr = true)
                         } else {
                             hlPaint.shader = null
+                            applyHighlightColor(hlPaint)
                         }
                     }
                     if (charMotionEnabled) {
+                        // 渐变模式下背景 pass 已完整绘制辉光，高亮 pass 关闭辉光以
+                        // 减半 shadowLayer 绘制开销（视觉一致：光晕不受高亮裁剪）。
                         drawAnimatedUnits(
                             canvas,
                             model,
@@ -174,162 +169,28 @@ internal class TextDrawer {
                             highlightWidth,
                             viewHeight,
                             y,
-                            hlPaint
+                            hlPaint,
+                            renderGlow = !useGradient
                         )
                     } else {
-                        drawTextWithOptionalExclusion(
-                            canvas = canvas,
-                            text = model.wordText,
-                            baselineY = y,
-                            paint = hlPaint,
-                            clipLeft = 0f,
-                            clipRight = highlightWidth,
-                            exclusions = sustainRanges,
-                            viewHeight = viewHeight
-                        )
+                        canvas.drawText(model.wordText, 0f, y, hlPaint)
                     }
                 }
-                sustainEffects.forEach { effect ->
-                    drawSustainEffect(canvas, model, y, viewHeight, effect, hlPaint)
-                }
             }
         }
     }
 
-    private fun drawTextWithOptionalExclusion(
-        canvas: Canvas,
-        baselineY: Float,
-        text: String,
-        paint: TextPaint,
-        clipLeft: Float,
-        clipRight: Float,
-        exclusions: List<Pair<Float, Float>>,
-        viewHeight: Int,
-    ) {
-        val safeLeft = clipLeft.coerceAtLeast(0f)
-        val safeRight = clipRight.coerceAtLeast(safeLeft)
-        if (safeRight <= safeLeft) return
-
-        val clippedExclusions = exclusions
-            .mapNotNull { (start, end) ->
-                if (end <= start || end <= safeLeft || start >= safeRight) null
-                else start.coerceIn(safeLeft, safeRight) to end.coerceIn(safeLeft, safeRight)
-            }
-            .sortedBy { it.first }
-
-        if (clippedExclusions.isEmpty()) {
-            canvas.withSave {
-                clipRect(safeLeft, 0f, safeRight, viewHeight.toFloat())
-                drawText(text, 0f, baselineY, paint)
-            }
-            return
-        }
-
-        var cursor = safeLeft
-        clippedExclusions.forEach { (start, end) ->
-            if (start > cursor) {
-                canvas.withSave {
-                    clipRect(cursor, 0f, start, viewHeight.toFloat())
-                    drawText(text, 0f, baselineY, paint)
-                }
-            }
-            cursor = max(cursor, end)
-        }
-        if (cursor < safeRight) {
-            canvas.withSave {
-                clipRect(cursor, 0f, safeRight, viewHeight.toFloat())
-                drawText(text, 0f, baselineY, paint)
-            }
-        }
-    }
-
-    private fun drawSustainEffect(
-        canvas: Canvas,
-        model: LyricModel,
-        baselineY: Float,
-        viewHeight: Int,
-        effect: SustainEffectState,
-        highlightPaint: TextPaint
-    ) {
-        val clipStart = effect.startX.coerceAtLeast(0f)
-        val clipEnd = effect.endX.coerceAtMost(model.width)
-        if (clipEnd <= clipStart) return
-        val baseColor = (hlColors.firstOrNull() ?: highlightPaint.color) and 0x00FFFFFF
-        val glowRgb = lighten(baseColor, 0.22f)
-        // 发光与普通高亮走同一套 HDR 颜色：彩虹用 HDR 渐变 shader，单色用扩展色域打包
-        val rainbowShader =
-            if (isRainbowHl) getOrCreateHighlightShader(model.width) else null
-        val density = highlightPaint.density.takeIf { it > 0f } ?: 1f
-        val outerStroke = (effect.glowRadiusPx * 0.3f).coerceAtLeast(density * 0.38f)
-        val innerStroke = (effect.glowRadiusPx * 0.18f).coerceAtLeast(density * 0.28f)
-        val outerAlpha = (effect.glowAlpha * 0.28f * effect.intensity).toInt().coerceIn(0, 255)
-        val innerAlpha = (effect.glowAlpha * 0.46f).toInt().coerceIn(0, 255)
-        val coreColor = (0xFF shl 24) or baseColor
-
-        sustainPaint.set(highlightPaint)
-        sustainPaint.shader = null
-        canvas.withSave {
-            clipRect(clipStart, 0f, clipEnd, viewHeight.toFloat())
-            sustainPaint.style = Paint.Style.STROKE
-            sustainPaint.strokeWidth = outerStroke
-            if (rainbowShader != null) {
-                sustainPaint.shader = rainbowShader
-                sustainPaint.alpha = outerAlpha
-                sustainPaint.color = Color.WHITE
-            } else {
-                sustainPaint.shader = null
-                sustainPaint.alpha = 255
-                applySustainColor((outerAlpha shl 24) or glowRgb)
-            }
-            drawText(model.wordText, 0f, baselineY, sustainPaint)
-
-            sustainPaint.strokeWidth = innerStroke
-            if (rainbowShader != null) {
-                sustainPaint.shader = rainbowShader
-                sustainPaint.alpha = innerAlpha
-                sustainPaint.color = Color.WHITE
-            } else {
-                sustainPaint.shader = null
-                sustainPaint.alpha = 255
-                applySustainColor((innerAlpha shl 24) or glowRgb)
-            }
-            drawText(model.wordText, 0f, baselineY, sustainPaint)
-
-            sustainPaint.style = Paint.Style.FILL
-            sustainPaint.strokeWidth = 0f
-            if (rainbowShader != null) {
-                sustainPaint.shader = rainbowShader
-                sustainPaint.alpha = 255
-                sustainPaint.color = Color.WHITE
-            } else {
-                sustainPaint.shader = null
-                sustainPaint.alpha = 255
-                applySustainColor(coreColor)
-            }
-            drawText(model.wordText, 0f, baselineY, sustainPaint)
-        }
-    }
-
-    @SuppressLint("NewApi")
-    private fun applySustainColor(argb: Int) {
-        if (hdrHighlightRatio <= 1.0f || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            sustainPaint.color = argb
-            return
-        }
-        runCatching {
-            sustainPaint.setColor(HdrColor.packHighlightColor(argb, hdrHighlightRatio))
-        }.onFailure {
-            sustainPaint.color = argb
-        }
-    }
-
-    private fun lighten(color: Int, ratio: Float): Int {
-        val r = (Color.red(color) + (255 - Color.red(color)) * ratio).toInt().coerceIn(0, 255)
-        val g = (Color.green(color) + (255 - Color.green(color)) * ratio).toInt().coerceIn(0, 255)
-        val b = (Color.blue(color) + (255 - Color.blue(color)) * ratio).toInt().coerceIn(0, 255)
-        return (r shl 16) or (g shl 8) or b
-    }
-
+    /**
+     * 逐单元绘制：每个单元经 [LyricEffectEngine] 求变换后绘制。
+     *
+     * 为降低 RenderThread 负载，把「位移变换（dx/dy）相同、水平连续、完全落在裁剪区内」的
+     * 相邻单元合并为一次 clip + 一次 drawText；带非平凡变换（透明度/缩放）或被裁剪边界
+     * 穿过的单元单独绘制，保证与逐单元绘制完全一致。
+     *
+     * @param clipStart 裁剪区左边界（含）
+     * @param clipEnd 裁剪区右边界（不含）
+     * @param renderGlow 是否渲染辉光（阴影开销大，仅在需要的 pass 开启）
+     */
     private fun drawAnimatedUnits(
         canvas: Canvas,
         model: LyricModel,
@@ -338,190 +199,227 @@ internal class TextDrawer {
         clipEnd: Float,
         viewHeight: Int,
         baselineY: Float,
-        paint: TextPaint
+        paint: TextPaint,
+        renderGlow: Boolean
     ) {
-        model.words.forEach { word ->
-            val motionSpec = word.motionSpec()
-            if (!motionSpec.animateByChar) {
-                drawAnimatedTextUnit(
-                    canvas = canvas,
-                    text = word.text,
-                    start = 0,
-                    end = word.text.length,
-                    drawX = word.startPosition,
-                    unitStart = word.startPosition,
-                    unitEnd = word.endPosition,
-                    rightOverhang = word.rightOverhang,
-                    highlightWidth = highlightWidth,
-                    clipStart = clipStart,
-                    clipEnd = clipEnd,
-                    viewHeight = viewHeight,
-                    baselineY = baselineY,
-                    paint = paint,
-                    motionSpec = motionSpec
-                )
-                return@forEach
-            }
+        effectEngine.beginFrame(
+            model.width, highlightWidth, paint.textSize, currentTimeMs,
+            computeStrength(paint.textSize, viewHeight)
+        )
 
-            for (i in word.chars.indices) {
-                val charStart = word.charStartPositions[i]
-                val charEnd = word.charEndPositions[i]
-                drawAnimatedTextUnit(
-                    canvas = canvas,
-                    text = word.text,
-                    start = i,
-                    end = i + 1,
-                    drawX = charStart,
-                    unitStart = charStart,
-                    unitEnd = charEnd,
-                    rightOverhang = word.charRightOverhangs[i],
-                    highlightWidth = highlightWidth,
-                    clipStart = clipStart,
-                    clipEnd = clipEnd,
-                    viewHeight = viewHeight,
-                    baselineY = baselineY,
-                    paint = paint,
-                    motionSpec = motionSpec
-                )
+        var segTextStart = 0
+        var segTextEnd = 0
+        var segX0 = 0f
+        var segX1 = 0f
+        var segDx = 0f
+        var segDy = 0f
+        var hasSegment = false
+
+        fun flush() {
+            if (!hasSegment) return
+            hasSegment = false
+            canvas.withSave {
+                // 合并段整体带位移（dx/dy），裁剪区按位移后的范围与 pass 边界相交，
+                // 避免位移字形被原始边界切边。
+                val left = (segX0 + segDx).coerceAtLeast(clipStart)
+                val right = (segX1 + segDx).coerceAtMost(clipEnd)
+                if (left < right) {
+                    clipRect(left, 0f, right, viewHeight.toFloat())
+                    drawText(model.wordText, segTextStart, segTextEnd, segX0 + segDx, baselineY + segDy, paint)
+                }
             }
         }
+
+        // 返回 false 表示后续单元都在裁剪区右侧之外，可提前结束本 pass。
+        fun addUnit(
+            textStart: Int,
+            textLength: Int,
+            x0: Float,
+            x1: Float,
+            isCjk: Boolean,
+            beginMs: Long,
+            endMs: Long,
+            emphasisGroup: EmphasisGroup?,
+            emphasisCharIndex: Int
+        ): Boolean {
+            if (x0 >= clipEnd) {
+                flush()
+                return false
+            }
+            if (x1 <= clipStart) {
+                flush()
+                return true
+            }
+
+            val transform = effectEngine.prepareUnit(
+                textStart, textLength, x0, x1, isCjk, beginMs, endMs,
+                emphasisGroup, emphasisCharIndex
+            )
+            val visibleLeft = x0.coerceAtLeast(clipStart)
+            val visibleRight = x1.coerceAtMost(clipEnd)
+            val fullyVisible = visibleLeft == x0 && visibleRight == x1
+            val segmentable = transform.alpha == 1f && transform.scale == 1f &&
+                    transform.glowRadius == 0f
+            if (!fullyVisible || !segmentable) {
+                flush()
+                drawUnit(
+                    canvas, model.wordText, textStart, textLength, x0, x1,
+                    clipStart, clipEnd, viewHeight, baselineY, paint, transform,
+                    renderGlow
+                )
+                return true
+            }
+            if (hasSegment && transform.dx == segDx && transform.dy == segDy && x0 == segX1) {
+                segTextEnd = textStart + textLength
+                segX1 = x1
+            } else {
+                flush()
+                hasSegment = true
+                segTextStart = textStart
+                segTextEnd = textStart + textLength
+                segX0 = x0
+                segX1 = x1
+                segDx = transform.dx
+                segDy = transform.dy
+            }
+            return true
+        }
+
+        outer@ for (word in model.words) {
+            val isCjk = word.isCjk
+            val group = word.emphasisGroup
+            if (isCjk || group != null) {
+                // 逐字绘制：CJK 词固有策略；参与强调辉光的非 CJK 词也逐字（含错峰）。
+                // 空白字符不参与错峰计数（源项目仅对 trim 后的字符建动画元素）。
+                var animCharIndex = 0
+                for (i in word.chars.indices) {
+                    val isSpace = word.chars[i].isWhitespace()
+                    val charGroup = if (isSpace) null else group
+                    val charGroupIndex = word.emphasisCharOffset + (if (isSpace) 0 else animCharIndex)
+                    if (!isSpace) animCharIndex++
+                    if (!addUnit(
+                            word.textOffset + i, 1,
+                            word.charStartPositions[i], word.charEndPositions[i],
+                            isCjk, word.begin, word.end,
+                            charGroup, charGroupIndex
+                        )
+                    ) break@outer
+                }
+            } else {
+                if (!addUnit(
+                        word.textOffset, word.text.length,
+                        word.startPosition, word.endPosition,
+                        isCjk, word.begin, word.end, null, 0
+                    )
+                ) break@outer
+            }
+        }
+        flush()
     }
 
-    private fun drawAnimatedTextUnit(
+    /**
+     * 计算空间受限时的动画强度。
+     *
+     * 视图高度不足「完整动画所需高度」（文本自然高度 + 上浮余量 + 缩放溢出）时，
+     * 按比例收缩特效幅度（下限 [MIN_STRENGTH]），避免字形被挤出视图边界；
+     * 高度充足时保持全强度，动画与 [io.github.proify.lyricon.lyric.view.line.LyricLineView]
+     * 预留的动画高度对应。
+     */
+    private fun computeStrength(textSize: Float, viewHeight: Int): Float {
+        if (textHeight <= 0f || viewHeight <= 0) return 1f
+        // 与 LyricLineView.onMeasure 的动画高度预留一致：WaveLift 上浮 + 强调上浮
+        // + 强调缩放（1.12 上限）的对称溢出。
+        val fullHeight = textHeight +
+                textSize * (DEFAULT_WAVE_LIFT_EM + EMPHASIS_LIFT_EM) +
+                textHeight * SCALE_OVERFLOW_FRACTION
+        return (viewHeight / fullHeight).coerceIn(MIN_STRENGTH, 1f)
+    }
+
+    /**
+     * 单个单元（或被裁剪边界截断的单元）带完整变换绘制：clip → scale → alpha → drawText。
+     * 辉光单元左右扩展裁剪区以容纳光晕，并通过 shadowLayer 渲染白色辉光。
+     *
+     * 裁剪区按**变换后**的字形范围与 pass 边界（[clipStart], [clipEnd]）相交：
+     * 缩放（围绕字符中心放大）与水平位移会改变字形实际范围，若仍按原始
+     * [x0, x1] 裁剪，放大/位移的字形会被切边，呈现异常变形。
+     *
+     * @param renderGlow 是否渲染辉光；false 时忽略 [UnitTransform.glowRadius]（如渐变模式下
+     * 高亮 pass 的重复辉光），节省每字一次带阴影的 drawText。
+     */
+    private fun drawUnit(
         canvas: Canvas,
-        text: String,
-        start: Int,
-        end: Int,
-        drawX: Float,
-        unitStart: Float,
-        unitEnd: Float,
-        rightOverhang: Float,
-        highlightWidth: Float,
+        wordText: String,
+        textStart: Int,
+        textLength: Int,
+        x0: Float,
+        x1: Float,
         clipStart: Float,
         clipEnd: Float,
         viewHeight: Int,
         baselineY: Float,
         paint: TextPaint,
-        motionSpec: MotionSpec
+        transform: UnitTransform,
+        renderGlow: Boolean
     ) {
-        // 裁剪盒右缘扩展到墨迹边界：斜体等字形的墨迹会越过 advance
-        // 边界，只按 advance 裁剪会把字形右侧（尤其行尾字符）切掉
-        val inkEnd = unitEnd + rightOverhang
-        if (inkEnd <= clipStart || unitStart >= clipEnd) return
+        val drawX = x0 + transform.dx
+        val drawY = baselineY + transform.dy
+        val glow = if (renderGlow) transform.glowRadius else 0f
 
-        val visibleLeft = unitStart.coerceAtLeast(clipStart)
-        val visibleRight = inkEnd.coerceAtMost(clipEnd)
-        val liftY = computeUnitLift(highlightWidth, unitStart, unitEnd, paint.textSize, motionSpec)
+        // 缩放围绕字符中心对称放大：每侧溢出 (scale - 1) * 字宽 / 2。
+        val scaleOverflow = if (transform.scale > 1f) (x1 - x0) * (transform.scale - 1f) / 2f else 0f
+        val left = (x0 + transform.dx - scaleOverflow).coerceAtLeast(clipStart)
+        val right = (x1 + transform.dx + scaleOverflow).coerceAtMost(clipEnd)
 
         canvas.withSave {
-            clipRect(visibleLeft, 0f, visibleRight, viewHeight.toFloat())
-            drawText(text, start, end, drawX, baselineY + liftY, paint)
+            clipRect(left - glow, 0f, right + glow, viewHeight.toFloat())
+            if (transform.scale != 1f) {
+                // 围绕「位移后的字符中心」缩放：与源项目「scale 后整体平移」语义一致，
+                // 位移不被缩放放大。
+                val centerX = (x0 + x1) / 2f
+                scale(transform.scale, transform.scale, centerX + transform.dx, drawY)
+            }
+            val previousAlpha = paint.alpha
+            if (transform.alpha != 1f) {
+                paint.alpha = (previousAlpha * transform.alpha).toInt()
+            }
+            var shadowApplied = false
+            try {
+                if (glow > 0f) {
+                    paint.setShadowLayer(
+                        glow, 0f, 0f,
+                        Color.argb((transform.glowAlpha * 255f).coerceIn(0f, 1f).toInt(), 255, 255, 255)
+                    )
+                    shadowApplied = true
+                }
+                drawText(wordText, textStart, textStart + textLength, drawX, drawY, paint)
+            } finally {
+                if (shadowApplied) paint.clearShadowLayer()
+                paint.alpha = previousAlpha
+            }
         }
     }
 
-    private fun computeUnitLift(
-        highlightWidth: Float,
-        unitStart: Float,
-        unitEnd: Float,
-        textSize: Float,
-        motionSpec: MotionSpec
-    ): Float {
-        val maxOffset = textSize * motionSpec.liftFactor
-        val unitCenter = (unitStart + unitEnd) / 2f
-        val waveLength = textSize * motionSpec.waveFactor
-        val phase = ((highlightWidth - unitCenter) / waveLength).coerceIn(0f, 1f)
-        return maxOffset * (1f - easeOutQuint(phase))
-    }
-
-    private fun WordModel.motionSpec(): MotionSpec {
-        return if (text.any { it.isCjk() }) {
-            MotionSpec(animateByChar = true, liftFactor = cjkLiftFactor, waveFactor = cjkWaveFactor)
-        } else {
-            MotionSpec(
-                animateByChar = false,
-                liftFactor = latinLiftFactor,
-                waveFactor = latinWaveFactor
-            )
-        }
-    }
-
-    private fun Char.isCjk(): Boolean {
-        val block = Character.UnicodeBlock.of(this)
-        return block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS ||
-                block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A ||
-                block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B ||
-                block == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS ||
-                block == Character.UnicodeBlock.HIRAGANA ||
-                block == Character.UnicodeBlock.KATAKANA ||
-                block == Character.UnicodeBlock.HANGUL_SYLLABLES ||
-                block == Character.UnicodeBlock.HANGUL_JAMO ||
-                block == Character.UnicodeBlock.HANGUL_COMPATIBILITY_JAMO
-    }
-
-    private fun easeOutQuint(value: Float): Float {
-        val inverse = 1f - value
-        return 1f - inverse * inverse * inverse * inverse * inverse
-    }
-
-    private data class MotionSpec(
-        val animateByChar: Boolean,
-        val liftFactor: Float,
-        val waveFactor: Float
-    )
-
-    private fun getOrCreateRainbowShader(totalWidth: Float, colors: IntArray): Shader {
-        val colorsHash = colors.contentHashCode()
-        if (cachedRainbowShader == null || lastTotalWidth != totalWidth || lastColorsHash != colorsHash) {
-            cachedRainbowShader = LinearGradient(
-                0f, 0f, totalWidth, 0f,
-                colors, null, Shader.TileMode.CLAMP
-            )
-            lastTotalWidth = totalWidth
-            lastColorsHash = colorsHash
-        }
-        return cachedRainbowShader!!
-    }
-
-    private fun getOrCreateHighlightShader(totalWidth: Float): Shader {
-        return if (hdrHighlightRatio > 1.0f) {
-            getOrCreateHdrRainbowShader(totalWidth, hlColors, hdrHighlightRatio)
-                ?: getOrCreateRainbowShader(totalWidth, hlColors)
-        } else {
-            getOrCreateRainbowShader(totalWidth, hlColors)
-        }
-    }
-
-    @SuppressLint("NewApi")
-    private fun getOrCreateHdrRainbowShader(
+    private fun getOrCreateRainbowShader(
         totalWidth: Float,
         colors: IntArray,
-        ratio: Float
-    ): Shader? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
-
-        val colorsHash = colors.contentHashCode()
-        if (cachedHdrRainbowShader == null ||
-            lastTotalWidth != totalWidth ||
-            lastHdrColorsHash != colorsHash ||
-            lastHdrRatio != ratio
-        ) {
-            cachedHdrRainbowShader = runCatching {
-                LinearGradient(
-                    0f, 0f, totalWidth, 0f,
-                    colors.mapToLongArray { HdrColor.packHighlightColor(it, ratio) },
-                    null,
-                    Shader.TileMode.CLAMP
-                )
-            }.getOrNull()
-            lastTotalWidth = totalWidth
-            lastHdrColorsHash = colorsHash
-            lastHdrRatio = ratio
-        }
-        return cachedHdrRainbowShader
+        hdr: Boolean = false
+    ): Shader = if (hdr) {
+        hlRainbowCache.getOrCreate(totalWidth, colors, hdrHighlightRatio)
+    } else {
+        bgRainbowCache.getOrCreate(totalWidth, colors)
     }
 
-    private inline fun IntArray.mapToLongArray(transform: (Int) -> Long): LongArray {
-        return LongArray(size) { index -> transform(this[index]) }
+    /** 无 shader 的高亮直绘路径：HDR 生效时把颜色打包为扩展色域，失败回退 SDR。 */
+    @SuppressLint("NewApi")
+    private fun applyHighlightColor(paint: TextPaint) {
+        val color = hlColors.first()
+        if (!RainbowGradientCache.isHdrActive(hdrHighlightRatio)) {
+            paint.color = color
+            return
+        }
+        runCatching {
+            paint.setColor(HdrColor.packHighlightColor(color, hdrHighlightRatio))
+        }.onFailure { paint.color = color }
     }
 
     private fun getOrCreateAlphaMaskShader(totalWidth: Float, highlightWidth: Float): Shader {
@@ -538,10 +436,31 @@ internal class TextDrawer {
         return cachedAlphaMaskShader!!
     }
 
-    private companion object {
-        const val DEFAULT_CJK_LIFT_FACTOR = 0.055f
-        const val DEFAULT_CJK_WAVE_FACTOR = 2.8f
-        const val DEFAULT_LATIN_LIFT_FACTOR = 0.065f
-        const val DEFAULT_LATIN_WAVE_FACTOR = 3.6f
+    /** 纯色基底的渐变缓存：只依赖宽度与颜色，变化极少，无需每帧重建。 */
+    private fun getOrCreateSolidGradientShader(width: Float, color: Int): Shader {
+        if (cachedSolidShader == null || lastSolidWidth != width || lastSolidColor != color) {
+            cachedSolidShader = createSolidHdrGradient(width, color) ?: LinearGradient(
+                0f, 0f, width, 0f,
+                color, color,
+                Shader.TileMode.CLAMP
+            )
+            lastSolidWidth = width
+            lastSolidColor = color
+        }
+        return cachedSolidShader!!
     }
+
+    /** 纯色高亮的 HDR 变体：两端同色的扩展色域渐变；不支持时返回 null 由调用方回退。 */
+    private fun createSolidHdrGradient(width: Float, color: Int): LinearGradient? {
+        if (!RainbowGradientCache.isHdrActive(hdrHighlightRatio)) return null
+        return runCatching {
+            val packed = HdrColor.packHighlightColor(color, hdrHighlightRatio)
+            LinearGradient(
+                0f, 0f, width, 0f,
+                longArrayOf(packed, packed), null,
+                Shader.TileMode.CLAMP
+            )
+        }.getOrNull()
+    }
+
 }

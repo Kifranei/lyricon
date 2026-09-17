@@ -5,6 +5,7 @@
   -->
 
 <resources>
+
     <style name="Theme.SplashScreen" parent="Theme.SplashScreen.DayNight">
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/avd_anim</item>
         <item name="android:windowSplashScreenAnimationDuration">800</item>

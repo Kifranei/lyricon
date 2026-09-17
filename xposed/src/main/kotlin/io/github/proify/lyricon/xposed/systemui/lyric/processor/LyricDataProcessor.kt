@@ -6,6 +6,8 @@
 
 package io.github.proify.lyricon.xposed.systemui.lyric.processor
 
+import io.github.proify.lyricon.lyric.ai.core.AiConfigProvider
+import io.github.proify.lyricon.lyric.ai.core.AiConfigProviderImpl
 import io.github.proify.lyricon.lyric.model.LyricWord
 import io.github.proify.lyricon.lyric.model.Song
 import io.github.proify.lyricon.lyric.style.BasicStyle
@@ -26,10 +28,17 @@ object LyricDataProcessor {
 
     private const val TAG = "LyricDataProcessor"
 
+    /** AI 配置提供者 */
+    private val aiConfigProvider: AiConfigProvider by lazy {
+        AiConfigProviderImpl(LyricPrefs.baseStylePrefs)
+    }
+
     /** 注册后置加工插件列表 */
-    private val postProcessors = listOf(
-        AiTranslationProcessor()
-    ).sortedBy { it.priority }
+    private val postProcessors by lazy {
+        listOf(
+            AiTranslationPostProcessor(aiConfigProvider)
+        ).sortedBy { it.priority }
+    }
 
     /**
      * 执行前置加工。

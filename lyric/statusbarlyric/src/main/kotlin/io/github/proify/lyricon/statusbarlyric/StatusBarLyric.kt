@@ -13,9 +13,15 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Handler
 import android.util.Log
+import android.view.GestureDetector
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.view.ViewGroup
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.view.contains
@@ -33,6 +39,7 @@ import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.NONE
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.SONG
 import io.github.proify.lyricon.statusbarlyric.StatusBarLyric.LyricType.TEXT
 import io.github.proify.lyricon.statusbarlyric.logo.SuperLogo
+import kotlin.math.abs
 import kotlin.math.min
 
 @SuppressLint("ViewConstructor")
@@ -45,7 +52,105 @@ class StatusBarLyric(
     companion object {
         const val VIEW_TAG: String = "lyricon:lyric_view"
         private const val TAG = "StatusBarLyric"
+
+        /* ---- 触摸反馈参数 ---- */
+
+        /** 按下时缩放到的比例 */
+        private const val PRESS_DOWN_SCALE = 0.97f
+
+        /** 长按时放大到的比例 */
+        private const val LONG_PRESS_SCALE = 1.02f
+
+        /** 按下/松手动画时长(ms) */
+        private const val PRESS_DOWN_DURATION_MS = 90L
+        private const val LONG_PRESS_INTENSIFY_MS = 140L
+        private const val RELEASE_DURATION_MS = 170L
+
+        /** 松手回弹阻尼(DecelerateInterpolator 系数,越大越快停下) */
+        private const val RELEASE_BOUNCE = 1.5f
+
+        /** 横向拖动时内容跟随手指的阻尼系数 */
+        private const val DRAG_FOLLOW_DAMPING = 0.35f
+
+        /** 滑动识别的"踢出"位移(dp)与动画时长(ms) */
+        private const val SWIPE_KICK_DP = 22
+        private const val SWIPE_KICK_MS = 70L
+        private const val SWIPE_RETURN_MS = 190L
     }
+
+    /**
+     * 手势类型 (Gesture Type)
+     *
+     * 由 [gestureListener] 在识别到手势时回调,供上层(如 Xposed 控制器)映射为具体动作。
+     */
+    enum class GestureType {
+        /** 手指向左滑动 */
+        SWIPE_LEFT,
+
+        /** 手指向右滑动 */
+        SWIPE_RIGHT,
+
+        /** 单击 */
+        TAP,
+
+        /** 长按 */
+        LONG_PRESS
+    }
+
+    // --- 手势控制 ---
+
+    /** 手势回调,在主线程派发,仅 [gestureEnabled] 为 true 时触发 */
+    var gestureListener: ((GestureType) -> Unit)? = null
+
+    /**
+     * 是否启用手势识别。
+     *
+     * 关闭时回退到 [View] 默认触摸行为(此时可通过
+     * [setOnClickListener] 委托单击,保持旧版行为)。
+     */
+    var gestureEnabled: Boolean = true
+        set(value) {
+            field = value
+            // 保持 clickable 语义,便于无障碍与默认触摸行为兼容
+            isClickable = true
+        }
+
+    /**
+     * 是否启用震动反馈(手势识别成功时触发)。
+     * 由上层控制器按偏好配置,默认开启。
+     */
+    var hapticEnabled: Boolean = true
+
+    private val touchSlop: Int = ViewConfiguration.get(context).scaledTouchSlop
+    private val swipeThreshold: Float = (touchSlop * 2f).coerceAtLeast(24f)
+
+    private var gestureDownX: Float = 0f
+    private var gestureDownY: Float = 0f
+    private var gestureLongPressFired: Boolean = false
+
+    private val gestureDetector = GestureDetector(
+        context,
+        object : GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: MotionEvent): Boolean = true
+
+            override fun onSingleTapUp(e: MotionEvent): Boolean {
+                if (gestureLongPressFired) return true
+                // 触觉反馈:单击(可关闭)
+                triggerHaptic(HapticFeedbackConstants.KEYBOARD_TAP)
+                performClick()
+                gestureListener?.invoke(GestureType.TAP)
+                return true
+            }
+
+            override fun onLongPress(e: MotionEvent) {
+                gestureLongPressFired = true
+                // 长按:放大提示 + 触觉反馈(可关闭)
+                intensifyPressFeedback()
+                triggerHaptic(HapticFeedbackConstants.LONG_PRESS)
+                gestureListener?.invoke(GestureType.LONG_PRESS)
+            }
+        }
+    )
 
     val logoView: SuperLogo = SuperLogo(context).apply {
         this.linkedTextView = linkedTextView
@@ -357,6 +462,121 @@ class StatusBarLyric(
         triggerSingleTransition()
         updateWidthInternal(currentStyle)
         logoView.isOplusCapsuleShowing = visible
+    }
+
+    // --- 手势识别与触摸反馈 ---
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (!gestureEnabled) {
+            // 手势关闭:交给系统默认触摸行为,由点击监听器处理单击
+            return super.onTouchEvent(event)
+        }
+
+        when (event.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                gestureDownX = event.x
+                gestureDownY = event.y
+                gestureLongPressFired = false
+                startPressFeedback()
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                // 横向拖动时内容跟随手指(阻尼),滑动感更强
+                translationX = (event.x - gestureDownX) * DRAG_FOLLOW_DAMPING
+            }
+
+            MotionEvent.ACTION_UP -> {
+                val dx = event.x - gestureDownX
+                val dy = event.y - gestureDownY
+
+                // 手动滑动判定:不依赖 Fling 速度,慢速横向拖拽同样生效;
+                // 长按已触发时不再判定滑动,避免一次手势同时触发两个动作
+                if (!gestureLongPressFired && abs(dx) > swipeThreshold && abs(dx) > abs(dy) * 1.5f) {
+                    playSwipeFeedback(dx)
+                    triggerHaptic(HapticFeedbackConstants.KEYBOARD_TAP)
+                    gestureListener?.invoke(
+                        if (dx < 0) GestureType.SWIPE_LEFT else GestureType.SWIPE_RIGHT
+                    )
+                } else {
+                    releasePressFeedback()
+                }
+            }
+
+            MotionEvent.ACTION_CANCEL -> {
+                releasePressFeedback()
+            }
+        }
+
+        return gestureDetector.onTouchEvent(event)
+    }
+
+    /**
+     * 按下反馈:轻微按压缩放
+     */
+    private fun startPressFeedback() {
+        if (width > 0 && height > 0) {
+            pivotX = width / 2f
+            pivotY = height / 2f
+        }
+
+        animate()
+            .scaleX(PRESS_DOWN_SCALE).scaleY(PRESS_DOWN_SCALE)
+            .setDuration(PRESS_DOWN_DURATION_MS)
+            .setInterpolator(AccelerateInterpolator())
+            .start()
+    }
+
+    /**
+     * 长按反馈:轻微放大提示
+     */
+    private fun intensifyPressFeedback() {
+        animate()
+            .scaleX(LONG_PRESS_SCALE).scaleY(LONG_PRESS_SCALE)
+            .setDuration(LONG_PRESS_INTENSIFY_MS)
+            .setInterpolator(DecelerateInterpolator())
+            .start()
+    }
+
+    /**
+     * 松手/取消反馈:缩放与位移回弹
+     */
+    private fun releasePressFeedback() {
+        animate()
+            .scaleX(1f).scaleY(1f).translationX(0f)
+            .setDuration(RELEASE_DURATION_MS)
+            .setInterpolator(DecelerateInterpolator(RELEASE_BOUNCE))
+            .start()
+    }
+
+    /**
+     * 滑动反馈:向滑动方向"踢"一下再回弹
+     *
+     * @param dx 滑动结束时的横向位移(带符号)
+     */
+    private fun playSwipeFeedback(dx: Float) {
+        val direction = if (dx < 0) -1f else 1f
+        val kick = SWIPE_KICK_DP.dp * direction
+
+        animate()
+            .scaleX(1f).scaleY(1f).translationX(kick)
+            .setDuration(SWIPE_KICK_MS)
+            .setInterpolator(AccelerateInterpolator())
+            .withEndAction {
+                animate().translationX(0f)
+                    .setDuration(SWIPE_RETURN_MS)
+                    .setInterpolator(DecelerateInterpolator(RELEASE_BOUNCE))
+                    .start()
+            }
+            .start()
+    }
+
+    /**
+     * 触觉反馈统一入口:仅 [hapticEnabled] 开启时震动
+     */
+    private fun triggerHaptic(feedbackConstant: Int) {
+        if (hapticEnabled) {
+            performHapticFeedback(feedbackConstant)
+        }
     }
 
     // --- 内部逻辑 ---

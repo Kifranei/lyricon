@@ -6,6 +6,11 @@
 
 <resources>
 
+    <style name="Animation.Translucent" parent="">
+        <item name="android:windowEnterAnimation">@null</item>
+        <item name="android:windowExitAnimation">@null</item>
+    </style>
+
     <style name="Theme.Dark" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:colorBackground">#FF000000</item>
         <item name="android:windowBackground">#FF000000</item>
@@ -23,4 +28,18 @@
     <style name="Theme.SplashScreen.DayNight" parent="Theme.DayNight" />
 
     <style name="Theme.SplashScreen" parent="Theme.SplashScreen.DayNight" />
+
+    <style name="Theme.Translucent" parent="@android:style/Theme.Translucent.NoTitleBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowAnimationStyle">@style/Animation.Translucent</item>
+
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+
+    </style>
+
 </resources>

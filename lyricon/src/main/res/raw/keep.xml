@@ -1,2 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 Proify, Tomakino
+  ~ Licensed under the Apache License, Version 2.0
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  -->
+
 <resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@raw/aboutlibraries" />
+    tools:keep="@raw/aboutlibraries,@drawable/sui_control_*" />

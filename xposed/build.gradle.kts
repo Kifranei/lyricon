@@ -25,16 +25,6 @@ configure<LibraryExtension> {
         )
     }
 
-    flavorDimensions += "locale"
-    productFlavors {
-        create("standard") {
-            dimension = "locale"
-        }
-        create("zh") {
-            dimension = "locale"
-        }
-    }
-
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -61,15 +51,17 @@ dependencies {
     implementation(project(":lyric:view"))
     implementation(project(":lyric:model"))
     implementation(project(":lyric:style"))
+    implementation(project(":lyric:ai"))
     implementation(project(":lyric:statusbarlyric"))
     implementation(project(":lyric:bridge:central"))
-    "zhImplementation"(project(":opencc-lite"))
+    implementation(project(":opencc-lite"))
 
     compileOnly(libs.libxposed.api)
     implementation(libs.libxposed.service)
 
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.okhttp)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

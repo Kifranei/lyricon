@@ -25,3 +25,14 @@
 -dontwarn io.github.libxposed.annotation.**
 -dontwarn io.github.libxposed.api.**
 -dontwarn javax.annotation.Nullable
+
+# 保留 drawable 资源名称（防止 getIdentifier 找不到资源）
+# LyricControlPanel 通过 getIdentifier 动态加载以下图标：
+#   sui_control_play_arrow_fill1_24px
+#   sui_control_pause_fill1_24px
+#   sui_control_skip_next_fill1_24px
+#   sui_control_skip_previous_fill1_24px
+#   sui_control_gemini_ai
+-keepclassmembers class **.R$drawable {
+    public static int sui_control_*;
+}

@@ -25,8 +25,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.R
+import io.github.proify.lyricon.app.bridge.AppBridge.LyricGesturePrefs
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.IconActions
 import io.github.proify.lyricon.app.compose.preference.DoubleInputPreference
@@ -67,7 +67,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
         ) {
             item(key = "base") {
                 SmallTitle(
-                    text = stringResource(R.string.section_base),
+                    text = stringResource(R.string.section_basic),
                     insideMargin = PaddingValues(
                         start = 26.dp,
                         top = 0.dp,
@@ -269,9 +269,7 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         }
                     )
 
-                    if (BuildConfig.ENABLE_CHINESE_CONVERSION) {
-                        ChineseConversionPreference()
-                    }
+                    ChineseConversionPreference()
                 }
             }
 
@@ -353,21 +351,6 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                         title = stringResource(R.string.item_base_lockscreen_hidden),
                     )
 
-                    var doubleTapSwitchClock by rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_double_tap_switch_clock",
-                        BasicStyle.Defaults.DOUBLE_TAP_SWITCH_CLOCK
-                    )
-                    SwitchPreference(
-                        checked = doubleTapSwitchClock,
-                        onCheckedChange = { doubleTapSwitchClock = it },
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_visibility_off))
-                        },
-                        title = stringResource(R.string.item_base_double_tap_switch_clock),
-                        summary = stringResource(R.string.item_base_double_tap_switch_clock_summary),
-                    )
-
                     HideWhenNoLyric()
                     HideWhenNoUpdate()
                     HideWhenKeywords()
@@ -407,9 +390,9 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                 }
             }
 
-            item(key = "ai_translation") {
+            item(key = "gesture") {
                 SmallTitle(
-                    text = stringResource(R.string.section_translation),
+                    text = stringResource(R.string.section_gesture),
                     insideMargin = PaddingValues(
                         start = 26.dp,
                         top = 16.dp,
@@ -419,10 +402,67 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                 )
                 Card(
                     modifier = Modifier
-                        .padding(start = 16.dp, top = 0.dp, end = 16.dp, bottom = 0.dp)
+                        .padding(start = 16.dp, top = 0.dp, end = 16.dp)
                         .fillMaxWidth(),
                 ) {
-                    AiTranslationPreference(preferences)
+
+                    var gestureEnabled by rememberBooleanPreference(
+                        preferences,
+                        LyricGesturePrefs.KEY_ENABLED,
+                        LyricGesturePrefs.DEFAULT_ENABLED
+                    )
+                    SwitchPreference(
+                        checked = gestureEnabled,
+                        onCheckedChange = { gestureEnabled = it },
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_music_note))
+                        },
+                        title = stringResource(R.string.item_gesture_enable),
+                        summary = stringResource(R.string.item_gesture_summary),
+                    )
+
+                    var gestureHapticEnabled by rememberBooleanPreference(
+                        preferences,
+                        LyricGesturePrefs.KEY_HAPTIC,
+                        LyricGesturePrefs.DEFAULT_HAPTIC
+                    )
+                    SwitchPreference(
+                        checked = gestureHapticEnabled,
+                        onCheckedChange = { gestureHapticEnabled = it },
+                        startAction = {
+                            IconActions(painterResource(R.drawable.mobile_vibrate_fill1_24px))
+                        },
+                        title = stringResource(R.string.item_gesture_haptic),
+                        summary = stringResource(R.string.item_gesture_haptic_summary),
+                    )
+
+                    GestureActionSpinner(
+                        key = LyricGesturePrefs.KEY_SWIPE_LEFT,
+                        default = LyricGesturePrefs.DEFAULT_SWIPE_LEFT,
+                        title = stringResource(R.string.item_gesture_swipe_left),
+                        iconRes = R.drawable.ic_gesture_swipe_left
+                    )
+
+                    GestureActionSpinner(
+                        key = LyricGesturePrefs.KEY_SWIPE_RIGHT,
+                        default = LyricGesturePrefs.DEFAULT_SWIPE_RIGHT,
+                        title = stringResource(R.string.item_gesture_swipe_right),
+                        iconRes = R.drawable.ic_gesture_swipe_right
+                    )
+
+                    GestureActionSpinner(
+                        key = LyricGesturePrefs.KEY_TAP,
+                        default = LyricGesturePrefs.DEFAULT_TAP,
+                        title = stringResource(R.string.item_gesture_tap),
+                        iconRes = R.drawable.ic_gesture_tap
+                    )
+
+                    GestureActionSpinner(
+                        key = LyricGesturePrefs.KEY_LONG_PRESS,
+                        default = LyricGesturePrefs.DEFAULT_LONG_PRESS,
+                        title = stringResource(R.string.item_gesture_long_press),
+                        iconRes = R.drawable.ic_gesture_long_press
+                    )
                 }
             }
 
@@ -430,6 +470,56 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                 Spacer(Modifier.height(16.dp))
             }
         }
+    }
+
+    /**
+     * 手势动作选择器：一个手势对应一个 [OverlaySpinnerPreference]，
+     * 可选项为 [LyricGesturePrefs.ACTION_NONE] 等动作常量
+     */
+    @Composable
+    private fun GestureActionSpinner(
+        key: String,
+        default: Int,
+        title: String,
+        iconRes: Int
+    ) {
+        val optionActions = listOf(
+            LyricGesturePrefs.ACTION_NONE,
+            LyricGesturePrefs.ACTION_TOGGLE_PLAY,
+            LyricGesturePrefs.ACTION_PREVIOUS,
+            LyricGesturePrefs.ACTION_NEXT,
+            LyricGesturePrefs.ACTION_OPEN_CONTROL,
+            LyricGesturePrefs.ACTION_TOGGLE_CLOCK
+        )
+
+        val optionItems = listOf(
+            DropdownItem(title = stringResource(R.string.option_gesture_none)),
+            DropdownItem(title = stringResource(R.string.option_gesture_toggle_play)),
+            DropdownItem(title = stringResource(R.string.option_gesture_previous)),
+            DropdownItem(title = stringResource(R.string.option_gesture_next)),
+            DropdownItem(title = stringResource(R.string.option_gesture_open_control)),
+            DropdownItem(title = stringResource(R.string.option_gesture_toggle_clock)),
+        )
+
+        val current = preferences.getInt(key, default)
+        val selectedIndex = remember(current) {
+            mutableIntStateOf(optionActions.indexOf(current).coerceAtLeast(0))
+        }
+
+        OverlaySpinnerPreference(
+            startAction = {
+                IconActions(painterResource(iconRes))
+            },
+            title = title,
+            items = optionItems,
+            selectedIndex = selectedIndex.intValue,
+            onSelectedIndexChange = {
+                selectedIndex.intValue = it
+                preferences.editCommit {
+                    putInt(key, optionActions[it])
+                }
+            }
+        )
     }
 
     @Composable

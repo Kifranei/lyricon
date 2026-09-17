@@ -14,7 +14,7 @@ import io.github.proify.android.extensions.inflate
 import io.github.proify.lyricon.app.util.LyricPrefs
 import io.github.proify.lyricon.app.util.LyricPrefs.getLyricStylePrefNames
 import io.github.proify.lyricon.app.util.editCommit
-import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_AI_TRANSLATION_API_KEY
+import io.github.proify.lyricon.lyric.ai.core.AiConfigStore
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.InputStream
@@ -24,8 +24,8 @@ object AppBackup {
 
     private const val TAG = "AppBackup"
 
-    private val BLACKLIST_KEYS = listOf(
-        KEY_AI_TRANSLATION_API_KEY
+    private val BLACKLIST_KEYS = listOf<String>(
+        //  KEY_AI_CONFIG_API_KEY
     )
 
     fun export(outputStream: OutputStream): Boolean {
@@ -87,12 +87,33 @@ object AppBackup {
         entries.forEach { (k, v) ->
             if (k in BLACKLIST_KEYS) return@forEach
 
-            when (v) {
-                is Set<*> -> jo.put(k, JSONArray(v))
-                else -> jo.put(k, v)
+            // 多配置集合中内嵌 API Key：导出时做脱敏（移除 apiKey 字段），
+            // 恢复后用户需自行重填，避免密钥随备份外泄。
+            if (k == AiConfigStore.KEY_COLLECTION && v is String) {
+                jo.put(k, sanitizeAiCollection(v))
+            } else {
+                when (v) {
+                    is Set<*> -> jo.put(k, JSONArray(v))
+                    else -> jo.put(k, v)
+                }
             }
         }
         return jo
+    }
+
+    /** 递归移除 AI 配置集合 JSON 中所有 profile 的 apiKey。 */
+    private fun sanitizeAiCollection(raw: String): String {
+        return runCatching {
+            val root = JSONObject(raw)
+            val profiles = root.optJSONArray("profiles")
+            if (profiles != null) {
+                for (i in 0 until profiles.length()) {
+                    val config = profiles.optJSONObject(i)?.optJSONObject("config")
+                    config?.remove("apiKey")
+                }
+            }
+            root.toString()
+        }.getOrDefault(raw)
     }
 
     private fun applyJsonToPrefs(root: JSONObject) {

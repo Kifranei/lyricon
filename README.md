@@ -113,6 +113,16 @@
 
 ### 👀 访问统计
 
+## ⭐ Star History
+
 <p align="center">
   <img src="https://count.getloli.com/get/@kifranei_lyricon?theme=moebooru" alt="Visitor Count" />
+</p>
+
+---
+
+### 👀 访问统计
+
+<p align="center">
+  <img src="https://count.getloli.com/get/@tomakino_lyricon?theme=minecraft" alt="Visitor Count" />
 </p>
