@@ -6,6 +6,7 @@
 
 package io.github.proify.lyricon.app.activity.lyric.provider
 
+import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -28,7 +29,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -61,7 +61,7 @@ import io.github.proify.lyricon.app.util.LaunchBrowserCompose
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
-import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
@@ -96,10 +96,7 @@ class LyricProviderActivity : BaseActivity() {
         val groupedModules by viewModel.groupedModules.collectAsState()
         val otherLabel = stringResource(R.string.other)
 
-        // 生命周期挂载时请求数据，确保只请求一次
-        LaunchedEffect(Unit) {
-            viewModel.loadProviders(otherLabel)
-        }
+        ProviderPermissionEffect(viewModel, otherLabel)
 
         AppToolBarListContainer(
             title = getString(R.string.activity_lyric_provider_services),
@@ -188,9 +185,7 @@ class LyricProviderActivity : BaseActivity() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(80.dp),
-            )
+            InfiniteProgressIndicator()
 //            Spacer(modifier = Modifier.height(16.dp))
 //            Text(
 //                text = stringResource(R.string.loading),
@@ -240,7 +235,7 @@ class LyricProviderActivity : BaseActivity() {
         var listStylePref by rememberIntPreference(
             sharedPreferences,
             "activity_provider_list_style",
-            ViewMode.SHORT
+            ViewMode.FULL
         )
 
         val options = remember {
@@ -294,19 +289,21 @@ class LyricProviderActivity : BaseActivity() {
                     minWidth = 200.dp,
                     renderInRootScaffold = true,
                     content = {
-                        ListPopupColumn {
-                            options.forEachIndexed { index, (labelRes, value) ->
-                                DropdownImpl(
-                                    text = stringResource(labelRes),
-                                    optionSize = options.size,
-                                    isSelected = index == selectedIndex,
-                                    onSelectedIndexChange = {
-                                        showPopup.value = false
-                                        listStylePref = value
-                                        viewModel.listStyle = value
-                                    },
-                                    index = index
-                                )
+                        OpaqueDropdownPopupTheme {
+                            ListPopupColumn {
+                                options.forEachIndexed { index, (labelRes, value) ->
+                                    DropdownImpl(
+                                        text = stringResource(labelRes),
+                                        optionSize = options.size,
+                                        isSelected = index == selectedIndex,
+                                        onSelectedIndexChange = {
+                                            showPopup.value = false
+                                            listStylePref = value
+                                            viewModel.listStyle = value
+                                        },
+                                        index = index
+                                    )
+                                }
                             }
                         }
                     }

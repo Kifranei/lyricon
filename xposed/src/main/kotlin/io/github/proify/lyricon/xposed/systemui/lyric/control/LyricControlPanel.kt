@@ -62,6 +62,7 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
         fun onNext()
         fun onSeekTo(position: Long)
         fun onAiExplain(button: View)
+        fun onDismiss()
     }
 
     var actionListener: ActionListener? = null
@@ -155,8 +156,8 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
             ellipsize = TextUtils.TruncateAt.END
         }
 
-        seekBar = SeekBar(context).apply {
-            // 长圆形（胶囊）轨道：非 Material 细线，两端为半圆
+        seekBar = GlowSeekBar(context).apply {
+            // 辉光进度条（AGSL）；Android 13 以下回退为下面的胶囊轨道
             progressDrawable = longRoundedTrack()
             // 去掉拖动圆球（thumb），纯进度条；仍可点击/拖动轨道进行 seek
             thumb = null
@@ -263,11 +264,6 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
     // 生命周期
     // -------------------------------------------------------------------------
 
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-
-    }
-
     /**
      * 消费未被子视图处理的触摸事件，确保事件链不断（UP/CANCEL 一定能到达）。
      * 仅在没有子视图消费 DOWN 时被调用（即点击空白区域），不影响子视图正常工作。
@@ -275,7 +271,7 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
     override fun onTouchEvent(ev: MotionEvent): Boolean = true
 
     // -------------------------------------------------------------------------
-    // 触摸效果：按压缩放 + 垂直 Overscroll 越界回弹
+    // 触摸效果：按压缩放 + 垂直拖动回弹（向下拖动可关闭）
     // -------------------------------------------------------------------------
 
     private var touchDownX = 0f
@@ -295,7 +291,8 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
      * 规则：
      * - 点在子控件上：不做 card 按压，子控件自己的 pressFeedback 正常工作
      * - 点在空白区域：card 按压缩放，松手回弹
-     * - 垂直拖动（任何位置）：overscroll，松手弹簧回弹
+     * - 短垂直拖动（任何位置）：overscroll，松手弹簧回弹
+     * - 向下拖动超过阈值：关闭面板，避免遮挡状态栏下拉手势
      * - 水平拖动：不拦截，SeekBar 正常工作
      */
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
@@ -364,7 +361,11 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
 
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
                 val wasOverscroll = touchOverscroll
-                if (wasOverscroll && card.translationY != 0f) {
+                val dismissOnSwipeDown = ev.action == MotionEvent.ACTION_UP && wasOverscroll &&
+                        ev.rawY - touchDownY >= DISMISS_DRAG_THRESHOLD_DP.dp
+                if (dismissOnSwipeDown) {
+                    actionListener?.onDismiss()
+                } else if (wasOverscroll && card.translationY != 0f) {
                     springAnimator = ValueAnimator.ofFloat(card.translationY, 0f).apply {
                         duration = TOUCH_SPRING_MS
                         interpolator = OvershootInterpolator(TOUCH_BOUNCE)
@@ -697,6 +698,7 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
         const val TOUCH_DIR_THRESHOLD_DP = 8
         const val TOUCH_MAX_DP = 30
         const val TOUCH_DAMPEN = 0.25f
+        const val DISMISS_DRAG_THRESHOLD_DP = 72
         const val TOUCH_SPRING_MS = 400L
         const val TOUCH_BOUNCE = 0.35f
         const val TOUCH_MODE_UNDECIDED = 0

@@ -1,6 +1,22 @@
 package io.github.proify.lyricon.app.ui.tabs
 
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.proify.lyricon.app.activity.lyric.provider.LyricProviderViewModel
+import io.github.proify.lyricon.app.util.LyricPrefs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import android.content.Intent
 import android.os.Build
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -30,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.R
+import io.github.proify.lyricon.app.activity.lyric.provider.LyricProviderActivity
+import io.github.proify.lyricon.app.activity.lyric.pkg.PackageStyleActivity
 import io.github.proify.lyricon.app.activity.MainActivity.MainViewModel
 import io.github.proify.lyricon.app.bridge.AppBridge
 import io.github.proify.lyricon.app.bridge.AppBridgeConstants
@@ -60,9 +78,12 @@ fun HomeTab(
             val safeMode = model.safeMode.value
             HomeStatusCard(
                 safeMode = safeMode,
-                isMonet = model.isMonet,
                 isModuleActive = model.isModuleActive.value,
             )
+        }
+
+        item("quick_actions") {
+            HomeQuickActions()
         }
 
         item("system_info") {
@@ -72,7 +93,7 @@ fun HomeTab(
 }
 
 @Composable
-private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean, isModuleActive: Boolean) {
+private fun HomeStatusCard(safeMode: Boolean, isModuleActive: Boolean) {
     val inspectionMode = LocalInspectionMode.current
     // 激活状态以 libxposed XposedService 绑定为准（LSPosed 1.0.2 标准探活）；
     // AppBridge.isActive() 是恒 false 的占位自 hook 探针，模块侧从未实现对应 hook
@@ -88,21 +109,21 @@ private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean, isModuleActive: 
     val isDark = CurrentThemeConfigs.isDark
 
     val cardColor = when {
-        safeMode || !isActive -> if (isDark) Color(0xFF3A171A) else Color(0xFFFDECEE)
+        safeMode || !isActive -> if (isDark) Color(0xFF402626) else Color(0xFFFDECEE)
         else -> if (isDark) Color(0xFF102819) else Color(0xFFDFFAE4)
     }
 
     val iconColor = when {
-        safeMode || !isActive -> if (isDark) Color(0xFFB3261E) else Color(0xFFE25B5B)
+        safeMode || !isActive -> if (isDark) Color(0xFFD84242) else Color(0xFFE25B5B)
         else -> Color(0xFF36D167)
     }
     val titleColor = if (isDark) Color.White else Color(0xFF0F1B13)
     val summaryColor = if (isDark) Color.White.copy(alpha = 0.68f) else Color(0xFF2F4637)
 
     val iconVector = if (isActive && !safeMode) {
-        ImageVector.vectorResource(id = R.drawable.ic_check_circle)
+        ImageVector.vectorResource(id = R.drawable.ic_home_status_check)
     } else {
-        ImageVector.vectorResource(id = R.drawable.ic_sentiment_dissatisfied)
+        ImageVector.vectorResource(id = R.drawable.ic_home_status_warning)
     }
 
     Card(
@@ -119,10 +140,10 @@ private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean, isModuleActive: 
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 14.dp, bottom = 6.dp),
+                    .offset(x = 28.dp, y = 34.dp),
             ) {
                 Icon(
-                    modifier = Modifier.size(138.dp),
+                    modifier = Modifier.size(128.dp),
                     imageVector = iconVector,
                     tint = iconColor,
                     contentDescription = null,
@@ -149,6 +170,84 @@ private fun HomeStatusCard(safeMode: Boolean, isMonet: Boolean, isModuleActive: 
                     color = summaryColor,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun HomeQuickActions() {
+    val context = LocalContext.current
+    val providerModel: LyricProviderViewModel = viewModel()
+    val providers by providerModel.groupedModules.collectAsState()
+    val otherLabel = stringResource(R.string.other)
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var refresh by remember { mutableIntStateOf(0) }
+    var styleCount by remember { mutableStateOf<Int?>(null) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) refresh++
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    LaunchedEffect(refresh, otherLabel) {
+        // The model skips scanning when runtime permission has not been granted.
+        providerModel.loadProviders(otherLabel)
+        styleCount = withContext(Dispatchers.IO) {
+            (LyricPrefs.getConfiguredPackageNames() + LyricPrefs.DEFAULT_PACKAGE_NAME).size
+        }
+    }
+    val providerCount = if (providerModel.noQueryPermission || providerModel.showLoading) {
+        "—"
+    } else {
+        providers.sumOf { it.items.size }.toString()
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        HomeShortcutCard(
+            title = stringResource(R.string.tab_provider),
+            count = providerCount,
+            modifier = Modifier.weight(1f),
+            onClick = { context.startActivity(Intent(context, LyricProviderActivity::class.java)) },
+        )
+        HomeShortcutCard(
+            title = stringResource(R.string.item_package_style_manager),
+            count = styleCount?.toString() ?: "—",
+            modifier = Modifier.weight(1f),
+            onClick = { context.startActivity(Intent(context, PackageStyleActivity::class.java)) },
+        )
+    }
+}
+
+@Composable
+private fun HomeShortcutCard(
+    title: String,
+    count: String,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    Card(modifier = modifier, onClick = onClick) {
+        Column(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 96.dp).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+            Text(
+                text = count,
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = MiuixTheme.colorScheme.onSurface,
+            )
         }
     }
 }

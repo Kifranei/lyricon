@@ -58,7 +58,7 @@ class LyricProviderViewModel(application: Application) : AndroidViewModel(applic
      * 列表视图模式 (精简/完整)
      */
     var listStyle by mutableIntStateOf(
-        application.defaultSharedPreferences.getInt("activity_provider_list_style", ViewMode.SHORT)
+        application.defaultSharedPreferences.getInt("activity_provider_list_style", ViewMode.FULL)
     )
 
     /**
@@ -110,6 +110,15 @@ class LyricProviderViewModel(application: Application) : AndroidViewModel(applic
      * @param otherLabel 当地化字符串中“其他”分类的兜底文案
      */
     fun loadProviders(otherLabel: String) {
+        if (getApplication<Application>().needsProviderPermission()) {
+            noQueryPermission = true
+            _groupedModules.value = emptyList()
+            showLoading = false
+            return
+        }
+        if (_isInternalLoading.value) return
+        _isInternalLoading.value = true
+        noQueryPermission = false
         viewModelScope.launch {
             _isInternalLoading.value = true
 
@@ -122,8 +131,8 @@ class LyricProviderViewModel(application: Application) : AndroidViewModel(applic
                     )
 
                     // 权限校验判断
-                    if (packageInfos.size <= 1) {
-                        withContext(Dispatchers.Main) { noQueryPermission = true }
+                    withContext(Dispatchers.Main) {
+                        noQueryPermission = packageInfos.size <= 1
                     }
 
                     // 1. 过滤与元数据解析

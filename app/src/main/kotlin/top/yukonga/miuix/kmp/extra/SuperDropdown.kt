@@ -1,5 +1,6 @@
 package top.yukonga.miuix.kmp.extra
 
+import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
 import androidx.compose.runtime.Composable
 import top.yukonga.miuix.kmp.basic.SpinnerEntry
 import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
@@ -12,11 +13,13 @@ fun SuperDropdown(
     onSelectedIndexChange: (Int) -> Unit,
     startAction: @Composable (() -> Unit)? = null,
 ) {
-    OverlaySpinnerPreference(
-        startAction = startAction,
-        title = title,
-        items = items.map { SpinnerEntry(title = it) },
-        selectedIndex = selectedIndex,
-        onSelectedIndexChange = onSelectedIndexChange,
-    )
+    OpaqueDropdownPopupTheme {
+        OverlaySpinnerPreference(
+            startAction = startAction,
+            title = title,
+            items = items.map { SpinnerEntry(title = it) },
+            selectedIndex = selectedIndex,
+            onSelectedIndexChange = onSelectedIndexChange,
+        )
+    }
 }

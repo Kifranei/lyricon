@@ -131,7 +131,6 @@ class SuperText(context: Context) : LyricPlayerView(context) {
                     latinLiftFactor = textStyle.wordMotionLatinLiftFactor,
                     latinWaveFactor = textStyle.wordMotionLatinWaveFactor,
                 ),
-                sustainGlow = textStyle.sustainGlowEnabled,
                 gradient = textStyle.gradientProgressStyle,
                 fadingEdge = textStyle.fadingEdgeLength.coerceAtLeast(0).dp,
                 scaleMultiLine = textStyle.scaleInMultiLine,

@@ -5,13 +5,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -31,9 +40,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -43,6 +52,7 @@ import androidx.compose.ui.unit.sp
 import io.github.proify.lyricon.app.BuildConfig
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.LicensesActivity
+import io.github.proify.lyricon.app.activity.UpdateActivity
 import io.github.proify.lyricon.app.compose.AppSmallTopAppBar
 import io.github.proify.lyricon.app.compose.effect.BgEffectBackground
 import top.yukonga.miuix.kmp.basic.BasicComponent
@@ -71,25 +81,15 @@ import top.yukonga.miuix.kmp.utils.scrollEndHaptic
 
 private const val GITHUB_REPO_URL = "https://github.com/kifranei/lyricon"
 
-/** 与主界面一致的平板判定阈值与内容宽度上限。 */
-private const val TABLET_MIN_WIDTH_DP = 600
-private val TABLET_MAX_CONTENT_WIDTH = 900.dp
+/**
+ * 列表末尾留白，保证内容再少也能继续下滑、让顶部 Logo 完整收起。
+ *
+ * 按视口比例而非固定高度：长屏手机与平板的视口差异很大，
+ * 固定值在大屏上不足以撑出滚动空间。
+ */
+private const val BOTTOM_SCROLL_SPACE_FRACTION = 0.72f
+private val BOTTOM_SCROLL_SPACE_MIN = 160.dp
 
-/** 关于页「开源项目」分区条目：名称、说明文案、仓库地址。 */
-private val OPEN_SOURCE_PROJECTS: List<Triple<String, Int, String>> = listOf(
-    Triple("Miuix", R.string.about_summary_miuix,
-        "https://github.com/miuix-kotlin-multiplatform/miuix"),
-    Triple("AndroidLiquidGlass", R.string.about_summary_liquid_glass,
-        "https://github.com/Kyant0/AndroidLiquidGlass"),
-    Triple("libxposed", R.string.about_summary_libxposed,
-        "https://github.com/libxposed/api"),
-    Triple("LSPosed", R.string.about_summary_lsposed,
-        "https://github.com/LSPosed/LSPosed"),
-    Triple("Haze", R.string.about_summary_haze,
-        "https://github.com/chrisbanes/haze"),
-    Triple("Lottie", R.string.about_summary_lottie,
-        "https://github.com/airbnb/lottie-android"),
-)
 
 @Composable
 fun AboutScreen(
@@ -117,7 +117,6 @@ fun AboutScreen(
                 scrollBehavior = scrollBehavior,
                 color = colorScheme.surface.copy(alpha = scrollProgress.coerceIn(0f, 1f)),
                 titleColor = colorScheme.onSurface.copy(alpha = scrollProgress),
-                defaultWindowInsetsPadding = false,
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -130,8 +129,18 @@ fun AboutScreen(
             )
         },
     ) { innerPadding ->
+        // 横屏时避让挖孔与侧边导航栏，背景仍铺满全屏
+        val layoutDirection = LocalLayoutDirection.current
+        val horizontalInsets = WindowInsets.displayCutout
+            .union(WindowInsets.navigationBars)
+            .only(WindowInsetsSides.Horizontal)
+            .asPaddingValues()
         AboutContent(
-            padding = PaddingValues(top = innerPadding.calculateTopPadding()),
+            padding = PaddingValues(
+                start = horizontalInsets.calculateStartPadding(layoutDirection),
+                top = innerPadding.calculateTopPadding(),
+                end = horizontalInsets.calculateEndPadding(layoutDirection),
+            ),
             scrollBehavior = scrollBehavior,
             scrollProgress = scrollProgress,
             lazyListState = lazyListState,
@@ -155,6 +164,9 @@ private fun AboutContent(
     val context = LocalContext.current
 
     val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
+    val startPadding = padding.calculateStartPadding(layoutDirection)
+    val endPadding = padding.calculateEndPadding(layoutDirection)
     var logoHeightDp by remember { mutableStateOf(300.dp) }
     val logoLiftPx = with(density) { 96.dp.toPx() }
     val heroTopPadding = 148.dp
@@ -178,7 +190,11 @@ private fun AboutContent(
                     alpha = (1f - scrollProgress * 1.35f).coerceIn(0f, 1f)
                     translationY = -logoLiftPx * scrollProgress
                 }
-                .padding(top = padding.calculateTopPadding() + heroTopPadding)
+                .padding(
+                    start = startPadding,
+                    top = padding.calculateTopPadding() + heroTopPadding,
+                    end = endPadding,
+                )
                 .onSizeChanged { size -> with(density) { logoHeightDp = size.height.toDp() } },
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -217,7 +233,11 @@ private fun AboutContent(
                 .scrollEndHaptic()
                 .overScrollVertical()
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
-            contentPadding = PaddingValues(top = padding.calculateTopPadding()),
+            contentPadding = PaddingValues(
+                start = startPadding,
+                top = padding.calculateTopPadding(),
+                end = endPadding,
+            ),
             overscrollEffect = null,
         ) {
             item(key = "logoSpacer") {
@@ -238,6 +258,13 @@ private fun AboutContent(
                     cardBlendColors = cardBlendColors,
                     scrollProgress = scrollProgress,
                 ) {
+                    BasicComponent(
+                        title = stringResource(R.string.item_check_update),
+                        summary = stringResource(R.string.item_check_update_summary),
+                        onClick = {
+                            context.startActivity(Intent(context, UpdateActivity::class.java))
+                        },
+                    )
                     BasicComponent(
                         title = stringResource(R.string.item_view_on_github),
                         summary = GITHUB_REPO_URL,
@@ -278,29 +305,10 @@ private fun AboutContent(
             }
 
             item {
-                AboutSection {
-                SmallTitle(text = stringResource(R.string.about_open_source_projects))
-                FrostedCard(
-                    backdrop = backdrop,
-                    blurEnable = blurEnable,
-                    cardBlendColors = cardBlendColors,
-                    scrollProgress = scrollProgress,
-                ) {
-                    OPEN_SOURCE_PROJECTS.forEach { (name, summaryRes, url) ->
-                        BasicComponent(
-                            title = name,
-                            summary = stringResource(summaryRes),
-                            onClick = { uriHandler.openUri(url) },
-                        )
-                    }
-                }
-                }
-            }
-
-            item {
                 Spacer(
                     Modifier
-                        .height(160.dp)
+                        .fillParentMaxHeight(BOTTOM_SCROLL_SPACE_FRACTION)
+                        .heightIn(min = BOTTOM_SCROLL_SPACE_MIN)
                         .navigationBarsPadding()
                 )
             }
@@ -308,28 +316,9 @@ private fun AboutContent(
     }
 }
 
-/**
- * 分区容器：手机上直接铺满，平板上限制最大宽度并居中，
- * 与主界面 [io.github.proify.lyricon.app.activity.MainActivity] 的 900dp 约定一致。
- */
 @Composable
 private fun AboutSection(content: @Composable ColumnScope.() -> Unit) {
-    val isTablet = LocalConfiguration.current.screenWidthDp >= TABLET_MIN_WIDTH_DP
-    if (!isTablet) {
-        Column(content = content)
-        return
-    }
-    Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .widthIn(max = TABLET_MAX_CONTENT_WIDTH),
-            content = content,
-        )
-    }
+    Column(content = content)
 }
 
 @Composable

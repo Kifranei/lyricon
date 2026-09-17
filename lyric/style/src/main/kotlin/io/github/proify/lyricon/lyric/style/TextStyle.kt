@@ -53,7 +53,6 @@ data class TextStyle(
     var wordMotionCjkWaveFactor: Float = Defaults.WORD_MOTION_CJK_WAVE_FACTOR,
     var wordMotionLatinLiftFactor: Float = Defaults.WORD_MOTION_LATIN_LIFT_FACTOR,
     var wordMotionLatinWaveFactor: Float = Defaults.WORD_MOTION_LATIN_WAVE_FACTOR,
-    var sustainGlowEnabled: Boolean = Defaults.SUSTAIN_GLOW_ENABLED,
     var scaleInMultiLine: Float = Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE,
 
     var transitionConfig: String? = Defaults.TRANSITION_CONFIG,
@@ -88,7 +87,6 @@ data class TextStyle(
             "lyric_style_text_word_motion_latin_lift_factor"
         const val KEY_WORD_MOTION_LATIN_WAVE_FACTOR =
             "lyric_style_text_word_motion_latin_wave_factor"
-        const val KEY_TEXT_SUSTAIN_GLOW = "lyric_style_text_sustain_glow"
 
         const val KEY_ENABLED_ENTER_ANIM = "lyric_style_text_enable_enter_anim"
     }
@@ -136,7 +134,6 @@ data class TextStyle(
         const val WORD_MOTION_CJK_WAVE_FACTOR: Float = 2.8f
         const val WORD_MOTION_LATIN_LIFT_FACTOR: Float = 0.065f
         const val WORD_MOTION_LATIN_WAVE_FACTOR: Float = 3.6f
-        const val SUSTAIN_GLOW_ENABLED: Boolean = false
 
         const val TEXT_SIZE: Float = 12f
         val MARGINS: RectF = RectF()
@@ -291,10 +288,6 @@ data class TextStyle(
             KEY_WORD_MOTION_LATIN_WAVE_FACTOR,
             Defaults.WORD_MOTION_LATIN_WAVE_FACTOR
         )
-        sustainGlowEnabled = preferences.getBoolean(
-            KEY_TEXT_SUSTAIN_GLOW,
-            Defaults.SUSTAIN_GLOW_ENABLED
-        )
         scaleInMultiLine = preferences.getFloat(
             "lyric_style_text_size_ratio_in_multi_line_mode",
             Defaults.TEXT_SIZE_RATIO_IN_MULTI_LINE
@@ -369,7 +362,6 @@ data class TextStyle(
         editor.putFloat(KEY_WORD_MOTION_CJK_WAVE_FACTOR, wordMotionCjkWaveFactor)
         editor.putFloat(KEY_WORD_MOTION_LATIN_LIFT_FACTOR, wordMotionLatinLiftFactor)
         editor.putFloat(KEY_WORD_MOTION_LATIN_WAVE_FACTOR, wordMotionLatinWaveFactor)
-        editor.putBoolean(KEY_TEXT_SUSTAIN_GLOW, sustainGlowEnabled)
         editor.putFloat(
             "lyric_style_text_size_ratio_in_multi_line_mode",
             scaleInMultiLine

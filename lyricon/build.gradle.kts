@@ -45,6 +45,8 @@ configure<ApplicationExtension> {
             storePassword = System.getenv("RELEASE_STORE_PASSWORD")
             keyAlias = System.getenv("RELEASE_KEY_ALIAS")
             keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            enableV3Signing = true
+            enableV4Signing = true
         }
     }
 

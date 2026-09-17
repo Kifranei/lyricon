@@ -105,14 +105,13 @@ class StatusBarLyric(
     /**
      * 是否启用手势识别。
      *
-     * 关闭时回退到 [View] 默认触摸行为(此时可通过
-     * [setOnClickListener] 委托单击,保持旧版行为)。
+     * 关闭时回退到 [View] 默认触摸行为；上层控制器同时移除点击监听器，
+     * 避免关闭手势后单击仍触发旧的控制面板行为。
      */
     var gestureEnabled: Boolean = true
         set(value) {
             field = value
-            // 保持 clickable 语义,便于无障碍与默认触摸行为兼容
-            isClickable = true
+            isClickable = value
         }
 
     /**
@@ -468,7 +467,7 @@ class StatusBarLyric(
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (!gestureEnabled) {
-            // 手势关闭:交给系统默认触摸行为,由点击监听器处理单击
+            // 手势关闭时不做手势识别，按普通 View 行为派发触摸事件。
             return super.onTouchEvent(event)
         }
 

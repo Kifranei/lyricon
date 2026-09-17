@@ -6,6 +6,8 @@
 
 package io.github.proify.lyricon.app.activity.lyric
 
+import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
+import android.content.SharedPreferences
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
@@ -48,80 +50,87 @@ import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 
 class BasicLyricStyleActivity : AbstractLyricActivity() {
-    private val preferences by lazy { LyricPrefs.basicStylePrefs }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            Content()
+            BasicLyricSettingsScreen()
         }
     }
 
-    @Composable
-    private fun Content() {
-        val context = LocalContext.current
+}
 
-        AppToolBarListContainer(
-            title = stringResource(R.string.activity_basic_settings),
-            canBack = true
-        ) {
-            item(key = "base") {
-                SmallTitle(
-                    text = stringResource(R.string.section_basic),
-                    insideMargin = PaddingValues(
-                        start = 26.dp,
-                        top = 0.dp,
-                        end = 26.dp,
-                        bottom = 10.dp
-                    )
+@Composable
+fun BasicLyricSettingsScreen(
+    title: String = stringResource(R.string.activity_basic_settings),
+    canBack: Boolean = true,
+    bottomBar: @Composable () -> Unit = {},
+    preferences: SharedPreferences = LyricPrefs.basicStylePrefs,
+) {
+    val context = LocalContext.current
+
+    AppToolBarListContainer(
+        title = title,
+        canBack = canBack,
+        bottomBar = bottomBar
+    ) {
+        item(key = "base") {
+            SmallTitle(
+                text = stringResource(R.string.section_basic),
+                insideMargin = PaddingValues(
+                    start = 26.dp,
+                    top = 0.dp,
+                    end = 26.dp,
+                    bottom = 10.dp
                 )
-                Card(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth(),
-                ) {
-                    val anchor = rememberStringPreference(
-                        preferences,
-                        "lyric_style_base_anchor",
-                        BasicStyle.Defaults.ANCHOR
-                    )
+            )
+            Card(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth(),
+            ) {
+                val anchor = rememberStringPreference(
+                    preferences,
+                    "lyric_style_base_anchor",
+                    BasicStyle.Defaults.ANCHOR
+                )
 
-                    ArrowPreference(
-                        title = stringResource(R.string.item_base_anchor),
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_locationon))
-                        },
-                        summary = anchor.value,
-                        onClick = {
-                            context.startActivity(
-                                Intent(context, AnchorViewTreeActivity::class.java)
-                            )
-                        }
-                    )
-
-                    val insertionOrder = preferences.getInt(
-                        "lyric_style_base_insertion_order",
-                        BasicStyle.Defaults.INSERTION_ORDER
-                    )
-
-                    val selectedIndex = remember { mutableIntStateOf(0) }
-
-                    val optionKeys = listOf(
-                        BasicStyle.INSERTION_ORDER_BEFORE,
-                        BasicStyle.INSERTION_ORDER_AFTER
-                    )
-
-                    val options = listOf(
-                        DropdownItem(title = stringResource(R.string.item_base_insertion_before)),
-                        DropdownItem(title = stringResource(R.string.item_base_insertion_after)),
-                    )
-
-                    optionKeys.forEachIndexed { index, key ->
-                        if (insertionOrder == key) {
-                            selectedIndex.intValue = index
-                        }
+                ArrowPreference(
+                    title = stringResource(R.string.item_base_anchor),
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_locationon))
+                    },
+                    summary = anchor.value,
+                    onClick = {
+                        context.startActivity(
+                            Intent(context, AnchorViewTreeActivity::class.java)
+                        )
                     }
+                )
 
+                val insertionOrder = preferences.getInt(
+                    "lyric_style_base_insertion_order",
+                    BasicStyle.Defaults.INSERTION_ORDER
+                )
+
+                val selectedIndex = remember { mutableIntStateOf(0) }
+
+                val optionKeys = listOf(
+                    BasicStyle.INSERTION_ORDER_BEFORE,
+                    BasicStyle.INSERTION_ORDER_AFTER
+                )
+
+                val options = listOf(
+                    DropdownItem(title = stringResource(R.string.item_base_insertion_before)),
+                    DropdownItem(title = stringResource(R.string.item_base_insertion_after)),
+                )
+
+                optionKeys.forEachIndexed { index, key ->
+                    if (insertionOrder == key) {
+                        selectedIndex.intValue = index
+                    }
+                }
+
+                OpaqueDropdownPopupTheme {
                     OverlaySpinnerPreference(
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_stack))
@@ -139,32 +148,34 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                             }
                         }
                     )
+                }
 
-                    val statusStrategyKeys = listOf(
-                        BasicStyle.STATUS_COLOR_STRATEGY_PRECISE,
-                        BasicStyle.STATUS_COLOR_STRATEGY_COMPAT
+                val statusStrategyKeys = listOf(
+                    BasicStyle.STATUS_COLOR_STRATEGY_PRECISE,
+                    BasicStyle.STATUS_COLOR_STRATEGY_COMPAT
+                )
+
+                val statusStrategyOptions = listOf(
+                    DropdownItem(
+                        title = stringResource(R.string.option_status_color_strategy_precise)
+                    ),
+                    DropdownItem(
+                        title = stringResource(R.string.option_status_color_strategy_compat)
+                    ),
+                )
+
+                val currentStatusStrategy = preferences.getInt(
+                    "lyric_style_base_status_color_strategy",
+                    BasicStyle.Defaults.STATUS_COLOR_STRATEGY
+                )
+
+                val selectedStatusStrategyIndex = remember {
+                    mutableIntStateOf(
+                        statusStrategyKeys.indexOf(currentStatusStrategy).coerceAtLeast(0)
                     )
+                }
 
-                    val statusStrategyOptions = listOf(
-                        DropdownItem(
-                            title = stringResource(R.string.option_status_color_strategy_precise)
-                        ),
-                        DropdownItem(
-                            title = stringResource(R.string.option_status_color_strategy_compat)
-                        ),
-                    )
-
-                    val currentStatusStrategy = preferences.getInt(
-                        "lyric_style_base_status_color_strategy",
-                        BasicStyle.Defaults.STATUS_COLOR_STRATEGY
-                    )
-
-                    val selectedStatusStrategyIndex = remember {
-                        mutableIntStateOf(
-                            statusStrategyKeys.indexOf(currentStatusStrategy).coerceAtLeast(0)
-                        )
-                    }
-
+                OpaqueDropdownPopupTheme {
                     OverlaySpinnerPreference(
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_palette))
@@ -182,32 +193,55 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                             }
                         }
                     )
+                }
 
-                    RectInputPreference(
-                        preferences,
-                        "lyric_style_base_margins",
-                        stringResource(R.string.item_base_margins),
-                        dialogSummary = stringResource(R.string.dialog_summary_base_margins),
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_margin))
-                        },
-                    )
+                RectInputPreference(
+                    preferences,
+                    "lyric_style_base_margins",
+                    stringResource(R.string.item_base_margins),
+                    dialogSummary = stringResource(R.string.dialog_summary_base_margins),
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_margin))
+                    },
+                )
 
-                    RectInputPreference(
-                        preferences,
-                        "lyric_style_base_paddings",
-                        stringResource(R.string.item_base_paddings),
-                        dialogSummary = stringResource(R.string.dialog_summary_base_paddings),
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_padding))
-                        }
-                    )
+                RectInputPreference(
+                    preferences,
+                    "lyric_style_base_paddings",
+                    stringResource(R.string.item_base_paddings),
+                    dialogSummary = stringResource(R.string.dialog_summary_base_paddings),
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_padding))
+                    }
+                )
 
+                DoubleInputPreference(
+                    preferences = preferences,
+                    key = "lyric_style_base_width",
+                    title = stringResource(R.string.item_base_width),
+                    dialogSummary = stringResource(R.string.dialog_summary_base_width),
+                    range = 0.0..8000.0,
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_width_normal))
+                    },
+                )
+                DoubleInputPreference(
+                    preferences = preferences,
+                    key = "lyric_style_base_width_in_landscape",
+                    title = stringResource(R.string.item_base_width_in_landscape),
+                    dialogSummary = stringResource(R.string.dialog_summary_base_width_in_landscape),
+                    range = 0.0..8000.0,
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_width_normal))
+                    },
+                )
+                // 胶囊模式宽度：ColorOS 流体云与小米超级岛自动缩短共用
+                if (Utils.isOPlus || Utils.isHyperOs3OrAbove) {
                     DoubleInputPreference(
                         preferences = preferences,
-                        key = "lyric_style_base_width",
-                        title = stringResource(R.string.item_base_width),
-                        dialogSummary = stringResource(R.string.dialog_summary_base_width),
+                        key = "lyric_style_base_width_in_coloros_capsule_mode",
+                        title = stringResource(R.string.item_base_width_color_os_capsule),
+                        dialogSummary = stringResource(R.string.dialog_summary_base_width_color_os_capsule),
                         range = 0.0..8000.0,
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_width_normal))
@@ -215,297 +249,281 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
                     )
                     DoubleInputPreference(
                         preferences = preferences,
-                        key = "lyric_style_base_width_in_landscape",
-                        title = stringResource(R.string.item_base_width_in_landscape),
-                        dialogSummary = stringResource(R.string.dialog_summary_base_width_in_landscape),
+                        key = "lyric_style_base_width_in_coloros_capsule_mode_in_landscape",
+                        title = stringResource(R.string.item_base_width_color_os_capsule_in_landscape),
+                        dialogSummary = stringResource(R.string.dialog_summary_base_width_color_os_capsule_in_landscape),
                         range = 0.0..8000.0,
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_width_normal))
                         },
                     )
-                    // 胶囊模式宽度：ColorOS 流体云与小米超级岛自动缩短共用
-                    if (Utils.isOPlus || Utils.isHyperOs3OrAbove) {
-                        DoubleInputPreference(
-                            preferences = preferences,
-                            key = "lyric_style_base_width_in_coloros_capsule_mode",
-                            title = stringResource(R.string.item_base_width_color_os_capsule),
-                            dialogSummary = stringResource(R.string.dialog_summary_base_width_color_os_capsule),
-                            range = 0.0..8000.0,
-                            startAction = {
-                                IconActions(painterResource(R.drawable.ic_width_normal))
-                            },
-                        )
-                        DoubleInputPreference(
-                            preferences = preferences,
-                            key = "lyric_style_base_width_in_coloros_capsule_mode_in_landscape",
-                            title = stringResource(R.string.item_base_width_color_os_capsule_in_landscape),
-                            dialogSummary = stringResource(R.string.dialog_summary_base_width_color_os_capsule_in_landscape),
-                            range = 0.0..8000.0,
-                            startAction = {
-                                IconActions(painterResource(R.drawable.ic_width_normal))
-                            },
+                }
+
+                ArrowPreference(
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_visibility))
+                    },
+                    title = stringResource(R.string.item_config_view_rules),
+                    onClick = {
+                        context.startActivity(
+                            Intent(context, ViewRulesTreeActivity::class.java)
                         )
                     }
-
-                    ArrowPreference(
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_visibility))
-                        },
-                        title = stringResource(R.string.item_config_view_rules),
-                        onClick = {
-                            context.startActivity(
-                                Intent(context, ViewRulesTreeActivity::class.java)
-                            )
-                        }
-                    )
-
-                    StringInputPreference(
-                        preferences = preferences,
-                        key = "lyric_style_base_blocked_words_regex",
-                        title = stringResource(R.string.item_base_blocked_words_regex),
-                        dialogSummary = stringResource(R.string.dialog_summary_base_blocked_words_regex),
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_visibility_off))
-                        }
-                    )
-
-                    ChineseConversionPreference()
-                }
-            }
-
-
-            item(key = "hdr") {
-                SmallTitle(
-                    text = stringResource(R.string.section_hdr),
-                    insideMargin = PaddingValues(
-                        start = 26.dp,
-                        top = 16.dp,
-                        end = 26.dp,
-                        bottom = 10.dp
-                    )
                 )
-                Card(
-                    modifier = Modifier
-                        .padding(start = 16.dp, top = 0.dp, end = 16.dp)
-                        .fillMaxWidth(),
-                ) {
-                    var isHdrHighlightEnabled by rememberBooleanPreference(
-                        preferences,
-                        "lyric_style_base_hdr_highlight_enabled",
-                        BasicStyle.Defaults.HDR_HIGHLIGHT_ENABLED
-                    )
 
-                    SwitchPreference(
-                        checked = isHdrHighlightEnabled,
-                        onCheckedChange = { isHdrHighlightEnabled = it },
-                        startAction = {
-                            IconActions(painterResource(R.drawable.lightbulb_2_24px))
-                        },
-                        title = stringResource(R.string.item_base_hdr_highlight),
-                        summary = stringResource(R.string.item_base_hdr_highlight_summary),
-                    )
-
-                    DoubleInputPreference(
-                        preferences = preferences,
-                        key = "lyric_style_base_hdr_brightness_ratio",
-                        title = stringResource(R.string.item_base_hdr_brightness_ratio),
-                        defaultValue = BasicStyle.Defaults.HDR_BRIGHTNESS_RATIO.toDouble(),
-                        dialogSummary = stringResource(R.string.dialog_summary_base_hdr_brightness_ratio),
-                        range = 1.0..4.0,
-                        enabled = isHdrHighlightEnabled,
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_brightness7))
-                        },
-                    )
-
-                }
-            }
-
-            item(key = "visibility") {
-                SmallTitle(
-                    text = stringResource(R.string.section_visibility),
-                    insideMargin = PaddingValues(
-                        start = 26.dp,
-                        top = 16.dp,
-                        end = 26.dp,
-                        bottom = 10.dp
-                    )
+                StringInputPreference(
+                    preferences = preferences,
+                    key = "lyric_style_base_blocked_words_regex",
+                    title = stringResource(R.string.item_base_blocked_words_regex),
+                    dialogSummary = stringResource(R.string.dialog_summary_base_blocked_words_regex),
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_visibility_off))
+                    }
                 )
-                Card(
-                    modifier = Modifier
-                        .padding(start = 16.dp, top = 0.dp, end = 16.dp)
-                        .fillMaxWidth(),
-                ) {
 
-                    var isHideOnLockScreenEnabled by rememberBooleanPreference(
+                ChineseConversionPreference(preferences)
+            }
+        }
+
+
+        item(key = "hdr") {
+            SmallTitle(
+                text = stringResource(R.string.section_hdr),
+                insideMargin = PaddingValues(
+                    start = 26.dp,
+                    top = 16.dp,
+                    end = 26.dp,
+                    bottom = 10.dp
+                )
+            )
+            Card(
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 0.dp, end = 16.dp)
+                    .fillMaxWidth(),
+            ) {
+                var isHdrHighlightEnabled by rememberBooleanPreference(
+                    preferences,
+                    "lyric_style_base_hdr_highlight_enabled",
+                    BasicStyle.Defaults.HDR_HIGHLIGHT_ENABLED
+                )
+
+                SwitchPreference(
+                    checked = isHdrHighlightEnabled,
+                    onCheckedChange = { isHdrHighlightEnabled = it },
+                    startAction = {
+                        IconActions(painterResource(R.drawable.lightbulb_2_24px))
+                    },
+                    title = stringResource(R.string.item_base_hdr_highlight),
+                    summary = stringResource(R.string.item_base_hdr_highlight_summary),
+                )
+
+                DoubleInputPreference(
+                    preferences = preferences,
+                    key = "lyric_style_base_hdr_brightness_ratio",
+                    title = stringResource(R.string.item_base_hdr_brightness_ratio),
+                    defaultValue = BasicStyle.Defaults.HDR_BRIGHTNESS_RATIO.toDouble(),
+                    dialogSummary = stringResource(R.string.dialog_summary_base_hdr_brightness_ratio),
+                    range = 1.0..4.0,
+                    enabled = isHdrHighlightEnabled,
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_brightness7))
+                    },
+                )
+
+            }
+        }
+
+        item(key = "visibility") {
+            SmallTitle(
+                text = stringResource(R.string.section_visibility),
+                insideMargin = PaddingValues(
+                    start = 26.dp,
+                    top = 16.dp,
+                    end = 26.dp,
+                    bottom = 10.dp
+                )
+            )
+            Card(
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 0.dp, end = 16.dp)
+                    .fillMaxWidth(),
+            ) {
+
+                var isHideOnLockScreenEnabled by rememberBooleanPreference(
+                    preferences,
+                    "lyric_style_base_hide_on_lock_screen",
+                    BasicStyle.Defaults.HIDE_ON_LOCK_SCREEN
+                )
+                SwitchPreference(
+                    checked = isHideOnLockScreenEnabled,
+                    onCheckedChange = { isHideOnLockScreenEnabled = it },
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_visibility_off))
+                    },
+                    title = stringResource(R.string.item_base_lockscreen_hidden),
+                )
+
+                HideWhenNoLyric(preferences)
+                HideWhenNoUpdate(preferences)
+                HideWhenKeywords(preferences)
+
+                if (Utils.isHyperOs3OrAbove) {
+                    var isXiaomiIslandTempHideEnabled by rememberBooleanPreference(
                         preferences,
-                        "lyric_style_base_hide_on_lock_screen",
-                        BasicStyle.Defaults.HIDE_ON_LOCK_SCREEN
+                        "lyric_style_base_xiaomi_island_temp_hide_enabled",
+                        BasicStyle.Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED
                     )
                     SwitchPreference(
-                        checked = isHideOnLockScreenEnabled,
-                        onCheckedChange = { isHideOnLockScreenEnabled = it },
+                        checked = isXiaomiIslandTempHideEnabled,
+                        onCheckedChange = { isXiaomiIslandTempHideEnabled = it },
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_visibility_off))
                         },
-                        title = stringResource(R.string.item_base_lockscreen_hidden),
+                        title = stringResource(R.string.item_base_xiaomi_island_temp_hide),
+                        summary = stringResource(R.string.item_base_xiaomi_island_temp_hide_summary),
                     )
 
-                    HideWhenNoLyric()
-                    HideWhenNoUpdate()
-                    HideWhenKeywords()
-
-                    if (Utils.isHyperOs3OrAbove) {
-                        var isXiaomiIslandTempHideEnabled by rememberBooleanPreference(
-                            preferences,
-                            "lyric_style_base_xiaomi_island_temp_hide_enabled",
-                            BasicStyle.Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED
-                        )
-                        SwitchPreference(
-                            checked = isXiaomiIslandTempHideEnabled,
-                            onCheckedChange = { isXiaomiIslandTempHideEnabled = it },
-                            startAction = {
-                                IconActions(painterResource(R.drawable.ic_visibility_off))
-                            },
-                            title = stringResource(R.string.item_base_xiaomi_island_temp_hide),
-                            summary = stringResource(R.string.item_base_xiaomi_island_temp_hide_summary),
-                        )
-
-                        var isXiaomiIslandAutoShrinkEnabled by rememberBooleanPreference(
-                            preferences,
-                            "lyric_style_base_xiaomi_island_auto_shrink_enabled",
-                            BasicStyle.Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED
-                        )
-                        SwitchPreference(
-                            checked = isXiaomiIslandAutoShrinkEnabled,
-                            onCheckedChange = { isXiaomiIslandAutoShrinkEnabled = it },
-                            enabled = !isXiaomiIslandTempHideEnabled,
-                            startAction = {
-                                IconActions(painterResource(R.drawable.ic_width_normal))
-                            },
-                            title = stringResource(R.string.item_base_xiaomi_island_auto_shrink),
-                            summary = stringResource(R.string.item_base_xiaomi_island_auto_shrink_summary),
-                        )
-                    }
+                    var isXiaomiIslandAutoShrinkEnabled by rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_xiaomi_island_auto_shrink_enabled",
+                        BasicStyle.Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED
+                    )
+                    SwitchPreference(
+                        checked = isXiaomiIslandAutoShrinkEnabled,
+                        onCheckedChange = { isXiaomiIslandAutoShrinkEnabled = it },
+                        enabled = !isXiaomiIslandTempHideEnabled,
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_width_normal))
+                        },
+                        title = stringResource(R.string.item_base_xiaomi_island_auto_shrink),
+                        summary = stringResource(R.string.item_base_xiaomi_island_auto_shrink_summary),
+                    )
                 }
             }
+        }
 
-            item(key = "gesture") {
-                SmallTitle(
-                    text = stringResource(R.string.section_gesture),
-                    insideMargin = PaddingValues(
-                        start = 26.dp,
-                        top = 16.dp,
-                        end = 26.dp,
-                        bottom = 10.dp
-                    )
+        item(key = "gesture") {
+            SmallTitle(
+                text = stringResource(R.string.section_gesture),
+                insideMargin = PaddingValues(
+                    start = 26.dp,
+                    top = 16.dp,
+                    end = 26.dp,
+                    bottom = 10.dp
                 )
-                Card(
-                    modifier = Modifier
-                        .padding(start = 16.dp, top = 0.dp, end = 16.dp)
-                        .fillMaxWidth(),
-                ) {
+            )
+            Card(
+                modifier = Modifier
+                    .padding(start = 16.dp, top = 0.dp, end = 16.dp)
+                    .fillMaxWidth(),
+            ) {
 
-                    var gestureEnabled by rememberBooleanPreference(
-                        preferences,
-                        LyricGesturePrefs.KEY_ENABLED,
-                        LyricGesturePrefs.DEFAULT_ENABLED
-                    )
-                    SwitchPreference(
-                        checked = gestureEnabled,
-                        onCheckedChange = { gestureEnabled = it },
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_music_note))
-                        },
-                        title = stringResource(R.string.item_gesture_enable),
-                        summary = stringResource(R.string.item_gesture_summary),
-                    )
+                var gestureEnabled by rememberBooleanPreference(
+                    preferences,
+                    LyricGesturePrefs.KEY_ENABLED,
+                    LyricGesturePrefs.DEFAULT_ENABLED
+                )
+                SwitchPreference(
+                    checked = gestureEnabled,
+                    onCheckedChange = { gestureEnabled = it },
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_music_note))
+                    },
+                    title = stringResource(R.string.item_gesture_enable),
+                    summary = stringResource(R.string.item_gesture_summary),
+                )
 
-                    var gestureHapticEnabled by rememberBooleanPreference(
-                        preferences,
-                        LyricGesturePrefs.KEY_HAPTIC,
-                        LyricGesturePrefs.DEFAULT_HAPTIC
-                    )
-                    SwitchPreference(
-                        checked = gestureHapticEnabled,
-                        onCheckedChange = { gestureHapticEnabled = it },
-                        startAction = {
-                            IconActions(painterResource(R.drawable.mobile_vibrate_fill1_24px))
-                        },
-                        title = stringResource(R.string.item_gesture_haptic),
-                        summary = stringResource(R.string.item_gesture_haptic_summary),
-                    )
+                var gestureHapticEnabled by rememberBooleanPreference(
+                    preferences,
+                    LyricGesturePrefs.KEY_HAPTIC,
+                    LyricGesturePrefs.DEFAULT_HAPTIC
+                )
+                SwitchPreference(
+                    checked = gestureHapticEnabled,
+                    onCheckedChange = { gestureHapticEnabled = it },
+                    startAction = {
+                        IconActions(painterResource(R.drawable.mobile_vibrate_fill1_24px))
+                    },
+                    title = stringResource(R.string.item_gesture_haptic),
+                    summary = stringResource(R.string.item_gesture_haptic_summary),
+                )
 
-                    GestureActionSpinner(
-                        key = LyricGesturePrefs.KEY_SWIPE_LEFT,
-                        default = LyricGesturePrefs.DEFAULT_SWIPE_LEFT,
-                        title = stringResource(R.string.item_gesture_swipe_left),
-                        iconRes = R.drawable.ic_gesture_swipe_left
-                    )
+                GestureActionSpinner(
+                    preferences = preferences,
+                    key = LyricGesturePrefs.KEY_SWIPE_LEFT,
+                    default = LyricGesturePrefs.DEFAULT_SWIPE_LEFT,
+                    title = stringResource(R.string.item_gesture_swipe_left),
+                    iconRes = R.drawable.ic_gesture_swipe_left
+                )
 
-                    GestureActionSpinner(
-                        key = LyricGesturePrefs.KEY_SWIPE_RIGHT,
-                        default = LyricGesturePrefs.DEFAULT_SWIPE_RIGHT,
-                        title = stringResource(R.string.item_gesture_swipe_right),
-                        iconRes = R.drawable.ic_gesture_swipe_right
-                    )
+                GestureActionSpinner(
+                    preferences = preferences,
+                    key = LyricGesturePrefs.KEY_SWIPE_RIGHT,
+                    default = LyricGesturePrefs.DEFAULT_SWIPE_RIGHT,
+                    title = stringResource(R.string.item_gesture_swipe_right),
+                    iconRes = R.drawable.ic_gesture_swipe_right
+                )
 
-                    GestureActionSpinner(
-                        key = LyricGesturePrefs.KEY_TAP,
-                        default = LyricGesturePrefs.DEFAULT_TAP,
-                        title = stringResource(R.string.item_gesture_tap),
-                        iconRes = R.drawable.ic_gesture_tap
-                    )
+                GestureActionSpinner(
+                    preferences = preferences,
+                    key = LyricGesturePrefs.KEY_TAP,
+                    default = LyricGesturePrefs.DEFAULT_TAP,
+                    title = stringResource(R.string.item_gesture_tap),
+                    iconRes = R.drawable.ic_gesture_tap
+                )
 
-                    GestureActionSpinner(
-                        key = LyricGesturePrefs.KEY_LONG_PRESS,
-                        default = LyricGesturePrefs.DEFAULT_LONG_PRESS,
-                        title = stringResource(R.string.item_gesture_long_press),
-                        iconRes = R.drawable.ic_gesture_long_press
-                    )
-                }
+                GestureActionSpinner(
+                    preferences = preferences,
+                    key = LyricGesturePrefs.KEY_LONG_PRESS,
+                    default = LyricGesturePrefs.DEFAULT_LONG_PRESS,
+                    title = stringResource(R.string.item_gesture_long_press),
+                    iconRes = R.drawable.ic_gesture_long_press
+                )
             }
+        }
 
-            item("bottom_spacer") {
-                Spacer(Modifier.height(16.dp))
-            }
+        item("bottom_spacer") {
+            Spacer(Modifier.height(16.dp))
         }
     }
+}
 
-    /**
-     * 手势动作选择器：一个手势对应一个 [OverlaySpinnerPreference]，
-     * 可选项为 [LyricGesturePrefs.ACTION_NONE] 等动作常量
-     */
-    @Composable
-    private fun GestureActionSpinner(
-        key: String,
-        default: Int,
-        title: String,
-        iconRes: Int
-    ) {
-        val optionActions = listOf(
-            LyricGesturePrefs.ACTION_NONE,
-            LyricGesturePrefs.ACTION_TOGGLE_PLAY,
-            LyricGesturePrefs.ACTION_PREVIOUS,
-            LyricGesturePrefs.ACTION_NEXT,
-            LyricGesturePrefs.ACTION_OPEN_CONTROL,
-            LyricGesturePrefs.ACTION_TOGGLE_CLOCK
-        )
+/**
+ * 手势动作选择器：一个手势对应一个 [OverlaySpinnerPreference]，
+ * 可选项为 [LyricGesturePrefs.ACTION_NONE] 等动作常量
+ */
+@Composable
+private fun GestureActionSpinner(
+    preferences: SharedPreferences,
+    key: String,
+    default: Int,
+    title: String,
+    iconRes: Int
+) {
+    val optionActions = listOf(
+        LyricGesturePrefs.ACTION_NONE,
+        LyricGesturePrefs.ACTION_TOGGLE_PLAY,
+        LyricGesturePrefs.ACTION_PREVIOUS,
+        LyricGesturePrefs.ACTION_NEXT,
+        LyricGesturePrefs.ACTION_OPEN_CONTROL,
+        LyricGesturePrefs.ACTION_TOGGLE_CLOCK
+    )
 
-        val optionItems = listOf(
-            DropdownItem(title = stringResource(R.string.option_gesture_none)),
-            DropdownItem(title = stringResource(R.string.option_gesture_toggle_play)),
-            DropdownItem(title = stringResource(R.string.option_gesture_previous)),
-            DropdownItem(title = stringResource(R.string.option_gesture_next)),
-            DropdownItem(title = stringResource(R.string.option_gesture_open_control)),
-            DropdownItem(title = stringResource(R.string.option_gesture_toggle_clock)),
-        )
+    val optionItems = listOf(
+        DropdownItem(title = stringResource(R.string.option_gesture_none)),
+        DropdownItem(title = stringResource(R.string.option_gesture_toggle_play)),
+        DropdownItem(title = stringResource(R.string.option_gesture_previous)),
+        DropdownItem(title = stringResource(R.string.option_gesture_next)),
+        DropdownItem(title = stringResource(R.string.option_gesture_open_control)),
+        DropdownItem(title = stringResource(R.string.option_gesture_toggle_clock)),
+    )
 
-        val current = preferences.getInt(key, default)
-        val selectedIndex = remember(current) {
-            mutableIntStateOf(optionActions.indexOf(current).coerceAtLeast(0))
-        }
+    val current = preferences.getInt(key, default)
+    val selectedIndex = remember(current) {
+        mutableIntStateOf(optionActions.indexOf(current).coerceAtLeast(0))
+    }
 
+    OpaqueDropdownPopupTheme {
         OverlaySpinnerPreference(
             startAction = {
                 IconActions(painterResource(iconRes))
@@ -521,48 +539,83 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             }
         )
     }
+}
 
-    @Composable
-    private fun HideWhenNoLyric() {
-        val hideWhenNoLyricAfterSeconds = rememberStringPreference(
-            preferences,
-            "lyric_style_base_no_lyric_hide_timeout",
-            BasicStyle.Defaults.NO_LYRIC_HIDE_TIMEOUT.toString()
-        )
-        val hideWhenNoLyricAfterSecondsInt = remember(hideWhenNoLyricAfterSeconds.value) {
-            hideWhenNoLyricAfterSeconds.value?.toLongOrNull()
-                ?: BasicStyle.Defaults.NO_LYRIC_HIDE_TIMEOUT.toLong()
-        }
-        val hideWhenNoLyricSummary = remember(hideWhenNoLyricAfterSecondsInt) {
-            hideWhenNoLyricAfterSecondsInt
-        }.let { seconds ->
-            if (seconds <= 0) {
-                stringResource(R.string.option_timeout_hide_never)
-            } else null
-        }
-
-        LongInputPreference(
-            preferences = preferences,
-            key = "lyric_style_base_no_lyric_hide_timeout",
-            title = stringResource(R.string.item_base_timeout_no_lyric),
-            dialogSummary = stringResource(R.string.dialog_summary_base_timeout_no_lyric),
-            range = 0L..3_600_000L,
-            summary = { hideWhenNoLyricSummary },
-            startAction = { IconActions(painterResource(R.drawable.update_24px)) },
-            display = PreferenceValueDisplay.Time(multiplier = 1000)
-        )
+@Composable
+private fun HideWhenNoLyric(preferences: SharedPreferences) {
+    val hideWhenNoLyricAfterSeconds = rememberStringPreference(
+        preferences,
+        "lyric_style_base_no_lyric_hide_timeout",
+        BasicStyle.Defaults.NO_LYRIC_HIDE_TIMEOUT.toString()
+    )
+    val hideWhenNoLyricAfterSecondsInt = remember(hideWhenNoLyricAfterSeconds.value) {
+        hideWhenNoLyricAfterSeconds.value?.toLongOrNull()
+            ?: BasicStyle.Defaults.NO_LYRIC_HIDE_TIMEOUT.toLong()
+    }
+    val hideWhenNoLyricSummary = remember(hideWhenNoLyricAfterSecondsInt) {
+        hideWhenNoLyricAfterSecondsInt
+    }.let { seconds ->
+        if (seconds <= 0) {
+            stringResource(R.string.option_timeout_hide_never)
+        } else null
     }
 
+    LongInputPreference(
+        preferences = preferences,
+        key = "lyric_style_base_no_lyric_hide_timeout",
+        title = stringResource(R.string.item_base_timeout_no_lyric),
+        dialogSummary = stringResource(R.string.dialog_summary_base_timeout_no_lyric),
+        range = 0L..3_600_000L,
+        summary = { hideWhenNoLyricSummary },
+        startAction = { IconActions(painterResource(R.drawable.update_24px)) },
+        display = PreferenceValueDisplay.Time(multiplier = 1000)
+    )
+}
+
+@Composable
+private fun HideWhenNoUpdate(preferences: SharedPreferences) {
+    val seconds = rememberStringPreference(
+        preferences,
+        "lyric_style_base_no_update_hide_timeout",
+        BasicStyle.Defaults.NO_UPDATE_HIDE_TIMEOUT.toString()
+    )
+    val secondsInt = remember(seconds.value) {
+        seconds.value?.toLong()
+            ?: BasicStyle.Defaults.NO_UPDATE_HIDE_TIMEOUT.toLong()
+    }
+    val summary = remember(secondsInt) {
+        secondsInt
+    }.let { seconds ->
+        if (seconds <= 0) {
+            stringResource(R.string.option_timeout_hide_never)
+        } else null
+    }
+
+    LongInputPreference(
+        preferences = preferences,
+        key = "lyric_style_base_no_update_hide_timeout",
+        title = stringResource(R.string.item_base_timeout_no_update),
+        dialogSummary = stringResource(R.string.dialog_summary_base_timeout_no_update),
+        range = 0L..3_600_000L,
+        summary = { summary },
+        startAction = { IconActions(painterResource(R.drawable.update_24px)) },
+        display = PreferenceValueDisplay.Time(multiplier = 1000)
+    )
+}
+
+@Composable
+private fun HideWhenKeywords(preferences: SharedPreferences) {
     @Composable
-    private fun HideWhenNoUpdate() {
+    fun SecondsInput() {
+
         val seconds = rememberStringPreference(
             preferences,
-            "lyric_style_base_no_update_hide_timeout",
+            "lyric_style_base_keyword_hide_timeout",
             BasicStyle.Defaults.NO_UPDATE_HIDE_TIMEOUT.toString()
         )
         val secondsInt = remember(seconds.value) {
             seconds.value?.toLong()
-                ?: BasicStyle.Defaults.NO_UPDATE_HIDE_TIMEOUT.toLong()
+                ?: BasicStyle.Defaults.KEYWORD_HIDE_TIMEOUT.toLong()
         }
         val summary = remember(secondsInt) {
             secondsInt
@@ -574,9 +627,9 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
 
         LongInputPreference(
             preferences = preferences,
-            key = "lyric_style_base_no_update_hide_timeout",
-            title = stringResource(R.string.item_base_timeout_no_update),
-            dialogSummary = stringResource(R.string.dialog_summary_base_timeout_no_update),
+            key = "lyric_style_base_keyword_hide_timeout",
+            title = stringResource(R.string.item_base_timeout_keyword_match),
+            dialogSummary = stringResource(R.string.dialog_summary_base_timeout_keyword_match),
             range = 0L..3_600_000L,
             summary = { summary },
             startAction = { IconActions(painterResource(R.drawable.update_24px)) },
@@ -585,91 +638,58 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
     }
 
     @Composable
-    private fun HideWhenKeywords() {
-        @Composable
-        fun SecondsInput() {
+    fun RegexInput() {
+        val keywords by rememberStringPreference(
+            preferences,
+            "lyric_style_base_timeout_hide_keywords",
+            if (BasicStyle.Defaults.KEYWORD_HIDE_MATCH.isEmpty()) null
+            else BasicStyle.Defaults.KEYWORD_HIDE_MATCH.joinToString()
+        )
+        val summary = keywords
 
-            val seconds = rememberStringPreference(
-                preferences,
-                "lyric_style_base_keyword_hide_timeout",
-                BasicStyle.Defaults.NO_UPDATE_HIDE_TIMEOUT.toString()
-            )
-            val secondsInt = remember(seconds.value) {
-                seconds.value?.toLong()
-                    ?: BasicStyle.Defaults.KEYWORD_HIDE_TIMEOUT.toLong()
-            }
-            val summary = remember(secondsInt) {
-                secondsInt
-            }.let { seconds ->
-                if (seconds <= 0) {
-                    stringResource(R.string.option_timeout_hide_never)
-                } else null
-            }
-
-            LongInputPreference(
-                preferences = preferences,
-                key = "lyric_style_base_keyword_hide_timeout",
-                title = stringResource(R.string.item_base_timeout_keyword_match),
-                dialogSummary = stringResource(R.string.dialog_summary_base_timeout_keyword_match),
-                range = 0L..3_600_000L,
-                summary = { summary },
-                startAction = { IconActions(painterResource(R.drawable.update_24px)) },
-                display = PreferenceValueDisplay.Time(multiplier = 1000)
-            )
-        }
-
-        @Composable
-        fun RegexInput() {
-            val keywords by rememberStringPreference(
-                preferences,
-                "lyric_style_base_timeout_hide_keywords",
-                if (BasicStyle.Defaults.KEYWORD_HIDE_MATCH.isEmpty()) null
-                else BasicStyle.Defaults.KEYWORD_HIDE_MATCH.joinToString()
-            )
-            val summary = keywords
-
-            StringInputPreference(
-                preferences = preferences,
-                key = "lyric_style_base_timeout_hide_keywords",
-                title = stringResource(R.string.item_base_filter_keyword_list),
-                summary = summary,
-                dialogSummary = stringResource(R.string.dialog_summary_base_filter_keyword_list),
-                startAction = { IconActions(painterResource(R.drawable.regular_expression_24px)) },
-                label = stringResource(R.string.hint_filter_keyword_input)
-            )
-        }
-
-        SecondsInput()
-        RegexInput()
+        StringInputPreference(
+            preferences = preferences,
+            key = "lyric_style_base_timeout_hide_keywords",
+            title = stringResource(R.string.item_base_filter_keyword_list),
+            summary = summary,
+            dialogSummary = stringResource(R.string.dialog_summary_base_filter_keyword_list),
+            startAction = { IconActions(painterResource(R.drawable.regular_expression_24px)) },
+            label = stringResource(R.string.hint_filter_keyword_input)
+        )
     }
 
-    @Suppress("unused")
-    @Composable
-    private fun ChineseConversionPreference() {
-        // 读取当前保存的模式，默认为 OFF (0)
-        val currentMode = preferences.getInt(
-            "lyric_style_base_chinese_conversion_mode",
-            BasicStyle.Defaults.CHINESE_CONVERSION_MODE
-        )
+    SecondsInput()
+    RegexInput()
+}
 
-        // 定义常量与 UI 索引的映射关系
-        val modeOptions = listOf(
-            BasicStyle.CHINESE_CONVERSION_OFF,
-            BasicStyle.CHINESE_CONVERSION_SIMPLIFIED,
-            BasicStyle.CHINESE_CONVERSION_TRADITIONAL
-        )
+@Suppress("unused")
+@Composable
+private fun ChineseConversionPreference(preferences: SharedPreferences) {
+    // 读取当前保存的模式，默认为 OFF (0)
+    val currentMode = preferences.getInt(
+        "lyric_style_base_chinese_conversion_mode",
+        BasicStyle.Defaults.CHINESE_CONVERSION_MODE
+    )
 
-        val selectedIndex = remember(currentMode) {
-            val index = modeOptions.indexOf(currentMode)
-            mutableIntStateOf(if (index != -1) index else 0)
-        }
+    // 定义常量与 UI 索引的映射关系
+    val modeOptions = listOf(
+        BasicStyle.CHINESE_CONVERSION_OFF,
+        BasicStyle.CHINESE_CONVERSION_SIMPLIFIED,
+        BasicStyle.CHINESE_CONVERSION_TRADITIONAL
+    )
 
-        val entries = listOf(
-            DropdownItem(title = stringResource(R.string.item_base_chinese_conv_off)),
-            DropdownItem(title = stringResource(R.string.item_base_chinese_conv_simplified)),
-            DropdownItem(title = stringResource(R.string.item_base_chinese_conv_traditional)),
-        )
+    val selectedIndex = remember(currentMode) {
+        val index = modeOptions.indexOf(currentMode)
+        mutableIntStateOf(if (index != -1) index else 0)
+    }
 
+    val entries = listOf(
+        DropdownItem(title = stringResource(R.string.item_base_chinese_conv_off)),
+        DropdownItem(title = stringResource(R.string.item_base_chinese_conv_simplified)),
+        DropdownItem(title = stringResource(R.string.item_base_chinese_conv_traditional)),
+    )
+
+    OpaqueDropdownPopupTheme {
         OverlaySpinnerPreference(
             startAction = {
                 IconActions(painterResource(R.drawable.translate_24px))
@@ -685,10 +705,10 @@ class BasicLyricStyleActivity : AbstractLyricActivity() {
             }
         )
     }
+}
 
-    @Preview(showBackground = true)
-    @Composable
-    private fun ContentPreview() {
-        Content()
-    }
+@Preview(showBackground = true)
+@Composable
+private fun ContentPreview() {
+    BasicLyricSettingsScreen()
 }

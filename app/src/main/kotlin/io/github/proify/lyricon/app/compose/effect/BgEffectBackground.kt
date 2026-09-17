@@ -8,9 +8,13 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
+import io.github.proify.android.extensions.defaultSharedPreferences
+import io.github.proify.lyricon.app.compose.preference.rememberIntPreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported
@@ -33,15 +37,30 @@ fun BgEffectBackground(
     }
     Box(modifier = modifier) {
         val surface = MiuixTheme.colorScheme.surface
-        val painter = remember { BgEffectPainter() }
+
+        // 流光观感：默认跟随 HyperOS 大版本（OS2 用 OS2 着色器，OS3+ / 非小米用 OS3，
+        // OS1 不绘制），用户也可在设置里手动指定 OS2 / OS3。
+        val bgEffectStyle by rememberIntPreference(
+            LocalContext.current.defaultSharedPreferences,
+            HyperOsDetector.KEY_BG_EFFECT_STYLE,
+            HyperOsDetector.STYLE_AUTO
+        )
+        val bgEffectVersion = remember(bgEffectStyle) {
+            HyperOsDetector.resolveBgEffectVersion(bgEffectStyle)
+        }
+        val isOs3 = bgEffectVersion != HyperOsDetector.BG_EFFECT_OS2
+        val drawEffect = effectBackground && bgEffectVersion != HyperOsDetector.BG_EFFECT_NONE
+
+        val painter = remember(isOs3) { BgEffectPainter(isOs3) }
         val animTime = rememberFrameTimeSeconds(dynamicBackground)
         val isDark = isDarkTheme ?: (MiuixTheme.colorScheme.background.luminance() < 0.5f)
-        val deviceType = DeviceType.PHONE
-        val preset = remember(isDark, deviceType) { BgEffectConfig.get(deviceType, isDark) }
+        val preset = remember(isDark, isOs3) {
+            BgEffectConfig.get(isDark, isOs3)
+        }
         val colorStage = remember { Animatable(0f) }
 
-        LaunchedEffect(dynamicBackground, preset) {
-            if (!dynamicBackground) return@LaunchedEffect
+        LaunchedEffect(dynamicBackground, preset, drawEffect) {
+            if (!dynamicBackground || !drawEffect) return@LaunchedEffect
             var targetStage = 1f
             while (isActive) {
                 delay((preset.colorInterpPeriod * 500).toLong())
@@ -55,7 +74,7 @@ fun BgEffectBackground(
 
         Canvas(modifier = Modifier.fillMaxSize().then(bgModifier)) {
             drawRect(surface)
-            if (effectBackground) {
+            if (drawEffect) {
                 val drawHeight = size.height * 0.78f
                 val stage = colorStage.value
                 val base = stage.toInt()

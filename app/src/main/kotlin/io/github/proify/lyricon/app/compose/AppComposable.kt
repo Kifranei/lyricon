@@ -173,7 +173,7 @@ fun AppToolBarListContainer(
         val flowingBackground by rememberBooleanPreference(
             context.defaultSharedPreferences,
             "enable_flowing_background",
-            false
+            true
         )
 
         val titleText = remember(title) {

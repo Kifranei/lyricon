@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -45,6 +44,7 @@ import io.github.proify.lyricon.app.activity.lyric.pkg.sheet.AsyncAppIcon
 import io.github.proify.lyricon.app.activity.lyric.provider.LyricModule
 import io.github.proify.lyricon.app.activity.lyric.provider.LyricProviderViewModel
 import io.github.proify.lyricon.app.activity.lyric.provider.ModuleTag
+import io.github.proify.lyricon.app.activity.lyric.provider.ProviderPermissionEffect
 import io.github.proify.lyricon.app.activity.lyric.provider.ViewMode
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.GoogleRainbowText
@@ -56,7 +56,7 @@ import io.github.proify.lyricon.app.util.LaunchBrowserCompose
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
-import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
@@ -78,9 +78,7 @@ fun ProviderPage(
     val groupedModules by viewModel.groupedModules.collectAsState()
     val otherLabel = stringResource(R.string.other)
 
-    LaunchedEffect(Unit) {
-        viewModel.loadProviders(otherLabel)
-    }
+    ProviderPermissionEffect(viewModel, otherLabel)
 
     AppToolBarListContainer(
         title = stringResource(R.string.tab_provider),
@@ -164,9 +162,7 @@ private fun LoadingStateView(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        CircularProgressIndicator(
-            modifier = Modifier.size(80.dp),
-        )
+        InfiniteProgressIndicator()
     }
 }
 
@@ -204,7 +200,7 @@ private fun DisplayOptionsAction(viewModel: LyricProviderViewModel) {
     var listStylePref by rememberIntPreference(
         sharedPreferences,
         "activity_provider_list_style",
-        ViewMode.SHORT
+        ViewMode.FULL
     )
 
     Row(modifier = Modifier.padding(end = 14.dp)) {

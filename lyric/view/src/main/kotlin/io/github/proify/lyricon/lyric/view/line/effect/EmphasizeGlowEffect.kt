@@ -8,7 +8,6 @@ package io.github.proify.lyricon.lyric.view.line.effect
 
 import io.github.proify.lyricon.lyric.view.line.effect.EmpEasing.get
 import kotlin.math.abs
-import kotlin.math.min
 
 /**
  * 内置「Apple Music 式强调辉光」特效（默认启用）。
@@ -20,7 +19,8 @@ import kotlin.math.min
  * - 缩放：`1 + eased · 0.1 · amount`（以字符中心为锚点）；
  * - 左右展开：`-eased · 0.03 · amount · (n/2 - i)` em（离组中心越远的字位移越大）；
  * - 上浮：`-eased · 0.025 · amount` em；
- * - 白色辉光：半径恒定 `min(0.3, blur · 0.3)` em，强度 `eased · blur`；
+ *
+ * 白色辉光已按需求移除：本特效只做位移与缩放，不再输出 glowRadius/glowAlpha。
  *
  * 缓动与源项目一致：分段三次贝塞尔（前段 `cubic-bezier(0.2, 0.4, 0.58, 1.0)`，
  * 后段 `1 - cubic-bezier(0.3, 0, 0.58, 1.0)`，中点 0.5）；动画未开始时保持
@@ -57,13 +57,6 @@ internal class EmphasizeGlowEffect : LyricUnitEffect {
 
         // 上浮（em 单位）。
         out.dy += -eased * LIFT_FACTOR * group.amount * param.textSize * strength
-
-        // 白色辉光：半径恒定，强度随 eased 变化。
-        val glowLevel = eased * group.blur * strength
-        if (glowLevel > GLOW_ALPHA_THRESHOLD) {
-            out.glowRadius = min(GLOW_RADIUS_MAX, group.blur * GLOW_RADIUS_SCALE) * param.textSize * strength
-            out.glowAlpha = glowLevel
-        }
     }
 
     private companion object {
@@ -76,14 +69,6 @@ internal class EmphasizeGlowEffect : LyricUnitEffect {
         const val SCALE_FACTOR = 0.1f
         const val SPREAD_FACTOR = 0.03f
         const val LIFT_FACTOR = 0.025f
-        const val GLOW_RADIUS_MAX = 0.3f
-        const val GLOW_RADIUS_SCALE = 0.3f
-
-        /**
-         * 辉光强度阈值：低于该值的辉光肉眼不可见，跳过 shadowLayer（Canvas 阴影生成
-         * 是逐字绘制热路径的主要开销之一）。
-         */
-        const val GLOW_ALPHA_THRESHOLD = 0.01f
     }
 }
 

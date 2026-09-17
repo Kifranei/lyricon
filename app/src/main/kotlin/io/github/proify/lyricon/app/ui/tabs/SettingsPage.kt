@@ -32,9 +32,12 @@ import io.github.proify.lyricon.app.LyriconApp
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.AboutActivity
 import io.github.proify.lyricon.app.activity.MainActivity
+import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.IconActions
+import io.github.proify.lyricon.app.compose.effect.HyperOsDetector
 import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
+import io.github.proify.lyricon.app.compose.preference.rememberIntPreference
 import io.github.proify.lyricon.app.event.SettingChangedEvent
 import io.github.proify.lyricon.app.util.AppLangUtils
 import io.github.proify.lyricon.app.util.AppThemeUtils
@@ -53,6 +56,8 @@ import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
 import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
 
 @Composable
 fun SettingsPage(bottomBar: @Composable () -> Unit = {}) {
@@ -235,7 +240,7 @@ private fun FloatingBarSetting() {
     var flowingBackgroundEnabled by rememberBooleanPreference(
         sharedPreferences,
         "enable_flowing_background",
-        false
+        true
     )
     SwitchPreference(
         checked = flowingBackgroundEnabled,
@@ -246,6 +251,28 @@ private fun FloatingBarSetting() {
             flowingBackgroundEnabled = it
         }
     )
+
+    // 流光风格：默认跟随 HyperOS 大版本，也可手动锁定 OS2 / OS3 观感
+    var flowingBackgroundStyle by rememberIntPreference(
+        sharedPreferences,
+        HyperOsDetector.KEY_BG_EFFECT_STYLE,
+        HyperOsDetector.STYLE_AUTO
+    )
+    val flowingStyleItems = listOf(
+        DropdownItem(title = stringResource(R.string.option_flowing_background_auto)),
+        DropdownItem(title = stringResource(R.string.option_flowing_background_os2)),
+        DropdownItem(title = stringResource(R.string.option_flowing_background_os3)),
+    )
+    OpaqueDropdownPopupTheme {
+        OverlaySpinnerPreference(
+            startAction = { IconActions(painterResource(R.drawable.ic_palette)) },
+            title = stringResource(R.string.item_flowing_background_style),
+            items = flowingStyleItems,
+            selectedIndex = flowingBackgroundStyle.coerceIn(0, flowingStyleItems.lastIndex),
+            enabled = flowingBackgroundEnabled,
+            onSelectedIndexChange = { flowingBackgroundStyle = it }
+        )
+    }
 }
 
 @Composable
@@ -315,18 +342,20 @@ private fun ThemeSetting(onApplied: () -> Unit) {
             .coerceAtLeast(0)
     }
 
-    OverlayDropdownPreference(
-        startAction = { IconActions(painterResource(R.drawable.ic_routine)) },
-        title = stringResource(R.string.item_app_theme_mode),
-        items = themeModeOptions.map { stringResource(it.first) },
-        selectedIndex = selectedIndex,
-        onSelectedIndexChange = { index ->
-            if (index != selectedIndex) {
-                AppThemeUtils.setMode(context, themeModeOptions[index].second)
-                onApplied()
+    OpaqueDropdownPopupTheme {
+        OverlayDropdownPreference(
+            startAction = { IconActions(painterResource(R.drawable.ic_routine)) },
+            title = stringResource(R.string.item_app_theme_mode),
+            items = themeModeOptions.map { stringResource(it.first) },
+            selectedIndex = selectedIndex,
+            onSelectedIndexChange = { index ->
+                if (index != selectedIndex) {
+                    AppThemeUtils.setMode(context, themeModeOptions[index].second)
+                    onApplied()
+                }
             }
-        }
-    )
+        )
+    }
 }
 
 @Composable
@@ -360,16 +389,18 @@ private fun LanguageSetting(onApplied: () -> Unit) {
         languageCodes.indexOf(currentLanguage).coerceAtLeast(0)
     }
 
-    OverlaySpinnerPreference(
-        startAction = { IconActions(painterResource(R.drawable.ic_language)) },
-        title = stringResource(R.string.item_app_language),
-        items = spinnerItems,
-        selectedIndex = selectedIndex,
-        onSelectedIndexChange = { index ->
-            AppLangUtils.saveCustomizeLanguage(context, languageCodes[index])
-            onApplied()
-        }
-    )
+    OpaqueDropdownPopupTheme {
+        OverlaySpinnerPreference(
+            startAction = { IconActions(painterResource(R.drawable.ic_language)) },
+            title = stringResource(R.string.item_app_language),
+            items = spinnerItems,
+            selectedIndex = selectedIndex,
+            onSelectedIndexChange = { index ->
+                AppLangUtils.saveCustomizeLanguage(context, languageCodes[index])
+                onApplied()
+            }
+        )
+    }
 }
 
 private fun getSupportedLanguageCodes(): List<String> =

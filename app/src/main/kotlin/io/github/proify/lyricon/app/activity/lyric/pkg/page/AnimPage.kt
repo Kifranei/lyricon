@@ -6,6 +6,7 @@
 
 package io.github.proify.lyricon.app.activity.lyric.pkg.page
 
+import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
 import android.content.SharedPreferences
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -109,18 +110,20 @@ fun AnimPage(
                         .padding(start = 16.dp, top = 16.dp, end = 16.dp)
                         .fillMaxWidth(),
                 ) {
-                    OverlayDropdownPreference(
-                        startAction = {
-                            IconActions(painterResource(R.drawable.ic_speed))
-                        },
-                        title = stringResource(R.string.item_anim_speed),
-                        items = speedOptions,
-                        selectedIndex = selectedSpeedIndex,
-                        onSelectedIndexChange = {
-                            selectedSpeedIndex = it
-                            currentSpeed = speedValues[it]
-                        }
-                    )
+                    OpaqueDropdownPopupTheme {
+                        OverlayDropdownPreference(
+                            startAction = {
+                                IconActions(painterResource(R.drawable.ic_speed))
+                            },
+                            title = stringResource(R.string.item_anim_speed),
+                            items = speedOptions,
+                            selectedIndex = selectedSpeedIndex,
+                            onSelectedIndexChange = {
+                                selectedSpeedIndex = it
+                                currentSpeed = speedValues[it]
+                            }
+                        )
+                    }
                 }
             }
 
