@@ -328,8 +328,6 @@
     <string name="toast_desktop_icon_hidden">桌面图标已隐藏，可在词幕设置中恢复。</string>
     <string name="item_text_enable_rainbow_color">彩虹歌词颜色</string>
     <string name="item_text_enable_rainbow_color_summary">内置多彩虹渐变，无需手动配色即可使用。</string>
-    <string name="item_text_sustain_glow">拉长音发光</string>
-    <string name="item_text_sustain_glow_summary">为长时间保持的歌词音节添加柔和发光。</string>
     <string name="item_base_lyric_style">基础歌词样式</string>
     <string name="item_summary_base_lyric_style">设置歌词位置、大小和状态栏显示规则。</string>
     <string name="item_package_style_manager">应用样式管理</string>
@@ -366,4 +364,27 @@
     <string name="dialog_summary_text_word_motion_cjk_wave_factor">控制中日韩字符动画的波浪间距。</string>
     <string name="dialog_summary_text_word_motion_latin_lift_factor">控制拉丁文字单词动画的上浮强度。</string>
     <string name="dialog_summary_text_word_motion_latin_wave_factor">控制拉丁文字单词动画的波浪间距。</string>
+
+    <!-- fork: flowing background style -->
+    <string name="item_flowing_background_style">流光风格</string>
+    <string name="option_flowing_background_auto">跟随系统</string>
+    <string name="option_flowing_background_os2">OS 2</string>
+    <string name="option_flowing_background_os3">OS 3</string>
+
+    <!-- 软件更新 -->
+    <string name="activity_update">软件更新</string>
+    <string name="item_check_update">软件更新</string>
+    <string name="item_check_update_summary">检查并安装新版本</string>
+    <string name="update_checking">正在检查更新…</string>
+    <string name="update_check_button">检查更新</string>
+    <string name="update_check_failed">检查更新失败</string>
+    <string name="update_already_latest">已是最新版本</string>
+    <string name="update_new_version_found">发现新版本</string>
+    <string name="update_view_changelog">更新日志</string>
+    <string name="update_current_version_log">当前版本更新日志</string>
+    <string name="update_collapse_changelog">收起更新日志</string>
+    <string name="update_empty_changelog">本次发布没有提供更新说明。</string>
+    <string name="update_download">立即下载</string>
+    <string name="update_download_retry">重新下载</string>
+    <string name="update_install">立即安装</string>
 </resources>

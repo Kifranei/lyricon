@@ -89,24 +89,6 @@ open class LyricLineView(context: Context, attrs: AttributeSet? = null) :
         }
 
     /**
-     * 拉长音辉光开关。
-     *
-     * 关闭时把上游的 [EmphasizeGlowEffect] 从特效链中摘除，其余特效不受影响；
-     * 重新打开时按原顺序（[WaveLiftEffect] 之后）挂回。
-     */
-    var sustainGlowEnabled: Boolean = true
-        set(value) {
-            if (field == value) return
-            field = value
-            if (value) {
-                effectEngine.add(emphasizeGlowEffect)
-            } else {
-                effectEngine.remove(emphasizeGlowEffect.name)
-            }
-            invalidate()
-        }
-
-    /**
      * 当前特效链（默认为内置 [WaveLiftEffect] + 强调辉光 [EmphasizeGlowEffect]；
      * 可整体替换以实现自定义歌词特效）。
      */

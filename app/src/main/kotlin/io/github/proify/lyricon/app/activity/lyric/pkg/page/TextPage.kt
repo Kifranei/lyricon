@@ -397,19 +397,6 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     enabled = isWordMotionEnabled,
                     startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
                 )
-
-                var isSustainGlowEnabled by rememberBooleanPreference(
-                    sharedPreferences = preferences,
-                    key = TextStyle.KEY_TEXT_SUSTAIN_GLOW,
-                    defaultValue = TextStyle.Defaults.SUSTAIN_GLOW_ENABLED
-                )
-                SwitchPreference(
-                    checked = isSustainGlowEnabled,
-                    onCheckedChange = { isSustainGlowEnabled = it },
-                    title = stringResource(R.string.item_text_sustain_glow),
-                    summary = stringResource(R.string.item_text_sustain_glow_summary),
-                    startAction = { IconActions(painterResource(R.drawable.lightbulb_2_24px)) },
-                )
             }
         }
 

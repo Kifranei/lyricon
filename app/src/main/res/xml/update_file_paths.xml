@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- UpdateDownloadManager 把安装包下载到 cacheDir/updates，交给系统安装器读取 -->
+    <cache-path
+        name="updates"
+        path="updates/" />
+</paths>

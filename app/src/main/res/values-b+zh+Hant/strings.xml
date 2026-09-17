@@ -319,8 +319,6 @@
     <string name="toast_desktop_icon_hidden">桌面圖示已隱藏，可在詞幕設定中恢復。</string>
     <string name="item_text_enable_rainbow_color">彩虹歌詞顏色</string>
     <string name="item_text_enable_rainbow_color_summary">內建多彩虹漸變，無需手動配色即可使用。</string>
-    <string name="item_text_sustain_glow">拉長音發光</string>
-    <string name="item_text_sustain_glow_summary">為長時間保持的歌詞音節加入柔和發光。</string>
     <string name="item_base_lyric_style">基礎歌詞樣式</string>
     <string name="item_summary_base_lyric_style">設定歌詞位置、大小和狀態列顯示規則。</string>
     <string name="item_package_style_manager">應用樣式管理</string>
@@ -357,4 +355,27 @@
     <string name="dialog_summary_text_word_motion_cjk_wave_factor">控制中日韓字元動畫的波浪間距。</string>
     <string name="dialog_summary_text_word_motion_latin_lift_factor">控制拉丁文字單詞動畫的上浮強度。</string>
     <string name="dialog_summary_text_word_motion_latin_wave_factor">控制拉丁文字單詞動畫的波浪間距。</string>
+
+    <!-- fork: flowing background style -->
+    <string name="item_flowing_background_style">流光風格</string>
+    <string name="option_flowing_background_auto">跟隨系統</string>
+    <string name="option_flowing_background_os2">OS 2</string>
+    <string name="option_flowing_background_os3">OS 3</string>
+
+    <!-- 軟體更新 -->
+    <string name="activity_update">軟體更新</string>
+    <string name="item_check_update">軟體更新</string>
+    <string name="item_check_update_summary">檢查並安裝新版本</string>
+    <string name="update_checking">正在檢查更新…</string>
+    <string name="update_check_button">檢查更新</string>
+    <string name="update_check_failed">檢查更新失敗</string>
+    <string name="update_already_latest">已是最新版本</string>
+    <string name="update_new_version_found">發現新版本</string>
+    <string name="update_view_changelog">更新日誌</string>
+    <string name="update_current_version_log">目前版本更新日誌</string>
+    <string name="update_collapse_changelog">收合更新日誌</string>
+    <string name="update_empty_changelog">本次發佈未提供更新說明。</string>
+    <string name="update_download">立即下載</string>
+    <string name="update_download_retry">重新下載</string>
+    <string name="update_install">立即安裝</string>
 </resources>

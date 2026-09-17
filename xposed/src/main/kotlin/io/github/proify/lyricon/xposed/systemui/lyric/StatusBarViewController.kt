@@ -87,6 +87,14 @@ class StatusBarViewController(
     // --- 临时隐藏歌词（由 ACTION_TOGGLE_CLOCK 手势驱动）---
     private var userShowClock = false
 
+    // 歌词隐藏期间的恢复通道：歌词视图为 GONE 收不到触摸，
+    // 需要另挂监听在状态栏上，观察时钟区域的点击来恢复。
+    private var restoreTouchObserver: View.OnTouchListener? = null
+    private var wrappedOriginalTouchListener: View.OnTouchListener? = null
+    private var restoreGestureDetector: GestureDetector? = null
+    private var listenerInfoField: java.lang.reflect.Field? = null
+    private var onTouchListenerField: java.lang.reflect.Field? = null
+
     private val colorChangeListener = object : OnColorChangeListener {
 
         private var colorFingerprint: String? = null
@@ -156,6 +164,7 @@ class StatusBarViewController(
         ScreenStateMonitor.removeListener(this)
         lyricView.onPlayingChanged = null
         lyricView.gestureListener = null
+        uninstallRestoreObserver()
         lyricView.setOnClickListener(null)
         LyricControlPopup.dismissIfOwnedBy(lyricView)
         StatusBarColorMonitor.removeListener(colorChangeListener)
@@ -304,6 +313,7 @@ class StatusBarViewController(
         internalRemoveLyricViewFlag = false
 
         YLog.info(TAG, "Lyric injected: anchor $anchor, index $targetIndex")
+        logAnchorContainer(anchorParent, anchor, targetIndex)
         logLyricWidthState("injected", baseStyle, anchorParent)
     }
 
@@ -539,6 +549,29 @@ class StatusBarViewController(
     }
 
     /**
+     * 记录锚点容器类型与插入后的实际子视图顺序。
+     *
+     * 插入位置靠 [ViewGroup.addView] 的 index 决定，这只对按索引排布的容器
+     * （LinearLayout 等）成立；若容器是 ConstraintLayout / 自定义排版容器，
+     * 子视图顺序由约束或自定义 onLayout 决定，index 不影响视觉先后。
+     * 出现"插入顺序设置无效"时，先看这条日志里的容器类型。
+     */
+    private fun logAnchorContainer(parent: ViewGroup, anchor: String, targetIndex: Int) {
+        val order = (0 until parent.childCount).joinToString(", ") { i ->
+            val child = parent.getChildAt(i)
+            val name = runCatching {
+                if (child.id != View.NO_ID) child.resources.getResourceEntryName(child.id) else null
+            }.getOrNull() ?: child.javaClass.simpleName
+            "$i:$name"
+        }
+        YLog.info(
+            TAG,
+            "Anchor container: ${parent.javaClass.name} anchor=$anchor " +
+                    "insertedAt=$targetIndex children=[$order]"
+        )
+    }
+
+    /**
      * 临时以时钟替代歌词显示。
      *
      * 由 [LyricGesturePrefs.ACTION_TOGGLE_CLOCK] 手势触发，只在本次播放内生效，
@@ -549,11 +582,134 @@ class StatusBarViewController(
         userShowClock = show
         lyricView.userHideLyric = show
         applyVisibilityRulesNow()
-        if (!show) {
+        if (show) {
+            // 歌词一旦隐藏就不再接收触摸，恢复只能靠状态栏上的观察者。
+            // 观察者装不上就没有恢复出口，此时放弃隐藏而不是把用户锁死。
+            if (!ensureRestoreObserverInstalled()) {
+                userShowClock = false
+                lyricView.userHideLyric = false
+                applyVisibilityRulesNow()
+                YLog.warning(TAG, "Hide lyric aborted: no restore channel available")
+                return
+            }
+        } else {
+            uninstallRestoreObserver()
             // 恢复歌词时重刷翻译显示配置，避免副行残留为原文/空行
             LyricViewController.refreshTranslationDisplay()
         }
         YLog.info(TAG, "Gesture clock toggle: showClock=$show")
+    }
+
+    // --- 隐藏期间的恢复通道 ---
+    //
+    // 歌词被临时隐藏后视图为 GONE，挂在它上面的手势监听收不到任何事件，
+    // 因此必须在状态栏本身上观察触摸。接入方式是包装 touchView 上已有的
+    // OnTouchListener 并原样转发：部分 ROM（HyperOS 等）的状态栏下拉手势依赖
+    // 挂在该视图上的监听，直接 setOnTouchListener 会把它顶掉导致状态栏拉不下来。
+    // 观察者自身从不消费事件，且只在隐藏期间安装。
+
+    private fun ensureRestoreObserverInstalled(): Boolean {
+        val current = readStatusBarTouchListener().getOrElse {
+            YLog.error(TAG, "Cannot inspect status bar touch listener, lyric restore unavailable", it)
+            return false
+        }
+        val observer = restoreTouchObserver ?: createRestoreObserver().also {
+            restoreTouchObserver = it
+        }
+        if (current === observer) return true
+
+        wrappedOriginalTouchListener = current
+        touchView.setOnTouchListener(observer)
+        YLog.info(TAG, "Lyric restore observer installed, wrapped=${current?.javaClass?.name}")
+        return true
+    }
+
+    private fun uninstallRestoreObserver() {
+        val observer = restoreTouchObserver ?: return
+        val current = readStatusBarTouchListener().getOrNull()
+        if (current === observer) {
+            touchView.setOnTouchListener(wrappedOriginalTouchListener)
+            // 仅在确认还原后清空：观察者若仍在链上，被包装的原监听不能丢
+            wrappedOriginalTouchListener = null
+            YLog.info(TAG, "Lyric restore observer uninstalled")
+        }
+    }
+
+    private fun readStatusBarTouchListener(): Result<View.OnTouchListener?> = runCatching {
+        val infoField = listenerInfoField
+            ?: View::class.java.getDeclaredField("mListenerInfo")
+                .apply { isAccessible = true }
+                .also { listenerInfoField = it }
+        val listenerInfo = infoField.get(touchView) ?: return@runCatching null
+        val touchField = onTouchListenerField
+            ?: listenerInfo.javaClass.getDeclaredField("mOnTouchListener")
+                .apply { isAccessible = true }
+                .also { onTouchListenerField = it }
+        touchField.get(listenerInfo) as? View.OnTouchListener
+    }
+
+    private fun createRestoreObserver(): View.OnTouchListener {
+        val mainHandler = Handler(context.mainLooper)
+        restoreGestureDetector = GestureDetector(
+            context,
+            object : GestureDetector.SimpleOnGestureListener() {
+                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                    restoreLyric("tap")
+                    return false
+                }
+
+                override fun onDoubleTap(e: MotionEvent): Boolean {
+                    restoreLyric("double-tap")
+                    return false
+                }
+
+                override fun onLongPress(e: MotionEvent) {
+                    restoreLyric("long-press")
+                }
+            },
+            mainHandler
+        )
+        return View.OnTouchListener { view, event ->
+            // 先取本次转发目标：双击/长按会在本次派发内同步恢复歌词并卸载观察者，
+            // 那时 wrappedOriginalTouchListener 已被清空，系统监听会漏掉这个事件
+            val wrapped = wrappedOriginalTouchListener
+            if (userShowClock && isTouchInRestoreArea(event)) {
+                restoreGestureDetector?.onTouchEvent(event)
+            }
+            // 永不消费：交还给被包装的系统监听，没有则返回 false，
+            // 让状态栏自身的 onTouchEvent（下拉手势）照常执行
+            wrapped?.onTouch(view, event) ?: false
+        }
+    }
+
+    private fun restoreLyric(source: String) {
+        if (!userShowClock) return
+        YLog.info(TAG, "Restore lyric by $source on clock area")
+        setUserShowClock(false)
+    }
+
+    /**
+     * 恢复手势的有效区域：优先取时钟视图（隐藏歌词后它占据原歌词位置）。
+     * 时钟不可用时退回整条状态栏，保证任何情况下都有恢复出口。
+     */
+    private fun isTouchInRestoreArea(event: MotionEvent): Boolean {
+        val clock = getClockView()
+        if (clock != null && clock.isShown && clock.width > 0) {
+            return isTouchInside(clock, event)
+        }
+        return true
+    }
+
+    private fun isTouchInside(view: View, event: MotionEvent): Boolean {
+        val width = view.width
+        val height = view.height
+        if (width <= 0 || height <= 0) return false
+
+        val location = IntArray(2)
+        view.getLocationOnScreen(location)
+        val left = location[0].toFloat()
+        val top = location[1].toFloat()
+        return event.rawX in left..(left + width) && event.rawY in top..(top + height)
     }
 
     fun highlightView(idName: String?) {

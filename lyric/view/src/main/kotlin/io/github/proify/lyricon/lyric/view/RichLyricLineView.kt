@@ -51,8 +51,6 @@ class RichLyricLineView(
     private var pendingLine: IRichLyricLine? = null
     private var pendingPosition: Long? = null
     private var requestMarquee = false
-    private var mainBaseSustainGlowEnabled = false
-    private var secondaryBaseSustainGlowEnabled = false
     private var mainGeneratedWords = false
     private var secondaryGeneratedWords = false
 
@@ -137,8 +135,6 @@ class RichLyricLineView(
         )
         enableRelativeProgress = style.primary.relativeProgress
         enableRelativeProgressHighlight = style.primary.relativeHighlight
-        mainBaseSustainGlowEnabled = style.sustainGlow
-        secondaryBaseSustainGlowEnabled = style.sustainGlow
 
         applyLineStyle(
             main,
@@ -148,7 +144,6 @@ class RichLyricLineView(
             style.gradient,
             style.fadingEdge,
             style.wordMotion,
-            style.sustainGlow,
         )
         applyLineStyle(
             secondary,
@@ -158,9 +153,7 @@ class RichLyricLineView(
             style.gradient,
             style.fadingEdge,
             style.wordMotion,
-            style.sustainGlow,
         )
-        updateSustainGlowState()
     }
 
     override fun updateColor(primary: IntArray, background: IntArray, highlight: IntArray) {
@@ -226,7 +219,6 @@ class RichLyricLineView(
         secondary.setLyric(secResult.line)
         secondary.isScrollOnly = secResult.isScrollOnly
         secondaryGeneratedWords = secResult.isGeneratedWords
-        updateSustainGlowState()
 
         if (requestMarquee) requestStartMarquee()
     }
@@ -234,18 +226,11 @@ class RichLyricLineView(
     private fun applyLineStyle(
         view: LyricLineView, text: TextLook, highlight: Highlight,
         marquee: Marquee, gradient: Boolean, fadingEdge: Int, wordMotion: WordMotion,
-        sustainGlow: Boolean,
     ) {
         view.wordMotion = wordMotion
-        view.sustainGlowEnabled = sustainGlow
         view.configureWith(text, highlight, marquee, gradient, fadingEdge)
     }
 
-    private fun updateSustainGlowState() {
-        // 相对进度生成的整行词节点没有真实逐字边界，避免把整行误判成拉长音发光。
-        main.sustainGlowEnabled = mainBaseSustainGlowEnabled && !mainGeneratedWords
-        secondary.sustainGlowEnabled = secondaryBaseSustainGlowEnabled && !secondaryGeneratedWords
-    }
 
     private fun updateLayoutTransitionX(config: String? = LayoutTransitionX.TRANSITION_CONFIG_SMOOTH) {
         layoutTransition = LayoutTransitionX(config).apply { setAnimateParentHierarchy(true) }

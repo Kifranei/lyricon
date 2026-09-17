@@ -8,6 +8,8 @@
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="PackageVisibilityPolicy" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 应用内更新：下载完成后直接拉起系统安装器 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <queries>
         <package android:name="com.oplus.systemui.plugins" />
@@ -97,6 +99,21 @@
         <activity
             android:name=".activity.lyric.ViewRulesTreeActivity"
             android:label="@string/activity_view_rules" />
+
+        <activity
+            android:name=".activity.UpdateActivity"
+            android:label="@string/activity_update" />
+
+        <!-- 把下载到 cacheDir/updates 的安装包共享给系统安装器 -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/update_file_paths" />
+        </provider>
 
     </application>
 

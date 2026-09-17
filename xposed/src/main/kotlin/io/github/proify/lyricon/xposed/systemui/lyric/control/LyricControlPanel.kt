@@ -155,8 +155,8 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
             ellipsize = TextUtils.TruncateAt.END
         }
 
-        seekBar = SeekBar(context).apply {
-            // 长圆形（胶囊）轨道：非 Material 细线，两端为半圆
+        seekBar = GlowSeekBar(context).apply {
+            // 辉光进度条（AGSL）；Android 13 以下回退为下面的胶囊轨道
             progressDrawable = longRoundedTrack()
             // 去掉拖动圆球（thumb），纯进度条；仍可点击/拖动轨道进行 seek
             thumb = null

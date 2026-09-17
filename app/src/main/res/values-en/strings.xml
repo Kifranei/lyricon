@@ -319,8 +319,6 @@
     <string name="toast_desktop_icon_hidden">Desktop icon hidden. You can restore it from Lyricon settings.</string>
     <string name="item_text_enable_rainbow_color">Rainbow lyric color</string>
     <string name="item_text_enable_rainbow_color_summary">A built-in multi-color rainbow gradient, no manual color picking needed.</string>
-    <string name="item_text_sustain_glow">Sustain glow</string>
-    <string name="item_text_sustain_glow_summary">Add a soft glow on long held lyric syllables.</string>
     <string name="item_base_lyric_style">Basic lyric style</string>
     <string name="item_summary_base_lyric_style">Set lyric position, size and status-bar display rules.</string>
     <string name="item_package_style_manager">Package style manager</string>
@@ -364,4 +362,27 @@
     <string name="dialog_summary_text_word_motion_cjk_wave_factor">Controls the wave spacing for CJK character motion.</string>
     <string name="dialog_summary_text_word_motion_latin_lift_factor">Controls the vertical lift strength for Latin word motion.</string>
     <string name="dialog_summary_text_word_motion_latin_wave_factor">Controls the wave spacing for Latin word motion.</string>
+
+    <!-- fork: flowing background style -->
+    <string name="item_flowing_background_style">Flowing background style</string>
+    <string name="option_flowing_background_auto">Follow system</string>
+    <string name="option_flowing_background_os2">OS 2</string>
+    <string name="option_flowing_background_os3">OS 3</string>
+
+    <!-- Software update -->
+    <string name="activity_update">Software update</string>
+    <string name="item_check_update">Software update</string>
+    <string name="item_check_update_summary">Check for and install new versions</string>
+    <string name="update_checking">Checking for updates…</string>
+    <string name="update_check_button">Check for updates</string>
+    <string name="update_check_failed">Update check failed</string>
+    <string name="update_already_latest">You are up to date</string>
+    <string name="update_new_version_found">New version</string>
+    <string name="update_view_changelog">Changelog</string>
+    <string name="update_current_version_log">Current version changelog</string>
+    <string name="update_collapse_changelog">Collapse changelog</string>
+    <string name="update_empty_changelog">This release does not provide release notes.</string>
+    <string name="update_download">Download</string>
+    <string name="update_download_retry">Retry download</string>
+    <string name="update_install">Install</string>
 </resources>
