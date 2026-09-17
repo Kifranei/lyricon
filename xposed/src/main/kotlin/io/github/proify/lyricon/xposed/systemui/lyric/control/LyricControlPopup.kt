@@ -105,6 +105,10 @@ object LyricControlPopup : ActivePlayerListener, NotificationCoverHelper.OnCover
             AiExplainLauncher.launch(anchor, button, LyricViewController.currentSong)
             dismiss()
         }
+
+        override fun onDismiss() {
+            dismiss()
+        }
     }
 
     /**

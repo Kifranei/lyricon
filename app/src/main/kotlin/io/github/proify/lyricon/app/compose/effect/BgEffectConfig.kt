@@ -16,6 +16,38 @@ internal object BgEffectConfig {
         val shadowNoiseScale: Float = 5.0f,
     )
 
+    // ---------------- OS2 ----------------
+
+    private val OS2_PHONE_LIGHT_COLORS = floatArrayOf(
+        0.57f, 0.76f, 0.98f, 1.0f, 0.98f, 0.85f, 0.68f, 1.0f, 0.98f, 0.75f, 0.93f, 1.0f, 0.73f, 0.70f, 0.98f, 1.0f,
+    )
+    private val OS2_PHONE_LIGHT = Config(
+        points = floatArrayOf(0.67f, 0.42f, 1.0f, 0.69f, 0.75f, 1.0f, 0.14f, 0.71f, 0.95f, 0.14f, 0.27f, 0.8f),
+        colors1 = OS2_PHONE_LIGHT_COLORS,
+        colors2 = OS2_PHONE_LIGHT_COLORS,
+        colors3 = OS2_PHONE_LIGHT_COLORS,
+        colorInterpPeriod = 100f,
+        lightOffset = 0.1f,
+        saturateOffset = 0.2f,
+        pointOffset = 0.1f,
+    )
+
+    private val OS2_PHONE_DARK_COLORS = floatArrayOf(
+        0.0f, 0.31f, 0.58f, 1.0f, 0.53f, 0.29f, 0.15f, 1.0f, 0.46f, 0.06f, 0.27f, 1.0f, 0.16f, 0.12f, 0.45f, 1.0f,
+    )
+    private val OS2_PHONE_DARK = Config(
+        points = floatArrayOf(0.63f, 0.50f, 0.88f, 0.69f, 0.75f, 0.80f, 0.17f, 0.66f, 0.81f, 0.14f, 0.24f, 0.72f),
+        colors1 = OS2_PHONE_DARK_COLORS,
+        colors2 = OS2_PHONE_DARK_COLORS,
+        colors3 = OS2_PHONE_DARK_COLORS,
+        colorInterpPeriod = 100f,
+        lightOffset = -0.1f,
+        saturateOffset = 0.2f,
+        pointOffset = 0.1f,
+    )
+
+    // ---------------- OS3 ----------------
+
     private val OS3_PHONE_LIGHT = Config(
         points = floatArrayOf(0.8f, 0.2f, 1.0f, 0.8f, 0.9f, 1.0f, 0.2f, 0.9f, 1.0f, 0.2f, 0.2f, 1.0f),
         colors1 = floatArrayOf(1.0f, 0.9f, 0.94f, 1.0f, 1.0f, 0.84f, 0.89f, 1.0f, 0.97f, 0.73f, 0.82f, 1.0f, 0.64f, 0.65f, 0.98f, 1.0f),
@@ -38,8 +70,10 @@ internal object BgEffectConfig {
         pointOffset = 0.4f,
     )
 
-    fun get(deviceType: DeviceType, isDark: Boolean): Config = when (deviceType) {
-        DeviceType.PHONE -> if (!isDark) OS3_PHONE_LIGHT else OS3_PHONE_DARK
-        DeviceType.PAD -> if (!isDark) OS3_PHONE_LIGHT else OS3_PHONE_DARK
+    /** Returns the phone preset used on every screen size. */
+    fun get(isDark: Boolean, isOs3: Boolean = true): Config = if (isOs3) {
+        if (!isDark) OS3_PHONE_LIGHT else OS3_PHONE_DARK
+    } else {
+        if (!isDark) OS2_PHONE_LIGHT else OS2_PHONE_DARK
     }
 }

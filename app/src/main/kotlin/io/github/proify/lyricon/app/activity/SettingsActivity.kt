@@ -6,6 +6,7 @@
 
 package io.github.proify.lyricon.app.activity
 
+import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
 import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -271,18 +272,20 @@ class SettingsActivity : BaseActivity() {
                 .coerceAtLeast(0)
         }
 
-        OverlayDropdownPreference(
-            startAction = { IconActions(painterResource(R.drawable.ic_routine)) },
-            title = stringResource(R.string.item_app_theme_mode),
-            items = themeModeOptions.map { stringResource(it.first) },
-            selectedIndex = selectedIndex,
-            onSelectedIndexChange = { index ->
-                if (index != selectedIndex) {
-                    AppThemeUtils.setMode(context, themeModeOptions[index].second)
-                    onApplied()
+        OpaqueDropdownPopupTheme {
+            OverlayDropdownPreference(
+                startAction = { IconActions(painterResource(R.drawable.ic_routine)) },
+                title = stringResource(R.string.item_app_theme_mode),
+                items = themeModeOptions.map { stringResource(it.first) },
+                selectedIndex = selectedIndex,
+                onSelectedIndexChange = { index ->
+                    if (index != selectedIndex) {
+                        AppThemeUtils.setMode(context, themeModeOptions[index].second)
+                        onApplied()
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 
     @Composable
@@ -316,16 +319,18 @@ class SettingsActivity : BaseActivity() {
             languageCodes.indexOf(currentLanguage).coerceAtLeast(0)
         }
 
-        OverlaySpinnerPreference(
-            startAction = { IconActions(painterResource(R.drawable.ic_language)) },
-            title = stringResource(R.string.item_app_language),
-            items = spinnerItems,
-            selectedIndex = selectedIndex,
-            onSelectedIndexChange = { index ->
-                AppLangUtils.saveCustomizeLanguage(context, languageCodes[index])
-                onApplied()
-            }
-        )
+        OpaqueDropdownPopupTheme {
+            OverlaySpinnerPreference(
+                startAction = { IconActions(painterResource(R.drawable.ic_language)) },
+                title = stringResource(R.string.item_app_language),
+                items = spinnerItems,
+                selectedIndex = selectedIndex,
+                onSelectedIndexChange = { index ->
+                    AppLangUtils.saveCustomizeLanguage(context, languageCodes[index])
+                    onApplied()
+                }
+            )
+        }
     }
 
     private fun getSupportedLanguageCodes(): List<String> =

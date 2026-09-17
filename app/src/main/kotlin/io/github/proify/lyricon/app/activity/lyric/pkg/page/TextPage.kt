@@ -6,6 +6,7 @@
 
 package io.github.proify.lyricon.app.activity.lyric.pkg.page
 
+import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
 import android.content.SharedPreferences
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -397,19 +398,6 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     enabled = isWordMotionEnabled,
                     startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
                 )
-
-                var isSustainGlowEnabled by rememberBooleanPreference(
-                    sharedPreferences = preferences,
-                    key = TextStyle.KEY_TEXT_SUSTAIN_GLOW,
-                    defaultValue = TextStyle.Defaults.SUSTAIN_GLOW_ENABLED
-                )
-                SwitchPreference(
-                    checked = isSustainGlowEnabled,
-                    onCheckedChange = { isSustainGlowEnabled = it },
-                    title = stringResource(R.string.item_text_sustain_glow),
-                    summary = stringResource(R.string.item_text_sustain_glow_summary),
-                    startAction = { IconActions(painterResource(R.drawable.lightbulb_2_24px)) },
-                )
             }
         }
 
@@ -567,18 +555,20 @@ private fun <T> DropdownPreference(
             ?: 0)
     }
 
-    OverlayDropdownPreference(
-        startAction = { IconActions(painterResource(iconRes)) },
-        title = title,
-        items = options,
-        selectedIndex = selectedIndex,
-        onSelectedIndexChange = {
-            selectedIndex = it
-            preferences.editCommit {
-                putString(preferenceKey, values[it].toString())
+    OpaqueDropdownPopupTheme {
+        OverlayDropdownPreference(
+            startAction = { IconActions(painterResource(iconRes)) },
+            title = title,
+            items = options,
+            selectedIndex = selectedIndex,
+            onSelectedIndexChange = {
+                selectedIndex = it
+                preferences.editCommit {
+                    putString(preferenceKey, values[it].toString())
+                }
             }
-        }
-    )
+        )
+    }
 }
 
 @Composable
