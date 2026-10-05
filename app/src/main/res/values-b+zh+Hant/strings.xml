@@ -272,6 +272,8 @@
     <string name="section_gesture">手勢控制</string>
     <string name="item_gesture_enable">啟用歌詞手勢</string>
     <string name="item_gesture_summary">在狀態列歌詞上滑動或點按，以控制播放器。</string>
+    <string name="item_gesture_root_touch_hook">根視窗觸控攔截</string>
+    <string name="item_gesture_root_touch_hook_summary">部分系統（如 ColorOS）會在狀態列頂層疊一層容器搶走觸控，導致流體雲顯示或非播放器介面時點擊歌詞、滑動切歌、展開面板失效，開啟後修復，若出現狀態列觸控異常，可關閉本項，無需卸載模組。</string>
     <string name="item_gesture_swipe_left">左滑</string>
     <string name="item_gesture_swipe_right">右滑</string>
     <string name="item_gesture_tap">點按</string>

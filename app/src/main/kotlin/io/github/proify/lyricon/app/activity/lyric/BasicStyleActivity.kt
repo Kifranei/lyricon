@@ -433,6 +433,23 @@ fun BasicLyricSettingsScreen(
                     summary = stringResource(R.string.item_gesture_summary),
                 )
 
+                // 根窗口触摸拦截：手势失效（尤其流体云胶囊显示时）的兜底开关，
+                // 关闭后歌词手势退回系统正常派发路径，无需卸载模块。
+                var rootTouchHookEnabled by rememberBooleanPreference(
+                    preferences,
+                    LyricGesturePrefs.KEY_ROOT_TOUCH_HOOK,
+                    LyricGesturePrefs.DEFAULT_ROOT_TOUCH_HOOK
+                )
+                SwitchPreference(
+                    checked = rootTouchHookEnabled,
+                    onCheckedChange = { rootTouchHookEnabled = it },
+                    startAction = {
+                        IconActions(painterResource(R.drawable.ic_gesture_tap))
+                    },
+                    title = stringResource(R.string.item_gesture_root_touch_hook),
+                    summary = stringResource(R.string.item_gesture_root_touch_hook_summary),
+                )
+
                 var gestureHapticEnabled by rememberBooleanPreference(
                     preferences,
                     LyricGesturePrefs.KEY_HAPTIC,

@@ -9,6 +9,7 @@ package io.github.proify.lyricon.xposed.systemui.lyric
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Point
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.view.GestureDetector
@@ -40,6 +41,7 @@ import io.github.proify.lyricon.xposed.logger.YLog
 import io.github.proify.lyricon.xposed.systemui.hook.ClockViewFinder
 import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
 import io.github.proify.lyricon.xposed.systemui.hook.StatusBarColorMonitor
+import io.github.proify.lyricon.xposed.systemui.hook.StatusBarTouchHooker
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricViewController.isPlaying
 import io.github.proify.lyricon.xposed.systemui.lyric.control.LyricControlPopup
 import io.github.proify.lyricon.xposed.systemui.util.OnColorChangeListener
@@ -58,7 +60,7 @@ class StatusBarViewController(
     // Keep gesture observation on the actual status-bar layout. Touch events do not bubble
     // from its children to the root view used for wide lyric layout injection.
     private val touchView: ViewGroup = statusBarView
-) : ScreenStateMonitor.ScreenStateListener {
+) : ScreenStateMonitor.ScreenStateListener, StatusBarTouchHooker.Target {
     companion object {
         const val TAG = "StatusBarViewController"
         private const val MAX_CLIP_RELAX_DEPTH = 12
@@ -69,7 +71,7 @@ class StatusBarViewController(
     val lyricView: StatusBarLyric by lazy { createLyricView(currentLyricStyle) }
 
     // --- 手势控制状态 (随偏好热更新) ---
-    private var gestureEnabled: Boolean = LyricGesturePrefs.DEFAULT_ENABLED
+    private var gestureEnabledValue: Boolean = LyricGesturePrefs.DEFAULT_ENABLED
     private var swipeLeftAction: Int = LyricGesturePrefs.DEFAULT_SWIPE_LEFT
     private var swipeRightAction: Int = LyricGesturePrefs.DEFAULT_SWIPE_RIGHT
     private var tapAction: Int = LyricGesturePrefs.DEFAULT_TAP
@@ -148,6 +150,10 @@ class StatusBarViewController(
         refreshGestureConfig()
         lyricView.gestureListener = { gesture -> onLyricGesture(gesture) }
 
+        // 根窗口触摸拦截：ColorOS 流体云胶囊覆盖状态栏后会截走全部触摸事件，
+        // 注册为拦截目标后由 StatusBarWindowView.dispatchTouchEvent 在顶层直接分发。
+        StatusBarTouchHooker.registerTarget(this)
+
         StatusBarColorMonitor.bindStatusBar(statusBarView)
         colorMonitorView = getClockView()
         StatusBarColorMonitor.bindClockView(colorMonitorView)
@@ -158,6 +164,7 @@ class StatusBarViewController(
     }
 
     fun onDestroy() {
+        StatusBarTouchHooker.unregisterTarget(this)
         statusBarView.removeOnAttachStateChangeListener(statusBarAttachListener)
         statusBarView.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
         lyricView.removeOnAttachStateChangeListener(lyricAttachListener)
@@ -491,7 +498,7 @@ class StatusBarViewController(
      * 从偏好刷新手势配置，并同步视图的手势开关与点击可用状态。
      */
     private fun refreshGestureConfig() {
-        gestureEnabled = LyricPrefs.gestureEnabled
+        gestureEnabledValue = LyricPrefs.gestureEnabled
         swipeLeftAction = LyricPrefs.gestureAction(
             LyricGesturePrefs.KEY_SWIPE_LEFT,
             LyricGesturePrefs.DEFAULT_SWIPE_LEFT
@@ -509,19 +516,19 @@ class StatusBarViewController(
             LyricGesturePrefs.DEFAULT_LONG_PRESS
         )
 
-        lyricView.gestureEnabled = gestureEnabled
+        lyricView.gestureEnabled = gestureEnabledValue
         lyricView.hapticEnabled = LyricPrefs.gestureHapticEnabled
         // 只有手势控制开启时才接收点击，面板由用户配置的 TAP 动作显式打开。
         // 关闭后既不识别手势，也不保留历史单击监听器。
         lyricView.setOnClickListener(null)
-        lyricView.isClickable = gestureEnabled
+        lyricView.isClickable = gestureEnabledValue
     }
 
     /**
      * 手势回调入口:根据当前配置将手势映射为动作并执行
      */
     private fun onLyricGesture(gesture: StatusBarLyric.GestureType) {
-        if (!gestureEnabled) return
+        if (!gestureEnabledValue) return
 
         val action = when (gesture) {
             StatusBarLyric.GestureType.SWIPE_LEFT -> swipeLeftAction
@@ -540,6 +547,52 @@ class StatusBarViewController(
             else -> YLog.warning(TAG, "Unknown gesture action: $action")
         }
     }
+
+    // --- 根窗口触摸拦截 (StatusBarTouchHooker.Target) ---
+
+    /**
+     * 是否允许根窗口拦截器把触摸交给歌词。
+     *
+     * 手势总开关关闭时保持 false：此时歌词与普通状态栏视图无异，
+     * 不应由拦截器抢走胶囊容器的触摸。
+     */
+    override val gestureEnabled: Boolean
+        get() = gestureEnabledValue
+
+    /**
+     * 命中测试：仅在歌词真正可见时参与接管。
+     *
+     * 可见性以 [View.VISIBLE] 判定而不使用 [View.isShown]，
+     * 避免状态栏父链上出现 GONE/INVISIBLE 标记时误判为不可见。
+     */
+    override fun touchPoint(event: MotionEvent, hitTolerance: Int): Point? {
+        if (!gestureEnabled) return null
+        if (lyricView.visibility != View.VISIBLE) return null
+        if (!lyricView.isAttachedToWindow) return null
+        if (lyricView.width <= 0 || lyricView.height <= 0) return null
+
+        val location = IntArray(2)
+        lyricView.getLocationOnScreen(location)
+
+        val left = location[0] - hitTolerance
+        val top = location[1] - hitTolerance
+        val right = location[0] + lyricView.width + hitTolerance
+        val bottom = location[1] + lyricView.height + hitTolerance
+
+        if (event.rawX < left || event.rawX > right || event.rawY < top || event.rawY > bottom) {
+            return null
+        }
+
+        return Point(event.rawX.toInt(), event.rawY.toInt())
+    }
+
+    /**
+     * 把拦截器修正过坐标的事件派发给歌词控件。
+     *
+     * 歌词手势只关心相对位移，坐标修正的目的仅在于让按压反馈与
+     * [StatusBarLyric] 内部的滑动判定拿到正确的局部量。
+     */
+    override fun dispatchTouchToLyric(event: MotionEvent): Boolean = lyricView.dispatchTouchEvent(event)
 
     /**
      * 记录锚点容器类型与插入后的实际子视图顺序。

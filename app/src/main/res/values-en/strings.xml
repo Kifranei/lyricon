@@ -275,6 +275,8 @@
     <string name="section_gesture">Gestures</string>
     <string name="item_gesture_enable">Enable lyrics gestures</string>
     <string name="item_gesture_summary">Swipe or tap the status bar lyrics to control playback.</string>
+    <string name="item_gesture_root_touch_hook">Root window touch interception</string>
+    <string name="item_gesture_root_touch_hook_summary">Some systems (such as ColorOS) overlay a container on top of the status bar that steals touches, so tapping the lyrics, swiping to change tracks, or opening the panel stops working while Fluid Cloud is shown or outside the player. Turn this on to fix it. If the status bar misbehaves, turn this off — no need to uninstall the module.</string>
     <string name="item_gesture_swipe_left">Swipe left</string>
     <string name="item_gesture_swipe_right">Swipe right</string>
     <string name="item_gesture_tap">Tap</string>
