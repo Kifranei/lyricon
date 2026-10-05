@@ -10,8 +10,21 @@ import android.annotation.SuppressLint
 import android.graphics.Color
 import android.graphics.ColorSpace
 
-internal object HdrColor {
+/**
+ * 歌词高亮的扩展色域配色。
+ *
+ * 公开可见是有意为之：状态栏的图标 / 封面 HDR 绘制
+ * （`io.github.proify.lyricon.statusbarlyric.logo.HdrLogoShader`）需要复用同一套
+ * 配色数学，才能保证单色图标与歌词的高光表现一致。
+ */
+object HdrColor {
 
+    /**
+     * 把 SDR 颜色按 [ratio] 打包成 `EXTENDED_SRGB` 的颜色长整型。
+     *
+     * 返回值的 RGB 分量可以超过 1.0，即超过 SDR 白点 —— 这正是歌词能在 HDR 屏上
+     * 真正变亮、而普通 `Int` 颜色做不到的原因。
+     */
     @SuppressLint("NewApi")
     fun packHighlightColor(color: Int, ratio: Float): Long {
         val saturationBoost = saturationBoost(color, ratio)

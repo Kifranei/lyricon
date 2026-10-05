@@ -12,7 +12,8 @@ import android.graphics.Bitmap
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.util.Log
-import androidx.core.graphics.scale
+import io.github.proify.android.extensions.duplicateOrScale
+import io.github.proify.android.extensions.hasExtendedColorInfo
 import io.github.proify.android.extensions.md5
 import io.github.proify.android.extensions.saveTo
 import io.github.proify.lyricon.xposed.systemui.Directory
@@ -233,23 +234,31 @@ object NotificationCoverHelper {
          * 克隆并缩放封面 Bitmap。
          *
          * 在主线程执行，因此需要对耗时进行控制：
-         * - 小尺寸封面（≤ [MAX_COVER_SIZE]）：直接 copy，约 1~3ms
-         * - 大尺寸封面：通过 [Bitmap.createScaledBitmap] 缩放，约 3~8ms
-         * - 极端大图（≥2000px）：可能达到 10~15ms，但系统通知封面通常已被缩放
+         * - 小尺寸封面（≤ [MAX_COVER_SIZE]）：直接按原格式 copy，约 1~3ms
+         * - 大尺寸封面：重绘到目标尺寸，约 3~8ms
+         *
+         * 关键点：这里**不再无条件** `copy(Bitmap.Config.ARGB_8888, false)`。
+         * 硬编码 `ARGB_8888` 会把宽色域 / `RGBA_F16` 的高位深封面压成 SDR sRGB，
+         * 状态栏后面的 HDR 提亮就再没有真实高光可用，只剩合成提亮。
+         * [duplicateOrScale] 会保留原 config 与 ColorSpace。
          *
          * @return 缩放后的 Bitmap 副本，调用者负责最终回收
          */
         private fun cloneAndScaleCover(original: Bitmap): Bitmap? {
             return try {
-                val srcWidth = original.width
-                val srcHeight = original.height
-                if (srcWidth <= MAX_COVER_SIZE && srcHeight <= MAX_COVER_SIZE) {
-                    // 尺寸已满足要求，仅做格式统一拷贝
-                    original.copy(Bitmap.Config.ARGB_8888, false)
-                } else {
-                    // 需要缩小，createScaledBitmap 内部使用 Skia 高效缩放
-                    original.scale(MAX_COVER_SIZE, MAX_COVER_SIZE)
+                val copy = original.duplicateOrScale(MAX_COVER_SIZE)
+                if (copy == null) {
+                    Log.w(TAG, "Failed to clone/scale album art for $packageName")
+                } else if (original.hasExtendedColorInfo()) {
+                    Log.i(
+                        TAG,
+                        "Album art keeps extended color info for $packageName: " +
+                                "config=${original.config}->${copy.config} " +
+                                "colorSpace=${original.colorSpace?.name}->${copy.colorSpace?.name} " +
+                                "size=${original.width}x${original.height}->${copy.width}x${copy.height}"
+                    )
                 }
+                copy
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to clone/scale album art for $packageName", e)
                 null
@@ -302,6 +311,11 @@ object NotificationCoverHelper {
          * 写入策略：
          * 1. 先写入临时文件，成功后原子移动到目标路径，防止写入中断导致文件损坏
          * 2. 如果歌曲信息完整（title + artist），同步生成缓存副本
+         *
+         * 编码固定用 PNG（[saveTo] 的默认格式）：PNG 无损且会带上 ICC 色彩配置，
+         * 宽色域封面不会像 JPEG 那样被直接压回 sRGB。
+         * 已知限制：`Bitmap.compress()` 不会写出 gainmap，因此携带 gainmap 的真 HDR 封面
+         * 在这一步只能退化到「SDR 基底 + 宽色域」，需要 Android 侧的 gainmap 编码能力才能完整保留。
          *
          * @return true 表示写入成功
          */

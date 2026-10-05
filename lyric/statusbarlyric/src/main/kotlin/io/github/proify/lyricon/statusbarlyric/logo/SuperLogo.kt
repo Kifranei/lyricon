@@ -24,11 +24,13 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.ImageView.ScaleType
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.graphics.createBitmap
 import io.github.proify.android.extensions.dp
 import io.github.proify.android.extensions.isVisibleIfChanged
 import io.github.proify.lyricon.lyric.style.LogoStyle
@@ -67,7 +69,15 @@ class SuperLogo(context: Context) : View(context) {
         set(value) {
             val ratio = if (value.isFinite() && value > 1.0f) value else 1.0f
             if (field == ratio) return
+            val previous = field
             field = ratio
+            // 比率变化会改变光栅化缓存的内容（提亮强度参与其中），先释放再让策略重画
+            releaseRasterizedDrawable()
+            Log.i(
+                TAG,
+                "hdrHighlightRatio $previous -> $ratio " +
+                        "hdrPathActive=${HdrLogoShader.isActive(ratio)} imageTint=${imageTintColor != null}"
+            )
             if (strategy?.isEffective == true) {
                 strategy?.onColorUpdate()
             }
@@ -93,8 +103,6 @@ class SuperLogo(context: Context) : View(context) {
     private var selfDrawnCoverBitmap: Bitmap? = null
     private var coverShader: BitmapShader? = null
     private var coverShaderBitmap: Bitmap? = null
-    private var coverShaderWidth = -1
-    private var coverShaderHeight = -1
     private val coverShaderMatrix = Matrix()
     private val coverRect = RectF()
     private val coverPaint = Paint(
@@ -114,14 +122,35 @@ class SuperLogo(context: Context) : View(context) {
     private var imageTintFilter: ColorFilter? = null
     private var imageColorFilter: ColorFilter? = null
 
+    /**
+     * [imageTintList] 在当前 drawableState 下解析出的颜色。
+     *
+     * HDR 单色 tint 路径需要原始 [Int] 颜色（`PorterDuffColorFilter` 只接受 SDR Int，
+     * 无法承载扩展色域分量），因此这里额外保留一份。
+     */
+    private var imageTintColor: Int? = null
+
+    /** Drawable 内容在 HDR 路径下的离屏光栅化缓存，避免每帧重绘 Drawable。 */
+    private var rasterizedDrawable: Bitmap? = null
+    private var rasterizedSignature: String? = null
+
+    /** 恒定单位矩阵：光栅化结果与 View 同尺寸，不需要再做适配映射。 */
+    private val identityMatrix = Matrix()
+
+    /**
+     * 本 View 专属的 HDR 图标 / 封面绘制器。
+     *
+     * AGSL 的 uniform 可变、而硬件加速绘制会延后执行，因此不能跨 View 共用同一份
+     * [RuntimeShader]，详见 [HdrLogoShader] 的类注释。
+     */
+    private val hdrShader = HdrLogoShader()
+
     var imageTintList: ColorStateList? = null
         set(value) {
             field = value
-            imageTintFilter = value?.let {
-                PorterDuffColorFilter(
-                    it.getColorForState(drawableState, it.defaultColor),
-                    PorterDuff.Mode.SRC_IN
-                )
+            imageTintColor = value?.getColorForState(drawableState, value.defaultColor)
+            imageTintFilter = imageTintColor?.let {
+                PorterDuffColorFilter(it, PorterDuff.Mode.SRC_IN)
             }
             refreshImageColorFilter()
         }
@@ -131,6 +160,7 @@ class SuperLogo(context: Context) : View(context) {
             field = value.coerceIn(0, 255)
             imagePaint.alpha = field
             imageDrawable?.alpha = field
+            releaseRasterizedDrawable()
             invalidate()
         }
 
@@ -228,6 +258,7 @@ class SuperLogo(context: Context) : View(context) {
         imageShaderBitmap = null
         imageShaderWidth = -1
         imageShaderHeight = -1
+        releaseRasterizedDrawable()
         clearSelfDrawnCover()
         invalidate()
     }
@@ -247,6 +278,7 @@ class SuperLogo(context: Context) : View(context) {
             it.state = drawableState
             it.colorFilter = effectiveImageColorFilter()
         }
+        releaseRasterizedDrawable()
         clearSelfDrawnCover()
         invalidate()
     }
@@ -271,19 +303,37 @@ class SuperLogo(context: Context) : View(context) {
 
     private fun effectiveImageColorFilter(): ColorFilter? = imageColorFilter ?: imageTintFilter
 
+    /**
+     * HDR 单色 tint 的颜色。
+     *
+     * 仅当 HDR 生效、存在 tint 且没有外部 [imageColorFilter]（外部滤镜优先级更高，
+     * 语义由调用方决定）时返回非空，此时走 [HdrLogoShader] 的 tint 路径输出扩展色域。
+     */
+    private fun resolveHdrTintColor(): Int? {
+        if (imageColorFilter != null) return null
+        val tint = imageTintColor ?: return null
+        return if (HdrLogoShader.isActive(hdrHighlightRatio)) tint else null
+    }
+
     private fun drawImageContent(canvas: Canvas) {
         val bitmap = imageBitmap
         if (bitmap != null && !bitmap.isRecycled && width > 0 && height > 0) {
             imagePaint.alpha = imageAlpha
-            imagePaint.colorFilter = effectiveImageColorFilter()
-            imagePaint.shader = getOrCreateImageShader(bitmap)
-            canvas.drawRect(imageRect, imagePaint)
-            imagePaint.shader = null
+            configureImageShaderMatrix(bitmap)
+            drawBitmapContent(canvas, bitmap)
             return
         }
 
         imageDrawable?.let { drawable ->
             if (width <= 0 || height <= 0) return
+
+            val rasterized = rasterizeDrawableForHdr(drawable)
+            if (rasterized != null) {
+                imagePaint.alpha = 255
+                canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), imagePaint)
+                imagePaint.shader = null
+                return
+            }
 
             val saveCount = canvas.save()
             drawable.bounds = resolveDrawableBounds(drawable)
@@ -293,6 +343,104 @@ class SuperLogo(context: Context) : View(context) {
             drawable.draw(canvas)
             canvas.restoreToCount(saveCount)
         }
+    }
+
+    /**
+     * 绘制位图内容（Provider Logo / 自定义图标）。
+     *
+     * HDR 生效时优先走 AGSL 扩展色域路径：
+     * - 带 tint 的单色图标 → [HdrLogoShader] 的 tint 路径（与歌词同源的扩展色域颜色）；
+     * - 彩色位图 → [HdrLogoShader] 的图像提亮路径。
+     *
+     * 任一环节不可用（低版本、着色器编译失败、绑定抛错）都会退回原有 SDR 路径，
+     * 行为与改动前完全一致。
+     */
+    private fun drawBitmapContent(canvas: Canvas, bitmap: Bitmap) {
+        val hdrTint = resolveHdrTintColor()
+        val hdrBound = if (hdrTint != null) {
+            hdrShader.bindTint(
+                imagePaint, bitmap, imageShaderMatrix, hdrTint, hdrHighlightRatio
+            )
+        } else {
+            hdrShader.bindImage(imagePaint, bitmap, imageShaderMatrix, hdrHighlightRatio)
+        }
+
+        if (hdrBound) {
+            // 扩展色域输出必须绕开 SDR ColorFilter：PorterDuff / ColorMatrix 都会把分量压回 0..1
+            imagePaint.colorFilter = null
+        } else {
+            imagePaint.colorFilter = effectiveImageColorFilter()
+            imagePaint.shader = getOrCreateImageShader(bitmap)
+        }
+
+        canvas.drawRect(imageRect, imagePaint)
+        imagePaint.shader = null
+    }
+
+    /**
+     * Drawable（App 图标等）的 HDR 支持。
+     *
+     * Drawable 无法直接参与 [HdrLogoShader] 的采样，先按当前缩放 / 色调配置离屏光栅化成
+     * 与 View 同尺寸的位图并缓存，再交给 HDR 图像着色器绘制。
+     *
+     * @return 已绑定好 HDR shader 时为光栅化位图；HDR 未生效或失败时返回 null
+     */
+    private fun rasterizeDrawableForHdr(drawable: Drawable): Bitmap? {
+        if (!HdrLogoShader.isActive(hdrHighlightRatio)) return null
+
+        val signature = buildString {
+            append(System.identityHashCode(drawable))
+            append(':').append(width).append('x').append(height)
+            append(':').append(imageAlpha)
+            append(':').append(imageTintColor ?: 0)
+            append(':').append(imageColorFilter?.hashCode() ?: 0)
+            append(':').append(drawableState.contentHashCode())
+            append(':').append(scaleType)
+        }
+
+        val cached = rasterizedDrawable
+        if (cached != null && !cached.isRecycled && signature == rasterizedSignature) {
+            return if (hdrShader.bindImage(imagePaint, cached, identityMatrix, hdrHighlightRatio)) {
+                cached
+            } else {
+                null
+            }
+        }
+
+        val target = createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        try {
+            val offscreen = Canvas(target)
+            val saveCount = offscreen.save()
+            drawable.bounds = resolveDrawableBounds(drawable)
+            drawable.alpha = imageAlpha
+            drawable.state = drawableState
+            drawable.colorFilter = effectiveImageColorFilter()
+            drawable.draw(offscreen)
+            offscreen.restoreToCount(saveCount)
+        } catch (t: Throwable) {
+            Log.w(TAG, "Failed to rasterize drawable for HDR", t)
+            return null
+        }
+
+        rasterizedDrawable = target
+        rasterizedSignature = signature
+
+        return if (hdrShader.bindImage(imagePaint, target, identityMatrix, hdrHighlightRatio)) {
+            target
+        } else {
+            null
+        }
+    }
+
+    /**
+     * 释放 Drawable 光栅化缓存。
+     *
+     * 只解除引用、不调用 [Bitmap.recycle]：HdrLogoShader 的子着色器缓存可能仍持有这批像素，
+     * 交给 GC 回收更安全（Android 8+ 位图内存在 Java 堆上，并不需要手工回收）。
+     */
+    private fun releaseRasterizedDrawable() {
+        rasterizedDrawable = null
+        rasterizedSignature = null
     }
 
     private fun getOrCreateImageShader(bitmap: Bitmap): BitmapShader {
@@ -465,7 +613,7 @@ class SuperLogo(context: Context) : View(context) {
         if (bitmap.isRecycled || width <= 0 || height <= 0) return
 
         coverRect.set(0f, 0f, width.toFloat(), height.toFloat())
-        coverPaint.shader = getOrCreateCoverShader(bitmap)
+        bindCoverShader(bitmap)
 
         when ((strategy as? CoverStrategy)?.style) {
             LogoStyle.STYLE_COVER_CIRCLE -> canvas.drawOval(coverRect, coverPaint)
@@ -482,29 +630,43 @@ class SuperLogo(context: Context) : View(context) {
         coverPaint.shader = null
     }
 
-    private fun getOrCreateCoverShader(bitmap: Bitmap): BitmapShader {
+    /**
+     * 绑定封面着色器。
+     *
+     * HDR 高亮生效时走 AGSL 扩展色域路径（按亮度加权提亮亮部），否则保持原有的
+     * [BitmapShader] + [CoverStrategy] SDR 色彩补偿。
+     */
+    private fun bindCoverShader(bitmap: Bitmap) {
+        val matrix = computeCoverFitMatrix(bitmap)
+        if (hdrShader.bindImage(coverPaint, bitmap, matrix, hdrHighlightRatio)) {
+            // 扩展色域输出不能再叠加 SDR ColorFilter，否则分量会被压回 0..1
+            coverPaint.colorFilter = null
+            return
+        }
+        coverPaint.shader = getOrCreateCoverShader(bitmap, matrix)
+    }
+
+    /** 设备坐标 → 位图坐标的封面适配矩阵（CENTER_CROP 语义）。只依赖尺寸，可每帧重算。 */
+    private fun computeCoverFitMatrix(bitmap: Bitmap): Matrix {
+        val scale = maxOf(
+            width.toFloat() / bitmap.width.toFloat(),
+            height.toFloat() / bitmap.height.toFloat()
+        )
+        coverShaderMatrix.reset()
+        coverShaderMatrix.setScale(scale, scale)
+        coverShaderMatrix.postTranslate(
+            (width - bitmap.width * scale) * 0.5f,
+            (height - bitmap.height * scale) * 0.5f
+        )
+        return coverShaderMatrix
+    }
+
+    private fun getOrCreateCoverShader(bitmap: Bitmap, matrix: Matrix): BitmapShader {
         if (coverShader == null || coverShaderBitmap !== bitmap) {
             coverShader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
             coverShaderBitmap = bitmap
-            coverShaderWidth = -1
-            coverShaderHeight = -1
         }
-
-        if (coverShaderWidth != width || coverShaderHeight != height) {
-            val scale = maxOf(
-                width.toFloat() / bitmap.width.toFloat(),
-                height.toFloat() / bitmap.height.toFloat()
-            )
-            val dx = (width - bitmap.width * scale) * 0.5f
-            val dy = (height - bitmap.height * scale) * 0.5f
-            coverShaderMatrix.reset()
-            coverShaderMatrix.setScale(scale, scale)
-            coverShaderMatrix.postTranslate(dx, dy)
-            coverShader?.setLocalMatrix(coverShaderMatrix)
-            coverShaderWidth = width
-            coverShaderHeight = height
-        }
-
+        coverShader?.setLocalMatrix(matrix)
         return coverShader!!
     }
 
@@ -529,23 +691,22 @@ class SuperLogo(context: Context) : View(context) {
         super.onDetachedFromWindow()
         // 暂停策略活动（如停止动画、释放临时资源）
         strategy?.onDetach()
+        releaseRasterizedDrawable()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        coverShaderWidth = -1
-        coverShaderHeight = -1
         imageShaderWidth = -1
         imageShaderHeight = -1
+        releaseRasterizedDrawable()
     }
 
     override fun drawableStateChanged() {
         super.drawableStateChanged()
-        imageTintFilter = imageTintList?.let {
-            PorterDuffColorFilter(
-                it.getColorForState(drawableState, it.defaultColor),
-                PorterDuff.Mode.SRC_IN
-            )
+        val tintList = imageTintList
+        imageTintColor = tintList?.getColorForState(drawableState, tintList.defaultColor)
+        imageTintFilter = imageTintColor?.let {
+            PorterDuffColorFilter(it, PorterDuff.Mode.SRC_IN)
         }
         imageDrawable?.state = drawableState
         refreshImageColorFilter()
@@ -620,6 +781,7 @@ class SuperLogo(context: Context) : View(context) {
         this.clearColorFilter()
         this.imageAlpha = 255
         this.alpha = 1f
+        releaseRasterizedDrawable()
     }
 
     internal val hasSelfDrawnCover: Boolean
@@ -642,6 +804,7 @@ class SuperLogo(context: Context) : View(context) {
     fun describeRenderState(): String {
         val coverBitmap = selfDrawnCoverBitmap
         val bitmap = imageBitmap
+        val hdrActive = HdrLogoShader.isActive(hdrHighlightRatio)
         return "view=${javaClass.name} " +
                 "strategy=${strategy?.javaClass?.simpleName} " +
                 "size=${width}x${height} " +
@@ -653,7 +816,12 @@ class SuperLogo(context: Context) : View(context) {
                 "imageTint=${imageTintList != null} " +
                 "imageFilter=${imageColorFilter != null} " +
                 "alpha=$alpha imageAlpha=$imageAlpha " +
-                "layerType=$layerType"
+                "layerType=$layerType " +
+                "hdrRatio=$hdrHighlightRatio " +
+                "hdrActive=$hdrActive " +
+                "hdrTint=${resolveHdrTintColor() != null} " +
+                "hdrCover=${hdrActive && coverBitmap != null} " +
+                "rasterDrawable=${rasterizedDrawable != null}"
     }
 
     private fun clearSelfDrawnCover() {
