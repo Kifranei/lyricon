@@ -13,6 +13,7 @@ import android.graphics.Color
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
 import android.graphics.Outline
+import android.os.Build
 import android.util.Log
 import android.view.View
 import android.view.ViewOutlineProvider
@@ -149,6 +150,14 @@ class CoverStrategy(
             return
         }
 
+        // 真 HDR 路径：SuperLogo 走 AGSL 把亮部推到 SDR 白点之上，此时再叠加 SDR 色彩补偿
+        // 只会把扩展色域输出重新拉回「用力过猛的 SDR」观感，因此必须让位。
+        if (HdrLogoShader.isActive(view.hdrHighlightRatio)) {
+            view.setSelfDrawnCoverColorFilter(null)
+            logCompensationChanged("hdr-shader ratio=${view.hdrHighlightRatio.format2()} (sdr compensation skipped)")
+            return
+        }
+
         val progress = ((view.hdrHighlightRatio - MIN_HDR_RATIO) /
                 (MAX_HDR_RATIO_FOR_BOOST - MIN_HDR_RATIO))
             .coerceIn(0f, 1f)
@@ -189,11 +198,18 @@ class CoverStrategy(
             return
         }
 
-        val centerColor = runCatching {
-            bitmap.getPixel(bitmap.width / 2, bitmap.height / 2)
-        }.getOrDefault(Color.TRANSPARENT)
+        // HARDWARE 位图读不回像素，采样类信息直接跳过，避免 getPixel 抛异常
+        val readable = bitmap.config != Bitmap.Config.HARDWARE && !bitmap.isRecycled
+        val centerColor = if (readable) {
+            runCatching { bitmap.getPixel(bitmap.width / 2, bitmap.height / 2) }
+                .getOrDefault(Color.TRANSPARENT)
+        } else {
+            Color.TRANSPARENT
+        }
         val hsv = FloatArray(3)
         Color.colorToHSV(centerColor, hsv)
+        val colorSpaceName = bitmap.colorSpace?.name ?: "none"
+
         Log.i(
             TAG,
             "Cover bitmap applied: selfDraw=true " +
@@ -201,11 +217,31 @@ class CoverStrategy(
                     "signature=$signature " +
                     "size=${bitmap.width}x${bitmap.height} " +
                     "config=${bitmap.config} " +
+                    "colorSpace=$colorSpaceName " +
+                    "gainmap=${describeGainmap(bitmap)} " +
                     "center=${centerColor.toColorHex()} " +
                     "centerSat=${hsv[1].format2()} " +
-                    sampledSaturationSummary(bitmap) + " " +
-                    "hdrRatio=${view.hdrHighlightRatio.format2()}"
+                    (if (readable) sampledSaturationSummary(bitmap) else "sample=skipped(hardware)") + " " +
+                    "hdrRatio=${view.hdrHighlightRatio.format2()} " +
+                    // 注意：这里只表示「能力 + 比率就绪」，是否真的绑定成功要看 HdrLogoShader 的 bound 日志
+                    "hdrPathArmed=${HdrLogoShader.isActive(view.hdrHighlightRatio)}"
         )
+    }
+
+    /**
+     * Android 14+ 的 gainmap 探测。
+     *
+     * gainmap 是媒体源里「SDR 基底 + 高光增量」的载体，能反映封面是否真的携带 HDR 信息；
+     * 当前封面链路会把它丢掉（[android.graphics.Bitmap.compress] 不写 gainmap），
+     * 所以这里只做诊断，便于在设备上确认降级发生在哪一步。
+     */
+    private fun describeGainmap(bitmap: Bitmap): String {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            return "unsupported(sdk=${Build.VERSION.SDK_INT})"
+        }
+        return runCatching {
+            if (bitmap.gainmap != null) "present" else "none"
+        }.getOrElse { "probe-failed(${it.javaClass.simpleName})" }
     }
 
     private fun sampledSaturationSummary(bitmap: Bitmap): String {
@@ -217,6 +253,8 @@ class CoverStrategy(
         var satSum = 0f
         var maxSat = 0f
         var maxSatColor = Color.TRANSPARENT
+        var lumaSum = 0f
+        var maxLuma = 0f
 
         for (x in xs) {
             for (y in ys) {
@@ -233,14 +271,23 @@ class CoverStrategy(
                     maxSat = sat
                     maxSatColor = color
                 }
+                // HDR 提亮是按亮度加权的，这里同时给出亮度分布，便于判断「不亮」是绑定失败还是封面本来就暗
+                val luma = (0.2126f * Color.red(color) +
+                        0.7152f * Color.green(color) +
+                        0.0722f * Color.blue(color)) / 255f
+                lumaSum += luma
+                if (luma > maxLuma) maxLuma = luma
             }
         }
 
         val avgSat = if (count > 0) satSum / count else 0f
+        val avgLuma = if (count > 0) lumaSum / count else 0f
         return "sampleAvgSat=${avgSat.format2()} " +
                 "sampleMaxSat=${maxSat.format2()} " +
                 "sampleMax=${maxSatColor.toColorHex()} " +
-                "sampleColored=$coloredCount/$count"
+                "sampleColored=$coloredCount/$count " +
+                "sampleAvgLuma=${avgLuma.format2()} " +
+                "sampleMaxLuma=${maxLuma.format2()}"
     }
 
     private fun logCompensationChanged(fingerprint: String) {
