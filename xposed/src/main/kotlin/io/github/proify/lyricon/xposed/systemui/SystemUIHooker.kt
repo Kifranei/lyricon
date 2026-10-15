@@ -54,6 +54,9 @@ import kotlinx.coroutines.launch
 object SystemUIHooker : PackageHooker() {
     private const val TAG = "SystemUIHooker"
 
+    /** 非关键初始化推迟，避开 SystemUI 冷启动掉帧窗口 */
+    private const val COLD_START_DEFER_MS = 1500L
+
     private const val TEST_CRASH = false
     private var isSafeMode = false
     private var isAppCreated = false
@@ -205,10 +208,20 @@ object SystemUIHooker : PackageHooker() {
         // 这里在状态栏窗口的派发入口挂拦截器，命中歌词区域时由模块直接接管。
         // 是否真正接管由偏好开关 LyricGesturePrefs.KEY_ROOT_TOUCH_HOOK 控制。
         StatusBarTouchHooker.initialize(module, classLoader)
-        AiTranslator.init(context)
-        SystemUIMediaUtils.init(context)
-        io.github.proify.lyricon.xposed.systemui.history.ListeningHistoryRecorder.initialize(context)
         StatusBarViewResolver.init(module, context)
+
+        // 冷启动减负：翻译 / 媒体工具 / 听歌记录不阻塞 SystemUI 首屏布局。
+        // HDR performTraversals hook 已改为首次 enable 才安装，此处只需完成 prepare。
+        mainCoroutineScope.launch {
+            delay(COLD_START_DEFER_MS)
+            runCatching { AiTranslator.init(context) }
+                .onFailure { YLog.error(TAG, "Deferred AiTranslator.init failed", it) }
+            runCatching { SystemUIMediaUtils.init(context) }
+                .onFailure { YLog.error(TAG, "Deferred SystemUIMediaUtils.init failed", it) }
+            runCatching {
+                io.github.proify.lyricon.xposed.systemui.history.ListeningHistoryRecorder.initialize(context)
+            }.onFailure { YLog.error(TAG, "Deferred ListeningHistoryRecorder.init failed", it) }
+        }
     }
 
     private fun initLyriconService() {

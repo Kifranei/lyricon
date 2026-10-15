@@ -96,11 +96,20 @@ object XiaomiIslandHooker {
 
     /* --------------- 诊断（Settings.Global，adb 可实时读取） --------------- */
     private const val DIAG_KEY = "lyricon_island_diag"
+    /** Settings.Global 写入是 Binder IPC，热路径上防抖合并 */
+    private const val DIAG_PUBLISH_DEBOUNCE_MS = 500L
+
     private var contentResolver: ContentResolver? = null
+    private var diagPublishScheduled = false
 
     private fun publishDiag() {
         val resolver = contentResolver ?: return
-        runCatching { Settings.Global.putString(resolver, DIAG_KEY, dumpStatus()) }
+        if (diagPublishScheduled) return
+        diagPublishScheduled = true
+        handler.postDelayed({
+            diagPublishScheduled = false
+            runCatching { Settings.Global.putString(resolver, DIAG_KEY, dumpStatus()) }
+        }, DIAG_PUBLISH_DEBOUNCE_MS)
     }
 
     fun isSupported(): Boolean {
@@ -252,12 +261,16 @@ object XiaomiIslandHooker {
         if (hideByLyric == shouldHide) return
         hideByLyric = shouldHide
 
-        // dispatchDraw 拦截依据 hideByLyric 判定，改变后需触发窗口根视图重绘使其生效
-        collectWindowViews().forEach { runCatching { it.invalidate() } }
+        // dispatchDraw 拦截依据 hideByLyric 判定，改变后需触发窗口根视图重绘使其生效。
+        // 只 invalidate 已追踪的岛窗口（通常 0~1 个），不做全窗口扫描。
+        val windows = collectWindowViews()
+        for (view in windows) {
+            runCatching { view.invalidate() }
+        }
         publishDiag()
         YLog.info(
             TAG,
-            "setHideByLyric: $shouldHide (windowViews=${collectWindowViews().size} " +
+            "setHideByLyric: $shouldHide (windowViews=${windows.size} " +
                     "contentViews=${collectContentViews().size})"
         )
     }

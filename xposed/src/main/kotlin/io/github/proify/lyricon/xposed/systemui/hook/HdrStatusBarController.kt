@@ -15,6 +15,8 @@ import android.view.WindowManager
 import io.github.libxposed.api.XposedInterface
 import io.github.libxposed.api.XposedModule
 import io.github.proify.lyricon.xposed.logger.YLog
+import java.util.Collections
+import java.util.WeakHashMap
 
 /**
  * HDR 状态栏控制器
@@ -34,6 +36,12 @@ import io.github.proify.lyricon.xposed.logger.YLog
  *     4. mWindowAttributes = mWindowAttributesCopy ← 从副本恢复（副本也含 HDR）
  *
  *   结果：HDR 在当前帧生效，且在后续帧持久化。
+ *
+ * 性能约定：
+ * - [initialize] 只做准备，真正的 performTraversals / setWideGamut hook 延迟到首次 enable；
+ * - HDR 完全空闲（未启用、无需恢复 SDR、无 overlay probe）时，hook 回调零反射零日志；
+ * - disable 后在 SDR 窗口恢复完成（或超时）且 overlay probe 未激活时卸掉 hook；再次 enable 可重装；
+ * - 非状态栏 ViewRootImpl 在首次识别后用弱引用集合跳过。
  */
 object HdrStatusBarController {
     private const val TAG = "HdrStatusBarController"
@@ -43,8 +51,35 @@ object HdrStatusBarController {
     private const val MIN_HDR_RATIO = 1.0f
     private const val MAX_HDR_RATIO = 4.0f
 
+    /** 热路径诊断日志开关：开启后每 ~300 帧打一次，默认关闭以减负 */
+    private const val HOT_PATH_DIAG = false
+
+    /**
+     * disable 后若状态栏迟迟不走 performTraversals，超时后放弃等待并卸钩，
+     * 避免 hook 永久残留。窗口 colorMode 可能延后到下次自然 relayout 才回到 SDR。
+     */
+    private const val RESTORE_UNHOOK_FALLBACK_MS = 2000L
+
     private var unhookHandle: XposedInterface.HookHandle? = null
     private var wideGamutHookHandle: XposedInterface.HookHandle? = null
+
+    /** 延迟安装 hook 用：initialize 只缓存引用，首次 enable 再挂钩 */
+    private var moduleRef: XposedModule? = null
+    private var classLoaderRef: ClassLoader? = null
+    @Volatile
+    private var hooksInstalled = false
+    private val hookInstallLock = Any()
+
+    /** disable 后等待 SDR 恢复的超时卸钩任务 */
+    private var restoreUnhookFallback: Runnable? = null
+
+    /**
+     * 已确认非状态栏（且非 overlay probe）的 ViewRootImpl。
+     * WeakHashMap 键弱引用，窗口销毁后自动回收，避免每帧对无关窗口做反射。
+     */
+    private val nonStatusBarViewRoots =
+        Collections.newSetFromMap(WeakHashMap<Any, Boolean>())
+
     private var hdrHeadroomField: java.lang.reflect.Field? = null
     private var headroomFieldResolved = false
     private var headroomFieldNotFoundLogged = false
@@ -99,6 +134,7 @@ object HdrStatusBarController {
     private var rendererSetWideGamutFailureLogged = false
     private var lastWideGamutRenderer: Any? = null
     private var lastHdrForcedRenderer: Any? = null
+    private var lastHdrForcedVri: Any? = null
     private var lastHdrForcedRatio: Float = DEFAULT_HDR_RATIO
     private var lastWideGamutHookFrame: Long = -1L
     private val rendererIntrospectionLoggedClasses = mutableSetOf<String>()
@@ -187,43 +223,139 @@ object HdrStatusBarController {
     var isInitialized: Boolean = false
         private set
 
+    /**
+     * 启动期只做准备：缓存 module/ClassLoader，标记可启用。
+     * 真正挂钩 [ViewRootImpl.performTraversals] 推迟到首次 [enable]，
+     * 避免 SystemUI 冷启动数百帧都被 Xposed 拦截。
+     */
     fun initialize(module: XposedModule, classLoader: ClassLoader) {
-        YLog.info(TAG, "initialize() called")
-        try {
-            unhookHandle?.unhook()
-            wideGamutHookHandle?.unhook()
+        YLog.info(TAG, "initialize() called (hooks deferred until HDR enable)")
+        moduleRef = module
+        classLoaderRef = classLoader
+        isInitialized = true
+    }
 
-            val viewRootImplClass = classLoader.loadClass("android.view.ViewRootImpl")
-
-            val traversalsMethod = findPerformTraversals(viewRootImplClass)
-            if (traversalsMethod == null) {
-                YLog.error(TAG, "performTraversals() not found")
+    /**
+     * 安装 performTraversals / setWideGamut hook（空闲卸钩后可再次安装）。
+     * 由 [enable] / [enableWindowOnlyForProbe] / [enableOverlayWindowProbe] 触发。
+     */
+    private fun ensureHooksInstalled() {
+        if (hooksInstalled) return
+        synchronized(hookInstallLock) {
+            if (hooksInstalled) return
+            val module = moduleRef
+            val classLoader = classLoaderRef
+            if (module == null || classLoader == null) {
+                YLog.warning(TAG, "ensureHooksInstalled skipped: not initialized")
                 return
             }
-            YLog.info(TAG, "Found performTraversals: $traversalsMethod")
+            try {
+                unhookHandle?.unhook()
+                wideGamutHookHandle?.unhook()
 
-            @Suppress("ObjectLiteralToLambda")
-            unhookHandle =
-                module.hook(traversalsMethod)
-                    .intercept(object : XposedInterface.Hooker {
-                        override fun intercept(chain: XposedInterface.Chain): Any? {
-                            onPerformTraversals(chain)
-                            return chain.proceed()
-                        }
-                    })
-            isInitialized = true
-            YLog.info(TAG, "Hook installed: $unhookHandle")
-            installWideGamutHook(module, classLoader)
+                val viewRootImplClass = classLoader.loadClass("android.view.ViewRootImpl")
 
-            val preResolve = resolveWindowAttributesField(viewRootImplClass)
-            YLog.info(TAG, "mWindowAttributes field resolved: $preResolve")
+                val traversalsMethod = findPerformTraversals(viewRootImplClass)
+                if (traversalsMethod == null) {
+                    YLog.error(TAG, "performTraversals() not found")
+                    return
+                }
+                YLog.info(TAG, "Found performTraversals: $traversalsMethod")
 
-            val preResolveSurface = resolveSurfaceControlField(viewRootImplClass)
-            YLog.info(TAG, "mSurfaceControl field resolved: $preResolveSurface")
-            val preResolveAttachInfo = resolveAttachInfoField(viewRootImplClass)
-            YLog.info(TAG, "mAttachInfo field resolved: $preResolveAttachInfo")
-        } catch (t: Throwable) {
-            YLog.error(TAG, "initialize failed", t)
+                @Suppress("ObjectLiteralToLambda")
+                unhookHandle =
+                    module.hook(traversalsMethod)
+                        .intercept(object : XposedInterface.Hooker {
+                            override fun intercept(chain: XposedInterface.Chain): Any? {
+                                onPerformTraversals(chain)
+                                return chain.proceed()
+                            }
+                        })
+                YLog.info(TAG, "Hook installed: $unhookHandle")
+                installWideGamutHook(module, classLoader)
+
+                val preResolve = resolveWindowAttributesField(viewRootImplClass)
+                YLog.info(TAG, "mWindowAttributes field resolved: $preResolve")
+
+                val preResolveSurface = resolveSurfaceControlField(viewRootImplClass)
+                YLog.info(TAG, "mSurfaceControl field resolved: $preResolveSurface")
+                val preResolveAttachInfo = resolveAttachInfoField(viewRootImplClass)
+                YLog.info(TAG, "mAttachInfo field resolved: $preResolveAttachInfo")
+
+                hooksInstalled = true
+            } catch (t: Throwable) {
+                YLog.error(TAG, "ensureHooksInstalled failed", t)
+            }
+        }
+    }
+
+    /** 是否仍需要保持 performTraversals / wideGamut hook */
+    private fun hooksStillNeeded(): Boolean {
+        return isEnabled || shouldRestoreWindowSdr || overlayProbeWindowActive
+    }
+
+    /**
+     * 在主线程下一拍尝试卸钩：先退出当前 intercept，避免与正在执行的 traversal 竞态。
+     * 若此时又被 enable / overlay probe 重新需要 hook，则保留。
+     */
+    private fun scheduleMaybeUnhookHooksIfIdle() {
+        mainHandler.post {
+            maybeUnhookHooksIfIdle()
+        }
+    }
+
+    /**
+     * 空闲时卸掉 performTraversals 与 setWideGamut hook，并重置 [hooksInstalled]，
+     * 以便下次 [ensureHooksInstalled] 重新安装。
+     */
+    private fun maybeUnhookHooksIfIdle() {
+        synchronized(hookInstallLock) {
+            if (!hooksInstalled) return
+            if (hooksStillNeeded()) {
+                YLog.info(
+                    TAG,
+                    "Skip unhook: enabled=$isEnabled restoring=$shouldRestoreWindowSdr " +
+                            "overlayProbe=$overlayProbeWindowActive"
+                )
+                return
+            }
+            try {
+                unhookHandle?.unhook()
+                wideGamutHookHandle?.unhook()
+                YLog.info(TAG, "HDR hooks uninstalled (idle)")
+            } catch (t: Throwable) {
+                YLog.error(TAG, "unhook failed", t)
+            }
+            unhookHandle = null
+            wideGamutHookHandle = null
+            hooksInstalled = false
+        }
+    }
+
+    private fun scheduleRestoreUnhookFallback() {
+        mainHandler.post {
+            restoreUnhookFallback?.let { mainHandler.removeCallbacks(it) }
+            val runnable = Runnable {
+                restoreUnhookFallback = null
+                if (shouldRestoreWindowSdr) {
+                    YLog.warning(
+                        TAG,
+                        "SDR restore traversal timed out after ${RESTORE_UNHOOK_FALLBACK_MS}ms; " +
+                                "clearing restore flag and unhooking if idle"
+                    )
+                    shouldRestoreWindowSdr = false
+                }
+                maybeUnhookHooksIfIdle()
+            }
+            restoreUnhookFallback = runnable
+            mainHandler.postDelayed(runnable, RESTORE_UNHOOK_FALLBACK_MS)
+        }
+    }
+
+    private fun cancelRestoreUnhookFallback() {
+        mainHandler.post {
+            restoreUnhookFallback?.let { mainHandler.removeCallbacks(it) }
+            restoreUnhookFallback = null
         }
     }
 
@@ -400,34 +532,27 @@ object HdrStatusBarController {
      * 在 performTraversals() 执行前修改 mWindowAttributes。
      *
      * 当 isEnabled=true 时，每帧设置 colorMode=2 + headroom。
-     * 当 isEnabled=false 时，直接跳过（不修改，不恢复 SDR）。
+     * 当完全空闲（未启用、无需恢复、无 overlay probe）时立即返回，零反射。
      */
     private var frameCount: Long = 0
 
     private fun onPerformTraversals(chain: XposedInterface.Chain) {
-        frameCount++
-        val vri = chain.thisObject
-        val field = if (vri != null) resolveWindowAttributesField(vri.javaClass) else null
+        // 空闲快路径：HDR 关、无需恢复 SDR、无 probe → 不碰反射/日志/分配
+        val enabled = isEnabled
+        val restoring = shouldRestoreWindowSdr
+        val probing = overlayProbeWindowActive
+        if (!enabled && !restoring && !probing) return
 
-        // 每 300 帧输出一次诊断日志
-        if (frameCount % 300 == 1L) {
-            val lpForLog = if (field != null && vri != null) {
-                try { field.get(vri) as? WindowManager.LayoutParams } catch (_: Exception) { null }
-            } else null
-            val surfaceForLog = if (vri != null) getRootSurface(vri) else null
-            val validForLog = if (surfaceForLog != null) isSurfaceValid(surfaceForLog) else null
-            YLog.info(TAG,
-                "=== FRAME #$frameCount ===" +
-                " vri=$vri field=$field" +
-                " isEnabled=$isEnabled" +
-                " rootSurfaceTransaction=$applyRootSurfaceTransaction" +
-                " lpType=${lpForLog?.type} cm=${lpForLog?.colorMode}" +
-                " ratio=$currentRatio" +
-                " surface=$surfaceForLog valid=$validForLog")
-        }
+        val vri = chain.thisObject ?: return
+
+        // 已识别的非状态栏窗口：无 probe 时直接跳过（含仅恢复 SDR 的场景）
+        if (!probing && nonStatusBarViewRoots.contains(vri)) return
+
+        frameCount++
+        val shouldDiag = HOT_PATH_DIAG && frameCount % 300 == 1L
 
         try {
-            if (vri == null) return
+            val field = resolveWindowAttributesField(vri.javaClass)
             if (field == null) {
                 if (!mWindowAttributesResolved) {
                     YLog.warning(TAG, "mWindowAttributes field unresolved, skipping HDR")
@@ -436,15 +561,35 @@ object HdrStatusBarController {
             }
 
             val lp = field.get(vri) as? WindowManager.LayoutParams ?: return
-            if (handleOverlayProbeWindow(vri, lp)) return
+            // overlay probe 未激活时跳过 title 字符串比较，避免每帧分配
+            if (probing && handleOverlayProbeWindow(vri, lp)) return
 
-            if (lp.type != TYPE_STATUS_BAR) return
+            if (lp.type != TYPE_STATUS_BAR) {
+                nonStatusBarViewRoots.add(vri)
+                return
+            }
 
-            if (!isEnabled) {
-                if (shouldRestoreWindowSdr) {
+            if (shouldDiag) {
+                val surfaceForLog = getRootSurface(vri)
+                val validForLog = if (surfaceForLog != null) isSurfaceValid(surfaceForLog) else null
+                YLog.info(
+                    TAG,
+                    "=== FRAME #$frameCount ===" +
+                            " isEnabled=$enabled" +
+                            " rootSurfaceTransaction=$applyRootSurfaceTransaction" +
+                            " cm=${lp.colorMode} ratio=$currentRatio" +
+                            " surface=$surfaceForLog valid=$validForLog"
+                )
+            }
+
+            if (!enabled) {
+                if (restoring) {
                     applySdr(lp)
                     restoreRendererSdr(vri, shouldLog = true)
                     shouldRestoreWindowSdr = false
+                    cancelRestoreUnhookFallback()
+                    // 下一拍再卸钩：先完成本次 intercept，避免与 unhook 竞态
+                    scheduleMaybeUnhookHooksIfIdle()
                 }
                 return
             }
@@ -455,16 +600,29 @@ object HdrStatusBarController {
                 clearRendererHdrCache()
             }
 
-            val shouldLogWindow = frameCount % 300 == 1L || windowNeedsHdrApply
+            // 仅在首次应用或诊断开启时打日志，避免热路径字符串拼接
+            val shouldLogWindow = shouldDiag || windowNeedsHdrApply
             applyHdr(lp, shouldLogWindow)
             forceRendererWideGamut(vri, shouldLogWindow)
             lastWindowHdrFrame = frameCount
 
-            val surface = getRootSurface(vri) ?: return
-            lastStatusBarSurface = surface
             if (!applyRootSurfaceTransaction) return
 
-            val shouldLog = frameCount % 300 == 1L ||
+            // 稳定态：窗口属性 / renderer / surface transaction 均已生效 → 跳过 getRootSurface+isValid
+            if (!windowNeedsHdrApply &&
+                !shouldDiag &&
+                lastStatusBarSurface != null &&
+                lastHdrAppliedSurface === lastStatusBarSurface &&
+                lastSurfaceTransactionSucceeded == true &&
+                lastHdrAppliedRatio == currentRatio
+            ) {
+                return
+            }
+
+            val surface = getRootSurface(vri) ?: return
+            lastStatusBarSurface = surface
+
+            val shouldLog = shouldDiag ||
                     lastHdrTransactionFrame < 0L ||
                     surface !== lastHdrAppliedSurface ||
                     windowNeedsHdrApply
@@ -486,11 +644,16 @@ object HdrStatusBarController {
 
     fun enable(ratio: Float = DEFAULT_HDR_RATIO) {
         val clampedRatio = ratio.coerceIn(MIN_HDR_RATIO, MAX_HDR_RATIO)
-        if (isEnabled && applyRootSurfaceTransaction && currentRatio == clampedRatio) return
+        if (isEnabled && applyRootSurfaceTransaction && currentRatio == clampedRatio && hooksInstalled) {
+            return
+        }
+        // 先声明仍需要 hook，再安装，避免与 maybeUnhook 竞态卸掉刚要用的钩子
+        shouldRestoreWindowSdr = false
+        cancelRestoreUnhookFallback()
         isEnabled = true
         applyRootSurfaceTransaction = true
-        shouldRestoreWindowSdr = false
         currentRatio = clampedRatio
+        ensureHooksInstalled()
         lastWindowHdrFrame = -1L
         clearStatusBarSurfaceHdrCache()
         stopSurfacePulse()
@@ -499,13 +662,17 @@ object HdrStatusBarController {
 
     fun enableWindowOnlyForProbe(ratio: Float = DEFAULT_HDR_RATIO) {
         val clampedRatio = ratio.coerceIn(MIN_HDR_RATIO, MAX_HDR_RATIO)
-        if (isEnabled && !applyRootSurfaceTransaction && currentRatio == clampedRatio) return
+        if (isEnabled && !applyRootSurfaceTransaction && currentRatio == clampedRatio && hooksInstalled) {
+            return
+        }
 
         val shouldRestoreRootSurface = isEnabled && applyRootSurfaceTransaction
+        shouldRestoreWindowSdr = false
+        cancelRestoreUnhookFallback()
         isEnabled = true
         applyRootSurfaceTransaction = false
-        shouldRestoreWindowSdr = false
         currentRatio = clampedRatio
+        ensureHooksInstalled()
         lastWindowHdrFrame = -1L
         clearStatusBarSurfaceHdrCache()
         stopSurfacePulse()
@@ -525,17 +692,24 @@ object HdrStatusBarController {
 
     fun disable() {
         if (!isEnabled) return
+        // 先置 restoring 再清 enabled，避免中间态被误判为空闲而卸钩
+        shouldRestoreWindowSdr = true
         isEnabled = false
         val shouldRestoreRootSurface = applyRootSurfaceTransaction
         applyRootSurfaceTransaction = false
-        shouldRestoreWindowSdr = true
         lastWindowHdrFrame = -1L
         stopSurfacePulse()
         val surface = lastStatusBarSurface
         val restored = if (shouldRestoreRootSurface && surface != null) restoreSurfaceSdr(surface) else false
         clearStatusBarSurfaceHdrCache()
         clearRendererHdrCache()
-        YLog.info(TAG, "HDR disabled, surfaceRestored=$restored surface=$surface")
+        // 等状态栏下一次 performTraversals 写回 SDR；超时则强制卸钩
+        scheduleRestoreUnhookFallback()
+        YLog.info(
+            TAG,
+            "HDR disabled, surfaceRestored=$restored surface=$surface " +
+                    "waitingSdrRestore=true overlayProbe=$overlayProbeWindowActive"
+        )
     }
 
     fun restoreStatusBarSurfaceForProbe(): Boolean {
@@ -642,8 +816,10 @@ object HdrStatusBarController {
 
     fun enableOverlayWindowProbe(ratio: Float) {
         val clampedRatio = ratio.coerceIn(MIN_HDR_RATIO, MAX_HDR_RATIO)
+        // 先置 probe 标志再装 hook，避免与 idle unhook 竞态
         overlayProbeWindowActive = true
         overlayProbeRatio = clampedRatio
+        ensureHooksInstalled()
     }
 
     fun disableOverlayWindowProbe() {
@@ -655,6 +831,8 @@ object HdrStatusBarController {
         lastOverlayRootSurface = null
         lastOverlayRootSurfaceValid = null
         lastOverlayRootTransactionSucceeded = null
+        // probe 结束后若 HDR 也已关闭且不在恢复中，卸掉 hook
+        scheduleMaybeUnhookHooksIfIdle()
     }
 
     fun applyHdrToWindowLayoutParams(
@@ -762,10 +940,25 @@ object HdrStatusBarController {
     }
 
     private fun forceRendererWideGamut(vri: Any, shouldLog: Boolean) {
+        val ratio = currentRatio.coerceIn(MIN_HDR_RATIO, MAX_HDR_RATIO)
+        // 同一 StatusBar VRI + 比率未变：跳过 AttachInfo/Renderer 反射
+        if (vri === lastHdrForcedVri &&
+            lastHdrForcedRenderer != null &&
+            lastHdrForcedRatio == ratio
+        ) {
+            if (shouldLog) {
+                YLog.info(
+                    TAG,
+                    "Renderer HDR hints kept: vri-cached ratio=$ratio"
+                )
+            }
+            return
+        }
+
         val renderer = getThreadedRenderer(vri) ?: return
         val rendererClass = renderer.javaClass
-        val ratio = currentRatio.coerceIn(MIN_HDR_RATIO, MAX_HDR_RATIO)
         if (renderer === lastHdrForcedRenderer && lastHdrForcedRatio == ratio) {
+            lastHdrForcedVri = vri
             if (shouldLog) {
                 YLog.info(
                     TAG,
@@ -789,6 +982,7 @@ object HdrStatusBarController {
             logLabel = "Renderer HDR hints forced"
         )
         lastHdrForcedRenderer = renderer
+        lastHdrForcedVri = vri
         lastHdrForcedRatio = ratio
     }
 
@@ -811,6 +1005,7 @@ object HdrStatusBarController {
 
     private fun clearRendererHdrCache() {
         lastHdrForcedRenderer = null
+        lastHdrForcedVri = null
         lastHdrForcedRatio = DEFAULT_HDR_RATIO
     }
 
@@ -1730,6 +1925,7 @@ object HdrStatusBarController {
     }
 
     fun forceReResolve() {
+        nonStatusBarViewRoots.clear()
         headroomFieldResolved = false
         headroomFieldNotFoundLogged = false
         hdrHeadroomField = null
@@ -1776,6 +1972,7 @@ object HdrStatusBarController {
         lastOverlayRootRestoreSurface = null
         lastWideGamutRenderer = null
         lastHdrForcedRenderer = null
+        lastHdrForcedVri = null
         lastHdrForcedRatio = DEFAULT_HDR_RATIO
         lastWideGamutHookFrame = -1L
         rendererIntrospectionLoggedClasses.clear()
