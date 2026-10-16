@@ -219,6 +219,10 @@ object HdrStatusBarController {
     @Volatile
     private var shouldRestoreWindowSdr: Boolean = false
 
+    /** 最近一次识别到的状态栏 ViewRootImpl（弱引用），供无 traversal 时的超时兜底恢复 SDR */
+    @Volatile
+    private var lastStatusBarViewRoot: java.lang.ref.WeakReference<Any>? = null
+
     @Volatile
     var isInitialized: Boolean = false
         private set
@@ -341,14 +345,29 @@ object HdrStatusBarController {
                     YLog.warning(
                         TAG,
                         "SDR restore traversal timed out after ${RESTORE_UNHOOK_FALLBACK_MS}ms; " +
-                                "clearing restore flag and unhooking if idle"
+                                "restoring SDR directly before unhooking"
                     )
-                    shouldRestoreWindowSdr = false
+                    // 直接在主线程回写 SDR，避免丢弃待恢复状态
+                    restoreSdrDirectly()
+                    if (!isEnabled) shouldRestoreWindowSdr = false
                 }
                 maybeUnhookHooksIfIdle()
             }
             restoreUnhookFallback = runnable
             mainHandler.postDelayed(runnable, RESTORE_UNHOOK_FALLBACK_MS)
+        }
+    }
+
+    private fun restoreSdrDirectly() {
+        try {
+            if (isEnabled) return
+            val vri = lastStatusBarViewRoot?.get() ?: return
+            val field = resolveWindowAttributesField(vri.javaClass) ?: return
+            val lp = field.get(vri) as? WindowManager.LayoutParams ?: return
+            applySdr(lp)
+            restoreRendererSdr(vri, shouldLog = true)
+        } catch (e: Exception) {
+            YLog.error(TAG, "restoreSdrDirectly failed", e)
         }
     }
 
@@ -569,6 +588,10 @@ object HdrStatusBarController {
                 return
             }
 
+            if (lastStatusBarViewRoot?.get() !== vri) {
+                lastStatusBarViewRoot = java.lang.ref.WeakReference(vri)
+            }
+
             if (shouldDiag) {
                 val surfaceForLog = getRootSurface(vri)
                 val validForLog = if (surfaceForLog != null) isSurfaceValid(surfaceForLog) else null
@@ -614,7 +637,9 @@ object HdrStatusBarController {
                 lastStatusBarSurface != null &&
                 lastHdrAppliedSurface === lastStatusBarSurface &&
                 lastSurfaceTransactionSucceeded == true &&
-                lastHdrAppliedRatio == currentRatio
+                lastHdrAppliedRatio == currentRatio &&
+                // 仅一次廉价字段读取：SurfaceControl 被替换时不走快路径
+                getRootSurface(vri) === lastStatusBarSurface
             ) {
                 return
             }

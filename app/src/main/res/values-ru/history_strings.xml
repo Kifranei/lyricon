@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="history_title">История прослушивания</string>
+    <string name="history_entry_summary">Локальные записи, статистика и стена постеров для публикации</string>
+    <string name="history_enable">Записывать историю прослушивания</string>
+    <string name="history_enable_summary">По умолчанию отключено. После включения сохраняются песни, переданные в Лирикон, источник, длительность прослушивания и обложки, только на этом устройстве. После отключения существующая история сохраняется.</string>
+    <string name="history_stats">Статистика</string>
+    <string name="history_recent">История</string>
+    <string name="history_wall">Стена постеров</string>
+    <string name="history_all_time">За всё время</string>
+    <string name="history_filter_summary">Фильтр: %1$s · %2$s</string>
+    <string name="history_today">Сегодня</string>
+    <string name="history_week">7 дней</string>
+    <string name="history_month">30 дней</string>
+    <string name="history_year">Год</string>
+    <string name="history_last_12_hours">12 часов</string>
+    <string name="history_last_1_day">1 день</string>
+    <string name="history_last_2_days">2 дня</string>
+    <string name="history_last_3_days">3 дня</string>
+    <string name="history_all_players">Все плееры</string>
+    <string name="history_disabled_empty">После включения записи здесь будут появляться песни, переданные в Лирикон.</string>
+    <string name="history_empty">В выбранном периоде записей прослушивания пока нет.</string>
+    <string name="history_wall_summary">%1$s · засчитанных прослушиваний: %2$d · %3$d мин.</string>
+    <string name="history_save">Сохранить PNG</string>
+    <string name="history_share">Поделиться стеной постеров</string>
+    <string name="history_exporting">Экспорт…</string>
+    <string name="history_saved">Изображение стены постеров сохранено</string>
+    <string name="history_export_error">Не удалось сохранить изображение</string>
+    <string name="history_clear">Очистить историю</string>
+    <string name="history_clear_confirm">Удалить все записи прослушивания и обложки на этом устройстве? Это действие нельзя отменить, переключатель записи не изменится.</string>
+    <string name="history_qualified">Порог для статистики достигнут</string>
+    <string name="history_not_qualified">Порог для статистики не достигнут</string>
+    <string name="history_total_plays">Засчитанных прослушиваний: %1$d</string>
+    <string name="history_totals">Прослушано %1$d мин. · песен: %2$d · записей в истории: %3$d</string>
+    <string name="history_threshold">В рейтинги засчитывается прослушивание половины песни или 4 минут. Пауза и перемотка не увеличивают время прослушивания; незасчитанные прослушивания остаются в истории.</string>
+    <string name="history_top_tracks">Рейтинг песен</string>
+    <string name="history_top_artists">Рейтинг исполнителей</string>
+    <string name="history_top_albums">Рейтинг альбомов</string>
+    <string name="history_no_qualified">Пока нет прослушиваний, достигших порога.</string>
+    <string name="history_rank_count">%1$d раз · %2$d мин.</string>
+    <string name="history_daily">Динамика прослушивания за 30 дней</string>
+    <string name="history_loading">Загрузка истории прослушивания…</string>
+    <string name="history_wall_empty">В выбранном периоде пока нет засчитанных песен. Песня появится на стене постеров после прослушивания половины или 4 минут.</string>
+    <string name="history_fullscreen">На весь экран</string>
+    <string name="history_exit_fullscreen">Выйти из полноэкранного режима</string>
+</resources>
