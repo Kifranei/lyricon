@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_lyrics_settings">Управление текстом</string>
+    <string name="provider_lyrics_scope">Действует только для этого провайдера, изменения сразу применяются к текущему приложению. История прослушивания по-прежнему ведётся по реальному воспроизведению; настройки сохраняются в резервной копии стиля.</string>
+    <string name="provider_lyrics_disable_all">Отключить весь текст</string>
+    <string name="provider_lyrics_disable_all_summary">Скрыть основную и дополнительную строки текста этого провайдера.</string>
+    <string name="provider_lyrics_disable_main">Отключить основную строку</string>
+    <string name="provider_lyrics_disable_main_summary">Скрыть основную строку, оставив доступную дополнительную строку ниже.</string>
+    <string name="provider_lyrics_disable_secondary">Отключить дополнительную строку</string>
+    <string name="provider_lyrics_disable_secondary_summary">Скрыть перевод, романизацию и дополнительные субтитры ниже, оставив основную строку.</string>
+    <string name="provider_lyrics_delay">Задержка текста</string>
+    <string name="provider_lyrics_delay_summary">В миллисекундах, от -30000 до 30000. Положительное значение задерживает, отрицательное опережает; 0 — исходная синхронизация. Обычный текст можно задержать, но нельзя показать раньше, чем он получен.</string>
+    <string name="provider_lyrics_delay_value">%1$d мс</string>
+    <string name="provider_lyrics_ms">мс</string>
+    <string name="provider_lyrics_reset">Сбросить</string>
+</resources>
