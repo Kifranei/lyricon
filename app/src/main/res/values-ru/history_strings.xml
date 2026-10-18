@@ -43,4 +43,14 @@
     <string name="history_wall_empty">В выбранном периоде пока нет засчитанных песен. Песня появится на стене постеров после прослушивания половины или 4 минут.</string>
     <string name="history_fullscreen">На весь экран</string>
     <string name="history_exit_fullscreen">Выйти из полноэкранного режима</string>
+    <string name="history_rule_ratio">Порог зачёта: доля песни (%)</string>
+    <string name="history_rule_ratio_summary">Прослушивание засчитывается, когда прослушана эта доля песни. По умолчанию 50. Существующая история пересчитывается по новому правилу.</string>
+    <string name="history_rule_cap">Порог зачёта: максимум минут</string>
+    <string name="history_rule_cap_summary">Прослушивание засчитывается после этого числа минут (если это короче заданной доли). 0 — без ограничения. По умолчанию 4.</string>
+    <string name="history_threshold_custom">Засчёт по своему правилу: %1$d%% песни или %2$d мин., что короче. Пауза и перемотка не увеличивают время прослушивания; незасчитанные прослушивания остаются в истории.</string>
+    <string name="history_threshold_custom_nocap">Засчёт по своему правилу: %1$d%% песни. Пауза и перемотка не увеличивают время прослушивания; незасчитанные прослушивания остаются в истории.</string>
+    <string name="history_settings">Настройки истории</string>
+    <string name="history_settings_summary">Свои правила зачёта и подпись внизу стены постеров. Существующая история пересчитывается.</string>
+    <string name="history_poster_footer">Подпись на стене постеров</string>
+    <string name="history_settings_hint">Пусто — LYRICON по умолчанию; часть «/ число» остаётся.</string>
 </resources>

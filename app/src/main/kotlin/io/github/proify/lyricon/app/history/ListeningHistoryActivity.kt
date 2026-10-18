@@ -59,6 +59,8 @@ import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.BaseActivity
 import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.bridge.history.HistoryContract
+import io.github.proify.lyricon.app.bridge.history.ListeningRules
+import io.github.proify.lyricon.app.compose.preference.IntInputPreference
 import io.github.proify.lyricon.app.compose.AppToolBarContainer
 import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.WindowDialog
@@ -77,6 +79,7 @@ import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.TabRowWithContour
 import top.yukonga.miuix.kmp.basic.TabRow
+import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.basic.TabRowDefaults
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -86,6 +89,7 @@ import top.yukonga.miuix.kmp.icon.extended.Delete
 import top.yukonga.miuix.kmp.icon.extended.Download
 import top.yukonga.miuix.kmp.icon.extended.Filter
 import top.yukonga.miuix.kmp.icon.extended.Music
+import top.yukonga.miuix.kmp.icon.extended.Settings
 import top.yukonga.miuix.kmp.icon.extended.Share
 import top.yukonga.miuix.kmp.icon.extended.ZoomOut
 import top.yukonga.miuix.kmp.preference.SwitchPreference
@@ -112,6 +116,8 @@ private fun HistoryScreen(model: HistoryViewModel) {
     var enabled by rememberBooleanPreference(prefs, HistoryContract.ENABLED, false)
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var clearDialog by remember { mutableStateOf(false) }
+    var settingsDialog by remember { mutableStateOf(false) }
+    var footerText by remember { mutableStateOf(prefs.getString(POSTER_FOOTER_KEY, "").orEmpty()) }
     var selected by remember { mutableStateOf<HistoryEntry?>(null) }
     var fullscreen by rememberSaveable { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
@@ -125,7 +131,8 @@ private fun HistoryScreen(model: HistoryViewModel) {
     val periodValues = listOf(0, 1, 7, 30, 365)
     val period = periodLabels[periodValues.indexOf(model.days).coerceAtLeast(0)]
     val posterPeriodLabels = listOf(stringResource(R.string.history_last_12_hours), stringResource(R.string.history_last_1_day),
-        stringResource(R.string.history_last_2_days), stringResource(R.string.history_last_3_days))
+        stringResource(R.string.history_last_2_days), stringResource(R.string.history_last_3_days),
+        stringResource(R.string.history_all_time))
     val posterPeriodIndex = POSTER_WALL_HOURS.indexOf(model.posterHours).coerceAtLeast(0)
     val posterPeriod = if (model.days == 0) posterPeriodLabels[posterPeriodIndex] else "$period · ${posterPeriodLabels[posterPeriodIndex]}"
     val stats = model.wallStats
@@ -167,7 +174,7 @@ private fun HistoryScreen(model: HistoryViewModel) {
     LaunchedEffect(tab, model.loading, stats.posters.isEmpty()) {
         if (tab != 2 || model.loading || stats.posters.isEmpty()) fullscreen = false
     }
-    LaunchedEffect(tab, model.loading, posterInputs, playsSummary) {
+    LaunchedEffect(tab, model.loading, posterInputs, playsSummary, footerText) {
         if (tab == 2 && !model.loading && stats.posters.isNotEmpty()) {
             try { poster = renderPoster() }
             catch (e: CancellationException) { throw e }
@@ -180,6 +187,10 @@ private fun HistoryScreen(model: HistoryViewModel) {
 
     AppToolBarContainer(title = stringResource(R.string.history_title), canBack = true, actions = {
         HistoryFilter(model, periodLabels, periodValues)
+        IconButton(onClick = { settingsDialog = true }, modifier = Modifier.padding(start = 4.dp)) {
+            Icon(MiuixIcons.Settings, contentDescription = stringResource(R.string.history_settings),
+                tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(24.dp))
+        }
         IconButton(onClick = { clearDialog = true }, enabled = !busy && model.sources.isNotEmpty(),
             modifier = Modifier.padding(start = 8.dp, end = 12.dp)) {
             Icon(MiuixIcons.Delete, contentDescription = stringResource(R.string.history_clear),
@@ -195,15 +206,17 @@ private fun HistoryScreen(model: HistoryViewModel) {
                         LyriconBridge.with(context).to(PackageNames.SYSTEM_UI).key(HistoryContract.REFRESH).send()
                     })
             }
+            TabRow(
+                tabs = listOf(stringResource(R.string.history_stats), stringResource(R.string.history_recent), wallTitle),
+                selectedTabIndex = tab,
+                onTabSelected = { tab = it },
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+                colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent,
+                    contentColor = MiuixTheme.colorScheme.onSurface,
+                    selectedBackgroundColor = MiuixTheme.colorScheme.primary,
+                    selectedContentColor = MiuixTheme.colorScheme.onPrimary)
+            )
             Card(Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth()) {
-                TabRow(
-                    tabs = listOf(stringResource(R.string.history_stats), stringResource(R.string.history_recent), wallTitle),
-                    selectedTabIndex = tab,
-                    onTabSelected = { tab = it },
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-                    colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent,
-                        selectedBackgroundColor = MiuixTheme.colorScheme.surface)
-                )
                 if (tab == 2) {
                     TabRowWithContour(
                         tabs = posterPeriodLabels,
@@ -276,6 +289,37 @@ private fun HistoryScreen(model: HistoryViewModel) {
                             }
                         }
                     }
+                }
+            }
+        }
+        var ratioText by remember(settingsDialog) { mutableStateOf(prefs.getInt(ListeningRules.KEY_RATIO_PERCENT, ListeningRules.DEFAULT_RATIO_PERCENT).toString()) }
+        var capText by remember(settingsDialog) { mutableStateOf(prefs.getInt(ListeningRules.KEY_CAP_MINUTES, ListeningRules.DEFAULT_CAP_MINUTES).toString()) }
+        var footerInput by remember(settingsDialog) { mutableStateOf(footerText) }
+        WindowDialog(show = settingsDialog, onDismissRequest = { settingsDialog = false },
+            title = stringResource(R.string.history_settings), summary = stringResource(R.string.history_settings_summary)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                TextField(value = ratioText, onValueChange = { ratioText = it.filter(Char::isDigit).take(3) },
+                    label = stringResource(R.string.history_rule_ratio), modifier = Modifier.fillMaxWidth())
+                TextField(value = capText, onValueChange = { capText = it.filter(Char::isDigit).take(3) },
+                    label = stringResource(R.string.history_rule_cap), modifier = Modifier.fillMaxWidth())
+                TextField(value = footerInput, onValueChange = { footerInput = it.take(32) },
+                    label = stringResource(R.string.history_poster_footer), modifier = Modifier.fillMaxWidth())
+                Text(stringResource(R.string.history_settings_hint), fontSize = 12.sp,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    TextButton(text = stringResource(android.R.string.cancel), modifier = Modifier.weight(1f),
+                        onClick = { settingsDialog = false })
+                    TextButton(text = stringResource(android.R.string.ok), modifier = Modifier.weight(1f), onClick = {
+                        val ratio = (ratioText.toIntOrNull() ?: ListeningRules.DEFAULT_RATIO_PERCENT).coerceIn(1, 100)
+                        val cap = (capText.toIntOrNull() ?: ListeningRules.DEFAULT_CAP_MINUTES).coerceIn(0, 120)
+                        prefs.edit().putInt(ListeningRules.KEY_RATIO_PERCENT, ratio)
+                            .putInt(ListeningRules.KEY_CAP_MINUTES, cap)
+                            .putString(POSTER_FOOTER_KEY, footerInput.trim()).apply()
+                        ListeningRules.load(prefs)
+                        footerText = footerInput.trim()
+                        settingsDialog = false
+                        model.refresh()
+                    })
                 }
             }
         }
@@ -353,7 +397,7 @@ private fun HistoryScreen(model: HistoryViewModel) {
         item { Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp)) {
             Text(stringResource(R.string.history_total_plays, stats.plays), fontSize = 26.sp, fontWeight = FontWeight.Bold)
             Text(stringResource(R.string.history_totals, stats.listenedMs / 60000, stats.uniqueTracks, stats.received), fontSize = 13.sp)
-            Text(stringResource(R.string.history_threshold), fontSize = 12.sp, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(top = 8.dp))
+            Text(thresholdText(), fontSize = 12.sp, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(top = 8.dp))
         } } }
         item { DailyChart(model.snapshot.dailyMs) }
         val sections = listOf(R.string.history_top_tracks to stats.tracks, R.string.history_top_artists to stats.artists, R.string.history_top_albums to stats.albums)
@@ -504,3 +548,13 @@ private fun packageLabel(context: android.content.Context, name: String): String
 }.getOrDefault(name)
 
 private fun formatMinutes(ms: Long): String = "%d:%02d".format(ms / 60000, ms / 1000 % 60)
+
+@Composable
+private fun thresholdText(): String = when {
+    ListeningRules.isDefault -> stringResource(R.string.history_threshold)
+    ListeningRules.capMinutes > 0 -> stringResource(R.string.history_threshold_custom,
+        ListeningRules.ratioPercent, ListeningRules.capMinutes)
+    else -> stringResource(R.string.history_threshold_custom_nocap, ListeningRules.ratioPercent)
+}
+
+private const val POSTER_FOOTER_KEY = "poster_footer_text"

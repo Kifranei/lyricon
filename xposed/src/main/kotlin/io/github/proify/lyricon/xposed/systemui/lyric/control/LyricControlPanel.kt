@@ -33,7 +33,9 @@ import androidx.core.view.setPadding
 import io.github.proify.android.extensions.dp
 import io.github.proify.android.extensions.sp
 import io.github.proify.lyricon.lyric.model.Song
+import io.github.proify.lyricon.app.bridge.AppBridge.LyricGesturePrefs
 import io.github.proify.lyricon.xposed.BuildConfig
+import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
 import io.github.proify.lyricon.xposed.systemui.lyric.control.LyricControlPanel.Companion.NO_SEEK_TARGET
 import io.github.proify.lyricon.xposed.systemui.util.MediaTrackMeta
 import kotlin.math.abs
@@ -156,7 +158,11 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
             ellipsize = TextUtils.TruncateAt.END
         }
 
-        seekBar = GlowSeekBar(context).apply {
+        seekBar = (if (LyricPrefs.controlSeekBarStyle == LyricGesturePrefs.SEEK_BAR_STYLE_COLOROS_FLOW) {
+            FlowSeekBar(context)
+        } else {
+            GlowSeekBar(context)
+        }).apply {
             // 辉光进度条（AGSL）；Android 13 以下回退为下面的胶囊轨道
             progressDrawable = longRoundedTrack()
             // 去掉拖动圆球（thumb），纯进度条；仍可点击/拖动轨道进行 seek
@@ -206,7 +212,7 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
         previousButton = ImageView(context).apply {
             setImageDrawable(
                 moduleRes.getDrawable(
-                    drawableId("sui_control_skip_previous_fill1_24px"),
+                    drawableId("sui_control_am_rewind"),
                     context.theme
                 )
             )
@@ -216,6 +222,7 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
 
         playButton = ImageView(context).apply {
             setImageDrawable(playPauseIcon(playing = false))
+            setPadding(5.dp)
             setOnTouchListener(ControlUi.pressFeedbackListener())
             setOnClickListener { actionListener?.onTogglePlay() }
         }
@@ -223,7 +230,7 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
         nextButton = ImageView(context).apply {
             setImageDrawable(
                 moduleRes.getDrawable(
-                    drawableId("sui_control_skip_next_fill1_24px"),
+                    drawableId("sui_control_am_forward"),
                     context.theme
                 )
             )
@@ -488,11 +495,17 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
     /** 刷新播放/暂停图标。 */
     fun setPlaying(playing: Boolean) {
         playButton.setImageDrawable(playPauseIcon(playing))
+        (seekBar as? FlowSeekBar)?.isPlaying = playing
     }
 
     /** 设置封面图片。 */
     fun setCover(bitmap: Bitmap) {
         coverView.setImageBitmap(bitmap)
+    }
+
+    /** 封面主色：ColorOS 流光进度条据此取 tone-80 亮色。 */
+    fun setAccentColor(color: Int) {
+        (seekBar as? FlowSeekBar)?.setAccentSeed(color)
     }
 
     /** 用封面主色的暗化色刷新卡片背景。 */
@@ -631,8 +644,8 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
     // -------------------------------------------------------------------------
 
     private fun playPauseIcon(playing: Boolean): Drawable {
-        val iconId = if (playing) drawableId("sui_control_pause_fill1_24px")
-        else drawableId("sui_control_play_arrow_fill1_24px")
+        val iconId = if (playing) drawableId("sui_control_am_pause")
+        else drawableId("sui_control_am_play")
         return moduleRes.getDrawable(iconId, context.theme)
     }
 

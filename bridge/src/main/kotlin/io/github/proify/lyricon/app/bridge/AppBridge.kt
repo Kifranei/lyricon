@@ -58,6 +58,12 @@ object AppBridge {
         /** 长按 */
         const val KEY_LONG_PRESS: String = "lyric_style_base_gesture_long_press"
 
+        /** 控制面板进度条样式：0 = 辉光（默认），1 = ColorOS 流光 */
+        const val KEY_SEEK_BAR_STYLE: String = "lyric_style_base_control_seekbar_style"
+
+        const val SEEK_BAR_STYLE_GLOW: Int = 0
+        const val SEEK_BAR_STYLE_COLOROS_FLOW: Int = 1
+
         /** 是否启用震动反馈 */
         const val KEY_HAPTIC: String = "lyric_style_base_gesture_haptic"
 
@@ -107,7 +113,8 @@ object AppBridge {
 
         const val DEFAULT_ENABLED: Boolean = true
         const val DEFAULT_HAPTIC: Boolean = true
-        const val DEFAULT_ROOT_TOUCH_HOOK: Boolean = true
+        const val DEFAULT_SEEK_BAR_STYLE: Int = SEEK_BAR_STYLE_GLOW
+        const val DEFAULT_ROOT_TOUCH_HOOK: Boolean = false
         const val DEFAULT_SWIPE_LEFT: Int = ACTION_NEXT
         const val DEFAULT_SWIPE_RIGHT: Int = ACTION_PREVIOUS
         const val DEFAULT_TAP: Int = ACTION_OPEN_CONTROL

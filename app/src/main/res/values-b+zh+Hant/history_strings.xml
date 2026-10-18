@@ -43,4 +43,14 @@
     <string name="history_wall_empty">目前範圍還沒有達標歌曲。聽滿半首或 4 分鐘後，歌曲才會出現在海報牆中。</string>
     <string name="history_fullscreen">全螢幕</string>
     <string name="history_exit_fullscreen">退出全螢幕</string>
+    <string name="history_rule_ratio">計入門檻：歌曲比例（%）</string>
+    <string name="history_rule_ratio_summary">聽完歌曲的這一比例即計入榜單，預設 50。修改後已有歷史按新規則重新計算。</string>
+    <string name="history_rule_cap">計入門檻：最長分鐘數</string>
+    <string name="history_rule_cap_summary">聽滿該分鐘數即計入（與比例取較短者），0 表示不設上限，預設 4。</string>
+    <string name="history_threshold_custom">按自訂規則計入榜單：聽滿歌曲的 %1$d%% 或 %2$d 分鐘（取較短者）。暫停、拖動進度不增加收聽時間；未達標播放仍保留在歷史中。</string>
+    <string name="history_threshold_custom_nocap">按自訂規則計入榜單：聽滿歌曲的 %1$d%%。暫停、拖動進度不增加收聽時間；未達標播放仍保留在歷史中。</string>
+    <string name="history_settings">歷史設定</string>
+    <string name="history_settings_summary">自訂計入規則與海報牆頁腳。修改後已有歷史按新規則重新計算。</string>
+    <string name="history_poster_footer">海報牆頁腳文字</string>
+    <string name="history_settings_hint">留空使用預設 LYRICON；右側「/ 數量」保持不變。</string>
 </resources>

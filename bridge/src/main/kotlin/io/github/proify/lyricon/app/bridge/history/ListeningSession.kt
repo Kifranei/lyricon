@@ -26,8 +26,38 @@ data class ListeningSession(
     val qualified: Boolean get() = listenedMs >= qualifyingThreshold(track.durationMs)
 }
 
-fun qualifyingThreshold(durationMs: Long): Long =
-    if (durationMs > 0) minOf(durationMs / 2, 240_000L).coerceAtLeast(1) else 240_000L
+/**
+ * 计入统计的自定义规则（App 进程内、读取时求值，因此修改后已有历史会按新规则重新计算）。
+ * 默认值保持原行为：听满半首或 4 分钟（取较短者）。
+ */
+object ListeningRules {
+    const val KEY_RATIO_PERCENT = "qualify_ratio_percent"
+    const val KEY_CAP_MINUTES = "qualify_cap_minutes"
+    const val DEFAULT_RATIO_PERCENT = 50
+    const val DEFAULT_CAP_MINUTES = 4
+
+    @Volatile
+    var ratioPercent: Int = DEFAULT_RATIO_PERCENT
+
+    /** 最长分钟数；0 = 不设上限。 */
+    @Volatile
+    var capMinutes: Int = DEFAULT_CAP_MINUTES
+
+    val isDefault: Boolean
+        get() = ratioPercent == DEFAULT_RATIO_PERCENT && capMinutes == DEFAULT_CAP_MINUTES
+
+    fun load(prefs: android.content.SharedPreferences) {
+        ratioPercent = prefs.getInt(KEY_RATIO_PERCENT, DEFAULT_RATIO_PERCENT).coerceIn(1, 100)
+        capMinutes = prefs.getInt(KEY_CAP_MINUTES, DEFAULT_CAP_MINUTES).coerceIn(0, 120)
+    }
+}
+
+fun qualifyingThreshold(durationMs: Long): Long {
+    val cap = if (ListeningRules.capMinutes > 0) ListeningRules.capMinutes * 60_000L else Long.MAX_VALUE
+    return if (durationMs > 0) {
+        minOf(durationMs * ListeningRules.ratioPercent / 100, cap).coerceAtLeast(1)
+    } else if (cap == Long.MAX_VALUE) 240_000L else cap
+}
 
 /** Only monotonic elapsed time while playing is counted; seeks never add listening time. */
 class ListeningSessionTracker(

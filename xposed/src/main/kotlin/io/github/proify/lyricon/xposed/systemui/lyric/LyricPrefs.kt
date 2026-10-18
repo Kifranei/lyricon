@@ -243,6 +243,13 @@ object LyricPrefs {
             LyricGesturePrefs.DEFAULT_ENABLED
         )
 
+    /** 控制面板进度条样式（每次弹出面板时读取，修改后下次打开即生效） */
+    val controlSeekBarStyle: Int
+        get() = baseStylePrefs.getInt(
+            LyricGesturePrefs.KEY_SEEK_BAR_STYLE,
+            LyricGesturePrefs.DEFAULT_SEEK_BAR_STYLE
+        )
+
     /** 是否启用震动反馈(手势识别时震动) */
     val gestureHapticEnabled: Boolean
         get() = baseStylePrefs.getBoolean(
@@ -254,7 +261,7 @@ object LyricPrefs {
      * 是否启用根窗口触摸拦截 ([io.github.proify.lyricon.xposed.systemui.hook.StatusBarTouchHooker])
      *
      * 关闭时拦截器即使已安装也不再接管任何触摸，歌词手势退回系统正常派发路径。
-     * 默认开启；偏好缺失（老版本升级）时同样按开启处理，保证行为不回退。
+     * 默认关闭；偏好缺失时按关闭处理，已显式保存的值保持不变。
      */
     val rootTouchHookEnabled: Boolean
         get() = baseStylePrefs.getBoolean(

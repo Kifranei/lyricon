@@ -54,7 +54,7 @@ internal object CoverBackdrop {
     /**
      * 像素级占优色统计：缩小到 ~24x24 采样求平均，归一到完整 alpha。
      */
-    private fun dominantColor(src: Bitmap): Int {
+    fun dominantColor(src: Bitmap): Int {
         return try {
             if (src.width <= 0 || src.height <= 0) return DEFAULT_COLOR
 

@@ -295,12 +295,25 @@ internal class TextDrawer(private val effectEngine: LyricEffectEngine) {
                 for (i in word.chars.indices) {
                     val isSpace = word.chars[i].isWhitespace()
                     val charGroup = if (isSpace) null else group
+                    // CJK 词内逐字：按词时长均分各字的起止时间，使上浮逐字错峰
+                    // （此前整词共用时间窗，一个多字词会同时上浮，看起来像两三个字一起动）。
+                    val charCount = word.chars.size
+                    val span = word.end - word.begin
+                    val charBeginMs: Long
+                    val charEndMs: Long
+                    if (isCjk && charCount > 1 && span > 0L) {
+                        charBeginMs = word.begin + span * i / charCount
+                        charEndMs = word.begin + span * (i + 1) / charCount
+                    } else {
+                        charBeginMs = word.begin
+                        charEndMs = word.end
+                    }
                     val charGroupIndex = word.emphasisCharOffset + (if (isSpace) 0 else animCharIndex)
                     if (!isSpace) animCharIndex++
                     if (!addUnit(
                             word.textOffset + i, 1,
                             word.charStartPositions[i], word.charEndPositions[i],
-                            isCjk, word.begin, word.end,
+                            isCjk, charBeginMs, charEndMs,
                             charGroup, charGroupIndex
                         )
                     ) break@outer
