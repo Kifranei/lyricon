@@ -59,6 +59,8 @@ import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.BaseActivity
 import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.bridge.history.HistoryContract
+import io.github.proify.lyricon.app.bridge.history.ListeningRules
+import io.github.proify.lyricon.app.compose.preference.IntInputPreference
 import io.github.proify.lyricon.app.compose.AppToolBarContainer
 import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
 import io.github.proify.lyricon.app.compose.custom.miuix.extra.WindowDialog
@@ -195,16 +197,22 @@ private fun HistoryScreen(model: HistoryViewModel) {
                         enabled = it
                         LyriconBridge.with(context).to(PackageNames.SYSTEM_UI).key(HistoryContract.REFRESH).send()
                     })
+                IntRuleInput(prefs, ListeningRules.KEY_RATIO_PERCENT, ListeningRules.DEFAULT_RATIO_PERCENT,
+                    stringResource(R.string.history_rule_ratio), stringResource(R.string.history_rule_ratio_summary),
+                    1..100) { model.refresh() }
+                IntRuleInput(prefs, ListeningRules.KEY_CAP_MINUTES, ListeningRules.DEFAULT_CAP_MINUTES,
+                    stringResource(R.string.history_rule_cap), stringResource(R.string.history_rule_cap_summary),
+                    0..120) { model.refresh() }
             }
+            TabRow(
+                tabs = listOf(stringResource(R.string.history_stats), stringResource(R.string.history_recent), wallTitle),
+                selectedTabIndex = tab,
+                onTabSelected = { tab = it },
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 4.dp),
+                colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent,
+                    selectedBackgroundColor = MiuixTheme.colorScheme.surface)
+            )
             Card(Modifier.weight(1f).padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth()) {
-                TabRow(
-                    tabs = listOf(stringResource(R.string.history_stats), stringResource(R.string.history_recent), wallTitle),
-                    selectedTabIndex = tab,
-                    onTabSelected = { tab = it },
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-                    colors = TabRowDefaults.tabRowColors(backgroundColor = Color.Transparent,
-                        selectedBackgroundColor = MiuixTheme.colorScheme.surface)
-                )
                 if (tab == 2) {
                     TabRowWithContour(
                         tabs = posterPeriodLabels,
@@ -354,7 +362,7 @@ private fun HistoryScreen(model: HistoryViewModel) {
         item { Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(18.dp)) {
             Text(stringResource(R.string.history_total_plays, stats.plays), fontSize = 26.sp, fontWeight = FontWeight.Bold)
             Text(stringResource(R.string.history_totals, stats.listenedMs / 60000, stats.uniqueTracks, stats.received), fontSize = 13.sp)
-            Text(stringResource(R.string.history_threshold), fontSize = 12.sp, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(top = 8.dp))
+            Text(thresholdText(), fontSize = 12.sp, color = MiuixTheme.colorScheme.onSurfaceVariantSummary, modifier = Modifier.padding(top = 8.dp))
         } } }
         item { DailyChart(model.snapshot.dailyMs) }
         val sections = listOf(R.string.history_top_tracks to stats.tracks, R.string.history_top_artists to stats.artists, R.string.history_top_albums to stats.albums)
@@ -505,3 +513,36 @@ private fun packageLabel(context: android.content.Context, name: String): String
 }.getOrDefault(name)
 
 private fun formatMinutes(ms: Long): String = "%d:%02d".format(ms / 60000, ms / 1000 % 60)
+
+@Composable
+private fun thresholdText(): String = when {
+    ListeningRules.isDefault -> stringResource(R.string.history_threshold)
+    ListeningRules.capMinutes > 0 -> stringResource(R.string.history_threshold_custom,
+        ListeningRules.ratioPercent, ListeningRules.capMinutes)
+    else -> stringResource(R.string.history_threshold_custom_nocap, ListeningRules.ratioPercent)
+}
+
+/** 整数规则输入；写入后立即触发统计重算。 */
+@Composable
+private fun IntRuleInput(
+    prefs: android.content.SharedPreferences, key: String, default: Int,
+    title: String, summary: String, range: IntRange, onChanged: () -> Unit,
+) {
+    var current by remember { mutableIntStateOf(prefs.getInt(key, default)) }
+    IntInputPreference(
+        preferences = prefs,
+        key = key,
+        title = title,
+        dialogSummary = summary,
+        defaultValue = default,
+        range = range,
+        value = current,
+        onValueChange = { v ->
+            val value = (v ?: default).coerceIn(range.first, range.last)
+            current = value
+            prefs.edit().putInt(key, value).apply()
+            ListeningRules.load(prefs)
+            onChanged()
+        },
+    )
+}

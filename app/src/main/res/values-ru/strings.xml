@@ -98,10 +98,6 @@
     <string name="item_text_relative_progress_highlight">Подсветка относительного прогресса</string>
     <string name="item_text_word_motion">Анимация слов</string>
     <string name="item_text_word_motion_summary">Иероглифы анимируются посимвольно; латиница и кириллица — по словам.</string>
-    <string name="item_text_word_motion_cjk_lift_factor">Коэффициент подъема (CJK)</string>
-    <string name="item_text_word_motion_cjk_wave_factor">Коэффициент волны (CJK)</string>
-    <string name="item_text_word_motion_latin_lift_factor">Коэффициент подъема (латиница/кириллица)</string>
-    <string name="item_text_word_motion_latin_wave_factor">Коэффициент волны (латиница/кириллица)</string>
     <string name="item_text_color_normal">Обычный цвет</string>
     <string name="item_text_color_background">Цвет фона</string>
     <string name="item_text_color_highlight">Цвет подсветки</string>
@@ -240,10 +236,6 @@
     <string name="dialog_summary_text_fading_edge_length">Ширина эффекта затухания по краям текста.</string>
     <string name="dialog_summary_text_typeface">Путь или название пользовательского шрифта для текста песен. Оставьте пустым для использования системного.</string>
     <string name="dialog_summary_text_font_weight">Толщина шрифта. Большие значения делают текст жирнее.</string>
-    <string name="dialog_summary_text_word_motion_cjk_lift_factor">Сила вертикального подъема символов при анимации иероглифов.</string>
-    <string name="dialog_summary_text_word_motion_cjk_wave_factor">Интервал волны при анимации иероглифов.</string>
-    <string name="dialog_summary_text_word_motion_latin_lift_factor">Сила вертикального подъема при анимации слов латиницы/кириллицы.</string>
-    <string name="dialog_summary_text_word_motion_latin_wave_factor">Интервал волны при анимации слов латиницы/кириллицы.</string>
     <string name="dialog_summary_text_marquee_speed">Скорость прокрутки длинного текста песни в режиме бегущей строки.</string>
     <string name="dialog_summary_text_marquee_space">Расстояние между повторяющимися копиями бегущей строки.</string>
     <string name="dialog_summary_text_marquee_initial_delay">Задержка перед началом прокрутки бегущей строки в миллисекундах.</string>

@@ -495,11 +495,17 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
     /** 刷新播放/暂停图标。 */
     fun setPlaying(playing: Boolean) {
         playButton.setImageDrawable(playPauseIcon(playing))
+        (seekBar as? FlowSeekBar)?.isPlaying = playing
     }
 
     /** 设置封面图片。 */
     fun setCover(bitmap: Bitmap) {
         coverView.setImageBitmap(bitmap)
+    }
+
+    /** 封面主色：ColorOS 流光进度条据此取 tone-80 亮色。 */
+    fun setAccentColor(color: Int) {
+        (seekBar as? FlowSeekBar)?.setAccentSeed(color)
     }
 
     /** 用封面主色的暗化色刷新卡片背景。 */

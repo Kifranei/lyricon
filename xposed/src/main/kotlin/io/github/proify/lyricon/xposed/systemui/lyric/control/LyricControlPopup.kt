@@ -343,6 +343,7 @@ object LyricControlPopup : ActivePlayerListener, NotificationCoverHelper.OnCover
             panel?.apply {
                 setCover(bitmap)
                 setBackdropColor(CoverBackdrop.backdropColor(bitmap))
+                setAccentColor(CoverBackdrop.dominantColor(bitmap))
             }
         } catch (e: Exception) {
             YLog.error(TAG, "Failed to load cover for $pkg", e)

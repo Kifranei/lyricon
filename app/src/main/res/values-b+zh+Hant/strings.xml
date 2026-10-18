@@ -349,14 +349,6 @@
     <string name="option_gesture_toggle_clock">切換歌詞與時鐘</string>
 
     <!-- fork: per-script word motion factors (4 sliders) -->
-    <string name="item_text_word_motion_cjk_lift_factor">中日韓上浮係數</string>
-    <string name="item_text_word_motion_cjk_wave_factor">中日韓波長係數</string>
-    <string name="item_text_word_motion_latin_lift_factor">拉丁文字上浮係數</string>
-    <string name="item_text_word_motion_latin_wave_factor">拉丁文字波長係數</string>
-    <string name="dialog_summary_text_word_motion_cjk_lift_factor">控制中日韓字元動畫的上浮強度。</string>
-    <string name="dialog_summary_text_word_motion_cjk_wave_factor">控制中日韓字元動畫的波浪間距。</string>
-    <string name="dialog_summary_text_word_motion_latin_lift_factor">控制拉丁文字單詞動畫的上浮強度。</string>
-    <string name="dialog_summary_text_word_motion_latin_wave_factor">控制拉丁文字單詞動畫的波浪間距。</string>
 
     <!-- fork: flowing background style -->
     <string name="item_flowing_background_style">流光風格</string>
