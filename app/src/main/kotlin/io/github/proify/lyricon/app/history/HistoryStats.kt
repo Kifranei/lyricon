@@ -14,12 +14,13 @@ data class HistoryStats(
     val posters: List<RankedHistory>,
 )
 
-internal val POSTER_WALL_HOURS = listOf(12, 24, 48, 72)
+internal val POSTER_WALL_HOURS = listOf(12, 24, 48, 72, 0) // 0 = 全部时间
 
 /** The rolling window selects plays started in this interval, within the active history filters. */
 fun posterHistoryStats(entries: List<HistoryEntry>, hours: Int, now: Long = System.currentTimeMillis()): HistoryStats {
     require(hours in POSTER_WALL_HOURS)
-    val since = (now - hours * 3_600_000L).coerceAtLeast(0)
+    // hours == 0：全部时间；海报数量由渲染端限制为最多 96 张
+    val since = if (hours == 0) 0L else (now - hours * 3_600_000L).coerceAtLeast(0)
     return historyStats(entries.filter { it.countPlay && it.session.startedAt in since..now })
 }
 

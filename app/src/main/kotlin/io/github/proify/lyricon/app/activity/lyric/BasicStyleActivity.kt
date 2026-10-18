@@ -496,6 +496,8 @@ fun BasicLyricSettingsScreen(
                     title = stringResource(R.string.item_gesture_long_press),
                     iconRes = R.drawable.ic_gesture_long_press
                 )
+
+                SeekBarStyleSpinner(preferences)
             }
         }
 
@@ -728,4 +730,38 @@ private fun ChineseConversionPreference(preferences: SharedPreferences) {
 @Composable
 private fun ContentPreview() {
     BasicLyricSettingsScreen()
+}
+
+/** 控制面板进度条样式选择：辉光（默认）/ ColorOS 流光，下次打开面板即生效。 */
+@Composable
+private fun SeekBarStyleSpinner(preferences: SharedPreferences) {
+    val styles = listOf(
+        LyricGesturePrefs.SEEK_BAR_STYLE_GLOW,
+        LyricGesturePrefs.SEEK_BAR_STYLE_COLOROS_FLOW
+    )
+    val items = listOf(
+        DropdownItem(title = stringResource(R.string.option_seekbar_style_glow)),
+        DropdownItem(title = stringResource(R.string.option_seekbar_style_coloros_flow)),
+    )
+    val current = preferences.getInt(
+        LyricGesturePrefs.KEY_SEEK_BAR_STYLE,
+        LyricGesturePrefs.DEFAULT_SEEK_BAR_STYLE
+    )
+    val selectedIndex = remember(current) {
+        mutableIntStateOf(styles.indexOf(current).coerceAtLeast(0))
+    }
+    OpaqueDropdownPopupTheme {
+        OverlaySpinnerPreference(
+            startAction = { IconActions(painterResource(R.drawable.ic_gesture_tap)) },
+            title = stringResource(R.string.item_control_seekbar_style),
+            items = items,
+            selectedIndex = selectedIndex.intValue,
+            onSelectedIndexChange = {
+                selectedIndex.intValue = it
+                preferences.editCommit {
+                    putInt(LyricGesturePrefs.KEY_SEEK_BAR_STYLE, styles[it])
+                }
+            }
+        )
+    }
 }

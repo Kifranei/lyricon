@@ -380,4 +380,8 @@
     <string name="update_download">立即下載</string>
     <string name="update_download_retry">重新下載</string>
     <string name="update_install">立即安裝</string>
+    <string name="item_control_seekbar_style">控制面板進度條樣式</string>
+    <string name="option_seekbar_style_glow">輝光</string>
+    <string name="option_seekbar_style_coloros_flow">ColorOS 流光</string>
+    <string name="about_summary_raws_music">ColorOS 風格流光進度條的靈感與參考</string>
 </resources>
