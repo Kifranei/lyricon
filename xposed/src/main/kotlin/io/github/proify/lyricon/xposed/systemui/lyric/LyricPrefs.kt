@@ -243,6 +243,13 @@ object LyricPrefs {
             LyricGesturePrefs.DEFAULT_ENABLED
         )
 
+    /** 控制面板进度条样式（每次弹出面板时读取，修改后下次打开即生效） */
+    val controlSeekBarStyle: Int
+        get() = baseStylePrefs.getInt(
+            LyricGesturePrefs.KEY_SEEK_BAR_STYLE,
+            LyricGesturePrefs.DEFAULT_SEEK_BAR_STYLE
+        )
+
     /** 是否启用震动反馈(手势识别时震动) */
     val gestureHapticEnabled: Boolean
         get() = baseStylePrefs.getBoolean(

@@ -125,7 +125,8 @@ private fun HistoryScreen(model: HistoryViewModel) {
     val periodValues = listOf(0, 1, 7, 30, 365)
     val period = periodLabels[periodValues.indexOf(model.days).coerceAtLeast(0)]
     val posterPeriodLabels = listOf(stringResource(R.string.history_last_12_hours), stringResource(R.string.history_last_1_day),
-        stringResource(R.string.history_last_2_days), stringResource(R.string.history_last_3_days))
+        stringResource(R.string.history_last_2_days), stringResource(R.string.history_last_3_days),
+        stringResource(R.string.history_all_time))
     val posterPeriodIndex = POSTER_WALL_HOURS.indexOf(model.posterHours).coerceAtLeast(0)
     val posterPeriod = if (model.days == 0) posterPeriodLabels[posterPeriodIndex] else "$period · ${posterPeriodLabels[posterPeriodIndex]}"
     val stats = model.wallStats

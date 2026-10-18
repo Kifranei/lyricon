@@ -300,6 +300,11 @@ private fun AboutContent(
                         summary = stringResource(R.string.about_summary_halcyon),
                         onClick = { uriHandler.openUri("https://github.com/Kifranei/Halcyon") },
                     )
+                    BasicComponent(
+                        title = "RawS Music",
+                        summary = stringResource(R.string.about_summary_raws_music),
+                        onClick = { uriHandler.openUri("https://github.com/QFDY-GZC/RawS-Music") },
+                    )
                 }
                 }
             }

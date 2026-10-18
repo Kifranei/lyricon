@@ -33,7 +33,9 @@ import androidx.core.view.setPadding
 import io.github.proify.android.extensions.dp
 import io.github.proify.android.extensions.sp
 import io.github.proify.lyricon.lyric.model.Song
+import io.github.proify.lyricon.app.bridge.AppBridge.LyricGesturePrefs
 import io.github.proify.lyricon.xposed.BuildConfig
+import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
 import io.github.proify.lyricon.xposed.systemui.lyric.control.LyricControlPanel.Companion.NO_SEEK_TARGET
 import io.github.proify.lyricon.xposed.systemui.util.MediaTrackMeta
 import kotlin.math.abs
@@ -156,7 +158,11 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
             ellipsize = TextUtils.TruncateAt.END
         }
 
-        seekBar = GlowSeekBar(context).apply {
+        seekBar = (if (LyricPrefs.controlSeekBarStyle == LyricGesturePrefs.SEEK_BAR_STYLE_COLOROS_FLOW) {
+            FlowSeekBar(context)
+        } else {
+            GlowSeekBar(context)
+        }).apply {
             // 辉光进度条（AGSL）；Android 13 以下回退为下面的胶囊轨道
             progressDrawable = longRoundedTrack()
             // 去掉拖动圆球（thumb），纯进度条；仍可点击/拖动轨道进行 seek
