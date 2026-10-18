@@ -212,7 +212,7 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
         previousButton = ImageView(context).apply {
             setImageDrawable(
                 moduleRes.getDrawable(
-                    drawableId("sui_control_skip_previous_fill1_24px"),
+                    drawableId("sui_control_am_rewind"),
                     context.theme
                 )
             )
@@ -222,6 +222,7 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
 
         playButton = ImageView(context).apply {
             setImageDrawable(playPauseIcon(playing = false))
+            setPadding(5.dp)
             setOnTouchListener(ControlUi.pressFeedbackListener())
             setOnClickListener { actionListener?.onTogglePlay() }
         }
@@ -229,7 +230,7 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
         nextButton = ImageView(context).apply {
             setImageDrawable(
                 moduleRes.getDrawable(
-                    drawableId("sui_control_skip_next_fill1_24px"),
+                    drawableId("sui_control_am_forward"),
                     context.theme
                 )
             )
@@ -637,8 +638,8 @@ class LyricControlPanel(context: Context) : FrameLayout(context) {
     // -------------------------------------------------------------------------
 
     private fun playPauseIcon(playing: Boolean): Drawable {
-        val iconId = if (playing) drawableId("sui_control_pause_fill1_24px")
-        else drawableId("sui_control_play_arrow_fill1_24px")
+        val iconId = if (playing) drawableId("sui_control_am_pause")
+        else drawableId("sui_control_am_play")
         return moduleRes.getDrawable(iconId, context.theme)
     }
 

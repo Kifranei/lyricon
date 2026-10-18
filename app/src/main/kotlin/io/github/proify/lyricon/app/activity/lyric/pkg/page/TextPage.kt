@@ -360,41 +360,11 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
 
                 DoubleInputPreference(
                     preferences = preferences,
-                    key = TextStyle.KEY_WORD_MOTION_CJK_LIFT_FACTOR,
-                    title = stringResource(R.string.item_text_word_motion_cjk_lift_factor),
-                    dialogSummary = stringResource(R.string.dialog_summary_text_word_motion_cjk_lift_factor),
-                    defaultValue = TextStyle.Defaults.WORD_MOTION_CJK_LIFT_FACTOR.toDouble(),
-                    range = 0.0..0.2,
-                    enabled = isWordMotionEnabled,
-                    startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
-                )
-                DoubleInputPreference(
-                    preferences = preferences,
-                    key = TextStyle.KEY_WORD_MOTION_CJK_WAVE_FACTOR,
-                    title = stringResource(R.string.item_text_word_motion_cjk_wave_factor),
-                    dialogSummary = stringResource(R.string.dialog_summary_text_word_motion_cjk_wave_factor),
-                    defaultValue = TextStyle.Defaults.WORD_MOTION_CJK_WAVE_FACTOR.toDouble(),
-                    range = 0.5..8.0,
-                    enabled = isWordMotionEnabled,
-                    startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
-                )
-                DoubleInputPreference(
-                    preferences = preferences,
-                    key = TextStyle.KEY_WORD_MOTION_LATIN_LIFT_FACTOR,
-                    title = stringResource(R.string.item_text_word_motion_latin_lift_factor),
-                    dialogSummary = stringResource(R.string.dialog_summary_text_word_motion_latin_lift_factor),
-                    defaultValue = TextStyle.Defaults.WORD_MOTION_LATIN_LIFT_FACTOR.toDouble(),
-                    range = 0.0..0.2,
-                    enabled = isWordMotionEnabled,
-                    startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
-                )
-                DoubleInputPreference(
-                    preferences = preferences,
-                    key = TextStyle.KEY_WORD_MOTION_LATIN_WAVE_FACTOR,
-                    title = stringResource(R.string.item_text_word_motion_latin_wave_factor),
-                    dialogSummary = stringResource(R.string.dialog_summary_text_word_motion_latin_wave_factor),
-                    defaultValue = TextStyle.Defaults.WORD_MOTION_LATIN_WAVE_FACTOR.toDouble(),
-                    range = 0.5..8.0,
+                    key = TextStyle.KEY_WORD_MOTION_AMPLITUDE,
+                    title = stringResource(R.string.item_text_word_motion_amplitude),
+                    dialogSummary = stringResource(R.string.dialog_summary_text_word_motion_amplitude),
+                    defaultValue = TextStyle.Defaults.WORD_MOTION_AMPLITUDE.toDouble(),
+                    range = 0.25..3.0,
                     enabled = isWordMotionEnabled,
                     startAction = { IconActions(painterResource(R.drawable.percent_24px)) },
                 )
