@@ -384,7 +384,7 @@
     <string name="expand_navigation">Развернуть навигацию</string>
     <string name="collapse_navigation">Свернуть навигацию</string>
     <string name="item_control_seekbar_style">Стиль индикатора прогресса панели управления</string>
-    <string name="option_seekbar_style_glow">Свечение</string>
+    <string name="option_seekbar_style_glow">HyperOS Свечение</string>
     <string name="option_seekbar_style_coloros_flow">Текучее свечение ColorOS</string>
     <string name="about_summary_raws_music">Вдохновение и образец для индикатора прогресса в стиле ColorOS</string>
 </resources>

@@ -382,7 +382,7 @@
     <string name="expand_navigation">Expand navigation</string>
     <string name="collapse_navigation">Collapse navigation</string>
     <string name="item_control_seekbar_style">Control panel progress bar style</string>
-    <string name="option_seekbar_style_glow">Glow</string>
+    <string name="option_seekbar_style_glow">HyperOS Glow</string>
     <string name="option_seekbar_style_coloros_flow">ColorOS flowing glow</string>
     <string name="about_summary_raws_music">Inspiration and reference for the ColorOS-style glow progress bar</string>
 </resources>

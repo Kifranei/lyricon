@@ -114,7 +114,7 @@ object AppBridge {
         const val DEFAULT_ENABLED: Boolean = true
         const val DEFAULT_HAPTIC: Boolean = true
         const val DEFAULT_SEEK_BAR_STYLE: Int = SEEK_BAR_STYLE_GLOW
-        const val DEFAULT_ROOT_TOUCH_HOOK: Boolean = true
+        const val DEFAULT_ROOT_TOUCH_HOOK: Boolean = false
         const val DEFAULT_SWIPE_LEFT: Int = ACTION_NEXT
         const val DEFAULT_SWIPE_RIGHT: Int = ACTION_PREVIOUS
         const val DEFAULT_TAP: Int = ACTION_OPEN_CONTROL

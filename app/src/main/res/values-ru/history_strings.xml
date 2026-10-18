@@ -49,4 +49,8 @@
     <string name="history_rule_cap_summary">Прослушивание засчитывается после этого числа минут (если это короче заданной доли). 0 — без ограничения. По умолчанию 4.</string>
     <string name="history_threshold_custom">Засчёт по своему правилу: %1$d%% песни или %2$d мин., что короче. Пауза и перемотка не увеличивают время прослушивания; незасчитанные прослушивания остаются в истории.</string>
     <string name="history_threshold_custom_nocap">Засчёт по своему правилу: %1$d%% песни. Пауза и перемотка не увеличивают время прослушивания; незасчитанные прослушивания остаются в истории.</string>
+    <string name="history_settings">Настройки истории</string>
+    <string name="history_settings_summary">Свои правила зачёта и подпись внизу стены постеров. Существующая история пересчитывается.</string>
+    <string name="history_poster_footer">Подпись на стене постеров</string>
+    <string name="history_settings_hint">Пусто — LYRICON по умолчанию; часть «/ число» остаётся.</string>
 </resources>

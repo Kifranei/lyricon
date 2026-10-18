@@ -65,7 +65,9 @@ object PosterWallRenderer {
         }
         canvas.restore()
         paint.shader = null; paint.textSize = 22f; paint.color = Color.rgb(135, 145, 165); paint.typeface = Typeface.DEFAULT
-        canvas.drawText("LYRICON  /  ${entries.take(96).size}", margin, height - 32f, paint)
+        val footer = context.getSharedPreferences("listening_history", Context.MODE_PRIVATE)
+            .getString("poster_footer_text", "").orEmpty().trim().ifEmpty { "LYRICON" }
+        canvas.drawText(ellipsize("$footer  /  ${entries.take(96).size}", paint, width - margin * 2), margin, height - 32f, paint)
         return bitmap
     }
 

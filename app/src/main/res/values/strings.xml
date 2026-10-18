@@ -384,7 +384,7 @@
     <string name="expand_navigation">展开导航</string>
     <string name="collapse_navigation">收起导航</string>
     <string name="item_control_seekbar_style">控制面板进度条样式</string>
-    <string name="option_seekbar_style_glow">辉光</string>
+    <string name="option_seekbar_style_glow">HyperOS 辉光</string>
     <string name="option_seekbar_style_coloros_flow">ColorOS 流光</string>
     <string name="about_summary_raws_music">ColorOS 风格流光进度条的灵感与参考</string>
 </resources>

@@ -49,4 +49,8 @@
     <string name="history_rule_cap_summary">A play counts after this many minutes (whichever is shorter than the fraction). 0 = no cap. Default 4.</string>
     <string name="history_threshold_custom">Plays count with a custom rule: %1$d%% of the song or %2$d minutes, whichever is shorter. Pausing or seeking adds no listening time; plays below the threshold stay in history.</string>
     <string name="history_threshold_custom_nocap">Plays count with a custom rule: %1$d%% of the song. Pausing or seeking adds no listening time; plays below the threshold stay in history.</string>
+    <string name="history_settings">History settings</string>
+    <string name="history_settings_summary">Customize counting rules and the poster wall footer. Existing history is recalculated.</string>
+    <string name="history_poster_footer">Poster wall footer text</string>
+    <string name="history_settings_hint">Leave empty for the default LYRICON; the “/ count” part stays.</string>
 </resources>
