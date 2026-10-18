@@ -43,4 +43,10 @@
     <string name="history_wall_empty">No qualified tracks in this range. Tracks appear on the wall after half the track or 4 minutes of listening.</string>
     <string name="history_fullscreen">Full screen</string>
     <string name="history_exit_fullscreen">Exit full screen</string>
+    <string name="history_rule_ratio">Qualifying threshold: song fraction (%)</string>
+    <string name="history_rule_ratio_summary">A play counts once this share of the song is heard. Default 50. Existing history is recalculated with the new rule.</string>
+    <string name="history_rule_cap">Qualifying threshold: max minutes</string>
+    <string name="history_rule_cap_summary">A play counts after this many minutes (whichever is shorter than the fraction). 0 = no cap. Default 4.</string>
+    <string name="history_threshold_custom">Plays count with a custom rule: %1$d%% of the song or %2$d minutes, whichever is shorter. Pausing or seeking adds no listening time; plays below the threshold stay in history.</string>
+    <string name="history_threshold_custom_nocap">Plays count with a custom rule: %1$d%% of the song. Pausing or seeking adds no listening time; plays below the threshold stay in history.</string>
 </resources>

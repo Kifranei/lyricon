@@ -43,4 +43,10 @@
     <string name="history_wall_empty">当前范围还没有达标歌曲。听满半首或 4 分钟后，歌曲才会出现在海报墙中。</string>
     <string name="history_fullscreen">全屏</string>
     <string name="history_exit_fullscreen">退出全屏</string>
+    <string name="history_rule_ratio">计入阈值：歌曲比例（%）</string>
+    <string name="history_rule_ratio_summary">听完歌曲的这一比例即计入榜单，默认 50。修改后已有历史按新规则重新计算。</string>
+    <string name="history_rule_cap">计入阈值：最长分钟数</string>
+    <string name="history_rule_cap_summary">听满该分钟数即计入（与比例取较短者），0 表示不设上限，默认 4。</string>
+    <string name="history_threshold_custom">按自定义规则计入榜单：听满歌曲的 %1$d%% 或 %2$d 分钟（取较短者）。暂停、拖动进度不增加收听时间；未达标播放仍保留在历史中。</string>
+    <string name="history_threshold_custom_nocap">按自定义规则计入榜单：听满歌曲的 %1$d%%。暂停、拖动进度不增加收听时间；未达标播放仍保留在历史中。</string>
 </resources>

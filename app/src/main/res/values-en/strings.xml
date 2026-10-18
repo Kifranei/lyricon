@@ -356,14 +356,6 @@
     <string name="option_gesture_toggle_clock">Toggle lyrics / clock</string>
 
     <!-- fork: per-script word motion factors (4 sliders) -->
-    <string name="item_text_word_motion_cjk_lift_factor">CJK lift factor</string>
-    <string name="item_text_word_motion_cjk_wave_factor">CJK wave factor</string>
-    <string name="item_text_word_motion_latin_lift_factor">Latin lift factor</string>
-    <string name="item_text_word_motion_latin_wave_factor">Latin wave factor</string>
-    <string name="dialog_summary_text_word_motion_cjk_lift_factor">Controls the vertical lift strength for CJK character motion.</string>
-    <string name="dialog_summary_text_word_motion_cjk_wave_factor">Controls the wave spacing for CJK character motion.</string>
-    <string name="dialog_summary_text_word_motion_latin_lift_factor">Controls the vertical lift strength for Latin word motion.</string>
-    <string name="dialog_summary_text_word_motion_latin_wave_factor">Controls the wave spacing for Latin word motion.</string>
 
     <!-- fork: flowing background style -->
     <string name="item_flowing_background_style">Flowing background style</string>

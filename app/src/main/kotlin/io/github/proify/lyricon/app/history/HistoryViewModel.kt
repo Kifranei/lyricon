@@ -1,5 +1,7 @@
 package io.github.proify.lyricon.app.history
 
+import io.github.proify.lyricon.app.bridge.history.ListeningRules
+import io.github.proify.lyricon.app.bridge.history.HistoryContract
 import android.app.Application
 import android.database.ContentObserver
 import android.os.Handler
@@ -56,6 +58,7 @@ class HistoryViewModel(application: Application) : AndroidViewModel(application)
                 val selectedPosterHours = posterHours
                 try {
                     val result = withContext(Dispatchers.IO) {
+                        ListeningRules.load(application.getSharedPreferences(HistoryContract.PREFS, 0))
                         val db = HistoryDatabase.get(application)
                         val since = if (selectedDays == 0) 0 else LocalDate.now().minusDays((selectedDays - 1).toLong())
                             .atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
