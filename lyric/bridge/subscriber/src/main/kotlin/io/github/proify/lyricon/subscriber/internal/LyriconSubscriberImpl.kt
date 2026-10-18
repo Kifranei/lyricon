@@ -98,6 +98,9 @@ internal class LyriconSubscriberImpl(
     /**
      * 断开连接并通知监听器。
      *
+     * 远端 Binder 死亡时保留 [RegistrationCoordinator.wantsConnection]，并安排一次
+     * 延迟注册；主动 unregister/destroy 则不会安排重连。
+     *
      * @param remote 是否为远端导致的断开。
      * @param notifyRemote 是否调用远端 disconnect 接口。
      * @param destroy 是否彻底销毁连接端点。
@@ -111,19 +114,18 @@ internal class LyriconSubscriberImpl(
         this.remote.disconnect(notifyRemote, destroy)
         registration.markDisconnected(remote)
         listeners.forEach { it.onDisconnected(this) }
+        if (remote && !destroy) {
+            registration.scheduleReconnect()
+        }
     }
 
     /**
-     * 注册协调器：发送注册广播、管理超时重试与中心重启后的恢复注册。
-     *
-     * 注册尝试（[RegistrationAttempts] + [RegistrationBinder]）保证回调至多被消费一次：
-     * - 注销/销毁会结束尝试，迟到回调不再建立连接；
-     * - 连接中重复注册被拒绝，避免重复广播与重复 onConnected；
-     * - 超时后仍期望连接时，中心启动广播可恢复注册。
+     * 注册协调器：发送注册广播、管理连接超时重试与中心重启后的恢复注册。
      */
     private inner class RegistrationCoordinator : CentralBootReceiver.BootListener {
         private val binder = RegistrationBinder(subscriberInfo)
         private var timeoutJob: Job? = null
+        private var reconnectJob: Job? = null
         private var retryCount = 0
         private var reconnect = false
 
@@ -137,6 +139,7 @@ internal class LyriconSubscriberImpl(
 
         /** 标记为已连接。 */
         fun markConnected() {
+            cancelReconnect()
             status = SubscriberStatus.CONNECTED
         }
 
@@ -154,9 +157,10 @@ internal class LyriconSubscriberImpl(
                 if (!wantsConnection || destroyed.get()) return
 
                 if (service == null) {
-                    // 中心返回空服务（异常路径）：不标记连接，保持期望连接等待恢复信号。
+                    // 中心返回空服务：保持期望连接并稍后恢复。
                     Log.w(TAG, "Central returned null service, registration rejected")
                     status = SubscriberStatus.DISCONNECTED
+                    scheduleReconnect()
                     return
                 }
                 this@LyriconSubscriberImpl.onRegistered(service, reconnect)
@@ -167,19 +171,32 @@ internal class LyriconSubscriberImpl(
             CentralBootReceiver.addBootListener(this)
         }
 
-        /**
-         * 发起注册（用户主动或中心启动恢复）。
-         *
-         * @param manual 用户主动触发；否则为系统恢复路径。
-         */
+        /** 发起注册（用户主动或中心启动恢复）。 */
         fun start(manual: Boolean) {
             if (destroyed.get()) return
+            cancelReconnect()
             if (status == SubscriberStatus.CONNECTED || status == SubscriberStatus.CONNECTING) return
 
             wantsConnection = true
             reconnect = !manual || status.isDisconnectedByRemote()
             retryCount = 0
             send()
+        }
+
+        /** Binder 断开后延迟重连，避免在 Binder death 回调栈内立即发送广播。 */
+        fun scheduleReconnect() {
+            if (destroyed.get() || !wantsConnection) return
+            reconnectJob?.cancel()
+            reconnectJob = scope.launch {
+                delay(RECONNECT_DELAY_MS)
+                reconnectJob = null
+                if (destroyed.get() || !wantsConnection ||
+                    status == SubscriberStatus.CONNECTED ||
+                    status == SubscriberStatus.CONNECTING
+                ) return@launch
+                Log.i(TAG, "Remote connection lost, attempting to reconnect")
+                start(manual = false)
+            }
         }
 
         override fun onBootCompleted() {
@@ -201,6 +218,7 @@ internal class LyriconSubscriberImpl(
         /** 注销/销毁：结束尝试并清除期望连接。 */
         fun cancel() {
             wantsConnection = false
+            cancelReconnect()
             abortAttempt()
         }
 
@@ -214,6 +232,11 @@ internal class LyriconSubscriberImpl(
         private fun cancelTimeout() {
             timeoutJob?.cancel()
             timeoutJob = null
+        }
+
+        private fun cancelReconnect() {
+            reconnectJob?.cancel()
+            reconnectJob = null
         }
 
         /** 发送注册广播并启动超时等待。 */
@@ -245,6 +268,7 @@ internal class LyriconSubscriberImpl(
                     retryCount = 0
                     status = SubscriberStatus.DISCONNECTED
                     listeners.forEach { it.onConnectTimeout(this@LyriconSubscriberImpl) }
+                    scheduleReconnect()
                 }
             }
         }
@@ -254,5 +278,6 @@ internal class LyriconSubscriberImpl(
         private const val TAG = "LyriconSubscriberImpl"
         private const val MAX_RETRY_COUNT = 3
         private const val CONNECT_TIMEOUT_MS = 3_000L
+        private const val RECONNECT_DELAY_MS = 1_000L
     }
 }
