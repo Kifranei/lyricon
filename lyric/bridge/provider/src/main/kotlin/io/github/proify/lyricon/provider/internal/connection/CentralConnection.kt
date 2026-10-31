@@ -142,6 +142,17 @@ internal class CentralConnection(
         playerCache.sync()
     }
 
+    /**
+     * 强制丢弃当前连接并回到未连接状态，供重新注册使用。
+     *
+     * 用于中心服务重建后本地状态不可信的场景：[remoteService] 的 Binder 常常仍然存活
+     * （中心进程并未退出，只是内部注册表随服务重建被清空），死亡监听不会触发，
+     * 本端就会停在"自认为已连接"的僵死态。此时必须主动拆除本地连接再重走注册。
+     */
+    fun resetForRegistration() {
+        transition(ConnectionTrigger.PREEMPT)
+    }
+
     override fun addConnectionListener(listener: ConnectionListener): Boolean =
         listeners.add(listener)
 

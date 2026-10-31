@@ -10,13 +10,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.annotation.RequiresApi
 import io.github.proify.lyricon.provider.ProviderConstants
 import io.github.proify.lyricon.provider.ProviderConstants.ACTION_REGISTER_PROVIDER
 import io.github.proify.lyricon.provider.ProviderConstants.EXTRA_BINDER
+import io.github.proify.lyricon.provider.isConnected
+import io.github.proify.lyricon.provider.isConnecting
 import io.github.proify.lyricon.provider.internal.binding.RegistrationBinder
 import io.github.proify.lyricon.provider.internal.connection.CentralConnection
-import io.github.proify.lyricon.provider.isDisconnected
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -54,6 +56,9 @@ internal class RegistrationCoordinator(
     /** 失败重试协程。 */
     private var retryJob: Job? = null
 
+    /** 连接健康度看门狗协程。 */
+    private var watchdogJob: Job? = null
+
     /** 期望保持连接（register 时置位，unregister/destroy 时复位）。 */
     @Volatile
     private var wantsConnection: Boolean = false
@@ -89,6 +94,7 @@ internal class RegistrationCoordinator(
         if (!connection.beginRegistration()) return false
 
         wantsConnection = true
+        startWatchdog()
         registrationBinder.beginAttempt(attempt)
         scheduleTimeout()
         context.sendBroadcast(Intent(ACTION_REGISTER_PROVIDER).apply {
@@ -104,10 +110,15 @@ internal class RegistrationCoordinator(
     }
 
     override fun onBootCompleted() {
-        // 中心服务重启：只要提供端仍期望连接且当前未在连接中，就补一次注册。
-        if (wantsConnection && connection.connectionStatus.isDisconnected()) {
-            start()
-        }
+        // 中心服务重建后，本地连接状态不再可信：
+        // - 状态为 CONNECTED 时，远端 Binder 常常仍然存活（中心进程并未退出，只是
+        //   内部注册表随服务重建被清空），死亡监听不会触发，本端会永久停在
+        //   "自认为已连接"的僵死态；
+        // - 状态为 CONNECTING 时，上一次注册广播可能已丢失，超时协程也可能因
+        //   进程被冻结而未推进。
+        // 因此这里不再以 isDisconnected() 为前提，而是无条件重走一次完整注册。
+        if (!wantsConnection) return
+        forceReregister()
     }
 
     /** 取消当前注册尝试：清空超时与重试、复位期望连接标记，并让迟到回调失效。 */
@@ -115,6 +126,7 @@ internal class RegistrationCoordinator(
         wantsConnection = false
         cancelTimeout()
         cancelRetry()
+        stopWatchdog()
         registrationBinder.endAttempt(attempt)
     }
 
@@ -122,6 +134,64 @@ internal class RegistrationCoordinator(
     fun close() {
         cancel()
         CentralBootReceiver.removeBootListener(this)
+    }
+
+    /**
+     * 强制重新注册：丢弃当前连接（无论其处于何种状态），重新发起一次注册尝试。
+     *
+     * 这是"本地状态不可信"场景下的唯一可靠恢复路径。常规的 [start] 会被
+     * [CentralConnection.beginRegistration] 在 CONNECTING/CONNECTED 状态下拒绝，
+     * 恰好在最需要恢复的时候失效。
+     */
+    private fun forceReregister() {
+        cancelTimeout()
+        cancelRetry()
+        retryDelayMs = INITIAL_RETRY_DELAY_MS
+        // 结束悬挂的注册尝试，避免中心的迟到回调被上一个 attempt 误消费。
+        registrationBinder.endAttempt(attempt)
+        connection.resetForRegistration()
+        start()
+    }
+
+    /** 启动连接健康度看门狗（幂等）。 */
+    private fun startWatchdog() {
+        if (watchdogJob?.isActive == true) return
+        watchdogJob = scope.launch {
+            while (true) {
+                delay(WATCHDOG_INTERVAL_MS)
+                // 单次检查失败不得终止看门狗本身，否则会退回"无人兜底"的僵死态。
+                runCatching { checkConnectionHealth() }
+                    .onFailure { Log.w(TAG, "Connection health check failed", it) }
+            }
+        }
+    }
+
+    /** 停止连接健康度看门狗。 */
+    private fun stopWatchdog() {
+        watchdogJob?.cancel()
+        watchdogJob = null
+    }
+
+    /**
+     * 一次连接健康度检查。
+     *
+     * 只兜底两种"状态与事实脱节"的僵死形态；正常断开后的恢复仍由 [scheduleRetry]
+     * 的指数退避负责，因此这里不对 DISCONNECTED 状态做任何事，避免与重试协程互相打断。
+     */
+    private fun checkConnectionHealth() {
+        if (!wantsConnection) return
+
+        val status = connection.connectionStatus
+        when {
+            // Binder 死亡通知丢失：本地仍认为已连接，但远端实际已不可用。
+            status.isConnected() && !connection.isActive -> forceReregister()
+
+            // 停在注册中，但超时协程已经不在了：广播丢失或协程未能推进，
+            // 这时状态机自己永远走不出来。
+            status.isConnecting() && timeoutJob?.isActive != true -> forceReregister()
+
+            else -> Unit
+        }
     }
 
     /** 取消注册超时等待。 */
@@ -162,5 +232,10 @@ internal class RegistrationCoordinator(
         private const val CONNECTION_TIMEOUT_MS = 4_000L
         private const val INITIAL_RETRY_DELAY_MS = 1_000L
         private const val MAX_RETRY_DELAY_MS = 30_000L
+
+        /** 连接健康度看门狗的检查周期。 */
+        private const val WATCHDOG_INTERVAL_MS = 60_000L
+
+        private const val TAG = "RegistrationCoordinator"
     }
 }
