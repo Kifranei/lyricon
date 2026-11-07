@@ -78,9 +78,28 @@ object LyricDataProcessor {
     /**
      * 执行显示层加工。
      * 职责：应用只影响展示、不应参与 AI 等数据增强步骤的变换。
+     *
+     * 「隐藏翻译」与「仅显示翻译」互斥：同时开启时以隐藏翻译为准。
      */
     fun executeDisplayProcessing(song: Song, style: LyricStyle): Song {
-        return applyTranslationOnly(song, style)
+        val text = style.packageStyle.text
+        return when {
+            text.isDisableTranslation -> TranslationDisplayRules.hideTranslation(song)
+            text.isTranslationOnly -> TranslationDisplayRules.translationOnly(song)
+            else -> song
+        }
+    }
+
+    /**
+     * 纯文本模式（sendText）的显示层加工：第二行即翻译，同样遵守隐藏 / 仅显示翻译。
+     */
+    fun executeTextDisplayProcessing(text: String?, style: LyricStyle): String? {
+        val textStyle = style.packageStyle.text
+        return TranslationDisplayRules.applyToText(
+            text,
+            hideTranslation = textStyle.isDisableTranslation,
+            translationOnly = textStyle.isTranslationOnly
+        )
     }
 
     // --- 内部基础处理方法 ---
@@ -89,23 +108,6 @@ object LyricDataProcessor {
         val regex = LyricPrefs.baseStyle.blockedWordsRegex ?: return song
         return song.copy(lyrics = song.lyrics?.filter { line ->
             line.text?.let { !regex.containsMatchIn(it) } ?: true
-        })
-    }
-
-    private fun applyTranslationOnly(song: Song, style: LyricStyle): Song {
-        if (!style.packageStyle.text.isTranslationOnly) return song
-
-        return song.copy(lyrics = song.lyrics?.map { line ->
-            if (!line.translation.isNullOrBlank()) {
-                line.copy(
-                    text = line.translation,
-                    words = line.translationWords,
-                    translation = null,
-                    translationWords = null
-                )
-            } else {
-                line
-            }
         })
     }
 

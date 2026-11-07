@@ -35,6 +35,7 @@ import io.github.proify.lyricon.xposed.systemui.hook.StatusBarViewResolver
 import io.github.proify.lyricon.xposed.systemui.hook.ViewVisibilityTracker
 import io.github.proify.lyricon.xposed.systemui.hook.XiaomiIslandHooker
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricDataHub
+import io.github.proify.lyricon.xposed.systemui.meizu.MeizuTickerBridge
 import io.github.proify.lyricon.xposed.systemui.lyric.LyricPrefs
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewController
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager
@@ -179,6 +180,11 @@ object SystemUIHooker : PackageHooker() {
 
         ScreenStateMonitor.initialize(context)
         OplusCapsuleHooker.initialize(module, classLoader)
+        // 尽早挂上 LayoutInflater 拦截：Android 17 上状态栏可能很快 inflate，
+        // 若排在超级岛 / HDR / 根窗口触摸等 fork 专用初始化之后，会错过
+        // layout/status_bar，导致 StatusBarViewManager 为空、锚点视图树加载失败。
+        // 判定逻辑已与 upstream 对齐（仅比对宿主 layout id）。
+        StatusBarViewResolver.init(module, context)
         if (XiaomiIslandHooker.isSupported()) {
             XiaomiIslandHooker.initialize(module, classLoader, context)
         }
@@ -186,6 +192,7 @@ object SystemUIHooker : PackageHooker() {
             HdrStatusBarController.initialize(module, classLoader)
         }
         NotificationCoverHelper.initialize()
+        MeizuTickerBridge.initialize(context)
         ViewVisibilityTracker.initialize(module, classLoader)
         initDataChannel()
 
@@ -208,7 +215,6 @@ object SystemUIHooker : PackageHooker() {
         // 这里在状态栏窗口的派发入口挂拦截器，命中歌词区域时由模块直接接管。
         // 是否真正接管由偏好开关 LyricGesturePrefs.KEY_ROOT_TOUCH_HOOK 控制。
         StatusBarTouchHooker.initialize(module, classLoader)
-        StatusBarViewResolver.init(module, context)
 
         // 冷启动减负：翻译 / 媒体工具 / 听歌记录不阻塞 SystemUI 首屏布局。
         // HDR performTraversals hook 已改为首次 enable 才安装，此处只需完成 prepare。
@@ -287,7 +293,19 @@ object SystemUIHooker : PackageHooker() {
             onQuery(AppBridgeConstants.REQUEST_VIEW_TREE) {
                 YLog.info(TAG, "App requested view tree")
 
-                val controller = StatusBarViewManager.controllers.firstOrNull() ?: return@onQuery
+                // 多个 status_bar 实例时（重建 / 多显示器），优先取当前可见挂载的那个，
+                // 否则锚点视图树可能来自已脱离窗口的旧实例；无可见实例时回退 upstream 的 firstOrNull。
+                val controllers = StatusBarViewManager.controllers
+                val controller = controllers.firstOrNull {
+                    it.statusBarView.isAttachedToWindow && it.statusBarView.isShown
+                } ?: controllers.firstOrNull { it.statusBarView.isAttachedToWindow }
+                ?: controllers.firstOrNull()
+                ?: return@onQuery
+                YLog.info(
+                    TAG,
+                    "View tree source: ${controllers.indexOf(controller)}/${controllers.size} " +
+                            "attached=${controller.statusBarView.isAttachedToWindow}"
+                )
 
                 val data =
                     json.safeEncode(ViewHierarchyParser.buildNodeTree(controller.statusBarView))

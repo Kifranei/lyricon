@@ -19,6 +19,7 @@ import android.view.View
 import io.github.proify.lyricon.xposed.systemui.hook.HdrStatusBarController
 import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
 import io.github.proify.lyricon.xposed.systemui.hook.XiaomiIslandHooker
+import io.github.proify.lyricon.xposed.systemui.meizu.MeizuTickerBridge
 import io.github.proify.lyricon.xposed.systemui.lyric.StatusBarViewManager.MAIN_LOOPER
 import io.github.proify.lyricon.xposed.systemui.util.NotificationCoverHelper
 import java.io.File
@@ -233,7 +234,11 @@ object LyricViewController : ActivePlayerListener,
      * @param style 新的歌词样式配置
      */
     fun applyConfigurationUpdate(style: LyricStyle) {
+        MeizuTickerBridge.refreshEnabledFromPrefs()
         updateAllControllers { updateLyricStyle(style) }
+        // Hide / only-show translation prefs do not change song content hash, so
+        // reprocess may no-op dispatch; always re-apply translation visibility here.
+        refreshTranslationDisplay()
         updateCoverFile(currentCoverFile, force = true)
         refreshHdrHighlightState()
         syncCapsuleWidthMode()
@@ -311,7 +316,23 @@ object LyricViewController : ActivePlayerListener,
         val shouldShow = isDisplayTranslation &&
                 !style.text.isDisableTranslation &&
                 !style.text.isTranslationOnly
+        logTranslationState(style.text.isDisableTranslation, style.text.isTranslationOnly, shouldShow)
         view.updateDisplayTranslation(displayTranslation = shouldShow)
+    }
+
+    private var lastTranslationStateLog: String? = null
+
+    /**
+     * 翻译显示决策日志（同状态去重）。用于在设备上确认 SystemUI 实际读到的开关：
+     * `adb logcat | grep "Translation display"`。
+     */
+    private fun logTranslationState(hide: Boolean, only: Boolean, shouldShow: Boolean) {
+        val state = "pkg=${LyricPrefs.activePackageName} " +
+                "packageStyle=${LyricPrefs.isActivePackageStyleEnabled()} " +
+                "hide=$hide only=$only provider=$isDisplayTranslation show=$shouldShow"
+        if (state == lastTranslationStateLog) return
+        lastTranslationStateLog = state
+        YLog.info(TAG, "Translation display: $state")
     }
 
     /**

@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
 import androidx.core.net.toUri
 import io.github.proify.lyricon.app.LyriconApp
+import io.github.proify.lyricon.common.rom.Flyme
 import io.github.proify.lyricon.app.R
 import io.github.proify.lyricon.app.activity.MainActivity
 import io.github.proify.lyricon.app.compose.theme.CurrentThemeConfigs
@@ -39,6 +40,8 @@ object Utils {
     val isHyperOs3OrAbove: Boolean by lazy {
         isXiaomiFamilyDevice() && detectHyperOsMajor() >= 3
     }
+
+    val isFlyme: Boolean by lazy { Flyme.isFlymeDevice }
 
     private fun isXiaomiFamilyDevice(): Boolean {
         val brand = Build.BRAND.orEmpty().lowercase()

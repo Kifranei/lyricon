@@ -704,9 +704,10 @@ class StatusBarLyric(
         val current = layoutParams
         val lp = when (current) {
             is ViewGroup.MarginLayoutParams -> current
-            null -> ViewGroup.MarginLayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
+            // 与 upstream 一致：首次创建 LinearLayout.LayoutParams(WRAP_CONTENT, MATCH_PARENT)
+            null -> LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.MATCH_PARENT
             )
 
             else -> ViewGroup.MarginLayoutParams(current)

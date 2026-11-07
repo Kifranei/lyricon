@@ -339,6 +339,11 @@
     <string name="about_summary_lsposed">Xposed framework implementation</string>
     <string name="about_summary_haze">Background blur effects for Compose</string>
     <string name="about_summary_lottie">Vector animation rendering</string>
+
+    <string name="section_flyme">Flyme</string>
+    <string name="item_meizu_ticker_enable">Enable Flyme native status-bar lyrics</string>
+    <string name="item_meizu_ticker_enable_summary">Show lyrics via Meizu ticker broadcast/notification. When enabled, the Xposed overlay injection is skipped to avoid double display.</string>
+
     <string name="item_base_xiaomi_island_temp_hide">Hide super island</string>
     <string name="item_base_xiaomi_island_temp_hide_summary">Hide the HyperOS super island only while lyrics are showing; it is restored once lyrics disappear.</string>
     <string name="item_base_xiaomi_island_auto_shrink">Shrink lyrics for super island</string>

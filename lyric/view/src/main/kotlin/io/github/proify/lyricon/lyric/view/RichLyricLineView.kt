@@ -213,6 +213,16 @@ class RichLyricLineView(
         if (oldLine === line && line.isTitleLine()) return
         oldLine = line
 
+        // Keep assembler in sync with display flags. updateDisplayTranslation only
+        // mutates the properties; without this, hide-translation would leave the
+        // previous displayTranslation=true baked into LyricLineAssembler.
+        assembler.updateFlags(
+            displayTranslation,
+            displayRoma,
+            enableRelativeProgress,
+            enableRelativeProgressHighlight,
+        )
+
         val mainResult = assembler.buildMain(line)
         main.setLyric(mainResult.line)
         main.isScrollOnly = mainResult.isScrollOnly

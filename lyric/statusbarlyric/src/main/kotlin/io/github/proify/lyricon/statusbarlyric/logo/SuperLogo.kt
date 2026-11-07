@@ -14,6 +14,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.LinearGradient
+import android.graphics.PorterDuffXfermode
 import android.graphics.ColorFilter
 import android.graphics.Matrix
 import android.graphics.Paint
@@ -239,6 +241,8 @@ class SuperLogo(context: Context) : View(context) {
     override fun onDraw(canvas: Canvas) {
         if (strategy is CoverStrategy && selfDrawnCoverBitmap != null) {
             drawSelfDrawnCover(canvas)
+        } else if (shouldDrawRainbowTint()) {
+            drawRainbowTintedImage(canvas)
         } else {
             drawImageContent(canvas)
         }
@@ -247,6 +251,57 @@ class SuperLogo(context: Context) : View(context) {
             drawProgress(canvas)
         }
     }
+
+    // region Rainbow tint
+
+    /**
+     * 彩虹歌词开启时由染色策略设置的渐变色（与歌词同源的 [io.github.proify.lyricon.statusbarlyric.RainbowPalette]）。
+     * 为 null 时保持原有单色 tint / 原色行为。仅在已有 tint（即需要染色）时生效，
+     * 保留原色的图标不会被套用。
+     */
+    var rainbowTintColors: IntArray? = null
+        set(value) {
+            if (field.contentEquals(value)) return
+            field = value
+            rainbowShader = null
+            invalidate()
+        }
+
+    private var rainbowShader: LinearGradient? = null
+    private var rainbowShaderWidth = -1
+    private var rainbowSuppressHdr = false
+    private val rainbowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.SRC_IN)
+    }
+
+    private fun shouldDrawRainbowTint(): Boolean {
+        val colors = rainbowTintColors ?: return false
+        return colors.isNotEmpty() && imageTintColor != null && imageColorFilter == null &&
+                width > 0 && height > 0
+    }
+
+    /** 先以单色 tint 画出图标形状（作遮罩），再用 SRC_IN 叠加水平彩虹渐变。HDR 下回退普通渐变。 */
+    private fun drawRainbowTintedImage(canvas: Canvas) {
+        val colors = rainbowTintColors ?: return
+        val layer = canvas.saveLayer(0f, 0f, width.toFloat(), height.toFloat(), null)
+        rainbowSuppressHdr = true
+        try {
+            drawImageContent(canvas)
+        } finally {
+            rainbowSuppressHdr = false
+        }
+        val shader = rainbowShader?.takeIf { rainbowShaderWidth == width } ?: run {
+            val gradientColors = if (colors.size == 1) intArrayOf(colors[0], colors[0]) else colors
+            LinearGradient(0f, 0f, width.toFloat(), 0f, gradientColors, null, Shader.TileMode.CLAMP)
+                .also { rainbowShader = it; rainbowShaderWidth = width }
+        }
+        rainbowPaint.shader = shader
+        rainbowPaint.alpha = imageAlpha
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), rainbowPaint)
+        canvas.restoreToCount(layer)
+    }
+
+    // endregion
 
     fun setImageBitmap(bitmap: Bitmap?) {
         if (imageBitmap === bitmap && imageDrawable == null && selfDrawnCoverBitmap == null) return
@@ -310,6 +365,7 @@ class SuperLogo(context: Context) : View(context) {
      * 语义由调用方决定）时返回非空，此时走 [HdrLogoShader] 的 tint 路径输出扩展色域。
      */
     private fun resolveHdrTintColor(): Int? {
+        if (rainbowSuppressHdr) return null
         if (imageColorFilter != null) return null
         val tint = imageTintColor ?: return null
         return if (HdrLogoShader.isActive(hdrHighlightRatio)) tint else null
@@ -357,7 +413,9 @@ class SuperLogo(context: Context) : View(context) {
      */
     private fun drawBitmapContent(canvas: Canvas, bitmap: Bitmap) {
         val hdrTint = resolveHdrTintColor()
-        val hdrBound = if (hdrTint != null) {
+        val hdrBound = if (rainbowSuppressHdr) {
+            false
+        } else if (hdrTint != null) {
             hdrShader.bindTint(
                 imagePaint, bitmap, imageShaderMatrix, hdrTint, hdrHighlightRatio
             )
@@ -386,7 +444,7 @@ class SuperLogo(context: Context) : View(context) {
      * @return 已绑定好 HDR shader 时为光栅化位图；HDR 未生效或失败时返回 null
      */
     private fun rasterizeDrawableForHdr(drawable: Drawable): Bitmap? {
-        if (!HdrLogoShader.isActive(hdrHighlightRatio)) return null
+        if (rainbowSuppressHdr || !HdrLogoShader.isActive(hdrHighlightRatio)) return null
 
         val signature = buildString {
             append(System.identityHashCode(drawable))
@@ -778,6 +836,7 @@ class SuperLogo(context: Context) : View(context) {
 
     internal fun resetImageVisualState() {
         this.imageTintList = null
+        this.rainbowTintColors = null
         this.clearColorFilter()
         this.imageAlpha = 255
         this.alpha = 1f

@@ -41,6 +41,7 @@ class CustomLogoStrategy(
 
         view.imageTintList =
             if (logoStyle?.colorfulCustomLogo == true) null else calculateCustomTint()
+        view.rainbowTintColors = view.resolveRainbowTintColors()
     }
 
     override fun onAttach() {

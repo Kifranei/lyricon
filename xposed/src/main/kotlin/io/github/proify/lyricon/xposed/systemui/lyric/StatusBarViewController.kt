@@ -63,7 +63,6 @@ class StatusBarViewController(
 ) : ScreenStateMonitor.ScreenStateListener, StatusBarTouchHooker.Target {
     companion object {
         const val TAG = "StatusBarViewController"
-        private const val MAX_CLIP_RELAX_DEPTH = 12
     }
 
     val context: Context = statusBarView.context.applicationContext
@@ -130,7 +129,9 @@ class StatusBarViewController(
             YLog.info(TAG, "Clock view changed, color monitor re-registered")
         }
 
-        if (!lyricView.isAttachedToWindow && statusBarView.isAttachedToWindow) {
+        if (!lyricView.isAttachedToWindow && statusBarView.isAttachedToWindow &&
+            !currentLyricStyle.basicStyle.meizuTickerEnabled
+        ) {
             checkLyricViewExists()
         }
     }
@@ -238,6 +239,21 @@ class StatusBarViewController(
         this.currentLyricStyle = lyricStyle
         val basicStyle = lyricStyle.basicStyle
 
+        // Flyme 原生 Ticker 与 Xposed 覆盖层互斥：开启时跳过/移除注入。
+        if (basicStyle.meizuTickerEnabled) {
+            if (lyricView.isAttachedToWindow) {
+                internalRemoveLyricViewFlag = true
+                (lyricView.parent as? ViewGroup)?.removeView(lyricView)
+                internalRemoveLyricViewFlag = false
+                YLog.info(TAG, "Meizu ticker enabled: StatusBarLyric overlay removed")
+            }
+            lastAnchor = ""
+            lastInsertionOrder = -1
+            lyricView.updateStyle(lyricStyle)
+            refreshGestureConfig()
+            return
+        }
+
         val needUpdateLocation = lastAnchor != basicStyle.anchor
                 || lastInsertionOrder != basicStyle.insertionOrder
                 || !lyricView.isAttachedToWindow
@@ -297,7 +313,6 @@ class StatusBarViewController(
         val anchorParent = anchorView.parent as? ViewGroup ?: return run {
             YLog.error(TAG, "Lyric anchor parent not found")
         }
-        relaxAncestorClipping(anchorParent)
 
         // 标记内部移除，避免触发冗余的 detach 逻辑
         internalRemoveLyricViewFlag = true
@@ -324,24 +339,19 @@ class StatusBarViewController(
         logLyricWidthState("injected", baseStyle, anchorParent)
     }
 
+    /**
+     * 与 upstream 一致：复用歌词视图已有的 LayoutParams（由 [StatusBarLyric] 按样式维护宽度/边距），
+     * 仅在首次注入且尚无 LayoutParams 时按自动宽度创建。
+     *
+     * 早期 fork 在此处强制改写宽度并向上关闭整条祖先链的 clipChildren/clipToPadding，
+     * 会永久改变 SystemUI 容器的裁剪行为，使歌词越出锚点容器、与相邻图标重叠，
+     * 表现为「锚点位置不对」，已移除。
+     */
     private fun createLyricLayoutParams(baseStyle: BasicStyle): ViewGroup.LayoutParams {
-        val requestedWidth = calculateRequestedLyricWidth(baseStyle)
-        return when (val current = lyricView.layoutParams) {
-            is ViewGroup.MarginLayoutParams -> current.apply {
-                width = requestedWidth
-                if (height == 0) height = ViewGroup.LayoutParams.WRAP_CONTENT
-            }
-
-            is ViewGroup.LayoutParams -> current.apply {
-                width = requestedWidth
-                if (height == 0) height = ViewGroup.LayoutParams.WRAP_CONTENT
-            }
-
-            else -> ViewGroup.MarginLayoutParams(
-                requestedWidth,
-                ViewGroup.LayoutParams.MATCH_PARENT
-            )
-        }
+        return lyricView.layoutParams ?: ViewGroup.LayoutParams(
+            calculateRequestedLyricWidth(baseStyle),
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
     }
 
     private fun calculateRequestedLyricWidth(baseStyle: BasicStyle): Int {
@@ -351,23 +361,6 @@ class StatusBarViewController(
         ).dp
         val screenWidth = statusBarView.resources.displayMetrics.widthPixels
         return if (screenWidth > 0 && requested > 0) min(requested, screenWidth) else requested
-    }
-
-    private fun relaxAncestorClipping(start: ViewGroup) {
-        var current: ViewGroup? = start
-        var changed = false
-        var depth = 0
-        while (current != null && depth < MAX_CLIP_RELAX_DEPTH) {
-            if (current.clipChildren || current.clipToPadding) changed = true
-            current.clipChildren = false
-            current.clipToPadding = false
-            if (current === statusBarView) break
-            current = current.parent as? ViewGroup
-            depth++
-        }
-        if (changed) {
-            YLog.info(TAG, "Lyric ancestor clipping relaxed from ${start.javaClass.name}")
-        }
     }
 
     private fun logLyricWidthState(

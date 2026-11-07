@@ -51,6 +51,7 @@ class ProviderStrategy(
             view.providerLogo?.colorful == true -> null
             else -> calculateTint()
         }
+        view.rainbowTintColors = view.resolveRainbowTintColors()
     }
 
     override fun onAttach() {

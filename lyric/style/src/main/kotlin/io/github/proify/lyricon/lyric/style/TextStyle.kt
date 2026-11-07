@@ -311,7 +311,10 @@ data class TextStyle(
             KEY_TEXT_TRANSLATION_ONLY,
             Defaults.TRANSLATION_ONLY
         )
-
+        // Runtime exclusivity: hide-translation wins if both prefs are somehow true.
+        if (isDisableTranslation && isTranslationOnly) {
+            isTranslationOnly = false
+        }
 
         enableEnterAnim = preferences.getBoolean(KEY_ENABLED_ENTER_ANIM, false)
     }

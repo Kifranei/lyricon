@@ -104,6 +104,12 @@ object LyricPrefs {
             }
         }
 
+    /** 当前活跃包是否在使用独立样式（否则使用「默认」样式），用于诊断日志 */
+    fun isActivePackageStyleEnabled(): Boolean {
+        val pkg = activePackageName ?: return false
+        return isPackageEnabled(pkg)
+    }
+
     /**
      * 检查指定包是否启用独立样式
      *

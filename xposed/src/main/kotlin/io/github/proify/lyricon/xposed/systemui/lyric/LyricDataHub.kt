@@ -184,7 +184,8 @@ object LyricDataHub : ActivePlayerListener {
 
     private fun scheduleText(text: String?) {
         val policy = providerPolicy
-        val filtered = policy.filterText(text)
+        // 纯文本模式同样要遵守「隐藏翻译 / 仅显示翻译」：第二行即翻译行。
+        val filtered = applyTextDisplay(policy.filterText(text))
         val wait = if (playing && filtered != null) policy.delayMs.coerceAtLeast(0).toLong() else 0L
         val sequence = ++textSequence
         if (wait == 0L) {
@@ -203,6 +204,13 @@ object LyricDataHub : ActivePlayerListener {
                 }
             }
         }
+    }
+
+    private fun applyTextDisplay(text: String?): String? = runCatching {
+        LyricDataProcessor.executeTextDisplayProcessing(text, LyricPrefs.getLyricStyle())
+    }.getOrElse {
+        Log.e(TAG, "Text display processing failed", it)
+        text
     }
 
     @Synchronized override fun onPlaybackStateChanged(isPlaying: Boolean) {

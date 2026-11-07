@@ -120,6 +120,7 @@ open class LyricPlayerView(
                 addView(textRecycleView, defaultLp)
                 updateTextLineViewStyle(style)
             }
+            syncTextRecycleFlags()
             val old = textRecycleView.line
             val speed = AnimSpeed.fromPref(style.animation.speed)
             val preset = YoYoPresets.getById(style.animation.presetId, speed)
@@ -179,14 +180,23 @@ open class LyricPlayerView(
     ) {
         isDisplayTranslation = displayTranslation
         isDisplayRoma = displayRoma
+        // 纯文本模式复用的 textRecycleView 在 removeAllViews 后不再是子视图，
+        // 仅遍历子视图会让它保留旧的 displayTranslation=true，再次 addView 时翻译行复现。
+        syncTextRecycleFlags()
         forEach {
-            if (it is RichLyricLineView) {
+            if (it is RichLyricLineView && it !== textRecycleView) {
                 it.displayTranslation = displayTranslation
                 it.displayRoma = displayRoma
                 it.notifyLineChanged()
             }
         }
+        if (contains(textRecycleView)) textRecycleView.notifyLineChanged()
         updateViewsVisibility()
+    }
+
+    private fun syncTextRecycleFlags() {
+        textRecycleView.displayTranslation = isDisplayTranslation
+        textRecycleView.displayRoma = isDisplayRoma
     }
 
     fun seekTo(position: Long) = updatePosition(position, true)

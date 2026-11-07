@@ -306,6 +306,11 @@
     <string name="about_summary_lsposed">Фреймворк Xposed</string>
     <string name="about_summary_haze">Эффекты размытия фона для Compose</string>
     <string name="about_summary_lottie">Рендеринг векторных анимаций</string>
+
+    <string name="section_flyme">Flyme</string>
+    <string name="item_meizu_ticker_enable">Включить нативные тексты Flyme в строке состояния</string>
+    <string name="item_meizu_ticker_enable_summary">Показывать тексты через Meizu ticker (broadcast/уведомление). При включении внедрение оверлея Xposed пропускается, чтобы избежать двойного отображения.</string>
+
     <string name="item_base_xiaomi_island_temp_hide">Скрывать супер-остров</string>
     <string name="item_base_xiaomi_island_temp_hide_summary">Скрывать супер-остров HyperOS только во время показа текста песен; восстанавливается после исчезновения текста.</string>
     <string name="item_base_xiaomi_island_auto_shrink">Уменьшать текст при появлении острова</string>

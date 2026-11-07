@@ -393,26 +393,30 @@ fun TextPage(scrollBehavior: ScrollBehavior, preferences: SharedPreferences) {
                     key = TextStyle.KEY_TEXT_TRANSLATION_DISABLE,
                     defaultValue = TextStyle.Defaults.TRANSLATION_DISABLE
                 )
-                SwitchPreference(
-                    checked = isTranslationDisableEnabled,
-                    title = stringResource(R.string.item_translation_hide),
-                    startAction = { IconActions(painterResource(R.drawable.ic_visibility_off)) },
-                    onCheckedChange = {
-                        isTranslationDisableEnabled = it
-                    }
-                )
-
                 var isTranslationOnlyEnabled by rememberBooleanPreference(
                     sharedPreferences = preferences,
                     key = TextStyle.KEY_TEXT_TRANSLATION_ONLY,
                     defaultValue = TextStyle.Defaults.TRANSLATION_ONLY
                 )
                 SwitchPreference(
+                    checked = isTranslationDisableEnabled,
+                    title = stringResource(R.string.item_translation_hide),
+                    startAction = { IconActions(painterResource(R.drawable.ic_visibility_off)) },
+                    onCheckedChange = {
+                        isTranslationDisableEnabled = it
+                        // Mutually exclusive with「仅显示翻译」
+                        if (it) isTranslationOnlyEnabled = false
+                    }
+                )
+
+                SwitchPreference(
                     checked = isTranslationOnlyEnabled,
                     title = stringResource(R.string.item_translation_only),
                     startAction = { IconActions(painterResource(R.drawable.translate_24px)) },
                     onCheckedChange = {
                         isTranslationOnlyEnabled = it
+                        // Mutually exclusive with「隐藏翻译」
+                        if (it) isTranslationDisableEnabled = false
                     }
                 )
             }

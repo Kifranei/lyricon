@@ -67,6 +67,8 @@ data class BasicStyle(
     var xiaomiIslandTempHideEnabled: Boolean = Defaults.XIAOMI_ISLAND_TEMP_HIDE_ENABLED,
     var xiaomiIslandAutoShrinkEnabled: Boolean = Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED,
 
+    /** Flyme / Meizu 原生状态栏 Ticker 歌词；开启后与 Xposed 覆盖层注入互斥 */
+    var meizuTickerEnabled: Boolean = Defaults.MEIZU_TICKER_ENABLED,
 
     ) : AbstractStyle(), Parcelable {
 
@@ -218,6 +220,10 @@ data class BasicStyle(
             "lyric_style_base_xiaomi_island_auto_shrink_enabled",
             Defaults.XIAOMI_ISLAND_AUTO_SHRINK_ENABLED
         )
+        meizuTickerEnabled = preferences.getBoolean(
+            "lyric_style_base_meizu_ticker_enabled",
+            Defaults.MEIZU_TICKER_ENABLED
+        )
     }
 
     override fun onWrite(editor: SharedPreferences.Editor) {
@@ -265,6 +271,10 @@ data class BasicStyle(
             "lyric_style_base_xiaomi_island_auto_shrink_enabled",
             xiaomiIslandAutoShrinkEnabled
         )
+        editor.putBoolean(
+            "lyric_style_base_meizu_ticker_enabled",
+            meizuTickerEnabled
+        )
     }
 
     object Defaults {
@@ -296,6 +306,7 @@ data class BasicStyle(
         const val HDR_BRIGHTNESS_RATIO: Float = 1.5f
         const val XIAOMI_ISLAND_TEMP_HIDE_ENABLED: Boolean = true
         const val XIAOMI_ISLAND_AUTO_SHRINK_ENABLED: Boolean = true
+        const val MEIZU_TICKER_ENABLED: Boolean = false
     }
 
     companion object {

@@ -339,6 +339,11 @@
     <string name="about_summary_lsposed">Xposed 框架實現</string>
     <string name="about_summary_haze">Compose 背景模糊效果</string>
     <string name="about_summary_lottie">向量動畫渲染</string>
+
+    <string name="section_flyme">Flyme</string>
+    <string name="item_meizu_ticker_enable">啟用 Flyme 原生狀態列歌詞</string>
+    <string name="item_meizu_ticker_enable_summary">透過魅族 Ticker 廣播/通知顯示歌詞；開啟後將略過詞幕覆蓋層注入，避免雙重顯示。</string>
+
     <string name="item_base_xiaomi_island_temp_hide">隱藏超級島</string>
     <string name="item_base_xiaomi_island_temp_hide_summary">僅在歌詞顯示時隱藏超級島，歌詞消失後自動恢復。</string>
     <string name="item_base_xiaomi_island_auto_shrink">超級島出現時縮短歌詞</string>

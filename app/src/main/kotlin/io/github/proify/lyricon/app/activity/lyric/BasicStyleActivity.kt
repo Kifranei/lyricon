@@ -73,6 +73,41 @@ fun BasicLyricSettingsScreen(
         canBack = canBack,
         bottomBar = bottomBar
     ) {
+        // Flyme / Meizu：原生状态栏 Ticker 入口置顶展示（与覆盖层互斥）
+        if (Utils.isFlyme) {
+            item(key = "flyme_ticker") {
+                SmallTitle(
+                    text = stringResource(R.string.section_flyme),
+                    insideMargin = PaddingValues(
+                        start = 26.dp,
+                        top = 0.dp,
+                        end = 26.dp,
+                        bottom = 10.dp
+                    )
+                )
+                Card(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth(),
+                ) {
+                    var meizuTickerEnabled by rememberBooleanPreference(
+                        preferences,
+                        "lyric_style_base_meizu_ticker_enabled",
+                        BasicStyle.Defaults.MEIZU_TICKER_ENABLED
+                    )
+                    SwitchPreference(
+                        checked = meizuTickerEnabled,
+                        onCheckedChange = { meizuTickerEnabled = it },
+                        startAction = {
+                            IconActions(painterResource(R.drawable.ic_music_note))
+                        },
+                        title = stringResource(R.string.item_meizu_ticker_enable),
+                        summary = stringResource(R.string.item_meizu_ticker_enable_summary),
+                    )
+                }
+            }
+        }
+
         item(key = "base") {
             SmallTitle(
                 text = stringResource(R.string.section_basic),
