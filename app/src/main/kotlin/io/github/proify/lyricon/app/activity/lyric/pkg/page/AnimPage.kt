@@ -33,7 +33,7 @@ import io.github.proify.lyricon.lyric.style.AnimStyle
 import io.github.proify.lyricon.lyric.view.yoyo.YoYoPresets
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
-import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
+import io.github.proify.lyricon.app.compose.Os4DropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -111,7 +111,7 @@ fun AnimPage(
                         .fillMaxWidth(),
                 ) {
                     OpaqueDropdownPopupTheme {
-                        OverlayDropdownPreference(
+                        Os4DropdownPreference(
                             startAction = {
                                 IconActions(painterResource(R.drawable.ic_speed))
                             },

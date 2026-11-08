@@ -6,7 +6,8 @@
 
 package io.github.proify.lyricon.app.activity.lyric.provider
 
-import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
+import io.github.proify.lyricon.app.compose.GlassListPopup
+import top.yukonga.miuix.kmp.glass.GlassPopupItem
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -62,18 +63,13 @@ import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
-import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.ListPopupColumn
-import top.yukonga.miuix.kmp.basic.ListPopupDefaults
-import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.More
-import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.utils.PressFeedbackType
 import top.yukonga.miuix.kmp.utils.overScrollVertical
@@ -278,36 +274,22 @@ class LyricProviderActivity : BaseActivity() {
                     )
                 }
 
-                OverlayListPopup(
+                GlassListPopup(
                     show = showPopup.value,
-                    popupModifier = Modifier,
-                    popupPositionProvider = ListPopupDefaults.DropdownPositionProvider,
-                    alignment = PopupPositionProvider.Align.TopEnd,
-                    enableWindowDim = true,
                     onDismissRequest = { showPopup.value = false },
-                    maxHeight = null,
-                    minWidth = 200.dp,
-                    renderInRootScaffold = true,
-                    content = {
-                        OpaqueDropdownPopupTheme {
-                            ListPopupColumn {
-                                options.forEachIndexed { index, (labelRes, value) ->
-                                    DropdownImpl(
-                                        text = stringResource(labelRes),
-                                        optionSize = options.size,
-                                        isSelected = index == selectedIndex,
-                                        onSelectedIndexChange = {
-                                            showPopup.value = false
-                                            listStylePref = value
-                                            viewModel.listStyle = value
-                                        },
-                                        index = index
-                                    )
-                                }
-                            }
-                        }
+                ) {
+                    options.forEachIndexed { index, (labelRes, value) ->
+                        GlassPopupItem(
+                            text = stringResource(labelRes),
+                            selected = index == selectedIndex,
+                            onClick = {
+                                showPopup.value = false
+                                listStylePref = value
+                                viewModel.listStyle = value
+                            },
+                        )
                     }
-                )
+                }
             }
         }
     }

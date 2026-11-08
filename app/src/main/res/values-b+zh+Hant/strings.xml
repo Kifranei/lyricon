@@ -316,6 +316,11 @@
     <string name="home_info_system_build">系統建置</string>
     <string name="item_floating_bottom_bar">懸浮底欄</string>
     <string name="item_summary_floating_bottom_bar">開啟以啟用懸浮風格的底部導覽列。</string>
+    <string name="item_floating_bottom_bar_style">懸浮底欄樣式</string>
+    <string name="option_floating_bottom_bar_ios">iOS 液態玻璃</string>
+    <string name="option_floating_bottom_bar_os4">OS 4 玻璃</string>
+    <string name="item_progressive_top_bar_blur">頂欄漸進模糊</string>
+    <string name="item_summary_progressive_top_bar_blur">內容捲動到頂欄下方時漸進模糊（Android 13 以下為漸層著色，流光背景開啟時不生效）。</string>
     <string name="item_show_desktop_icon">顯示桌面圖示</string>
     <string name="item_show_desktop_icon_summary">在啟動器中顯示詞幕。</string>
     <string name="toast_desktop_icon_hidden">桌面圖示已隱藏，可在詞幕設定中恢復。</string>

@@ -316,6 +316,11 @@
     <string name="home_info_system_build">System Build</string>
     <string name="item_floating_bottom_bar">Floating Bottom Bar</string>
     <string name="item_summary_floating_bottom_bar">Enable to use floating style bottom navigation bar.</string>
+    <string name="item_floating_bottom_bar_style">Floating bar style</string>
+    <string name="option_floating_bottom_bar_ios">iOS liquid glass</string>
+    <string name="option_floating_bottom_bar_os4">OS 4 glass</string>
+    <string name="item_progressive_top_bar_blur">Progressive top bar blur</string>
+    <string name="item_summary_progressive_top_bar_blur">Progressively blur content scrolled under the top bar (gradient tint below Android 13; not applied with the flowing background).</string>
     <string name="item_show_desktop_icon">Show desktop icon</string>
     <string name="item_show_desktop_icon_summary">Show Lyricon in the launcher.</string>
     <string name="toast_desktop_icon_hidden">Desktop icon hidden. You can restore it from Lyricon settings.</string>

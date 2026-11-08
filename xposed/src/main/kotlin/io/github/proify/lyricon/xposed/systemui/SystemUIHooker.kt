@@ -26,6 +26,7 @@ import io.github.proify.lyricon.xposed.ModuleEntry
 import io.github.proify.lyricon.xposed.hook.PackageHooker
 import io.github.proify.lyricon.xposed.logger.YLog
 import io.github.proify.lyricon.xposed.systemui.ai.translate.AiTranslator
+import io.github.proify.lyricon.xposed.systemui.hook.CleartextTrafficHooker
 import io.github.proify.lyricon.xposed.systemui.hook.HdrStatusBarController
 import io.github.proify.lyricon.xposed.systemui.hook.OplusCapsuleHooker
 import io.github.proify.lyricon.xposed.systemui.hook.StatusBarColorMonitor
@@ -179,6 +180,9 @@ object SystemUIHooker : PackageHooker() {
         val context = appContext ?: return
 
         ScreenStateMonitor.initialize(context)
+        // 放行 SystemUI 进程内本地地址的明文 HTTP：AI 服务部署在本机/局域网时
+        //（127.0.0.1、192.168.x.x 等）OkHttp 会被宿主网络安全策略拦截。
+        CleartextTrafficHooker.inject(module, classLoader)
         OplusCapsuleHooker.initialize(module, classLoader)
         // 尽早挂上 LayoutInflater 拦截：Android 17 上状态栏可能很快 inflate，
         // 若排在超级岛 / HDR / 根窗口触摸等 fork 专用初始化之后，会错过

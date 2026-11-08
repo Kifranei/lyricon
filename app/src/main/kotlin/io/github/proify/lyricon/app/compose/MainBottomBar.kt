@@ -27,6 +27,9 @@ import top.yukonga.miuix.kmp.basic.NavigationBar
 import top.yukonga.miuix.kmp.basic.NavigationBarItem
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.blur.blur
+import top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported
+import top.yukonga.miuix.kmp.glass.GlassNavigationBar
+import top.yukonga.miuix.kmp.glass.GlassNavigationItem
 import top.yukonga.miuix.kmp.blur.drawBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -89,6 +92,27 @@ fun MainBottomBar(
     }
 
     val backdrop = LocalBottomBarBackdrop.current
+
+    if (LocalFloatingBottomBarStyle.current == BarStylePrefs.STYLE_OS4) {
+        // OS4 风格玻璃胶囊底栏（移植自 Halcyon 的 miuix-glass GlassNavigationBar）：
+        // 采样页面 backdrop 的模糊；RuntimeShader 不可用（Android 13 以下）时退化为不透明胶囊。
+        val glassBackdrop = if (isRuntimeShaderSupported()) backdrop else null
+        GlassNavigationBar(
+            modifier = modifier.padding(horizontal = 16.dp),
+            items = items.map { item ->
+                GlassNavigationItem(
+                    icon = item.icon,
+                    label = item.label,
+                    contentDescription = item.label,
+                )
+            },
+            selectedIndex = selectedIndex,
+            onSelect = onSelected,
+            backdrop = glassBackdrop,
+        )
+        return
+    }
+
     val bottomInset = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     // FloatingBottomBar 用 selectedIndex lambda 实例作 remember/LaunchedEffect 的 key，

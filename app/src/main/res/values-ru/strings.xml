@@ -279,6 +279,11 @@
     <string name="home_info_system_build">Сборка системы</string>
     <string name="item_floating_bottom_bar">Плавающая нижняя панель</string>
     <string name="item_summary_floating_bottom_bar">Включить парящую нижнюю панель навигации.</string>
+    <string name="item_floating_bottom_bar_style">Стиль плавающей панели</string>
+    <string name="option_floating_bottom_bar_ios">Жидкое стекло iOS</string>
+    <string name="option_floating_bottom_bar_os4">Стекло OS 4</string>
+    <string name="item_progressive_top_bar_blur">Прогрессивное размытие верхней панели</string>
+    <string name="item_summary_progressive_top_bar_blur">Плавно размывать содержимое под верхней панелью (ниже Android 13 — градиент; не действует с переливающимся фоном).</string>
     <string name="item_show_desktop_icon">Значок на рабочем столе</string>
     <string name="item_show_desktop_icon_summary">Отображать значок Lyricon в лаунчере.</string>
     <string name="toast_desktop_icon_hidden">Значок на рабочем столе скрыт. Вы можете вернуть его в настройках Lyricon.</string>

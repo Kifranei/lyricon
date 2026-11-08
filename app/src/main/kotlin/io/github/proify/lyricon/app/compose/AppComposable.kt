@@ -177,6 +177,16 @@ fun AppToolBarListContainer(
             true
         )
 
+        val progressiveTopBarBlur by rememberBooleanPreference(
+            context.defaultSharedPreferences,
+            BarStylePrefs.KEY_PROGRESSIVE_TOP_BAR_BLUR,
+            true
+        )
+        // 顶栏渐进模糊（Halcyon EllaSmallTopAppBar 同款）：流光背景开启时顶栏保持透明以透出流光，不做渐进模糊
+        val useProgressiveBlur = progressiveTopBarBlur && !flowingBackground
+        val surfaceColor = MiuixTheme.colorScheme.surface
+        val blurBackdrop = if (useProgressiveBlur) rememberProgressiveBlurBackdrop(surfaceColor) else null
+
         val titleText = remember(title) {
             when (title) {
                 is Int -> null
@@ -185,7 +195,9 @@ fun AppToolBarListContainer(
         }
 
         androidx.compose.runtime.CompositionLocalProvider(
-            LocalBottomBarBackdrop provides bottomBarBackdrop
+            LocalBottomBarBackdrop provides bottomBarBackdrop,
+            LocalProgressiveTopBarBlur provides useProgressiveBlur,
+            LocalGlassBackdrop provides blurBackdrop,
         ) {
             val floatingBottomPadding = if (LocalFloatingBottomBarEnabled.current) {
                 FloatingBottomBarScrollPadding
@@ -199,31 +211,42 @@ fun AppToolBarListContainer(
                 else MiuixTheme.colorScheme.surface,
                 bottomBar = bottomBar,
                 topBar = {
-                    BlurTopAppBar(
-                        // 流光模式下顶栏不做 haze 模糊、保持透明，让底层流光透出覆盖顶栏区域
-                        hazeState = if (flowingBackground) null else hazeState,
-                        navigationIcon = {
-                            if (canBack) {
-                                NavigationBackIcon(backEvent = backEvent)
-                            }
-                        },
-                        title = if (title is Int) stringResource(title) else (titleText ?: ""),
-                        scrollBehavior = scrollBehavior,
-                        actions = actions,
-                        titleDropdown = titleDropdown,
-                        titleOnClick = titleOnClick
-                    )
+                    val topBar = @Composable {
+                        BlurTopAppBar(
+                            // 流光模式下顶栏不做 haze 模糊、保持透明，让底层流光透出覆盖顶栏区域；
+                            // 渐进模糊时由外层 ProgressiveBlurTopBar 绘制背景
+                            hazeState = if (flowingBackground || useProgressiveBlur) null else hazeState,
+                            navigationIcon = {
+                                if (canBack) {
+                                    NavigationBackIcon(backEvent = backEvent)
+                                }
+                            },
+                            title = if (title is Int) stringResource(title) else (titleText ?: ""),
+                            scrollBehavior = scrollBehavior,
+                            actions = actions,
+                            titleDropdown = titleDropdown,
+                            titleOnClick = titleOnClick
+                        )
+                    }
+                    if (useProgressiveBlur) {
+                        ProgressiveBlurTopBar(backdrop = blurBackdrop, color = surfaceColor) { topBar() }
+                    } else {
+                        topBar()
+                    }
                 }
             ) { paddingValues ->
                 scaffoldContent()
 
                 // 不消费底栏高度：内容延伸到停靠底栏之后，底栏的背景模糊才能采样到内容；
                 // 列表用 contentPadding 避让底栏，视觉上不被遮挡。
+                // 渐进模糊时内容延伸到顶栏下方（列表用 contentPadding 避让），顶栏才能采样到滚动中的内容
+                val topPadding = paddingValues.calculateTopPadding()
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .layerBackdrop(bottomBarBackdrop)
-                        .padding(top = paddingValues.calculateTopPadding())
+                        .progressiveBlurSource(blurBackdrop)
+                        .then(if (useProgressiveBlur) Modifier else Modifier.padding(top = topPadding))
                 ) {
 
                     AnimatedVisibility(
@@ -238,6 +261,7 @@ fun AppToolBarListContainer(
                                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                                 .hazeSource(hazeState),
                             contentPadding = PaddingValues(
+                                top = if (useProgressiveBlur) topPadding else 0.dp,
                                 bottom = floatingBottomPadding +
                                         paddingValues.calculateBottomPadding()
                             ),
@@ -253,6 +277,7 @@ fun AppToolBarListContainer(
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
+                                .then(if (useProgressiveBlur) Modifier.padding(top = topPadding) else Modifier)
                                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                         ) {
                             empty()
@@ -315,8 +340,17 @@ fun AppToolBarContainer(
 ) {
     AppTheme {
         val bottomBarBackdrop = rememberLayerBackdrop()
+        val progressiveTopBarBlur by rememberBooleanPreference(
+            context.defaultSharedPreferences,
+            BarStylePrefs.KEY_PROGRESSIVE_TOP_BAR_BLUR,
+            true
+        )
+        val surfaceColor = MiuixTheme.colorScheme.surface
+        val blurBackdrop = if (progressiveTopBarBlur) rememberProgressiveBlurBackdrop(surfaceColor) else null
         androidx.compose.runtime.CompositionLocalProvider(
-            LocalBottomBarBackdrop provides bottomBarBackdrop
+            LocalBottomBarBackdrop provides bottomBarBackdrop,
+            LocalProgressiveTopBarBlur provides progressiveTopBarBlur,
+            LocalGlassBackdrop provides blurBackdrop,
         ) {
             val floatingBottomPadding = if (LocalFloatingBottomBarEnabled.current) {
                 FloatingBottomBarScrollPadding
@@ -326,25 +360,33 @@ fun AppToolBarContainer(
             Scaffold(
                 bottomBar = bottomBar,
                 topBar = {
-                    BlurTopAppBar(
-                        hazeState = hazeState,
-                        navigationIcon = {
-                            if (canBack) NavigationBackIcon(
-                                backEvent = backEvent
-                            )
-                        },
-                        title = if (title is Int) stringResource(title) else title.toString(),
-                        scrollBehavior = scrollBehavior,
-                        actions = actions,
-                        titleDropdown = titleDropdown,
-                        titleOnClick = titleOnClick
-                    )
+                    val topBar = @Composable {
+                        BlurTopAppBar(
+                            hazeState = if (progressiveTopBarBlur) null else hazeState,
+                            navigationIcon = {
+                                if (canBack) NavigationBackIcon(
+                                    backEvent = backEvent
+                                )
+                            },
+                            title = if (title is Int) stringResource(title) else title.toString(),
+                            scrollBehavior = scrollBehavior,
+                            actions = actions,
+                            titleDropdown = titleDropdown,
+                            titleOnClick = titleOnClick
+                        )
+                    }
+                    if (progressiveTopBarBlur) {
+                        ProgressiveBlurTopBar(backdrop = blurBackdrop, color = surfaceColor) { topBar() }
+                    } else {
+                        topBar()
+                    }
                 }
             ) { paddingValues ->
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
                         .layerBackdrop(bottomBarBackdrop)
+                        .progressiveBlurSource(blurBackdrop)
                         .padding(bottom = floatingBottomPadding)
                 ) {
                     content(paddingValues)

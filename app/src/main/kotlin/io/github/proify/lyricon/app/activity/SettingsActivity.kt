@@ -47,8 +47,8 @@ import kotlinx.coroutines.withContext
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
-import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
+import io.github.proify.lyricon.app.compose.Os4DropdownPreference
+import io.github.proify.lyricon.app.compose.Os4SpinnerPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 
 class SettingsActivity : BaseActivity() {
@@ -273,7 +273,7 @@ class SettingsActivity : BaseActivity() {
         }
 
         OpaqueDropdownPopupTheme {
-            OverlayDropdownPreference(
+            Os4DropdownPreference(
                 startAction = { IconActions(painterResource(R.drawable.ic_routine)) },
                 title = stringResource(R.string.item_app_theme_mode),
                 items = themeModeOptions.map { stringResource(it.first) },
@@ -320,7 +320,7 @@ class SettingsActivity : BaseActivity() {
         }
 
         OpaqueDropdownPopupTheme {
-            OverlaySpinnerPreference(
+            Os4SpinnerPreference(
                 startAction = { IconActions(painterResource(R.drawable.ic_language)) },
                 title = stringResource(R.string.item_app_language),
                 items = spinnerItems,

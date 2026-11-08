@@ -41,7 +41,7 @@ import io.github.proify.lyricon.lyric.style.TextStyle.Companion.KEY_ENABLED_ENTE
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.preference.CheckboxLocation
-import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
+import io.github.proify.lyricon.app.compose.Os4DropdownPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -530,7 +530,7 @@ private fun <T> DropdownPreference(
     }
 
     OpaqueDropdownPopupTheme {
-        OverlayDropdownPreference(
+        Os4DropdownPreference(
             startAction = { IconActions(painterResource(iconRes)) },
             title = title,
             items = options,
