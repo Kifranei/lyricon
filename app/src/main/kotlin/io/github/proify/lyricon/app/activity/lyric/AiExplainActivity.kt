@@ -6,6 +6,7 @@
 
 package io.github.proify.lyricon.app.activity.lyric
 
+import io.github.proify.lyricon.app.compose.GlassEntriesPopup
 import android.app.Activity
 import android.content.ClipData
 import android.graphics.Color
@@ -88,13 +89,11 @@ import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowBottomSheet
-import top.yukonga.miuix.kmp.window.WindowCascadingListPopup
 import java.util.Locale
 
 /**
@@ -366,11 +365,12 @@ private fun AiExplainSheet(title: String, artist: String, album: String, lyrics:
                         contentDescription = "更多操作",
                     )
                 }
-                WindowCascadingListPopup(
+                // 位于底部弹窗内：页面 backdrop 被弹窗遮住，使用不透明填充
+                GlassEntriesPopup(
                     show = state.showMenu,
                     entries = menuEntries,
                     onDismissRequest = { state.showMenu = false },
-                    alignment = PopupPositionProvider.Align.End,
+                    backdrop = null,
                 )
             }
         },

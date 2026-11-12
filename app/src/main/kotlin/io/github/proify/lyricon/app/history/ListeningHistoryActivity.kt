@@ -1,5 +1,6 @@
 package io.github.proify.lyricon.app.history
 
+import io.github.proify.lyricon.app.compose.Os4IconDropdownMenu
 import android.content.ClipData
 import android.content.Intent
 import android.graphics.Bitmap
@@ -93,7 +94,6 @@ import top.yukonga.miuix.kmp.icon.extended.Settings
 import top.yukonga.miuix.kmp.icon.extended.Share
 import top.yukonga.miuix.kmp.icon.extended.ZoomOut
 import top.yukonga.miuix.kmp.preference.SwitchPreference
-import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import java.io.File
 import java.text.DateFormat
@@ -379,7 +379,7 @@ private fun HistoryScreen(model: HistoryViewModel) {
         })
     )
     OpaqueDropdownPopupTheme {
-        OverlayIconDropdownMenu(entries = entries, collapseOnSelection = false, minHeight = 48.dp,
+        Os4IconDropdownMenu(entries = entries, collapseOnSelection = false, minHeight = 48.dp,
             maxHeight = 480.dp,
             modifier = Modifier.semantics { contentDescription = filterDescription }) {
             Row(Modifier.padding(horizontal = 8.dp), verticalAlignment = Alignment.CenterVertically,

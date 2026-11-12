@@ -5,6 +5,8 @@
  */
 package io.github.proify.lyricon.app.activity
 
+import io.github.proify.lyricon.app.compose.GlassListPopup
+import top.yukonga.miuix.kmp.glass.GlassPopupItem
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.os.Handler
@@ -53,12 +55,14 @@ import io.github.proify.lyricon.app.bridge.AppBridgeConstants
 import io.github.proify.lyricon.app.bridge.LyriconBridge
 import io.github.proify.lyricon.app.compose.LocalBottomBarBackdrop
 import io.github.proify.lyricon.app.compose.LocalFloatingBottomBarEnabled
+import io.github.proify.lyricon.app.compose.preference.rememberIntPreference
+import io.github.proify.lyricon.app.compose.BarStylePrefs
+import io.github.proify.lyricon.app.compose.LocalFloatingBottomBarStyle
 import io.github.proify.lyricon.app.compose.LocalSharedBackgroundEnabled
 import io.github.proify.lyricon.app.compose.MainBottomBar
 import io.github.proify.lyricon.app.compose.MainNavigationRail
 import io.github.proify.lyricon.app.compose.shouldShowNavigationRail
 import io.github.proify.lyricon.app.compose.MainBottomBarItem
-import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
 import io.github.proify.lyricon.app.compose.theme.AppTheme
 import io.github.proify.lyricon.app.compose.effect.BgEffectBackground
 import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
@@ -76,17 +80,12 @@ import io.github.proify.lyricon.app.util.restartApp
 import io.github.proify.lyricon.common.PackageNames
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.basic.DropdownImpl
 import top.yukonga.miuix.kmp.basic.IconButton
-import top.yukonga.miuix.kmp.basic.ListPopupColumn
-import top.yukonga.miuix.kmp.basic.ListPopupDefaults
-import top.yukonga.miuix.kmp.basic.PopupPositionProvider
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Home
 import top.yukonga.miuix.kmp.icon.extended.Refresh
-import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -270,6 +269,11 @@ class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
             "enable_flowing_background",
             true,
         )
+        val floatingBarStyle by rememberIntPreference(
+            sharedPreferences,
+            BarStylePrefs.KEY_FLOATING_BAR_STYLE,
+            BarStylePrefs.STYLE_IOS,
+        )
         val sharedBackgroundEnabled = useRail && flowingBackground
         val showFloatingBar = isFloating && !useRail
         val items = listOf(
@@ -302,6 +306,7 @@ class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
 
         CompositionLocalProvider(
             LocalFloatingBottomBarEnabled provides showFloatingBar,
+            LocalFloatingBottomBarStyle provides floatingBarStyle,
             LocalBottomBarBackdrop provides overlayBackdrop,
             LocalSharedBackgroundEnabled provides sharedBackgroundEnabled,
         ) {
@@ -422,31 +427,20 @@ class MainActivity : BaseActivity(), LyriconApp.XposedServiceStateListener {
             stringResource(R.string.restart_app)
         )
 
-        OverlayListPopup(
+        GlassListPopup(
             show = showRestartMenu.value,
-            popupPositionProvider = ListPopupDefaults.DropdownPositionProvider,
-            alignment = PopupPositionProvider.Align.TopEnd,
-            enableWindowDim = true,
             onDismissRequest = { showRestartMenu.value = false },
-            minWidth = 200.dp,
-            content = {
-                OpaqueDropdownPopupTheme {
-                    ListPopupColumn {
-                        items.forEachIndexed { index, string ->
-                            DropdownImpl(
-                                text = string,
-                                optionSize = items.size,
-                                isSelected = false,
-                                onSelectedIndexChange = {
-                                    if (index == 0) onRestartSystemUI() else onRestartApp()
-                                    showRestartMenu.value = false
-                                },
-                                index = index
-                            )
-                        }
-                    }
-                }
-            })
+        ) {
+            items.forEachIndexed { index, string ->
+                GlassPopupItem(
+                    text = string,
+                    onClick = {
+                        if (index == 0) onRestartSystemUI() else onRestartApp()
+                        showRestartMenu.value = false
+                    },
+                )
+            }
+        }
     }
 
     @Preview(showBackground = true)

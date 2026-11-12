@@ -36,6 +36,7 @@ import io.github.proify.lyricon.app.activity.lyric.AiLaboratoryActivity
 import io.github.proify.lyricon.app.compose.OpaqueDropdownPopupTheme
 import io.github.proify.lyricon.app.compose.AppToolBarListContainer
 import io.github.proify.lyricon.app.compose.IconActions
+import io.github.proify.lyricon.app.compose.BarStylePrefs
 import io.github.proify.lyricon.app.compose.effect.HyperOsDetector
 import io.github.proify.lyricon.app.compose.preference.rememberBooleanPreference
 import io.github.proify.lyricon.app.compose.preference.rememberIntPreference
@@ -52,8 +53,8 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.SpinnerEntry
 import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.OverlayDropdownPreference
-import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
+import io.github.proify.lyricon.app.compose.Os4DropdownPreference
+import io.github.proify.lyricon.app.compose.Os4SpinnerPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.basic.DropdownItem
@@ -247,6 +248,41 @@ private fun FloatingBarSetting() {
         }
     )
 
+    // 悬浮底栏样式：iOS 液态玻璃（原样式，默认）/ OS4 玻璃胶囊
+    var floatingBarStyle by rememberIntPreference(
+        sharedPreferences,
+        BarStylePrefs.KEY_FLOATING_BAR_STYLE,
+        BarStylePrefs.STYLE_IOS
+    )
+    OpaqueDropdownPopupTheme {
+        Os4DropdownPreference(
+            startAction = { IconActions(painterResource(R.drawable.ic_extension)) },
+            title = stringResource(R.string.item_floating_bottom_bar_style),
+            items = listOf(
+                stringResource(R.string.option_floating_bottom_bar_ios),
+                stringResource(R.string.option_floating_bottom_bar_os4),
+            ),
+            selectedIndex = floatingBarStyle.coerceIn(BarStylePrefs.STYLE_IOS, BarStylePrefs.STYLE_OS4),
+            enabled = floatingBarEnabled,
+            onSelectedIndexChange = { floatingBarStyle = it }
+        )
+    }
+
+    var progressiveTopBarBlur by rememberBooleanPreference(
+        sharedPreferences,
+        BarStylePrefs.KEY_PROGRESSIVE_TOP_BAR_BLUR,
+        true
+    )
+    SwitchPreference(
+        checked = progressiveTopBarBlur,
+        startAction = { IconActions(painterResource(R.drawable.ic_palette)) },
+        title = stringResource(R.string.item_progressive_top_bar_blur),
+        summary = stringResource(R.string.item_summary_progressive_top_bar_blur),
+        onCheckedChange = {
+            progressiveTopBarBlur = it
+        }
+    )
+
     var flowingBackgroundEnabled by rememberBooleanPreference(
         sharedPreferences,
         "enable_flowing_background",
@@ -274,7 +310,7 @@ private fun FloatingBarSetting() {
         DropdownItem(title = stringResource(R.string.option_flowing_background_os3)),
     )
     OpaqueDropdownPopupTheme {
-        OverlaySpinnerPreference(
+        Os4SpinnerPreference(
             startAction = { IconActions(painterResource(R.drawable.ic_palette)) },
             title = stringResource(R.string.item_flowing_background_style),
             items = flowingStyleItems,
@@ -351,7 +387,7 @@ private fun ThemeSetting(onApplied: () -> Unit) {
     }
 
     OpaqueDropdownPopupTheme {
-        OverlayDropdownPreference(
+        Os4DropdownPreference(
             startAction = { IconActions(painterResource(R.drawable.ic_routine)) },
             title = stringResource(R.string.item_app_theme_mode),
             items = themeModeOptions.map { stringResource(it.first) },
@@ -398,7 +434,7 @@ private fun LanguageSetting(onApplied: () -> Unit) {
     }
 
     OpaqueDropdownPopupTheme {
-        OverlaySpinnerPreference(
+        Os4SpinnerPreference(
             startAction = { IconActions(painterResource(R.drawable.ic_language)) },
             title = stringResource(R.string.item_app_language),
             items = spinnerItems,

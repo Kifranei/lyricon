@@ -59,7 +59,7 @@ import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
-import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
+import io.github.proify.lyricon.app.compose.Os4SpinnerPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 import top.yukonga.miuix.kmp.utils.overScrollVertical
 
@@ -340,7 +340,7 @@ private fun LogoGravity(preferences: SharedPreferences) {
     }
 
     OpaqueDropdownPopupTheme {
-        OverlaySpinnerPreference(
+        Os4SpinnerPreference(
             startAction = { IconActions(painterResource(R.drawable.ic_stack)) },
             title = stringResource(R.string.item_logo_position),
             items = optionResIds.map { DropdownItem(title = stringResource(it)) },

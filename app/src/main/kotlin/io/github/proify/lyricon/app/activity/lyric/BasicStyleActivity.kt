@@ -46,7 +46,7 @@ import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.preference.ArrowPreference
-import top.yukonga.miuix.kmp.preference.OverlaySpinnerPreference
+import io.github.proify.lyricon.app.compose.Os4SpinnerPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
 
 class BasicLyricStyleActivity : AbstractLyricActivity() {
@@ -166,7 +166,7 @@ fun BasicLyricSettingsScreen(
                 }
 
                 OpaqueDropdownPopupTheme {
-                    OverlaySpinnerPreference(
+                    Os4SpinnerPreference(
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_stack))
                         },
@@ -211,7 +211,7 @@ fun BasicLyricSettingsScreen(
                 }
 
                 OpaqueDropdownPopupTheme {
-                    OverlaySpinnerPreference(
+                    Os4SpinnerPreference(
                         startAction = {
                             IconActions(painterResource(R.drawable.ic_palette))
                         },
@@ -543,7 +543,7 @@ fun BasicLyricSettingsScreen(
 }
 
 /**
- * 手势动作选择器：一个手势对应一个 [OverlaySpinnerPreference]，
+ * 手势动作选择器：一个手势对应一个 [Os4SpinnerPreference]，
  * 可选项为 [LyricGesturePrefs.ACTION_NONE] 等动作常量
  */
 @Composable
@@ -578,7 +578,7 @@ private fun GestureActionSpinner(
     }
 
     OpaqueDropdownPopupTheme {
-        OverlaySpinnerPreference(
+        Os4SpinnerPreference(
             startAction = {
                 IconActions(painterResource(iconRes))
             },
@@ -744,7 +744,7 @@ private fun ChineseConversionPreference(preferences: SharedPreferences) {
     )
 
     OpaqueDropdownPopupTheme {
-        OverlaySpinnerPreference(
+        Os4SpinnerPreference(
             startAction = {
                 IconActions(painterResource(R.drawable.translate_24px))
             },
@@ -786,7 +786,7 @@ private fun SeekBarStyleSpinner(preferences: SharedPreferences) {
         mutableIntStateOf(styles.indexOf(current).coerceAtLeast(0))
     }
     OpaqueDropdownPopupTheme {
-        OverlaySpinnerPreference(
+        Os4SpinnerPreference(
             startAction = { IconActions(painterResource(R.drawable.ic_gesture_tap)) },
             title = stringResource(R.string.item_control_seekbar_style),
             items = items,
